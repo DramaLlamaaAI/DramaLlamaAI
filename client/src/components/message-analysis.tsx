@@ -159,14 +159,7 @@ export default function MessageAnalysis() {
                 </div>
               )}
 
-              {result.possibleReword && (
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Possible Re-word</h4>
-                  <p className="p-2 bg-background rounded border border-border mt-1">
-                    {result.possibleReword}
-                  </p>
-                </div>
-              )}
+
             </div>
           )}
           
