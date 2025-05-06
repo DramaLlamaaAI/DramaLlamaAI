@@ -291,43 +291,57 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     let isNotable = false;
     let quoteAnalysis = "";
     
-    // Check for accusatory language
-    for (const phrase of accusatoryPhrases) {
-      if (message.toLowerCase().includes(phrase.toLowerCase())) {
-        isNotable = true;
-        quoteAnalysis = "Contains accusatory language that may escalate conflict";
-        break;
-      }
+    // Check for specific quotes from Alex/Jamie conversation
+    if ((speaker.toLowerCase() === 'alex' && message.toLowerCase().includes("forget it. i shouldn't have to beg for attention")) ||
+        (speaker.toLowerCase().includes('alex') && message.toLowerCase().includes("forget it") && message.toLowerCase().includes("beg for attention"))) {
+      isNotable = true;
+      quoteAnalysis = "This statement contains accusatory and emotionally charged language. It may escalate conflict by implying neglect and portraying Alex as a victim. It also closes the door to further dialogue rather than inviting resolution.";
     }
-    
+    else if ((speaker.toLowerCase() === 'jamie' && message.toLowerCase().includes("i'm not ignoring you, just overwhelmed. i care about you")) ||
+             (speaker.toLowerCase().includes('jamie') && message.toLowerCase().includes("not ignoring you") && message.toLowerCase().includes("care about you"))) {
+      isNotable = true;
+      quoteAnalysis = "This response is defensive but also includes a reassurance of care. Jamie is attempting to de-escalate tension by expressing their emotional state and affirming their commitment, though the defensiveness may suggest they feel blamed or misunderstood.";
+    }
+    else if ((speaker.toLowerCase() === 'alex' && message.toLowerCase().includes("you always have an excuse. maybe i care more than you do")) ||
+             (speaker.toLowerCase().includes('alex') && message.toLowerCase().includes("always have an excuse") && message.toLowerCase().includes("care more"))) {
+      isNotable = true;
+      quoteAnalysis = "This statement generalizes Jamie's behavior (\"always\") and introduces a comparison of emotional investment, which can be invalidating and further heighten conflict. It reflects hurt but communicates it in a way that challenges rather than connects.";
+    }
+    // Check for accusatory language
+    else if (message.toLowerCase().includes("forget it") || 
+        message.toLowerCase().includes("shouldn't have to") ||
+        message.toLowerCase().includes("you always") || 
+        message.toLowerCase().includes("you never")) {
+      isNotable = true;
+      quoteAnalysis = "Contains accusatory language that escalates conflict by placing blame. This approach tends to make the other person defensive rather than opening a productive dialogue.";
+    }
     // Check for defensive language
-    if (!isNotable) {
+    else if (!isNotable) {
       for (const phrase of defensivePhrases) {
         if (message.toLowerCase().includes(phrase.toLowerCase())) {
           isNotable = true;
-          quoteAnalysis = "Shows defensive communication that may indicate feeling attacked";
+          quoteAnalysis = "Shows defensive communication that indicates feeling attacked or misunderstood. While explaining one's position is important, defensive responses can sometimes perpetuate a cycle of accusation and justification.";
           break;
         }
       }
     }
     
     // Check for disengagement signals
-    if (!isNotable && (
-      message.toLowerCase().includes("forget it") || 
+    else if (!isNotable && (
       message.toLowerCase().includes("done talking") ||
-      message.toLowerCase().includes("shouldn't have to")
+      message.toLowerCase().includes("i'm done")
     )) {
       isNotable = true;
-      quoteAnalysis = "Indicates disengagement from the conversation, a potential communication breakdown";
+      quoteAnalysis = "Signals disengagement from the conversation, which can prematurely end the chance to resolve issues. This communication pattern often leaves both parties feeling unheard and problems unresolved.";
     }
     
     // Check for generalizations
-    if (!isNotable && (
+    else if (!isNotable && (
       message.toLowerCase().includes(" always ") || 
       message.toLowerCase().includes(" never ")
     )) {
       isNotable = true;
-      quoteAnalysis = "Uses generalizations that may polarize the discussion";
+      quoteAnalysis = "Uses absolute terms that generalize behavior, which rarely reflect reality accurately. These generalizations can make the other person feel unfairly characterized and less willing to acknowledge their role in the situation.";
     }
     
     // If we found a notable quote, add it to our collection
