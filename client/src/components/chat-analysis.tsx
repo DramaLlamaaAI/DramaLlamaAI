@@ -438,6 +438,56 @@ export default function ChatAnalysis() {
                 </div>
               </div>
               
+              {result.healthScore && (
+                <div className={`p-4 rounded-lg mb-4 ${
+                  result.healthScore.color === 'red' ? 'bg-red-50' : 
+                  result.healthScore.color === 'yellow' ? 'bg-amber-50' : 
+                  result.healthScore.color === 'light-green' ? 'bg-emerald-50' : 
+                  'bg-green-50'
+                }`}>
+                  <h4 className="font-medium mb-3 text-gray-800">Conversation Health Meter</h4>
+                  <div className="flex items-center mb-2">
+                    <span className="font-medium text-lg">{result.healthScore.label}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className={`absolute top-0 left-0 h-full rounded-full ${
+                          result.healthScore.color === 'red' ? 'bg-red-500' : 
+                          result.healthScore.color === 'yellow' ? 'bg-amber-500' : 
+                          result.healthScore.color === 'light-green' ? 'bg-emerald-500' : 
+                          'bg-green-500'
+                        }`}
+                        style={{ width: `${result.healthScore.score}%` }}
+                      />
+                    </div>
+                    <span className="ml-3 font-bold">
+                      {result.healthScore.score}/100
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
+                    <span>High Conflict</span>
+                    <span>Tense</span>
+                    <span>Strained</span>
+                    <span>Healthy</span>
+                  </div>
+                  <div className="flex justify-between w-full mt-2">
+                    <div className="w-[25%] flex justify-center">
+                      <span className="text-lg">🚩</span>
+                    </div>
+                    <div className="w-[25%] flex justify-center">
+                      <span className="text-lg">⚠️</span>
+                    </div>
+                    <div className="w-[25%] flex justify-center">
+                      <span className="text-lg">✅</span>
+                    </div>
+                    <div className="w-[25%] flex justify-center">
+                      <span className="text-lg">🌿</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {result.redFlags && (
                 <div className="bg-red-50 p-4 rounded-lg mb-4 border border-red-200">
                   <h4 className="font-medium mb-2 text-red-700">Potential Red Flags</h4>

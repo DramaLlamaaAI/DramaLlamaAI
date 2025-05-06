@@ -20,6 +20,11 @@ interface ChatAnalysisResponse {
     suggestions?: string[];
   };
   dramaScore?: number;
+  healthScore?: {
+    score: number;
+    label: string;
+    color: 'red' | 'yellow' | 'light-green' | 'green';
+  };
   keyQuotes?: Array<{
     speaker: string;
     quote: string;
@@ -314,6 +319,76 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     }
   }
   
+  // Calculate the health score (0-100 scale)
+  // Factors to consider:
+  // 1. Positive vs negative sentiment
+  // 2. Accusatory language
+  // 3. Defensive responses
+  // 4. Disengagement signals
+  
+  // Base score starts at 75 (moderate health)
+  let healthScore = 75;
+  
+  // Adjust based on sentiment ratio
+  const sentimentRatio = positiveCount / (negativeCount || 1);
+  healthScore += Math.min(15, sentimentRatio * 5); // Max +15 bonus for positive sentiment
+  
+  // Penalty for accusatory language
+  healthScore -= Math.min(30, accusatoryCount * 5); // Max -30 for accusatory language
+  
+  // Penalty for defensive responses
+  healthScore -= Math.min(15, defensiveCount * 3); // Max -15 for defensive responses
+  
+  // Penalty for short replies (disengagement)
+  if (shortReplyRatio > 0.5) {
+    healthScore -= Math.min(10, shortReplyRatio * 20); // Max -10 for disengagement
+  }
+  
+  // Special penalties for extreme patterns
+  if (conversation.includes('done talking') || conversation.includes('forget it')) {
+    healthScore -= 20; // Major penalty for disengagement
+  }
+  
+  if (conversation.match(/\byou always\b|\byou never\b/gi)) {
+    healthScore -= 10; // Penalty for absolute generalizations
+  }
+  
+  // Bonus for de-escalation attempts
+  const deEscalationPhrases = [
+    'understand', 'see your point', 'sorry', 'apologize', 'let\'s talk',
+    'calm', 'what you\'re saying', 'appreciate', 'thank you'
+  ];
+  
+  let deEscalationCount = 0;
+  for (const phrase of deEscalationPhrases) {
+    const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
+    const matches = conversation.match(regex);
+    if (matches) deEscalationCount += matches.length;
+  }
+  
+  healthScore += Math.min(20, deEscalationCount * 4); // Max +20 bonus for de-escalation
+  
+  // Ensure score is within 0-100 range
+  healthScore = Math.max(0, Math.min(100, Math.round(healthScore)));
+  
+  // Determine the health label and color based on the score
+  let healthLabel = '';
+  let healthColor: 'red' | 'yellow' | 'light-green' | 'green' = 'yellow';
+  
+  if (healthScore <= 30) {
+    healthLabel = '🚩 High Conflict / Emotionally Unsafe';
+    healthColor = 'red';
+  } else if (healthScore <= 60) {
+    healthLabel = '⚠️ Tense / Needs Work';
+    healthColor = 'yellow';
+  } else if (healthScore <= 85) {
+    healthLabel = '✅ Respectful but Strained';
+    healthColor = 'light-green';
+  } else {
+    healthLabel = '🌿 Healthy Communication';
+    healthColor = 'green';
+  }
+  
   // Generate a more nuanced fallback response
   const fallbackAnalysis: ChatAnalysisResponse = {
     toneAnalysis: {
@@ -330,6 +405,11 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
         accusatoryCount > 2 ? "Accusatory language patterns" : "Direct expression of concerns",
         defensiveCount > 2 ? "Defensive communication style" : "Attempt to clarify perspectives"
       ]
+    },
+    healthScore: {
+      score: healthScore,
+      label: healthLabel,
+      color: healthColor
     },
     keyQuotes: keyQuotes.slice(0, 3) // Limit to 3 most relevant quotes
   };

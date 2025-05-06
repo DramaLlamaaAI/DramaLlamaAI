@@ -28,6 +28,11 @@ export interface ChatAnalysisResponse {
     suggestions?: string[];
   };
   dramaScore?: number;
+  healthScore?: {
+    score: number;
+    label: string;
+    color: 'red' | 'yellow' | 'light-green' | 'green';
+  };
   keyQuotes?: Array<{
     speaker: string;
     quote: string;
