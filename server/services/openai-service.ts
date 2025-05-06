@@ -9,6 +9,9 @@ interface ChatAnalysisResponse {
       emotion: string;
       intensity: number;
     }>;
+    participantTones?: {
+      [key: string]: string;
+    };
   };
   redFlags?: Array<{
     type: string;
@@ -64,7 +67,11 @@ const prompts = {
         "overallTone": "brief 2-3 sentence summary of conversation tone",
         "emotionalState": [
           { "emotion": "emotion name", "intensity": number from 1-10 }
-        ]
+        ],
+        "participantTones": {
+          "{me}": "1-2 sentence analysis of {me}'s communication tone",
+          "{them}": "1-2 sentence analysis of {them}'s communication tone"
+        }
       },
       "communication": {
         "patterns": ["1-2 basic observable patterns"]
@@ -158,6 +165,87 @@ const prompts = {
     "them": "name of second person"
   }`
 };
+
+// Helper function to generate personalized tone analysis for each participant
+function generateParticipantTone(name: string, conversation: string, globalAccusatoryCount: number, globalDefensiveCount: number): string {
+  // Extract lines containing this participant
+  const lines = conversation.split('\n');
+  const participantLines = lines.filter(line => line.toLowerCase().startsWith(name.toLowerCase()));
+  
+  // Positive and negative words for sentiment analysis
+  const positiveWords = ['happy', 'good', 'great', 'love', 'thanks', 'appreciate', 'hope', 'glad', 'care'];
+  const negativeWords = ['sad', 'bad', 'hate', 'angry', 'upset', 'annoyed', 'disappointed', 'sorry'];
+  const accusatoryWords = ['you always', 'you never', 'your fault', 'you don\'t care'];
+  const defensiveWords = ['not ignoring', 'not blaming', 'that\'s not true', 'i care'];
+  
+  // Count sentiment in this participant's messages
+  let positiveCount = 0;
+  let negativeCount = 0;
+  let participantAccusatoryCount = 0;
+  let participantDefensiveCount = 0;
+  
+  const participantText = participantLines.join(' ');
+  
+  // Count positive words
+  for (const word of positiveWords) {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    const matches = participantText.match(regex);
+    if (matches) positiveCount += matches.length;
+  }
+  
+  // Count negative words
+  for (const word of negativeWords) {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    const matches = participantText.match(regex);
+    if (matches) negativeCount += matches.length;
+  }
+  
+  // Count accusatory phrases
+  for (const phrase of accusatoryWords) {
+    const regex = new RegExp(phrase, 'gi');
+    const matches = participantText.match(regex);
+    if (matches) participantAccusatoryCount += matches.length;
+  }
+  
+  // Count defensive phrases
+  for (const phrase of defensiveWords) {
+    const regex = new RegExp(phrase, 'gi');
+    const matches = participantText.match(regex);
+    if (matches) participantDefensiveCount += matches.length;
+  }
+  
+  // Generate tone description based on the counts
+  let tone = "";
+  
+  // Special patterns take precedence
+  if (participantText.match(/\bforget it\b|\bdone talking\b/gi)) {
+    tone = `${name} appears frustrated and is disengaging from the conversation.`;
+  } 
+  else if (participantAccusatoryCount > 1) {
+    tone = `${name} uses accusatory language and appears frustrated with the other person.`;
+  }
+  else if (participantDefensiveCount > 1) {
+    tone = `${name} responds defensively, trying to explain their perspective.`;
+  }
+  // General sentiment
+  else if (positiveCount > negativeCount * 2) {
+    tone = `${name} maintains a mostly positive and constructive tone throughout the conversation.`;
+  }
+  else if (negativeCount > positiveCount * 2) {
+    tone = `${name} expresses significant negative emotions and appears distressed.`;
+  }
+  else if (positiveCount > negativeCount) {
+    tone = `${name} tries to keep the conversation positive despite some tensions.`;
+  }
+  else if (negativeCount > positiveCount) {
+    tone = `${name} expresses some frustration, but generally stays engaged in the conversation.`;
+  }
+  else {
+    tone = `${name} maintains a neutral tone throughout the conversation.`;
+  }
+  
+  return tone;
+}
 
 // Function to generate fallback analysis when OpenAI is unavailable
 function generateFallbackAnalysis(conversation: string, me: string, them: string, tier: string): ChatAnalysisResponse {
@@ -475,7 +563,11 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
         { emotion: sentiment, intensity: emotionalIntensity },
         { emotion: accusatoryCount > defensiveCount ? "Frustration" : "Defensiveness", 
           intensity: Math.max(1, Math.min(10, accusatoryCount + defensiveCount)) }
-      ]
+      ],
+      participantTones: {
+        [me]: generateParticipantTone(me, conversation, accusatoryCount, defensiveCount),
+        [them]: generateParticipantTone(them, conversation, accusatoryCount, defensiveCount)
+      }
     },
     communication: {
       patterns: [
