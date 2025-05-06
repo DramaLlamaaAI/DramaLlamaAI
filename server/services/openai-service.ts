@@ -570,11 +570,7 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
       }
     },
     communication: {
-      patterns: [
-        shortReplyRatio > 0.5 ? "Short, disengaged responses" : "Detailed explanations and responses",
-        accusatoryCount > 2 ? "Accusatory language patterns" : "Direct expression of concerns",
-        defensiveCount > 2 ? "Defensive communication style" : "Attempt to clarify perspectives"
-      ]
+      patterns: []
     },
     healthScore: {
       score: healthScore,
