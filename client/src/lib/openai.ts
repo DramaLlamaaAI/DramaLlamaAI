@@ -17,6 +17,9 @@ export interface ChatAnalysisResponse {
       emotion: string;
       intensity: number;
     }>;
+    participantTones?: {
+      [key: string]: string;
+    };
   };
   redFlags?: Array<{
     type: string;

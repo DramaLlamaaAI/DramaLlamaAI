@@ -107,3 +107,34 @@ export const hasAcceptedDisclaimer = (): boolean => {
   if (!isLocalStorageAvailable()) return false;
   return localStorage.getItem('dramaLlama_disclaimerAccepted') === 'true';
 };
+
+// Get participant name color
+export const getParticipantColor = (name: string): string => {
+  // Generate a consistent color based on the name
+  const colors = {
+    // Primary color for the first participant (usually "me")
+    primary: 'text-[#22C9C9] font-medium',
+    // Secondary color for the second participant (usually "them")
+    secondary: 'text-[#FF69B4] font-medium',
+    // Default color in case we need it
+    default: 'text-purple-500 font-medium'
+  };
+  
+  const normalizedName = name.toLowerCase().trim();
+  
+  // For predictable colors, we'll use specific mappings
+  // This would be "me" or first detected name
+  if (normalizedName === 'me' || normalizedName === 'i' || normalizedName === 'alex') {
+    return colors.primary;
+  }
+  
+  // This would be "them" or second detected name
+  if (normalizedName === 'them' || normalizedName === 'you' || normalizedName === 'jamie') {
+    return colors.secondary;
+  }
+  
+  // Default case - compute a hash of the name to determine color
+  // In a simple way: use the first character's code
+  const charCode = normalizedName.charCodeAt(0) || 0;
+  return charCode % 2 === 0 ? colors.primary : colors.secondary;
+};

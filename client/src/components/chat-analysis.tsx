@@ -9,7 +9,7 @@ import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, Trendi
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
-import { fileToBase64, validateConversation } from "@/lib/utils";
+import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
@@ -420,9 +420,21 @@ export default function ChatAnalysis() {
               
               <div className="bg-muted p-4 rounded-lg mb-4">
                 <h4 className="font-medium mb-2">Overall Tone</h4>
-                <p className="text-lg">{result.toneAnalysis.overallTone}</p>
+                <p className="text-lg mb-4">{result.toneAnalysis.overallTone}</p>
                 
-
+                {result.toneAnalysis.participantTones && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <h5 className="font-medium mb-2 text-sm uppercase tracking-wide text-muted-foreground">Participant Analysis</h5>
+                    <div className="space-y-2">
+                      {Object.entries(result.toneAnalysis.participantTones).map(([name, tone]) => (
+                        <div key={name} className="flex items-start">
+                          <span className={`inline-block mr-2 ${getParticipantColor(name)}`}>{name}:</span>
+                          <span>{tone}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               
               {result.healthScore && (
