@@ -44,9 +44,12 @@ export default function HeroSection() {
                     How It Works
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[85vw] sm:max-w-[550px]">
+                <DialogContent className="max-w-[85vw] sm:max-w-[550px]" aria-describedby="how-it-works-description">
                   <DialogHeader>
                     <DialogTitle className="text-2xl">How Drama Llama Works</DialogTitle>
+                    <DialogDescription id="how-it-works-description" className="sr-only">
+                      Learn how Drama Llama analyzes your conversations and messages
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="pt-4 space-y-4">
                     <div>
@@ -66,7 +69,7 @@ export default function HeroSection() {
                     
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-2">
                       <h3 className="text-lg font-semibold mb-1 text-blue-700">Your Privacy Matters</h3>
-                      <p>Drama Llama doesn't store or have visibility into your conversations. All processing happens securely between your device and our AI system. Your data is never saved or used for training.</p>
+                      <p>Drama Llama doesn't store or have visibility into your conversations. All processing happens securely between your device and our AI system. Your data is never saved.</p>
                     </div>
                     
                     <div className="pt-2">
