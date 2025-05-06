@@ -487,6 +487,26 @@ export default function ChatAnalysis() {
                 )}
               </div>
               
+              {result.keyQuotes && result.keyQuotes.length > 0 && (
+                <div className="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
+                  <h4 className="font-medium mb-2 text-blue-700">Key Quotes Analysis</h4>
+                  <div className="space-y-3">
+                    {result.keyQuotes.map((quote, idx) => (
+                      <div key={idx} className="bg-white p-3 rounded border border-blue-100">
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-semibold text-blue-800">{quote.speaker}</span>
+                          <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">Quote #{idx + 1}</span>
+                        </div>
+                        <p className="text-gray-700 italic mb-2">"{quote.quote}"</p>
+                        <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                          <span className="font-medium text-blue-700">Analysis:</span> {quote.analysis}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               {result.dramaScore !== undefined && (
                 <div className="bg-primary/10 p-4 rounded-lg">
                   <h4 className="font-medium mb-2 text-primary">Drama Score™</h4>
