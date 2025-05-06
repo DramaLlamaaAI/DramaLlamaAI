@@ -1430,10 +1430,44 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
     intents.push('Using generalizations');
   }
   
-  // Basic result
+  // Generate potential responses based on message tone
+  let potentialResponse = "";
+  if (tone === 'Frustrated and disengaging') {
+    potentialResponse = "I understand this is frustrating. Would it help to take a break and come back to this conversation later?";
+  } else if (tone === 'Accusatory' || tone === 'Confrontational') {
+    potentialResponse = "I can see this is important to you. I'd like to understand your perspective better.";
+  } else if (tone === 'Defensive') {
+    potentialResponse = "I hear what you're saying. Maybe we can both share our thoughts on this situation.";
+  } else if (tone.includes('negative')) {
+    potentialResponse = "I appreciate you sharing how you feel. That sounds challenging.";
+  } else if (tone.includes('positive')) {
+    potentialResponse = "That's great to hear! I'm really happy for you.";
+  } else {
+    potentialResponse = "Thanks for sharing that with me. Tell me more about your thoughts on this.";
+  }
+
+  // Generate possible rewords based on message tone and content
+  let possibleReword = "";
+  if (tone === 'Frustrated and disengaging') {
+    possibleReword = "I need some space to collect my thoughts. Can we continue this conversation later when I'm feeling calmer?";
+  } else if (tone === 'Accusatory' || tone === 'Confrontational') {
+    possibleReword = "I've been feeling concerned about some patterns I've noticed. Could we talk about what's been happening?";
+  } else if (tone === 'Defensive') {
+    possibleReword = "I want to make sure we understand each other. From my perspective, this is what happened...";
+  } else if (tone.includes('negative')) {
+    possibleReword = "I'm feeling upset about this situation. It would help me if we could discuss it openly.";
+  } else if (tone.includes('positive')) {
+    possibleReword = "I'm really happy about this and wanted to share my excitement with you!";
+  } else {
+    possibleReword = "I wanted to share this thought with you and hear your perspective on it.";
+  }
+
+  // Basic result with all fields
   const result: MessageAnalysisResponse = {
     tone,
-    intent: intents
+    intent: intents,
+    potentialResponse,
+    possibleReword
   };
   
   // Add suggested reply for Personal tier with more context-aware responses
