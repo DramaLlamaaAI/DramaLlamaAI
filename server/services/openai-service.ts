@@ -1430,36 +1430,66 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
     intents.push('Using generalizations');
   }
   
-  // Generate potential responses based on message tone
+  // Generate responses based specifically on the message content, not just the general tone
   let potentialResponse = "";
-  if (tone === 'Frustrated and disengaging') {
-    potentialResponse = "I understand this is frustrating. Would it help to take a break and come back to this conversation later?";
-  } else if (tone === 'Accusatory' || tone === 'Confrontational') {
-    potentialResponse = "I can see this is important to you. I'd like to understand your perspective better.";
-  } else if (tone === 'Defensive') {
-    potentialResponse = "I hear what you're saying. Maybe we can both share our thoughts on this situation.";
-  } else if (tone.includes('negative')) {
-    potentialResponse = "I appreciate you sharing how you feel. That sounds challenging.";
-  } else if (tone.includes('positive')) {
-    potentialResponse = "That's great to hear! I'm really happy for you.";
-  } else {
-    potentialResponse = "Thanks for sharing that with me. Tell me more about your thoughts on this.";
-  }
-
-  // Generate possible rewords based on message tone and content
   let possibleReword = "";
-  if (tone === 'Frustrated and disengaging') {
-    possibleReword = "I need some space to collect my thoughts. Can we continue this conversation later when I'm feeling calmer?";
-  } else if (tone === 'Accusatory' || tone === 'Confrontational') {
-    possibleReword = "I've been feeling concerned about some patterns I've noticed. Could we talk about what's been happening?";
-  } else if (tone === 'Defensive') {
-    possibleReword = "I want to make sure we understand each other. From my perspective, this is what happened...";
-  } else if (tone.includes('negative')) {
-    possibleReword = "I'm feeling upset about this situation. It would help me if we could discuss it openly.";
-  } else if (tone.includes('positive')) {
-    possibleReword = "I'm really happy about this and wanted to share my excitement with you!";
-  } else {
-    possibleReword = "I wanted to share this thought with you and hear your perspective on it.";
+  
+  // Check for specific message patterns and provide tailored responses
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes("you never listen")) {
+    potentialResponse = "I hear that you're feeling unheard. Can we talk about specific times when you felt I wasn't listening?";
+    possibleReword = "I feel like there have been some times when my thoughts weren't being considered. Could we talk about how we communicate?";
+  }
+  else if (lowerMessage.includes("always") && lowerMessage.includes("you")) {
+    potentialResponse = "I notice a pattern you're concerned about. I'd like to understand which specific situations bothered you.";
+    possibleReword = "I've been feeling frustrated by something I've noticed happening repeatedly. Could we discuss some specific examples?";
+  }
+  else if (lowerMessage.includes("don't care")) {
+    potentialResponse = "Your feelings matter to me. I'm sorry you feel that way - can you tell me more about what made you feel uncared for?";
+    possibleReword = "I'm feeling hurt because I don't feel like my concerns are being prioritized. It's important to me that we address this.";
+  }
+  else if (lowerMessage.includes("hate") || lowerMessage.includes("worst")) {
+    potentialResponse = "I can see you're feeling strongly about this. What do you think would make this situation better?";
+    possibleReword = "I'm feeling really upset about this situation. Here's what I think might help us move forward...";
+  } 
+  else if (lowerMessage.includes("sorry")) {
+    potentialResponse = "Thank you for apologizing. I appreciate that, and I'd like to understand more about what happened.";
+    possibleReword = "I want to apologize for what happened. I understand it affected you, and I'd like to talk about how we can move forward.";
+  }
+  else if (lowerMessage.includes("i need")) {
+    potentialResponse = "That's important to know. Can you tell me more about what would help meet that need?";
+    possibleReword = "It would really help me if we could work together on finding a way to address this specific need I have.";
+  }
+  else if (lowerMessage.includes("i feel")) {
+    potentialResponse = "Thank you for sharing how you feel. That helps me understand better. What would help you feel better about this?";
+    possibleReword = "I wanted to share how I'm feeling about this situation because I think it's important for us to understand each other.";
+  }
+  else if (lowerMessage.includes("we need to talk")) {
+    potentialResponse = "I'm here to listen. What's on your mind that you'd like to discuss?";
+    possibleReword = "I think it would be helpful if we could have a conversation about something that's been on my mind.";
+  }
+  else {
+    // Default responses based on tone when no specific patterns match
+    if (tone === 'Frustrated and disengaging') {
+      potentialResponse = "I understand this is frustrating. Would it help to take a break and come back to this conversation later?";
+      possibleReword = "I need some space to collect my thoughts. Can we continue this conversation later when I'm feeling calmer?";
+    } else if (tone === 'Accusatory' || tone === 'Confrontational') {
+      potentialResponse = "I can see this is important to you. I'd like to understand your perspective better without jumping to conclusions.";
+      possibleReword = "I've been feeling concerned about some patterns I've noticed. Could we talk about what's been happening without assigning blame?";
+    } else if (tone === 'Defensive') {
+      potentialResponse = "I hear what you're saying. Maybe we can both share our thoughts on this situation without feeling attacked.";
+      possibleReword = "I want to make sure we understand each other. From my perspective, this is what happened, and I'd like to hear your view too.";
+    } else if (tone.includes('negative')) {
+      potentialResponse = "I appreciate you sharing how you feel. That sounds challenging, and I'm here to listen.";
+      possibleReword = "I'm feeling upset about this situation. It would help me if we could discuss it openly and constructively.";
+    } else if (tone.includes('positive')) {
+      potentialResponse = "That's great to hear! I'm really happy for you and appreciate you sharing this with me.";
+      possibleReword = "I'm really happy about this and wanted to share my excitement with you because it matters to me!";
+    } else {
+      potentialResponse = "Thanks for sharing that with me. Tell me more about your thoughts on this so I can understand better.";
+      possibleReword = "I wanted to share this thought with you and hear your perspective on it, as I value your input.";
+    }
   }
 
   // Basic result with all fields
@@ -1472,18 +1502,36 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
   
   // Add suggested reply for Personal tier with more context-aware responses
   if (tier === 'personal') {
-    if (tone === 'Frustrated and disengaging') {
+    if (lowerMessage.includes("you never listen")) {
+      result.suggestedReply = "I understand you feel unheard. I want to listen better. Can you share a specific example so I can understand?";
+    }
+    else if (lowerMessage.includes("always") && lowerMessage.includes("you")) {
+      result.suggestedReply = "I hear your frustration. Let's talk about specific situations rather than generalizations so we can address what's bothering you.";
+    }
+    else if (lowerMessage.includes("don't care")) {
+      result.suggestedReply = "I do care, even if it hasn't seemed that way. Your feelings are important to me. Can you tell me more?";
+    }
+    else if (lowerMessage.includes("hate") || lowerMessage.includes("worst")) {
+      result.suggestedReply = "I can see this is really bothering you. Let's focus on finding a solution that works for both of us.";
+    }
+    else if (lowerMessage.includes("sorry")) {
+      result.suggestedReply = "I appreciate your apology. Let's talk about how we can move forward from here in a positive way.";
+    }
+    else if (lowerMessage.includes("i need")) {
+      result.suggestedReply = "Thank you for letting me know what you need. Let's figure out how to address that together.";
+    }
+    else if (tone === 'Frustrated and disengaging') {
       result.suggestedReply = "I understand you're frustrated. Let's take a short break and come back to this when we're both feeling calmer.";
     } else if (tone === 'Accusatory' || tone === 'Confrontational') {
-      result.suggestedReply = "I hear that you're upset. Can you help me understand what specific concerns you have?";
+      result.suggestedReply = "I hear that you're upset. Can you help me understand what specific concerns you have so we can address them?";
     } else if (tone === 'Defensive') {
-      result.suggestedReply = "I appreciate you explaining your perspective. Let me think about what you've said.";
+      result.suggestedReply = "I appreciate you explaining your perspective. Let me think about what you've said so I can respond thoughtfully.";
     } else if (tone.includes('negative')) {
-      result.suggestedReply = "I understand this is difficult. Let's try to work through this together.";
+      result.suggestedReply = "I understand this is difficult. Let's try to work through this together and find a solution that works for both of us.";
     } else if (tone.includes('positive')) {
-      result.suggestedReply = "I'm glad to hear that! Thanks for sharing.";
+      result.suggestedReply = "I'm glad to hear that! Thanks for sharing this positive news with me.";
     } else {
-      result.suggestedReply = "I see what you mean. Let's continue this conversation.";
+      result.suggestedReply = "I see what you mean. Let's continue this conversation and explore this topic further.";
     }
   }
   
