@@ -452,14 +452,17 @@ export default function ChatAnalysis() {
                   </div>
                   <div className="flex items-center">
                     <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                      {/* Background color gradient from green to red */}
+                      <div className="absolute top-0 left-0 h-full w-full" 
+                           style={{ 
+                             background: 'linear-gradient(to right, #22c55e 0%, #10b981 25%, #f59e0b 50%, #f43f5e 75%, #ef4444 100%)' 
+                           }}>
+                      </div>
+                      
+                      {/* White overlay that covers the gradient based on score */}
                       <div 
-                        className={`absolute top-0 left-0 h-full ${
-                          result.healthScore.score < 30 ? 'bg-red-500' : 
-                          result.healthScore.score < 60 ? 'bg-amber-500' : 
-                          result.healthScore.score < 85 ? 'bg-emerald-500' : 
-                          'bg-green-500'
-                        } rounded-r-full`}
-                        style={{ width: `${result.healthScore.score}%` }}
+                        className="absolute top-0 right-0 h-full bg-white rounded-l-full"
+                        style={{ width: `${100 - (result.healthScore.score || 0)}%` }}
                       />
                     </div>
 
