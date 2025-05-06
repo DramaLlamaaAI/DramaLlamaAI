@@ -64,6 +64,11 @@ export default function HeroSection() {
                       <p>Transform heated emotional messages into calm, constructive communication that preserves your concerns while opening the door to resolution.</p>
                     </div>
                     
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-2">
+                      <h3 className="text-lg font-semibold mb-1 text-blue-700">Your Privacy Matters</h3>
+                      <p>Drama Llama doesn't store or have visibility into your conversations. All processing happens securely between your device and our AI system. Your data is never saved or used for training.</p>
+                    </div>
+                    
                     <div className="pt-2">
                       <p className="text-sm text-muted-foreground">Drama Llama uses advanced AI to analyze communication patterns and emotional cues. All insights are meant to provide perspective, not definitive judgments about your relationships.</p>
                     </div>
