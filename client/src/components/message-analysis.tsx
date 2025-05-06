@@ -142,10 +142,28 @@ export default function MessageAnalysis() {
               </div>
               
               {result.suggestedReply && (
-                <div>
+                <div className="mb-4">
                   <h4 className="text-sm font-medium text-muted-foreground">Suggested Reply</h4>
                   <p className="p-2 bg-background rounded border border-border mt-1">
                     {result.suggestedReply}
+                  </p>
+                </div>
+              )}
+
+              {result.potentialResponse && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-muted-foreground">Potential Response</h4>
+                  <p className="p-2 bg-background rounded border border-border mt-1">
+                    {result.potentialResponse}
+                  </p>
+                </div>
+              )}
+
+              {result.possibleReword && (
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">Possible Re-word</h4>
+                  <p className="p-2 bg-background rounded border border-border mt-1">
+                    {result.possibleReword}
                   </p>
                 </div>
               )}

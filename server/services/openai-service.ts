@@ -161,14 +161,18 @@ const prompts = {
     free: `Analyze this single message: "{message}". It was written by {author}. Provide a brief tone analysis. Respond with JSON in this format:
     {
       "tone": "description of tone",
-      "intent": ["possible intents"]
+      "intent": ["possible intents"],
+      "potentialResponse": "a potential response to this message",
+      "possibleReword": "a suggestion on how this message could have been reworded more effectively"
     }`,
     
-    personal: `Analyze this single message: "{message}". It was written by {author}. Provide tone analysis, possible intents, and suggestion. Respond with JSON in this format:
+    personal: `Analyze this single message: "{message}". It was written by {author}. Provide tone analysis, possible intents, suggested reply, potential response and possible rewording. Respond with JSON in this format:
     {
       "tone": "detailed description of tone",
       "intent": ["list of possible intents"],
-      "suggestedReply": "suggested response"
+      "suggestedReply": "suggested response if you are receiving this message",
+      "potentialResponse": "a potential response considering the emotional context",
+      "possibleReword": "a suggestion on how this message could have been reworded more effectively"
     }`
   },
   
