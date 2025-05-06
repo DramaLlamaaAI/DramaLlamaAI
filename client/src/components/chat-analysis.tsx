@@ -5,13 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -483,6 +484,118 @@ export default function ChatAnalysis() {
                     </div>
                     <div className="w-[25%] flex justify-center">
                       <span className="text-lg">🚩</span>
+                    </div>
+                  </div>
+                  
+                  {/* Display warning message for high conflict conversations */}
+                  {result.healthScore.score <= 30 && (
+                    <div className="bg-red-100 border border-red-200 rounded-md p-3 mt-4 text-sm flex items-start">
+                      <span className="text-red-600 mr-2 text-lg">⚠️</span>
+                      <p className="text-red-700">
+                        This conversation shows signs of high emotional tension. Consider taking a step back or using Vent Mode to reframe future replies.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Tension Trendline */}
+                  <div className="mt-6 border rounded-lg p-4">
+                    <div className="flex items-center mb-3">
+                      <TrendingUp className="mr-2 h-5 w-5 text-muted-foreground" />
+                      <h4 className="font-medium">Tension Trendline</h4>
+                    </div>
+                    
+                    {/* Generate a synthetic trendline based on any emotional state data */}
+                    <ResponsiveContainer width="100%" height={120}>
+                      <LineChart
+                        data={[
+                          { name: '10%', value: 10, me: 5, them: 5 },
+                          { name: '25%', value: result.toneAnalysis.emotionalState[0].intensity * 8, me: result.toneAnalysis.emotionalState[0].intensity * 4, them: result.toneAnalysis.emotionalState[0].intensity * 4 },
+                          { name: '50%', value: result.healthScore.score < 50 ? 85 : 35, me: result.healthScore.score < 50 ? 50 : 15, them: result.healthScore.score < 50 ? 35 : 20 },
+                          { name: '75%', value: result.healthScore.score < 30 ? 90 : 60, me: result.healthScore.score < 30 ? 40 : 20, them: result.healthScore.score < 30 ? 50 : 40 },
+                          { name: '100%', value: result.healthScore.score < 50 ? 65 : 30, me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15 },
+                        ]}
+                        margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
+                      >
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                        <YAxis hide={true} domain={[0, 100]} />
+                        <Tooltip />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#ff69b4"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 6, fill: "#ff69b4" }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                    
+                    {/* Toggle for contribution analysis */}
+                    <div className="mt-3 flex flex-col">
+                      <div className="flex items-center mb-2">
+                        <input
+                          type="checkbox"
+                          id="showContributions"
+                          className="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          onChange={(e) => {
+                            const chart = document.getElementById('contributionChart');
+                            if (chart) {
+                              chart.style.display = e.target.checked ? 'block' : 'none';
+                            }
+                          }}
+                        />
+                        <label htmlFor="showContributions" className="text-sm text-muted-foreground">
+                          Show who contributed most to tension spikes
+                        </label>
+                      </div>
+                      
+                      {/* Contribution chart (hidden by default) */}
+                      <div id="contributionChart" className="hidden mt-2">
+                        <ResponsiveContainer width="100%" height={100}>
+                          <LineChart
+                            data={[
+                              { name: '10%', me: 5, them: 5 },
+                              { name: '25%', me: result.toneAnalysis.emotionalState[0].intensity * 4, them: result.toneAnalysis.emotionalState[0].intensity * 4 },
+                              { name: '50%', me: result.healthScore.score < 50 ? 50 : 15, them: result.healthScore.score < 50 ? 35 : 20 },
+                              { name: '75%', me: result.healthScore.score < 30 ? 40 : 20, them: result.healthScore.score < 30 ? 50 : 40 },
+                              { name: '100%', me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15 },
+                            ]}
+                            margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
+                          >
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                            <YAxis hide={true} domain={[0, 100]} />
+                            <Tooltip />
+                            <Line
+                              type="monotone"
+                              dataKey="me"
+                              name={me}
+                              stroke="#22C9C9"
+                              strokeWidth={2}
+                              dot={false}
+                              activeDot={{ r: 4, fill: "#22C9C9" }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="them"
+                              name={them}
+                              stroke="#9333ea"
+                              strokeWidth={2}
+                              dot={false}
+                              activeDot={{ r: 4, fill: "#9333ea" }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                        <div className="flex justify-center gap-8 text-xs text-muted-foreground">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[#22C9C9] mr-1"></div>
+                            <span>{me}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[#9333ea] mr-1"></div>
+                            <span>{them}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
