@@ -461,6 +461,7 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
         if (message.toLowerCase().includes(phrase.toLowerCase())) {
           isNotable = true;
           quoteAnalysis = "Shows defensive communication that indicates feeling attacked or misunderstood. While explaining one's position is important, defensive responses can sometimes perpetuate a cycle of accusation and justification.";
+          improvementSuggestion = "Consider: \"I understand you feel [acknowledge their concern]. From my perspective, [explain your view calmly]. How can we find a solution that works for both of us?\"";
           break;
         }
       }
@@ -473,6 +474,7 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     )) {
       isNotable = true;
       quoteAnalysis = "Signals disengagement from the conversation, which can prematurely end the chance to resolve issues. This communication pattern often leaves both parties feeling unheard and problems unresolved.";
+      improvementSuggestion = "Consider: \"I need some time to process this. Could we pause for now and continue this conversation when I've had time to collect my thoughts?\"";
     }
     
     // Check for generalizations
@@ -482,6 +484,7 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     )) {
       isNotable = true;
       quoteAnalysis = "Uses absolute terms that generalize behavior, which rarely reflect reality accurately. These generalizations can make the other person feel unfairly characterized and less willing to acknowledge their role in the situation.";
+      improvementSuggestion = "Consider: \"When [specific situation] happens, I feel [emotion]. Can we talk about how to handle this situation differently in the future?\"";
     }
     
     // If we found a notable quote, add it to our collection
@@ -489,7 +492,8 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
       keyQuotes.push({
         speaker,
         quote: message,
-        analysis: quoteAnalysis
+        analysis: quoteAnalysis,
+        improvement: improvementSuggestion
       });
     }
   }
