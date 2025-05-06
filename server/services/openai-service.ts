@@ -129,14 +129,33 @@ const prompts = {
 
 // Function to generate fallback analysis when OpenAI is unavailable
 function generateFallbackAnalysis(conversation: string, me: string, them: string, tier: string): ChatAnalysisResponse {
-  // Basic sentiment analysis using regex patterns
-  const positiveWords = ['happy', 'good', 'great', 'awesome', 'love', 'thanks', 'appreciate', 'hope', 'please', 'excited'];
-  const negativeWords = ['sad', 'bad', 'terrible', 'hate', 'angry', 'upset', 'annoyed', 'disappointed', 'sorry', 'worried'];
+  // Enhanced sentiment analysis using more comprehensive word lists and patterns
+  const positiveWords = ['happy', 'good', 'great', 'awesome', 'love', 'thanks', 'appreciate', 'hope', 'pleased', 'excited', 'glad', 'care'];
   
-  // Count instances of positive and negative words
+  const negativeWords = [
+    'sad', 'bad', 'terrible', 'hate', 'angry', 'upset', 'annoyed', 'disappointed', 'sorry', 'worried',
+    'forget', 'beg', 'ignore', 'overwhelm', 'excuse', 'blame', 'problem', 'done', 'never', 'always'
+  ];
+  
+  // Accusatory phrases that indicate conflict
+  const accusatoryPhrases = [
+    'you always', 'you never', 'your fault', 'your problem', 'you don\'t care',
+    'blame me', 'make me', 'done talking', 'forget it', 'shouldn\'t have to'
+  ];
+  
+  // Defensive phrases
+  const defensivePhrases = [
+    'not ignoring', 'not blaming', 'i\'ve been trying', 'that\'s not true', 'i care',
+    'i\'m here', 'i want to', 'work through this'
+  ];
+  
+  // Count instances of different types of language
   let positiveCount = 0;
   let negativeCount = 0;
+  let accusatoryCount = 0;
+  let defensiveCount = 0;
   
+  // Count basic positive/negative words
   for (const word of positiveWords) {
     const regex = new RegExp(`\\b${word}\\b`, 'gi');
     const matches = conversation.match(regex);
@@ -149,27 +168,85 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     if (matches) negativeCount += matches.length;
   }
   
-  // Determine overall sentiment
+  // Count accusatory phrases (these indicate conflict)
+  for (const phrase of accusatoryPhrases) {
+    const regex = new RegExp(phrase, 'gi');
+    const matches = conversation.match(regex);
+    if (matches) {
+      accusatoryCount += matches.length;
+      // Count accusatory phrases more heavily in negative sentiment
+      negativeCount += matches.length * 2;
+    }
+  }
+  
+  // Count defensive phrases
+  for (const phrase of defensivePhrases) {
+    const regex = new RegExp(phrase, 'gi');
+    const matches = conversation.match(regex);
+    if (matches) defensiveCount += matches.length;
+  }
+  
+  // Check for question marks without positive responses - indicates unresolved issues
+  const questions = (conversation.match(/\?/g) || []).length;
+  
+  // Calculate conversation metrics
   const totalWords = conversation.split(/\s+/).length;
-  const sentiment = positiveCount > negativeCount ? 'Positive' : 
-                    negativeCount > positiveCount ? 'Negative' : 'Neutral';
+  const lines = conversation.split(/\n/).length;
+  const wordsPerLine = totalWords / lines;
+  
+  // Short replies can indicate disengagement
+  const shortReplies = conversation.split(/\n/).filter(line => line.split(/\s+/).length < 6).length;
+  const shortReplyRatio = shortReplies / lines;
+  
+  // Determine overall sentiment with weighted factors
+  const conflictScore = Math.min(10, (accusatoryCount * 2) + (negativeCount * 1.5) - (positiveCount * 0.5));
+  
+  let sentiment = 'Neutral';
+  let overallTone = '';
+  
+  if (conflictScore > 5) {
+    sentiment = 'Negative';
+    overallTone = `This conversation shows significant tension between ${me} and ${them}. There are clear signs of frustration, accusatory language, and unresolved conflict.`;
+  } else if (conflictScore > 2) {
+    sentiment = 'Somewhat negative';
+    overallTone = `This conversation has an underlying tension between ${me} and ${them}, with some accusations and defensive responses creating friction.`;
+  } else if (positiveCount > negativeCount * 1.5) {
+    sentiment = 'Positive';
+    overallTone = `This conversation has a generally positive tone between ${me} and ${them}, with supportive language and constructive communication.`;
+  } else {
+    sentiment = 'Mixed';
+    overallTone = `This conversation has a mixed tone between ${me} and ${them}, with both supportive and challenging moments.`;
+  }
+  
+  // If specific patterns are detected, override the general sentiment
+  if (accusatoryCount > 2 && defensiveCount > 1) {
+    sentiment = 'Negative';
+    overallTone = `This conversation shows a pattern of accusation and defensiveness between ${me} and ${them}, indicating relationship tension and communication difficulties.`;
+  }
+  
+  if (conversation.includes('done talking') || conversation.includes('forget it')) {
+    sentiment = 'Negative';
+    overallTone = `This conversation shows signs of communication breakdown between ${me} and ${them}, with one party appearing to disengage from the discussion.`;
+  }
   
   // Calculate emotional intensity (1-10 scale)
-  const emotionalIntensity = Math.min(10, Math.round((positiveCount + negativeCount) / (totalWords / 100)));
+  const emotionalIntensity = Math.min(10, Math.round((negativeCount + accusatoryCount * 2 + defensiveCount) / (totalWords / 100)));
   
-  // Generate a basic fallback response
+  // Generate a more nuanced fallback response
   const fallbackAnalysis: ChatAnalysisResponse = {
     toneAnalysis: {
-      overallTone: `This conversation appears to have a ${sentiment.toLowerCase()} tone overall. The exchange between ${me} and ${them} shows a moderate level of emotional expression.`,
+      overallTone: overallTone,
       emotionalState: [
         { emotion: sentiment, intensity: emotionalIntensity },
-        { emotion: positiveCount > negativeCount ? "Optimism" : "Concern", intensity: Math.max(1, Math.min(10, Math.abs(positiveCount - negativeCount))) }
+        { emotion: accusatoryCount > defensiveCount ? "Frustration" : "Defensiveness", 
+          intensity: Math.max(1, Math.min(10, accusatoryCount + defensiveCount)) }
       ]
     },
     communication: {
       patterns: [
-        "Regular back-and-forth exchange of messages",
-        positiveCount > negativeCount ? "Generally positive language" : "Some concerning language"
+        shortReplyRatio > 0.5 ? "Short, disengaged responses" : "Detailed explanations and responses",
+        accusatoryCount > 2 ? "Accusatory language patterns" : "Direct expression of concerns",
+        defensiveCount > 2 ? "Defensive communication style" : "Attempt to clarify perspectives"
       ]
     }
   };
@@ -179,31 +256,41 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     fallbackAnalysis.redFlags = [];
     
     // Check for potential red flags
-    if (negativeCount > positiveCount * 2) {
+    if (accusatoryCount > 1) {
       fallbackAnalysis.redFlags.push({
-        type: "Negative Tone",
-        description: "Conversation contains significantly more negative than positive language",
-        severity: Math.min(8, Math.round(negativeCount / positiveCount))
+        type: "Accusatory Language",
+        description: "Frequent blame and accusatory statements detected",
+        severity: Math.min(10, accusatoryCount + 2)
       });
     }
     
-    if (conversation.match(/\bignore\b|\bavoid\b|\bwon't talk\b/gi)) {
+    if (conversation.match(/\balways\b|\bnever\b/gi)) {
       fallbackAnalysis.redFlags.push({
-        type: "Avoidance",
-        description: "Possible communication avoidance patterns detected",
-        severity: 6
+        type: "Generalizations",
+        description: "Use of extreme language like 'always' and 'never', which can polarize discussions",
+        severity: 7
+      });
+    }
+    
+    if (conversation.match(/\bignore\b|\bavoid\b|\bwon't talk\b|\bdone talking\b|\bforget it\b/gi)) {
+      fallbackAnalysis.redFlags.push({
+        type: "Communication Breakdown",
+        description: "Signs of one party disengaging or shutting down communication",
+        severity: 8
       });
     }
     
     fallbackAnalysis.communication.suggestions = [
-      "Consider focusing more on clear, direct communication",
-      "Try acknowledging each other's feelings more explicitly"
+      "Focus on using 'I' statements instead of accusatory 'you' statements",
+      "Take time to acknowledge each other's feelings before responding",
+      "Avoid generalizations like 'always' and 'never' when discussing issues",
+      "When emotions run high, consider taking a short break before continuing"
     ];
   }
   
   // Add Drama Score for Pro tier
   if (tier === 'pro') {
-    fallbackAnalysis.dramaScore = Math.min(10, Math.round((negativeCount * 2 + positiveCount) / 10));
+    fallbackAnalysis.dramaScore = Math.min(10, Math.round(conflictScore * 1.2));
   }
   
   return fallbackAnalysis;
@@ -252,14 +339,33 @@ export async function analyzeChatConversation(conversation: string, me: string, 
 
 // Function to generate fallback message analysis
 function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them', tier: string): MessageAnalysisResponse {
-  // Basic sentiment analysis
-  const positiveWords = ['happy', 'good', 'great', 'awesome', 'love', 'thanks', 'appreciate', 'hope', 'please', 'excited'];
-  const negativeWords = ['sad', 'bad', 'terrible', 'hate', 'angry', 'upset', 'annoyed', 'disappointed', 'sorry', 'worried'];
+  // Enhanced sentiment analysis with more specific categories
+  const positiveWords = ['happy', 'good', 'great', 'awesome', 'love', 'thanks', 'appreciate', 'hope', 'pleased', 'excited', 'glad', 'care'];
+  
+  const negativeWords = [
+    'sad', 'bad', 'terrible', 'hate', 'angry', 'upset', 'annoyed', 'disappointed', 'sorry', 'worried',
+    'forget', 'beg', 'ignore', 'excuse', 'blame', 'problem', 'done', 'never', 'always'
+  ];
+  
+  // Accusatory phrases that indicate conflict
+  const accusatoryPhrases = [
+    'you always', 'you never', 'your fault', 'your problem', 'you don\'t care', 
+    'you make me', 'forget it', 'done talking', 'shouldn\'t have to'
+  ];
+  
+  // Defensive phrases
+  const defensivePhrases = [
+    'not ignoring', 'not blaming', 'been trying', 'that\'s not true', 'i care',
+    'i\'m here', 'i want to', 'work through this'
+  ];
   
   // Count instances
   let positiveCount = 0;
   let negativeCount = 0;
+  let accusatoryCount = 0;
+  let defensiveCount = 0;
   
+  // Count basic sentiment
   for (const word of positiveWords) {
     const regex = new RegExp(`\\b${word}\\b`, 'gi');
     const matches = message.match(regex);
@@ -272,40 +378,96 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
     if (matches) negativeCount += matches.length;
   }
   
-  // Determine tone
-  let tone = 'Neutral';
-  if (positiveCount > negativeCount) {
-    tone = positiveCount > 2 ? 'Very positive' : 'Somewhat positive';
-  } else if (negativeCount > positiveCount) {
-    tone = negativeCount > 2 ? 'Very negative' : 'Somewhat negative';
+  // Check for accusatory language
+  for (const phrase of accusatoryPhrases) {
+    const regex = new RegExp(phrase, 'gi');
+    const matches = message.match(regex);
+    if (matches) {
+      accusatoryCount += matches.length;
+      // Weight accusatory phrases more heavily
+      negativeCount += matches.length * 2;
+    }
   }
   
-  // Determine intent
+  // Check for defensive language
+  for (const phrase of defensivePhrases) {
+    const regex = new RegExp(phrase, 'gi');
+    const matches = message.match(regex);
+    if (matches) defensiveCount += matches.length;
+  }
+  
+  // Determine tone with more nuance
+  let tone = 'Neutral';
+  
+  // Check for specific patterns that override general sentiment counting
+  if (message.match(/\bforget it\b|\bshouldn't have to\b|\bdone talking\b/i)) {
+    tone = 'Frustrated and disengaging';
+  } else if (message.match(/\byou always\b|\byou never\b/i)) {
+    tone = 'Accusatory';
+  } else if (message.match(/\bnot blaming\b|\bnot ignoring\b|\bthat's not true\b/i)) {
+    tone = 'Defensive';
+  } else if (accusatoryCount > 0) {
+    tone = 'Confrontational';
+  } else if (negativeCount > positiveCount * 2) {
+    tone = 'Strongly negative';
+  } else if (negativeCount > positiveCount) {
+    tone = 'Somewhat negative';
+  } else if (positiveCount > negativeCount * 2) {
+    tone = 'Strongly positive';
+  } else if (positiveCount > negativeCount) {
+    tone = 'Somewhat positive';
+  }
+  
+  // Determine primary intent and secondary intents
   const intents = [];
   
-  if (message.includes('?')) {
+  // Special case - emotional shutdown
+  if (message.match(/\bforget it\b|\bdone talking\b/i)) {
+    intents.push('Disengaging from conversation');
+  } 
+  // Accusations
+  else if (accusatoryCount > 0) {
+    intents.push('Expressing frustration and blame');
+  }
+  // Defensiveness
+  else if (defensiveCount > 0) {
+    intents.push('Defending against perceived accusations');
+  }
+  // Standard intents
+  else {
+    if (message.includes('?')) {
+      intents.push('Asking a question');
+    }
+    
+    if (message.match(/\bcan you\b|\bcould you\b|\bwill you\b|\bwould you\b/i)) {
+      intents.push('Making a request');
+    }
+    
+    if (message.match(/\bi feel\b|\bi am\b|\bi'm\b/i)) {
+      intents.push('Expressing personal feelings');
+    }
+    
+    if (message.match(/\bthanks\b|\bthank you\b|\bappreciate\b/i)) {
+      intents.push('Expressing gratitude');
+    }
+    
+    if (message.match(/\bsorry\b|\bapologize\b/i)) {
+      intents.push('Apologizing');
+    }
+    
+    // Default intent if none found
+    if (intents.length === 0) {
+      intents.push('Sharing information');
+    }
+  }
+  
+  // Add secondary intents that might apply regardless of primary intent
+  if (message.includes('?') && !intents.includes('Asking a question')) {
     intents.push('Asking a question');
   }
   
-  if (message.match(/\bcan you\b|\bcould you\b|\bwill you\b|\bwould you\b/i)) {
-    intents.push('Making a request');
-  }
-  
-  if (message.match(/\bi feel\b|\bi am\b|\bi'm\b/i)) {
-    intents.push('Expressing personal feelings');
-  }
-  
-  if (message.match(/\bthanks\b|\bthank you\b|\bappreciate\b/i)) {
-    intents.push('Expressing gratitude');
-  }
-  
-  if (message.match(/\bsorry\b|\bapologize\b/i)) {
-    intents.push('Apologizing');
-  }
-  
-  // Default intent if none found
-  if (intents.length === 0) {
-    intents.push('Sharing information');
+  if (message.match(/\balways\b|\bnever\b/i) && !intents.includes('Using generalizations')) {
+    intents.push('Using generalizations');
   }
   
   // Basic result
@@ -314,14 +476,20 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
     intent: intents
   };
   
-  // Add suggested reply for Personal tier
+  // Add suggested reply for Personal tier with more context-aware responses
   if (tier === 'personal') {
-    if (tone.includes('negative')) {
-      result.suggestedReply = "I understand you might be feeling frustrated. Let's discuss this calmly.";
+    if (tone === 'Frustrated and disengaging') {
+      result.suggestedReply = "I understand you're frustrated. Let's take a short break and come back to this when we're both feeling calmer.";
+    } else if (tone === 'Accusatory' || tone === 'Confrontational') {
+      result.suggestedReply = "I hear that you're upset. Can you help me understand what specific concerns you have?";
+    } else if (tone === 'Defensive') {
+      result.suggestedReply = "I appreciate you explaining your perspective. Let me think about what you've said.";
+    } else if (tone.includes('negative')) {
+      result.suggestedReply = "I understand this is difficult. Let's try to work through this together.";
     } else if (tone.includes('positive')) {
       result.suggestedReply = "I'm glad to hear that! Thanks for sharing.";
     } else {
-      result.suggestedReply = "I see what you mean. Let me think about that.";
+      result.suggestedReply = "I see what you mean. Let's continue this conversation.";
     }
   }
   
@@ -330,32 +498,97 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
 
 // Function to generate fallback vent mode response
 function generateFallbackVentResponse(message: string): VentModeResponse {
-  // Remove excessive punctuation
-  let rewritten = message.replace(/!{2,}/g, '!').replace(/\?{2,}/g, '?');
+  // Make a copy of the original message
+  let rewritten = message;
   
-  // Replace ALL CAPS with normal case (if there are 3+ consecutive capital words)
-  if (message.match(/([A-Z]{2,}\s+){2,}/)) {
-    rewritten = rewritten.replace(/([A-Z]{2,})/g, (match) => match.charAt(0) + match.slice(1).toLowerCase());
+  // 1. Remove excessive punctuation and normalize
+  rewritten = rewritten.replace(/!{2,}/g, '!').replace(/\?{2,}/g, '?');
+  
+  // 2. Replace ALL CAPS with normal case
+  if (rewritten.match(/([A-Z]{2,}\s*)/)) {
+    rewritten = rewritten.replace(/\b[A-Z]{2,}\b/g, (match) => match.charAt(0) + match.slice(1).toLowerCase());
   }
   
-  // Replace emotionally charged words
-  const replacements = [
-    { from: /\bhate\b/gi, to: 'dislike' },
-    { from: /\bfurious\b/gi, to: 'upset' },
-    { from: /\bterrible\b/gi, to: 'challenging' },
-    { from: /\bstupid\b/gi, to: 'unhelpful' },
-    { from: /\bawful\b/gi, to: 'difficult' },
-    { from: /\bannoying\b/gi, to: 'frustrating' }
+  // 3. Identify accusatory phrases and replace them with "I" statements
+  const accusatoryReplacements = [
+    { from: /\byou always\b/gi, to: "I've noticed a pattern where" },
+    { from: /\byou never\b/gi, to: "I feel like I haven't experienced" },
+    { from: /\byou're so\b/gi, to: "I feel like you're being" },
+    { from: /\byou don't care\b/gi, to: "I feel unimportant" },
+    { from: /\byou don't listen\b/gi, to: "I don't feel heard" },
+    { from: /\byour fault\b/gi, to: "I'm feeling hurt about what happened" },
+    { from: /\byou make me\b/gi, to: "I feel" },
+    { from: /\byou should\b/gi, to: "I would appreciate if you could" }
   ];
   
-  for (const {from, to} of replacements) {
+  // 4. Replace emotionally charged words with more moderate alternatives
+  const emotionalReplacements = [
+    // Extremely negative words
+    { from: /\bhate\b/gi, to: 'dislike' },
+    { from: /\bfurious\b/gi, to: 'frustrated' },
+    { from: /\benraged\b/gi, to: 'upset' },
+    { from: /\bterrified\b/gi, to: 'concerned' },
+    { from: /\bdevastated\b/gi, to: 'disappointed' },
+    
+    // Negative character judgments
+    { from: /\bstupid\b/gi, to: 'unhelpful' },
+    { from: /\bidiot\b/gi, to: 'frustrating' },
+    { from: /\bpathetic\b/gi, to: 'disappointing' },
+    { from: /\bridiculous\b/gi, to: 'questionable' },
+    { from: /\bterrible\b/gi, to: 'challenging' },
+    { from: /\bhorrible\b/gi, to: 'difficult' },
+    { from: /\bawful\b/gi, to: 'problematic' },
+    
+    // Absolute statements
+    { from: /\balways\b/gi, to: 'often' },
+    { from: /\bnever\b/gi, to: 'rarely' },
+    { from: /\bimpossible\b/gi, to: 'difficult' },
+    { from: /\bcompletely\b/gi, to: 'significantly' },
+    { from: /\btotally\b/gi, to: 'largely' },
+    
+    // Extreme descriptors
+    { from: /\bannoying\b/gi, to: 'frustrating' },
+    { from: /\binsane\b/gi, to: 'concerning' },
+    { from: /\bcrazy\b/gi, to: 'surprising' },
+    { from: /\boutrageous\b/gi, to: 'unexpected' }
+  ];
+  
+  // Apply accusatory replacements first (they contain phrases)
+  for (const {from, to} of accusatoryReplacements) {
     rewritten = rewritten.replace(from, to);
+  }
+  
+  // Then apply emotional word replacements
+  for (const {from, to} of emotionalReplacements) {
+    rewritten = rewritten.replace(from, to);
+  }
+  
+  // 5. Detect and handle common vent phrases
+  if (rewritten.match(/\bforget it\b|\bdone talking\b/i)) {
+    rewritten = rewritten.replace(/\bforget it\b|\bdone talking\b/i, "I need some space to process my feelings");
+  }
+  
+  if (rewritten.match(/\bI can't believe\b/i)) {
+    rewritten = rewritten.replace(/\bI can't believe\b/i, "I'm surprised");
+  }
+  
+  // 6. Add constructive ending phrases for very short, abrupt messages
+  if (rewritten.split(/\s+/).length < 5 && !rewritten.includes("?")) {
+    rewritten += ". I would like to discuss this further when we're both ready.";
+  }
+  
+  // 7. Determine explanation based on the changes made
+  let explanation = "";
+  if (rewritten !== message) {
+    explanation = "This rewritten message preserves your core concerns while expressing them in a way that's more likely to be heard. It uses 'I' statements to express feelings directly, avoids generalizations, and focuses on specific issues rather than character judgments.";
+  } else {
+    explanation = "Your message was already expressed in a constructive way. No significant changes were needed.";
   }
   
   return {
     original: message,
     rewritten: rewritten,
-    explanation: "The rewritten message maintains your core point while using more constructive language. This approach can lead to more productive conversations."
+    explanation: explanation
   };
 }
 
