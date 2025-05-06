@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
