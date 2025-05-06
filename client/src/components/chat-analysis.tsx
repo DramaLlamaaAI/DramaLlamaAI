@@ -487,12 +487,13 @@ export default function ChatAnalysis() {
                   <div className="mt-6 border rounded-lg p-4">
                     <div className="flex items-center mb-2">
                       <TrendingUp className="mr-2 h-5 w-5 text-muted-foreground" />
-                      <h4 className="font-medium">Tension Trendline</h4>
+                      <h4 className="font-medium">Simulated Tension Trendline</h4>
                     </div>
                     
                     <p className="text-sm text-muted-foreground mb-4">
-                      This chart shows how emotional tension fluctuates throughout the conversation, from start (left) to end (right).
-                      Higher peaks indicate moments of heightened conflict or emotional intensity.
+                      This chart simulates tension patterns throughout the conversation timeline, from start (left) to end (right).
+                      It's generated based on our analysis of the overall conversation health and emotional tone.
+                      Higher peaks indicate potential moments of heightened conflict or emotional intensity.
                     </p>
                     
                     {/* Generate a trendline that reflects the actual health score better */}
