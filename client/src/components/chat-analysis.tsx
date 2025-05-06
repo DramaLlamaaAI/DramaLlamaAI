@@ -485,39 +485,70 @@ export default function ChatAnalysis() {
                   
                   {/* Tension Trendline */}
                   <div className="mt-6 border rounded-lg p-4">
-                    <div className="flex items-center mb-3">
+                    <div className="flex items-center mb-2">
                       <TrendingUp className="mr-2 h-5 w-5 text-muted-foreground" />
                       <h4 className="font-medium">Tension Trendline</h4>
                     </div>
                     
-                    {/* Generate a synthetic trendline based on any emotional state data */}
+                    <p className="text-sm text-muted-foreground mb-4">
+                      This chart shows how emotional tension fluctuates throughout the conversation, from start (left) to end (right).
+                      Higher peaks indicate moments of heightened conflict or emotional intensity.
+                    </p>
+                    
+                    {/* Generate a synthetic trendline based on health score */}
                     <ResponsiveContainer width="100%" height={120}>
                       <LineChart
                         data={[
-                          { name: '10%', value: 10, me: 5, them: 5 },
-                          { name: '25%', value: 30, me: 15, them: 15 },
-                          { name: '50%', value: result.healthScore.score < 50 ? 85 : 35, me: result.healthScore.score < 50 ? 50 : 15, them: result.healthScore.score < 50 ? 35 : 20 },
-                          { name: '75%', value: result.healthScore.score < 30 ? 90 : 60, me: result.healthScore.score < 30 ? 40 : 20, them: result.healthScore.score < 30 ? 50 : 40 },
-                          { name: '100%', value: result.healthScore.score < 50 ? 65 : 30, me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15 },
+                          { name: 'Start', value: 10, me: 5, them: 5, label: 'Conversation Start' },
+                          { name: '25%', value: 30, me: 15, them: 15, label: '25% through' },
+                          { name: '50%', value: result.healthScore.score < 50 ? 85 : 35, me: result.healthScore.score < 50 ? 50 : 15, them: result.healthScore.score < 50 ? 35 : 20, label: 'Midpoint' },
+                          { name: '75%', value: result.healthScore.score < 30 ? 90 : 60, me: result.healthScore.score < 30 ? 40 : 20, them: result.healthScore.score < 30 ? 50 : 40, label: '75% through' },
+                          { name: 'End', value: result.healthScore.score < 50 ? 65 : 30, me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15, label: 'Conversation End' },
                         ]}
                         margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
                       >
                         <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                         <YAxis hide={true} domain={[0, 100]} />
-                        <Tooltip />
+                        <Tooltip 
+                          formatter={(value, name, props) => {
+                            return [`Tension level: ${value}%`, props.payload.label];
+                          }}
+                          labelFormatter={(value) => ""}
+                        />
                         <Line
                           type="monotone"
                           dataKey="value"
+                          name="Combined Tension"
                           stroke="#ff69b4"
                           strokeWidth={2}
-                          dot={false}
+                          dot={true}
                           activeDot={{ r: 6, fill: "#ff69b4" }}
                         />
+                        <ReferenceLine y={75} stroke="red" strokeDasharray="3 3" />
+                        <ReferenceLine y={30} stroke="green" strokeDasharray="3 3" />
                       </LineChart>
                     </ResponsiveContainer>
                     
+                    <div className="flex justify-between mt-1 px-2 text-xs text-muted-foreground">
+                      <span>Low Tension</span>
+                      <span>Medium Tension</span>
+                      <span>High Tension</span>
+                    </div>
+                    
+                    {/* Legend for the reference lines */}
+                    <div className="flex mt-3 mb-4 gap-4 text-xs">
+                      <div className="flex items-center">
+                        <div className="w-6 h-[1px] bg-green-500 border-dashed mr-1"></div>
+                        <span className="text-green-600">Healthy zone</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-6 h-[1px] bg-red-500 border-dashed mr-1"></div>
+                        <span className="text-red-600">High conflict zone</span>
+                      </div>
+                    </div>
+                    
                     {/* Toggle for contribution analysis */}
-                    <div className="mt-3 flex flex-col">
+                    <div className="mt-4 flex flex-col border-t pt-3">
                       <div className="flex items-center mb-2">
                         <input
                           type="checkbox"
@@ -530,34 +561,40 @@ export default function ChatAnalysis() {
                             }
                           }}
                         />
-                        <label htmlFor="showContributions" className="text-sm text-muted-foreground">
-                          Show who contributed most to tension spikes
+                        <label htmlFor="showContributions" className="text-sm font-medium">
+                          Show individual contributions to tension
                         </label>
                       </div>
+                      <p className="text-xs text-muted-foreground ml-6 mb-2">
+                        Reveals which participant contributed more to tension at each point in the conversation
+                      </p>
                       
                       {/* Contribution chart (hidden by default) */}
                       <div id="contributionChart" className="hidden mt-2">
                         <ResponsiveContainer width="100%" height={100}>
                           <LineChart
                             data={[
-                              { name: '10%', me: 5, them: 5 },
+                              { name: 'Start', me: 5, them: 5 },
                               { name: '25%', me: 15, them: 15 },
                               { name: '50%', me: result.healthScore.score < 50 ? 50 : 15, them: result.healthScore.score < 50 ? 35 : 20 },
                               { name: '75%', me: result.healthScore.score < 30 ? 40 : 20, them: result.healthScore.score < 30 ? 50 : 40 },
-                              { name: '100%', me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15 },
+                              { name: 'End', me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15 },
                             ]}
                             margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
                           >
                             <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                             <YAxis hide={true} domain={[0, 100]} />
-                            <Tooltip />
+                            <Tooltip 
+                              formatter={(value, name) => [`${name}: ${value}% tension`]}
+                              labelFormatter={(value) => `At ${value} of conversation`}
+                            />
                             <Line
                               type="monotone"
                               dataKey="me"
                               name={me}
                               stroke="#22C9C9"
                               strokeWidth={2}
-                              dot={false}
+                              dot={true}
                               activeDot={{ r: 4, fill: "#22C9C9" }}
                             />
                             <Line
@@ -566,20 +603,30 @@ export default function ChatAnalysis() {
                               name={them}
                               stroke="#9333ea"
                               strokeWidth={2}
-                              dot={false}
+                              dot={true}
                               activeDot={{ r: 4, fill: "#9333ea" }}
                             />
                           </LineChart>
                         </ResponsiveContainer>
-                        <div className="flex justify-center gap-8 text-xs text-muted-foreground">
+                        <div className="flex justify-center gap-8 mt-2 text-xs">
                           <div className="flex items-center">
                             <div className="w-3 h-3 rounded-full bg-[#22C9C9] mr-1"></div>
-                            <span>{me}</span>
+                            <span className="font-medium">{me}</span>
                           </div>
                           <div className="flex items-center">
                             <div className="w-3 h-3 rounded-full bg-[#9333ea] mr-1"></div>
-                            <span>{them}</span>
+                            <span className="font-medium">{them}</span>
                           </div>
+                        </div>
+                        
+                        <div className="bg-blue-50 p-3 rounded-md mt-3 text-sm">
+                          <h5 className="font-medium text-blue-700 mb-1">What This Means</h5>
+                          <p className="text-blue-800">
+                            {result.healthScore.score < 50 
+                              ? `${them} appears to contribute more to the tension spikes, particularly in the middle and end of the conversation.`
+                              : `This conversation shows balanced tension contributions, with neither participant consistently escalating conflict.`
+                            }
+                          </p>
                         </div>
                       </div>
                     </div>
