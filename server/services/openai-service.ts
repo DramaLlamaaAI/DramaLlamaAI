@@ -2,7 +2,9 @@ import OpenAI from "openai";
 import { TIER_LIMITS } from "@shared/schema";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "sk-your-api-key" });
+const openai = new OpenAI({ 
+  apiKey: process.env.OPENAI_API_KEY 
+});
 
 // Prompts for different tiers and analysis types
 const prompts = {
