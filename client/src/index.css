@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13.3%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13.3%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13.3%;
+
+    --primary: 176 75% 46%; /* Drama Llama Turquoise: #22C9C9 */
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 176 65% 66%; /* Light turquoise: #64DFDF */
+    --primary-dark: 176 85% 36%; /* Dark turquoise: #0D9999 */
+
+    --secondary: 332 98% 71%; /* Drama Llama Pink: #FF69B4 */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 332 95% 81%; /* Light pink: #FF9DCE */
+    --secondary-dark: 332 100% 61%; /* Dark pink: #FF369A */
+
+    --accent: 0 0% 0%; /* Black for outlines: #000000 */
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 0 0% 20%; /* Light black: #333333 */
+    --accent-dark: 0 0% 0%; /* Pure black: #000000 */
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 46%;
+
+    --destructive: 0 80% 57.5%; /* #F44336 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 0 0% 13.3%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 176 85% 28%; /* Darker turquoise: #0A7979 for dark mode background */
+    --foreground: 0 0% 96%;
+
+    --card: 176 85% 32%; /* Slightly lighter turquoise for cards: #0B8989 */
+    --card-foreground: 0 0% 96%;
+
+    --popover: 176 85% 28%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 176 75% 46%; /* Drama Llama Turquoise: #22C9C9 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 332 98% 71%; /* Drama Llama Pink: #FF69B4 */
+    --secondary-foreground: 0 0% 100%;
+
+    --accent: 0 0% 100%; /* White for accents in dark mode */
+    --accent-foreground: 0 0% 0%;
+
+    --muted: 0 0% 26.7%;
+    --muted-foreground: 0 0% 61.3%;
+
+    --destructive: 0 80% 57.5%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 26.7%;
+    --input: 0 0% 26.7%;
+    --ring: 0 0% 88.2%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-muted font-inter text-foreground antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-poppins;
+  }
+
+  button {
+    @apply font-montserrat;
+  }
+}
+
+@layer utilities {
+  .font-poppins {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-montserrat {
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .pulsing {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .slide-in {
+    animation: slideIn 0.5s ease-out;
+  }
+  
+  @keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+}
