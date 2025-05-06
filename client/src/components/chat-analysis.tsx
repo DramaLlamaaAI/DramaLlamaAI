@@ -452,13 +452,13 @@ export default function ChatAnalysis() {
                   <div className="flex items-center">
                     <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                       <div 
-                        className={`absolute top-0 right-0 h-full rounded-full ${
+                        className={`absolute top-0 left-0 h-full rounded-full ${
                           result.healthScore.color === 'red' ? 'bg-red-500' : 
                           result.healthScore.color === 'yellow' ? 'bg-amber-500' : 
                           result.healthScore.color === 'light-green' ? 'bg-emerald-500' : 
                           'bg-green-500'
                         }`}
-                        style={{ width: `${100 - result.healthScore.score}%` }}
+                        style={{ width: `${(100 - result.healthScore.score)}%` }}
                       />
                     </div>
                     <span className="ml-3 font-bold">
