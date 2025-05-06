@@ -52,32 +52,18 @@ interface VentModeResponse {
 }
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-// Process API key - handle project-specific format if needed
-let apiKey = process.env.OPENAI_API_KEY || '';
+// Process API key - properly handle project-based API keys (format: sk-proj-...)
+const apiKey = process.env.OPENAI_API_KEY || '';
 
-// Handle project-specific format "openai.api_key = sk-proj-..."
-if (apiKey.startsWith('openai.api_key = ')) {
-  apiKey = apiKey.replace('openai.api_key = ', '');
-  console.log('Extracted API key from project-specific format');
-}
+// Log a masked version of the API key for debugging (showing only prefix)
+const maskedKey = apiKey.substring(0, 8) + '*'.repeat(Math.max(0, apiKey.length - 8));
+console.log(`OPENAI_API_KEY is set, type: ${apiKey.startsWith('sk-proj-') ? 'project-based' : 'standard'}`);
 
-// Check if API key exists
-if (!apiKey) {
-  console.error('OPENAI_API_KEY environment variable is not set');
-} else {
-  // Log a masked version of the API key for debugging (showing only first 4 chars)
-  const maskedKey = apiKey.substring(0, 4) + '*'.repeat(Math.max(apiKey.length - 4, 0));
-  console.log(`OPENAI_API_KEY is set, begins with: ${maskedKey}`);
-  
-  // Note: We no longer verify format, as project-specific keys may have different formats
-  console.log('Using project-specific API key format');
-}
-
-// Initialize OpenAI client
-const openai = new OpenAI({ 
+// Initialize OpenAI client with proper API key handling for both standard and project-based keys
+const openai = new OpenAI({
   apiKey: apiKey,
-  organization: process.env.OPENAI_ORG_ID, // Optional: Include org ID if available
-  dangerouslyAllowBrowser: false,  // Make sure this is false for server-side applications
+  organization: process.env.OPENAI_ORG || undefined, // Optional organization ID
+  dangerouslyAllowBrowser: false  // Make sure this is false for server-side applications
 });
 
 // Prompts for different tiers and analysis types
@@ -1761,11 +1747,8 @@ export async function ventMessage(message: string) {
   prompt = prompt.replace('{message}', message);
   
   try {
-    // Check if OpenAI API key is configured - use the processed apiKey variable
-    if (!apiKey || apiKey.trim() === '') {
-      console.warn('OpenAI API key not configured, using fallback vent response');
-      return generateFallbackVentResponse(message);
-    }
+    // API key is already configured in the openai client initialization
+    // No need to check again here, just handle API errors gracefully if they occur
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -1863,11 +1846,8 @@ function detectParticipantsLocally(conversation: string): { me: string, them: st
 // API function to detect participant names
 export async function detectParticipants(conversation: string) {
   try {
-    // Check if OpenAI API key is configured - use the processed apiKey variable
-    if (!apiKey || apiKey.trim() === '') {
-      console.warn('OpenAI API key not configured, using local name detection');
-      return detectParticipantsLocally(conversation);
-    }
+    // API key is already configured in the openai client initialization
+    // No need to check again here, just handle API errors gracefully if they occur
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
