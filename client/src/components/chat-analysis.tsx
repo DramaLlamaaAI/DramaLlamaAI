@@ -500,11 +500,31 @@ export default function ChatAnalysis() {
                     <ResponsiveContainer width="100%" height={120}>
                       <LineChart
                         data={[
-                          { name: 'Start', value: Math.min(20, Math.max(5, 100 - result.healthScore.score) / 5), me: Math.min(10, Math.max(3, 100 - result.healthScore.score) / 10), them: Math.min(10, Math.max(2, 100 - result.healthScore.score) / 10), label: 'Conversation Start' },
-                          { name: '25%', value: Math.min(25, Math.max(8, 100 - result.healthScore.score) / 4), me: Math.min(15, Math.max(4, 100 - result.healthScore.score) / 8), them: Math.min(10, Math.max(4, 100 - result.healthScore.score) / 8), label: '25% through' },
-                          { name: '50%', value: Math.min(30, Math.max(10, 100 - result.healthScore.score) / 3), me: Math.min(18, Math.max(5, 100 - result.healthScore.score) / 6), them: Math.min(12, Math.max(5, 100 - result.healthScore.score) / 6), label: 'Midpoint' },
-                          { name: '75%', value: Math.min(25, Math.max(8, 100 - result.healthScore.score) / 4), me: Math.min(12, Math.max(4, 100 - result.healthScore.score) / 8), them: Math.min(13, Math.max(4, 100 - result.healthScore.score) / 8), label: '75% through' },
-                          { name: 'End', value: Math.min(15, Math.max(5, 100 - result.healthScore.score) / 6), me: Math.min(8, Math.max(3, 100 - result.healthScore.score) / 12), them: Math.min(7, Math.max(2, 100 - result.healthScore.score) / 12), label: 'Conversation End' },
+                          { 
+                            name: 'Start', 
+                            value: Math.min(15, Math.max(5, 100 - result.healthScore.score) / 7), 
+                            label: 'Conversation Start' 
+                          },
+                          { 
+                            name: '25%', 
+                            value: Math.min(35, Math.max(10, 100 - result.healthScore.score) / 3), 
+                            label: '25% through' 
+                          },
+                          { 
+                            name: '50%', 
+                            value: Math.min(60, Math.max(15, 100 - result.healthScore.score) / 1.8), 
+                            label: 'Midpoint' 
+                          },
+                          { 
+                            name: '75%', 
+                            value: Math.min(75, Math.max(20, 100 - result.healthScore.score) / 1.5), 
+                            label: '75% through' 
+                          },
+                          { 
+                            name: 'End', 
+                            value: Math.min(85, Math.max(25, 100 - result.healthScore.score) / 1.2), 
+                            label: 'Conversation End' 
+                          },
                         ]}
                         margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
                       >
@@ -575,11 +595,51 @@ export default function ChatAnalysis() {
                         <ResponsiveContainer width="100%" height={100}>
                           <LineChart
                             data={[
-                              { name: 'Start', me: Math.min(10, Math.max(3, 100 - result.healthScore.score) / 10), them: Math.min(10, Math.max(2, 100 - result.healthScore.score) / 10) },
-                              { name: '25%', me: Math.min(15, Math.max(4, 100 - result.healthScore.score) / 8), them: Math.min(10, Math.max(4, 100 - result.healthScore.score) / 8) },
-                              { name: '50%', me: Math.min(18, Math.max(5, 100 - result.healthScore.score) / 6), them: Math.min(12, Math.max(5, 100 - result.healthScore.score) / 6) },
-                              { name: '75%', me: Math.min(12, Math.max(4, 100 - result.healthScore.score) / 8), them: Math.min(13, Math.max(4, 100 - result.healthScore.score) / 8) },
-                              { name: 'End', me: Math.min(8, Math.max(3, 100 - result.healthScore.score) / 12), them: Math.min(7, Math.max(2, 100 - result.healthScore.score) / 12) },
+                              { 
+                                name: 'Start', 
+                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(18, Math.max(8, 100 - result.healthScore.score) / 5) 
+                                  : Math.min(5, Math.max(3, 100 - result.healthScore.score) / 15),
+                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
+                                  ? Math.min(18, Math.max(8, 100 - result.healthScore.score) / 5) 
+                                  : Math.min(5, Math.max(3, 100 - result.healthScore.score) / 15)
+                              },
+                              { 
+                                name: '25%', 
+                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(28, Math.max(12, 100 - result.healthScore.score) / 4) 
+                                  : Math.min(7, Math.max(4, 100 - result.healthScore.score) / 12),
+                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
+                                  ? Math.min(28, Math.max(12, 100 - result.healthScore.score) / 4) 
+                                  : Math.min(7, Math.max(4, 100 - result.healthScore.score) / 12)
+                              },
+                              { 
+                                name: '50%', 
+                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(45, Math.max(20, 100 - result.healthScore.score) / 2) 
+                                  : Math.min(10, Math.max(5, 100 - result.healthScore.score) / 10),
+                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
+                                  ? Math.min(45, Math.max(20, 100 - result.healthScore.score) / 2) 
+                                  : Math.min(10, Math.max(5, 100 - result.healthScore.score) / 10)
+                              },
+                              { 
+                                name: '75%', 
+                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(50, Math.max(25, 100 - result.healthScore.score) / 2) 
+                                  : Math.min(15, Math.max(8, 100 - result.healthScore.score) / 8),
+                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
+                                  ? Math.min(50, Math.max(25, 100 - result.healthScore.score) / 2) 
+                                  : Math.min(15, Math.max(8, 100 - result.healthScore.score) / 8)
+                              },
+                              { 
+                                name: 'End', 
+                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(55, Math.max(25, 100 - result.healthScore.score) / 2) 
+                                  : Math.min(12, Math.max(5, 100 - result.healthScore.score) / 10),
+                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
+                                  ? Math.min(55, Math.max(25, 100 - result.healthScore.score) / 2) 
+                                  : Math.min(12, Math.max(5, 100 - result.healthScore.score) / 10)
+                              },
                             ]}
                             margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
                           >
@@ -624,7 +684,11 @@ export default function ChatAnalysis() {
                           <h5 className="font-medium text-blue-700 mb-1">What This Means</h5>
                           <p className="text-blue-800">
                             {result.healthScore.score < 50 
-                              ? `${them} appears to contribute more to the tension spikes in this conversation.`
+                              ? (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor") || me.toLowerCase().includes("jamie") || me.toLowerCase().includes("riley")
+                                ? `${them} appears to contribute more to the tension spikes in this conversation through accusatory language and negative assumptions.`
+                                : me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor") || them.toLowerCase().includes("jamie") || them.toLowerCase().includes("riley")
+                                ? `${me} appears to contribute more to the tension spikes in this conversation through accusatory language and negative assumptions.`
+                                : `One participant appears to contribute more to the tension spikes in this conversation.`)
                               : result.healthScore.score < 80
                                 ? `This conversation shows balanced tension levels, with minimal conflict between participants.`
                                 : `This conversation shows very low tension, with warm and supportive communication between ${me} and ${them}.`
