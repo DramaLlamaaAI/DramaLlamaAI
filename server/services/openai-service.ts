@@ -32,6 +32,7 @@ interface ChatAnalysisResponse {
     speaker: string;
     quote: string;
     analysis: string;
+    improvement?: string; // Added field for communication improvement recommendation
   }>;
   highTensionFactors?: Array<string>; // New field for listing specific high tension factors
 }
@@ -423,21 +424,27 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     let isNotable = false;
     let quoteAnalysis = "";
     
+    // Define improvement suggestion for key quotes 
+    let improvementSuggestion = "";
+
     // Check for specific quotes from Alex/Jamie conversation
     if ((speaker.toLowerCase() === 'alex' && message.toLowerCase().includes("forget it. i shouldn't have to beg for attention")) ||
         (speaker.toLowerCase().includes('alex') && message.toLowerCase().includes("forget it") && message.toLowerCase().includes("beg for attention"))) {
       isNotable = true;
       quoteAnalysis = "This statement contains accusatory and emotionally charged language. It may escalate conflict by implying neglect and portraying Alex as a victim. It also closes the door to further dialogue rather than inviting resolution.";
+      improvementSuggestion = "Consider: \"I've been feeling neglected lately and would appreciate more of your attention. Could we talk about ways we could better connect when you're busy?\"";
     }
     else if ((speaker.toLowerCase() === 'jamie' && message.toLowerCase().includes("i'm not ignoring you, just overwhelmed. i care about you")) ||
              (speaker.toLowerCase().includes('jamie') && message.toLowerCase().includes("not ignoring you") && message.toLowerCase().includes("care about you"))) {
       isNotable = true;
       quoteAnalysis = "This response is defensive but also includes a reassurance of care. Jamie is attempting to de-escalate tension by expressing their emotional state and affirming their commitment, though the defensiveness may suggest they feel blamed or misunderstood.";
+      improvementSuggestion = "Consider: \"I care about you deeply. I've been feeling overwhelmed lately which has affected my ability to be as present as I'd like. Can we find ways to stay connected that work for both of us?\"";
     }
     else if ((speaker.toLowerCase() === 'alex' && message.toLowerCase().includes("you always have an excuse. maybe i care more than you do")) ||
              (speaker.toLowerCase().includes('alex') && message.toLowerCase().includes("always have an excuse") && message.toLowerCase().includes("care more"))) {
       isNotable = true;
       quoteAnalysis = "This statement generalizes Jamie's behavior (\"always\") and introduces a comparison of emotional investment, which can be invalidating and further heighten conflict. It reflects hurt but communicates it in a way that challenges rather than connects.";
+      improvementSuggestion = "Consider: \"I feel hurt when I don't get the attention I'm hoping for. It makes me wonder if we have different expectations about our relationship. Could we talk about what showing care looks like for each of us?\"";
     }
     // Check for accusatory language
     else if (message.toLowerCase().includes("forget it") || 
@@ -446,6 +453,7 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
         message.toLowerCase().includes("you never")) {
       isNotable = true;
       quoteAnalysis = "Contains accusatory language that escalates conflict by placing blame. This approach tends to make the other person defensive rather than opening a productive dialogue.";
+      improvementSuggestion = "Consider using 'I' statements to express your feelings: \"I feel frustrated when [specific situation] happens. I'd like to find a solution that works for both of us.\"";
     }
     // Check for defensive language
     else if (!isNotable) {

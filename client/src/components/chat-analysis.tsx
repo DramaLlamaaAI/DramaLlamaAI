@@ -836,9 +836,16 @@ export default function ChatAnalysis() {
                           <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">Quote #{idx + 1}</span>
                         </div>
                         <p className="text-gray-700 italic mb-2">"{quote.quote}"</p>
-                        <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
-                          <span className="font-medium text-blue-700">Analysis:</span> {quote.analysis}
-                        </p>
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                            <span className="font-medium text-blue-700">Analysis:</span> {quote.analysis}
+                          </p>
+                          {quote.improvement && (
+                            <div className="text-sm text-gray-600 bg-green-50 p-2 rounded border border-green-100">
+                              <span className="font-medium text-green-700">Recommended Improvement:</span> {quote.improvement}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -40,6 +40,7 @@ export interface ChatAnalysisResponse {
     speaker: string;
     quote: string;
     analysis: string;
+    improvement?: string; // Added field for communication improvement recommendation
   }>;
   highTensionFactors?: Array<string>; // New field to show why the conversation is high-tension
 }
