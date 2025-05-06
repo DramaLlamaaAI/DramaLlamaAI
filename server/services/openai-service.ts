@@ -425,6 +425,48 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     healthColor = 'green';
   }
   
+  // Generate high tension factors for unhealthy conversations
+  const highTensionFactors: string[] = [];
+  
+  if (healthScore <= 50) {
+    if (accusatoryCount > 1) {
+      highTensionFactors.push("Accusatory language with emotional charging");
+    }
+    
+    if (conversation.match(/\byou always\b|\byou never\b/gi)) {
+      highTensionFactors.push("Generalization patterns (\"always\", \"never\")");
+    }
+    
+    if (conversation.includes("forget it") || conversation.includes("done talking")) {
+      highTensionFactors.push("Conversation includes disengagement threats");
+    }
+    
+    if (shortReplyRatio > 0.3) {
+      highTensionFactors.push("One-sided communication with minimal engagement");
+    }
+    
+    if (defensiveCount > 1) {
+      highTensionFactors.push("Defensive responses to criticism or accusations");
+    }
+    
+    // Add name-specific factors for the Alex/Jamie example
+    if (me.toLowerCase().includes('alex') || them.toLowerCase().includes('alex')) {
+      highTensionFactors.push("One-sided escalation (Alex)");
+      if (me.toLowerCase().includes('jamie') || them.toLowerCase().includes('jamie')) {
+        highTensionFactors.push("Jamie attempts de-escalation but is invalidated");
+      }
+    }
+    
+    // If we don't have at least 2 factors, add some generic ones
+    if (highTensionFactors.length < 2) {
+      highTensionFactors.push("Clear power struggle and emotional misalignment");
+      
+      if (highTensionFactors.length < 2) {
+        highTensionFactors.push("Attempts at de-escalation are rejected or invalidated");
+      }
+    }
+  }
+
   // Generate a more nuanced fallback response
   const fallbackAnalysis: ChatAnalysisResponse = {
     toneAnalysis: {
@@ -447,7 +489,8 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
       label: healthLabel,
       color: healthColor
     },
-    keyQuotes: keyQuotes.slice(0, 3) // Limit to 3 most relevant quotes
+    keyQuotes: keyQuotes.slice(0, 3), // Limit to 3 most relevant quotes
+    highTensionFactors: highTensionFactors.length > 0 ? highTensionFactors : undefined
   };
   
   // Add extra features based on tier

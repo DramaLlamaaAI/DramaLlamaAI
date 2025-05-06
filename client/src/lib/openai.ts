@@ -38,6 +38,7 @@ export interface ChatAnalysisResponse {
     quote: string;
     analysis: string;
   }>;
+  highTensionFactors?: Array<string>; // New field to show why the conversation is high-tension
 }
 
 // Message analysis interfaces
