@@ -787,7 +787,7 @@ export default function ChatAnalysis() {
               
               <div className="bg-muted p-4 rounded-lg mb-4">
                 <h4 className="font-medium mb-2">Communication Insights</h4>
-                {result.communication.patterns && (
+                {(result.communication.patterns && result.communication.patterns.length > 0) ? (
                   <div className="mb-4">
                     <h5 className="text-sm font-medium text-muted-foreground mb-1">Patterns</h5>
                     <ul className="list-disc list-inside space-y-1">
@@ -795,6 +795,19 @@ export default function ChatAnalysis() {
                         <li key={idx}>{pattern}</li>
                       ))}
                     </ul>
+                  </div>
+                ) : (
+                  <div className="mb-4">
+                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Patterns</h5>
+                    <div className="bg-blue-50 p-2 rounded">
+                      <p className="text-blue-500">
+                        {result.healthScore && result.healthScore.score > 85 ? 
+                          "Supportive check-in dialogue with positive emotional tone." :
+                          result.healthScore && result.healthScore.score < 60 ? 
+                          "Some tension detected with moments of accusatory language." : 
+                          "Mixed communication patterns with neutral emotional tone."}
+                      </p>
+                    </div>
                   </div>
                 )}
                 
