@@ -28,6 +28,11 @@ export interface ChatAnalysisResponse {
     suggestions?: string[];
   };
   dramaScore?: number;
+  keyQuotes?: Array<{
+    speaker: string;
+    quote: string;
+    analysis: string;
+  }>;
 }
 
 // Message analysis interfaces

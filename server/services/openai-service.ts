@@ -20,6 +20,11 @@ interface ChatAnalysisResponse {
     suggestions?: string[];
   };
   dramaScore?: number;
+  keyQuotes?: Array<{
+    speaker: string;
+    quote: string;
+    analysis: string;
+  }>;
 }
 
 interface MessageAnalysisResponse {
@@ -232,6 +237,83 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
   // Calculate emotional intensity (1-10 scale)
   const emotionalIntensity = Math.min(10, Math.round((negativeCount + accusatoryCount * 2 + defensiveCount) / (totalWords / 100)));
   
+  // Extract key quotes for analysis
+  const conversationLines = conversation.split('\n');
+  const keyQuotes: Array<{
+    speaker: string;
+    quote: string;
+    analysis: string;
+  }> = [];
+  
+  // Find problematic or notable quotes
+  for (let i = 0; i < conversationLines.length; i++) {
+    const line = conversationLines[i];
+    
+    // Skip empty lines
+    if (!line.trim()) continue;
+    
+    // Extract speaker and message
+    const match = line.match(/^([A-Za-z]+):\s*(.+)$/);
+    if (!match) continue;
+    
+    const [_, speaker, message] = match;
+    
+    // Skip very short messages
+    if (message.split(/\s+/).length < 3) continue;
+    
+    // Check for notable patterns
+    let isNotable = false;
+    let quoteAnalysis = "";
+    
+    // Check for accusatory language
+    for (const phrase of accusatoryPhrases) {
+      if (message.toLowerCase().includes(phrase.toLowerCase())) {
+        isNotable = true;
+        quoteAnalysis = "Contains accusatory language that may escalate conflict";
+        break;
+      }
+    }
+    
+    // Check for defensive language
+    if (!isNotable) {
+      for (const phrase of defensivePhrases) {
+        if (message.toLowerCase().includes(phrase.toLowerCase())) {
+          isNotable = true;
+          quoteAnalysis = "Shows defensive communication that may indicate feeling attacked";
+          break;
+        }
+      }
+    }
+    
+    // Check for disengagement signals
+    if (!isNotable && (
+      message.toLowerCase().includes("forget it") || 
+      message.toLowerCase().includes("done talking") ||
+      message.toLowerCase().includes("shouldn't have to")
+    )) {
+      isNotable = true;
+      quoteAnalysis = "Indicates disengagement from the conversation, a potential communication breakdown";
+    }
+    
+    // Check for generalizations
+    if (!isNotable && (
+      message.toLowerCase().includes(" always ") || 
+      message.toLowerCase().includes(" never ")
+    )) {
+      isNotable = true;
+      quoteAnalysis = "Uses generalizations that may polarize the discussion";
+    }
+    
+    // If we found a notable quote, add it to our collection
+    if (isNotable) {
+      keyQuotes.push({
+        speaker,
+        quote: message,
+        analysis: quoteAnalysis
+      });
+    }
+  }
+  
   // Generate a more nuanced fallback response
   const fallbackAnalysis: ChatAnalysisResponse = {
     toneAnalysis: {
@@ -248,7 +330,8 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
         accusatoryCount > 2 ? "Accusatory language patterns" : "Direct expression of concerns",
         defensiveCount > 2 ? "Defensive communication style" : "Attempt to clarify perspectives"
       ]
-    }
+    },
+    keyQuotes: keyQuotes.slice(0, 3) // Limit to 3 most relevant quotes
   };
   
   // Add extra features based on tier
