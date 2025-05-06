@@ -163,11 +163,20 @@ const prompts = {
   },
   
   vent: {
-    free: `Rewrite this emotional message in a calmer, more effective way while preserving the core intent: "{message}". Respond with JSON in this format:
+    free: `Rewrite this emotional message in a calmer, more effective way while preserving the core intent: "{message}". 
+    Focus on de-escalating emotional tension and creating a resolution-focused message.
+    Your goal is to help the user transform heated communication into constructive dialogue that:
+      - Reduces emotional reactivity
+      - Clearly expresses the core needs/concerns
+      - Opens the door for resolution
+      - Avoids blame language
+      - Uses "I" statements instead of accusatory "you" statements
+
+    Respond with JSON in this format:
     {
       "original": "the original message",
-      "rewritten": "calmer rewritten version",
-      "explanation": "brief explanation of changes"
+      "rewritten": "calmer, resolution-focused rewritten version",
+      "explanation": "explanation of changes that highlights how the rewrite helps move toward resolution"
     }`
   },
   
@@ -1244,11 +1253,8 @@ export async function analyzeChatConversation(conversation: string, me: string, 
   prompt = prompt.replace('{me}', me).replace('{them}', them);
   
   try {
-    // Check if OpenAI API key is configured - use the processed apiKey variable
-    if (!apiKey || apiKey.trim() === '') {
-      console.warn('OpenAI API key not configured, using fallback analysis');
-      return generateFallbackAnalysis(conversation, me, them, validTier);
-    }
+    // API key is already configured in the openai client initialization
+    // No need to check again here, just handle API errors gracefully if they occur
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -1700,11 +1706,8 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
   prompt = prompt.replace('{message}', message).replace('{author}', author);
   
   try {
-    // Check if OpenAI API key is configured - use the processed apiKey variable
-    if (!apiKey || apiKey.trim() === '') {
-      console.warn('OpenAI API key not configured, using fallback message analysis');
-      return generateFallbackMessageAnalysis(message, author, validTier);
-    }
+    // API key is already configured in the openai client initialization
+    // No need to check again here, just handle API errors gracefully if they occur
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
