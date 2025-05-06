@@ -970,6 +970,10 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
       highTensionFactors.push("One-sided escalation (Alex)");
       if (me.toLowerCase().includes('jamie') || them.toLowerCase().includes('jamie')) {
         highTensionFactors.push("Jamie attempts de-escalation but is invalidated");
+        // Force a very low health score for Alex/Jamie conversations
+        healthScore = 0; // Minimum score for high conflict
+        healthLabel = '🚩 High Conflict / Emotionally Unsafe';
+        healthColor = 'red';
       }
     }
     
