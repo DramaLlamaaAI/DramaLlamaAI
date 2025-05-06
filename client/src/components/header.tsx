@@ -45,6 +45,21 @@ export default function Header() {
         </Link>
         
         <div className="flex items-center">
+          <nav className="hidden md:flex items-center mr-6 space-x-4">
+            <Link href="/">
+              <span className="text-white hover:text-white/80 transition">Home</span>
+            </Link>
+            <Link href="/chat-analysis">
+              <span className="text-white hover:text-white/80 transition">Chat Analysis</span>
+            </Link>
+            <Link href="/message-analysis">
+              <span className="text-white hover:text-white/80 transition">Message Analysis</span>
+            </Link>
+            <Link href="/vent-mode">
+              <span className="text-white hover:text-white/80 transition">Vent Mode</span>
+            </Link>
+          </nav>
+          
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

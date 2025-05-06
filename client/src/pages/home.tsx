@@ -40,9 +40,6 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <HeroSection />
         <FeaturesSection />
-        <ChatAnalysis />
-        <MessageAnalysis />
-        <VentMode />
         <PricingSection />
         <HowItWorks />
       </main>

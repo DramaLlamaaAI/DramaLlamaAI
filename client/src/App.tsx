@@ -8,11 +8,17 @@ import DisclaimerModal from "./components/disclaimer-modal";
 import { hasAcceptedDisclaimer, saveDisclaimerAcceptance } from "./lib/utils";
 import Home from "./pages/home";
 import NotFound from "@/pages/not-found";
+import ChatAnalysis from "./components/chat-analysis";
+import MessageAnalysis from "./components/message-analysis";
+import VentMode from "./components/vent-mode";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/chat-analysis" component={ChatAnalysis} />
+      <Route path="/message-analysis" component={MessageAnalysis} />
+      <Route path="/vent-mode" component={VentMode} />
       <Route component={NotFound} />
     </Switch>
   );
