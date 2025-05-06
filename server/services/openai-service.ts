@@ -57,14 +57,25 @@ const apiKey = process.env.OPENAI_API_KEY || '';
 
 // Log a masked version of the API key for debugging (showing only prefix)
 const maskedKey = apiKey.substring(0, 8) + '*'.repeat(Math.max(0, apiKey.length - 8));
-console.log(`OPENAI_API_KEY is set, type: ${apiKey.startsWith('sk-proj-') ? 'project-based' : 'standard'}`);
+const keyType = apiKey.startsWith('sk-proj-') ? 'project-based' : 'standard';
+console.log(`OPENAI_API_KEY is set, type: ${keyType}`);
 
-// Initialize OpenAI client with proper API key handling for both standard and project-based keys
-const openai = new OpenAI({
+// Set additional configuration for project-based keys if needed
+const clientConfig: any = {
   apiKey: apiKey,
   organization: process.env.OPENAI_ORG || undefined, // Optional organization ID
-  dangerouslyAllowBrowser: false  // Make sure this is false for server-side applications
-});
+  dangerouslyAllowBrowser: false // Keep server-side only
+};
+
+// Special handling for project-specific API keys
+if (keyType === 'project-based') {
+  // Project API keys might have specific authentication requirements
+  // Watch logs for any authentication errors that would indicate additional config needs
+  clientConfig.maxRetries = 3; // Add retries for potential intermittent issues with project keys
+}
+
+// Initialize OpenAI client with proper API key handling for both standard and project-based keys
+const openai = new OpenAI(clientConfig);
 
 // Prompts for different tiers and analysis types
 const prompts = {
@@ -1645,9 +1656,15 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
       rewritten = rewritten.replace(/\bI can't believe\b/i, "I'm surprised");
     }
     
-    // 6. Add constructive ending phrases for very short, abrupt messages
+    // 6. Add constructive ending phrases that specifically focus on resolution
     if (rewritten.split(/\s+/).length < 5 && !rewritten.includes("?")) {
-      rewritten += ". I would like to discuss this further when we're both ready.";
+      rewritten += ". I would like to discuss this further when we're both ready so that we can find a solution together.";
+    }
+    // Add resolution-oriented phrasing to messages that don't already have it
+    else if (!rewritten.includes("solution") && !rewritten.includes("resolve") && 
+             !rewritten.includes("work through") && !rewritten.includes("figure out") && 
+             !rewritten.includes("move forward")) {
+      rewritten += " I hope we can find a resolution that works for both of us.";
     }
   }
   
@@ -1687,8 +1704,8 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
     }
   }
   
-  // 7. Determine explanation based on the changes made
-  let explanation = "This rewritten message maintains your core concerns while expressing them in a constructive way that invites conversation. It uses 'I' statements to express feelings authentically, avoids accusations, and focuses on creating a path toward resolution.";
+  // 7. Determine explanation based on the changes made - emphasize resolution focus
+  let explanation = "This rewritten message maintains your core concerns while expressing them in a constructive way that invites resolution. It uses 'I' statements to express feelings authentically, avoids accusations, and creates a path forward by focusing on solutions rather than problems. This approach makes it easier for the other person to respond positively and collaborate on resolving the issue.";
   
   return {
     original: originalMessage,
@@ -1758,7 +1775,7 @@ export async function ventMessage(message: string) {
       messages: [
         {
           role: "system",
-          content: "You are an expert in de-escalating emotional communication while preserving intent."
+          content: "You are an expert in de-escalating emotional communication while preserving intent. Your goal is to transform heated messages into constructive dialogue that reduces emotional reactivity, expresses core needs clearly, opens doors for resolution, avoids blame, and uses 'I' statements instead of accusatory 'you' statements."
         },
         {
           role: "user",
