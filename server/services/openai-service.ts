@@ -50,23 +50,27 @@ interface VentModeResponse {
 }
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+// Process API key - handle project-specific format if needed
+let apiKey = process.env.OPENAI_API_KEY || '';
+
+// Handle project-specific format "openai.api_key = sk-proj-..."
+if (apiKey.startsWith('openai.api_key = ')) {
+  apiKey = apiKey.replace('openai.api_key = ', '');
+  console.log('Extracted API key from project-specific format');
+}
+
 // Check if API key exists and validate format
-if (!process.env.OPENAI_API_KEY) {
+if (!apiKey) {
   console.error('OPENAI_API_KEY environment variable is not set');
 } else {
   // Log a masked version of the API key for debugging (showing only first 4 chars)
-  const maskedKey = process.env.OPENAI_API_KEY.substring(0, 4) + '*'.repeat(Math.max(process.env.OPENAI_API_KEY.length - 4, 0));
+  const maskedKey = apiKey.substring(0, 4) + '*'.repeat(Math.max(apiKey.length - 4, 0));
   console.log(`OPENAI_API_KEY is set, begins with: ${maskedKey}`);
-  
-  // Check format to ensure it's a valid OpenAI key
-  if (!process.env.OPENAI_API_KEY.startsWith('sk-')) {
-    console.error('OPENAI_API_KEY appears to be in an incorrect format - should start with "sk-"');
-  }
 }
 
 // Initialize OpenAI client
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: apiKey
 });
 
 // Prompts for different tiers and analysis types
@@ -815,8 +819,8 @@ export async function analyzeChatConversation(conversation: string, me: string, 
   prompt = prompt.replace('{me}', me).replace('{them}', them);
   
   try {
-    // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '') {
+    // Check if OpenAI API key is configured - use the processed apiKey variable
+    if (!apiKey || apiKey.trim() === '') {
       console.warn('OpenAI API key not configured, using fallback analysis');
       return generateFallbackAnalysis(conversation, me, them, validTier);
     }
@@ -1111,8 +1115,8 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
   prompt = prompt.replace('{message}', message).replace('{author}', author);
   
   try {
-    // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '') {
+    // Check if OpenAI API key is configured - use the processed apiKey variable
+    if (!apiKey || apiKey.trim() === '') {
       console.warn('OpenAI API key not configured, using fallback message analysis');
       return generateFallbackMessageAnalysis(message, author, validTier);
     }
