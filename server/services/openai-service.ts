@@ -30,6 +30,7 @@ interface ChatAnalysisResponse {
     quote: string;
     analysis: string;
   }>;
+  highTensionFactors?: Array<string>; // New field for listing specific high tension factors
 }
 
 interface MessageAnalysisResponse {

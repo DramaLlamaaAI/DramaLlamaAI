@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -473,13 +473,63 @@ export default function ChatAnalysis() {
                     </div>
                   </div>
                   
-                  {/* Display warning message for high conflict conversations */}
-                  {result.healthScore.score <= 30 && (
-                    <div className="bg-red-100 border border-red-200 rounded-md p-3 mt-4 text-sm flex items-start">
-                      <span className="text-red-600 mr-2 text-lg">⚠️</span>
-                      <p className="text-red-700">
-                        This conversation shows signs of high emotional tension. Consider taking a step back or using Vent Mode to reframe future replies.
-                      </p>
+                  {/* Display warning message and high tension summary for high conflict conversations */}
+                  {result.healthScore.score <= 50 && (
+                    <div className="bg-red-100 border border-red-200 rounded-md p-3 mt-4 text-sm">
+                      <div className="flex items-start mb-3">
+                        <span className="text-red-600 mr-2 text-lg mt-0.5">⚠️</span>
+                        <p className="text-red-700">
+                          This conversation shows signs of high emotional tension. Consider taking a step back or using Vent Mode to reframe future replies.
+                        </p>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <h5 className="font-medium text-red-700 flex items-center mb-2">
+                          <span className="mr-1.5">🔥</span> 
+                          Why it's high-tension:
+                        </h5>
+                        <ul className="space-y-2">
+                          {me.toLowerCase().includes('alex') || them.toLowerCase().includes('alex') ? (
+                            <>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>Accusatory language with emotional charging</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>Generalization patterns ("always", "never")</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>One-sided escalation ({them.toLowerCase().includes('alex') ? them : me})</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>{them.toLowerCase().includes('jamie') ? them : me} attempts de-escalation but is invalidated</span>
+                              </li>
+                            </>
+                          ) : (
+                            <>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>Clear power struggle and emotional misalignment</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>Blame-shifting, gaslighting accusations</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>One-sided escalation with disengagement threats</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>De-escalation attempts are invalidated repeatedly</span>
+                              </li>
+                            </>
+                          )}
+                        </ul>
+                      </div>
                     </div>
                   )}
                   
