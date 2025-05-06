@@ -269,11 +269,33 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     'i\'m here', 'i want to', 'work through this'
   ];
   
+  // Supportive check-in phrases
+  const supportivePhrases = [
+    'check in', 'how are you', 'how you\'re doing', 'doing ok', 'doing okay',
+    'here for you', 'to help', 'want to help', 'glad', 'really nice',
+    'miss you', 'thinking of you', 'glad to hear'
+  ];
+  
+  // Vulnerability phrases
+  const vulnerabilityPhrases = [
+    'overwhelmed', 'struggling', 'not easy', 'difficult', 'stressed',
+    'tired', 'anxious', 'worried', 'scared', 'lonely', 'sad'
+  ];
+  
+  // Appreciation phrases
+  const appreciationPhrases = [
+    'appreciate', 'thanks', 'thank you', 'grateful', 'means a lot', 
+    'helping', 'kind of you', 'chatting', 'talking'
+  ];
+  
   // Count instances of different types of language
   let positiveCount = 0;
   let negativeCount = 0;
   let accusatoryCount = 0;
   let defensiveCount = 0;
+  let supportiveCount = 0;
+  let vulnerabilityCount = 0;
+  let appreciationCount = 0;
   
   // Count basic positive/negative words
   for (const word of positiveWords) {
@@ -304,6 +326,27 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     const regex = new RegExp(phrase, 'gi');
     const matches = conversation.match(regex);
     if (matches) defensiveCount += matches.length;
+  }
+  
+  // Count supportive phrases
+  for (const phrase of supportivePhrases) {
+    const regex = new RegExp(phrase, 'gi');
+    const matches = conversation.match(regex);
+    if (matches) supportiveCount += matches.length;
+  }
+  
+  // Count vulnerability phrases
+  for (const phrase of vulnerabilityPhrases) {
+    const regex = new RegExp(phrase, 'gi');
+    const matches = conversation.match(regex);
+    if (matches) vulnerabilityCount += matches.length;
+  }
+  
+  // Count appreciation phrases
+  for (const phrase of appreciationPhrases) {
+    const regex = new RegExp(phrase, 'gi');
+    const matches = conversation.match(regex);
+    if (matches) appreciationCount += matches.length;
   }
   
   // Check for question marks without positive responses - indicates unresolved issues
