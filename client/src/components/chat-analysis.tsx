@@ -51,15 +51,24 @@ export default function ChatAnalysis() {
       window.scrollTo({ top: document.getElementById('analysisResults')?.offsetTop || 0, behavior: 'smooth' });
     },
     onError: (error: any) => {
-      const errorMsg = error.message || "Could not analyze conversation. Please try again.";
+      let errorMsg = error.message || "Could not analyze conversation. Please try again.";
+      
+      // Special handling for potential OpenAI API issues
+      if (errorMsg.includes('API') || errorMsg.includes('key') || errorMsg.includes('OpenAI')) {
+        errorMsg = "OpenAI API error. Please check that your API key is valid and has sufficient credits.";
+      }
+      
       setErrorMessage(errorMsg);
       console.error("Analysis error details:", error);
       
-      toast({
-        title: "Analysis Failed",
-        description: errorMsg,
-        variant: "destructive",
-      });
+      // Only show toast for non-API errors since we display API errors more prominently
+      if (!errorMsg.includes('API')) {
+        toast({
+          title: "Analysis Failed",
+          description: errorMsg,
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -201,30 +210,21 @@ export default function ChatAnalysis() {
   };
 
   const handleAnalyze = () => {
+    // Clear any previous errors
+    setErrorMessage(null);
+    
     if (!canUseFeature) {
-      toast({
-        title: "Usage Limit Reached",
-        description: `You've reached your ${tier} tier limit of ${limit} analyses this month. Please upgrade your plan for more.`,
-        variant: "destructive",
-      });
+      setErrorMessage(`You've reached your ${tier} tier limit of ${limit} analyses this month. Please upgrade your plan for more.`);
       return;
     }
     
     if (!conversation) {
-      toast({
-        title: "No Conversation",
-        description: "Please paste or upload a conversation first.",
-        variant: "destructive",
-      });
+      setErrorMessage("Please paste or upload a conversation first.");
       return;
     }
     
     if (!me || !them) {
-      toast({
-        title: "Names Required",
-        description: "Please identify both participants in the conversation.",
-        variant: "destructive",
-      });
+      setErrorMessage("Please identify both participants in the conversation.");
       return;
     }
     
