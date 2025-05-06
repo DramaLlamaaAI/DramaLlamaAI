@@ -422,21 +422,7 @@ export default function ChatAnalysis() {
                 <h4 className="font-medium mb-2">Overall Tone</h4>
                 <p className="text-lg">{result.toneAnalysis.overallTone}</p>
                 
-                <h4 className="font-medium mt-4 mb-2">Emotional States</h4>
-                <div className="flex flex-wrap gap-2">
-                  {result.toneAnalysis.emotionalState.map((emotion, idx) => (
-                    <div 
-                      key={idx} 
-                      className="px-3 py-1 rounded-full text-white text-sm"
-                      style={{
-                        backgroundColor: `hsl(${220 + idx * 30}, 70%, 60%)`,
-                        opacity: 0.5 + (emotion.intensity / 10) * 0.5
-                      }}
-                    >
-                      {emotion.emotion} ({emotion.intensity}/10)
-                    </div>
-                  ))}
-                </div>
+
               </div>
               
               {result.healthScore && (
@@ -509,7 +495,7 @@ export default function ChatAnalysis() {
                       <LineChart
                         data={[
                           { name: '10%', value: 10, me: 5, them: 5 },
-                          { name: '25%', value: result.toneAnalysis.emotionalState[0].intensity * 8, me: result.toneAnalysis.emotionalState[0].intensity * 4, them: result.toneAnalysis.emotionalState[0].intensity * 4 },
+                          { name: '25%', value: 30, me: 15, them: 15 },
                           { name: '50%', value: result.healthScore.score < 50 ? 85 : 35, me: result.healthScore.score < 50 ? 50 : 15, them: result.healthScore.score < 50 ? 35 : 20 },
                           { name: '75%', value: result.healthScore.score < 30 ? 90 : 60, me: result.healthScore.score < 30 ? 40 : 20, them: result.healthScore.score < 30 ? 50 : 40 },
                           { name: '100%', value: result.healthScore.score < 50 ? 65 : 30, me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15 },
@@ -555,7 +541,7 @@ export default function ChatAnalysis() {
                           <LineChart
                             data={[
                               { name: '10%', me: 5, them: 5 },
-                              { name: '25%', me: result.toneAnalysis.emotionalState[0].intensity * 4, them: result.toneAnalysis.emotionalState[0].intensity * 4 },
+                              { name: '25%', me: 15, them: 15 },
                               { name: '50%', me: result.healthScore.score < 50 ? 50 : 15, them: result.healthScore.score < 50 ? 35 : 20 },
                               { name: '75%', me: result.healthScore.score < 30 ? 40 : 20, them: result.healthScore.score < 30 ? 50 : 40 },
                               { name: '100%', me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15 },
