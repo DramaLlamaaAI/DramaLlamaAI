@@ -59,18 +59,23 @@ if (apiKey.startsWith('openai.api_key = ')) {
   console.log('Extracted API key from project-specific format');
 }
 
-// Check if API key exists and validate format
+// Check if API key exists
 if (!apiKey) {
   console.error('OPENAI_API_KEY environment variable is not set');
 } else {
   // Log a masked version of the API key for debugging (showing only first 4 chars)
   const maskedKey = apiKey.substring(0, 4) + '*'.repeat(Math.max(apiKey.length - 4, 0));
   console.log(`OPENAI_API_KEY is set, begins with: ${maskedKey}`);
+  
+  // Note: We no longer verify format, as project-specific keys may have different formats
+  console.log('Using project-specific API key format');
 }
 
 // Initialize OpenAI client
 const openai = new OpenAI({ 
-  apiKey: apiKey
+  apiKey: apiKey,
+  organization: process.env.OPENAI_ORG_ID, // Optional: Include org ID if available
+  dangerouslyAllowBrowser: false,  // Make sure this is false for server-side applications
 });
 
 // Prompts for different tiers and analysis types
@@ -969,7 +974,14 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     const result = JSON.parse(response.choices[0].message.content || "{}");
     return result;
   } catch (error: any) {
+    // More detailed error logging to help with project-specific keys
     console.error('OpenAI API Error:', error?.message || error);
+    if (error?.response?.data) {
+      console.error('OpenAI API Error Details:', JSON.stringify(error.response.data));
+    }
+    if (error?.stack) {
+      console.error('Stack trace:', error.stack);
+    }
     
     // Use fallback analysis when API fails
     console.log('Using fallback analysis due to API error');
@@ -1265,7 +1277,15 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     const result = JSON.parse(response.choices[0].message.content || "{}");
     return result;
   } catch (error: any) {
+    // More detailed error logging to help with project-specific keys
     console.error('OpenAI API Error:', error?.message || error);
+    if (error?.response?.data) {
+      console.error('OpenAI API Error Details:', JSON.stringify(error.response.data));
+    }
+    if (error?.stack) {
+      console.error('Stack trace:', error.stack);
+    }
+    
     // Use fallback when API fails
     console.log('Using fallback message analysis due to API error');
     return generateFallbackMessageAnalysis(message, author, validTier);
@@ -1304,7 +1324,15 @@ export async function ventMessage(message: string) {
     const result = JSON.parse(response.choices[0].message.content || "{}");
     return result;
   } catch (error: any) {
+    // More detailed error logging to help with project-specific keys
     console.error('OpenAI API Error:', error?.message || error);
+    if (error?.response?.data) {
+      console.error('OpenAI API Error Details:', JSON.stringify(error.response.data));
+    }
+    if (error?.stack) {
+      console.error('Stack trace:', error.stack);
+    }
+    
     // Use fallback when API fails
     console.log('Using fallback vent response due to API error');
     return generateFallbackVentResponse(message);
@@ -1401,7 +1429,15 @@ export async function detectParticipants(conversation: string) {
       them: result.them || "Them"
     };
   } catch (error: any) {
+    // More detailed error logging to help with project-specific keys
     console.error('OpenAI API Error:', error?.message || error);
+    if (error?.response?.data) {
+      console.error('OpenAI API Error Details:', JSON.stringify(error.response.data));
+    }
+    if (error?.stack) {
+      console.error('Stack trace:', error.stack);
+    }
+    
     // Use local detection as fallback
     console.log('Using local name detection due to API error');
     return detectParticipantsLocally(conversation);
