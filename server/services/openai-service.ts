@@ -41,6 +41,8 @@ interface MessageAnalysisResponse {
   tone: string;
   intent: string[];
   suggestedReply?: string;
+  potentialResponse?: string;
+  possibleReword?: string;
 }
 
 interface VentModeResponse {
