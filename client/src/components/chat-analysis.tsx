@@ -452,8 +452,12 @@ export default function ChatAnalysis() {
                   </div>
                   <div className="flex items-center">
                     <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="absolute top-0 right-0 h-full bg-red-100 w-full"></div>
+                      <div className="absolute top-0 right-0 h-full bg-amber-100 w-3/4"></div>
+                      <div className="absolute top-0 right-0 h-full bg-emerald-100 w-1/2"></div>
+                      <div className="absolute top-0 right-0 h-full bg-green-100 w-1/4"></div>
                       <div 
-                        className={`absolute top-0 left-0 h-full rounded-full ${
+                        className={`absolute top-0 left-0 h-full rounded-r-full ${
                           result.healthScore.color === 'red' ? 'bg-red-500' : 
                           result.healthScore.color === 'yellow' ? 'bg-amber-500' : 
                           result.healthScore.color === 'light-green' ? 'bg-emerald-500' : 
@@ -465,25 +469,12 @@ export default function ChatAnalysis() {
 
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
-                    <span>Healthy</span>
-                    <span>Strained</span>
-                    <span>Tense</span>
-                    <span>High Conflict</span>
+                    <span>🌿 Very Healthy</span>
+                    <span>✅ Healthy</span>
+                    <span>⚠️ Strained</span>
+                    <span>🚩 High Conflict</span>
                   </div>
-                  <div className="flex justify-between w-full mt-2">
-                    <div className="w-[25%] flex justify-center">
-                      <span className="text-lg">🌿</span>
-                    </div>
-                    <div className="w-[25%] flex justify-center">
-                      <span className="text-lg">✅</span>
-                    </div>
-                    <div className="w-[25%] flex justify-center">
-                      <span className="text-lg">⚠️</span>
-                    </div>
-                    <div className="w-[25%] flex justify-center">
-                      <span className="text-lg">🚩</span>
-                    </div>
-                  </div>
+
                   
                   {/* Display warning message and high tension summary for high conflict conversations */}
                   {result.healthScore.score <= 50 && (

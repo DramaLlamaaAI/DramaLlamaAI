@@ -489,12 +489,22 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     
     // If we found a notable quote, add it to our collection
     if (isNotable) {
-      keyQuotes.push({
+      const quoteObject: {
+        speaker: string;
+        quote: string;
+        analysis: string;
+        improvement?: string;
+      } = {
         speaker,
         quote: message,
-        analysis: quoteAnalysis,
-        improvement: improvementSuggestion
-      });
+        analysis: quoteAnalysis
+      };
+      
+      if (improvementSuggestion) {
+        quoteObject.improvement = improvementSuggestion;
+      }
+      
+      keyQuotes.push(quoteObject);
     }
   }
   
