@@ -1,44 +1,53 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Upload, Sparkles, FileBarChart } from "lucide-react";
+import llamaImage from "@assets/FB Profile Pic.png";
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="mb-12 bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold mb-6 text-center">How Drama Llama Works</h2>
+    <section id="how-it-works" className="mb-12 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl p-8">
+      <div className="flex items-center justify-center gap-3 mb-6">
+        <img src={llamaImage} alt="Drama Llama" className="w-12 h-12 rounded-full" />
+        <h2 className="text-3xl font-bold text-primary">How Drama Llama Works</h2>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="text-center">
-          <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <Upload className="h-8 w-8 text-primary" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div className="flex flex-col">
+          <div className="bg-white rounded-lg shadow-md p-6 h-full">
+            <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mb-4">
+              <Upload className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="font-semibold mb-2 text-lg">1. Upload Your Conversation</h3>
+            <p className="text-muted-foreground">Paste messages, upload a file, or snap a screenshot — whatever works for you.</p>
           </div>
-          <h3 className="font-semibold mb-2">1. Share Communication</h3>
-          <p className="text-muted-foreground">Paste text, upload files, or capture screenshots of your conversations.</p>
         </div>
         
-        <div className="text-center">
-          <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="h-8 w-8 text-primary" />
+        <div className="flex flex-col">
+          <div className="bg-white rounded-lg shadow-md p-6 h-full">
+            <div className="bg-secondary/10 rounded-full w-16 h-16 flex items-center justify-center mb-4">
+              <Sparkles className="h-8 w-8 text-secondary" />
+            </div>
+            <h3 className="font-semibold mb-2 text-lg">2. Let AI Do the Work</h3>
+            <p className="text-muted-foreground">Our AI examines tone, patterns, and subtle emotional cues — no bias, no judgment.</p>
           </div>
-          <h3 className="font-semibold mb-2">2. AI Analysis</h3>
-          <p className="text-muted-foreground">Our AI analyzes tone, patterns, and emotional indicators in the conversation.</p>
         </div>
         
-        <div className="text-center">
-          <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <FileBarChart className="h-8 w-8 text-primary" />
+        <div className="flex flex-col">
+          <div className="bg-white rounded-lg shadow-md p-6 h-full">
+            <div className="bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full w-16 h-16 flex items-center justify-center mb-4">
+              <FileBarChart className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="font-semibold mb-2 text-lg">3. Get Clarity</h3>
+            <p className="text-muted-foreground">Uncover red flags, emotional trends, and communication dynamics — so you can respond with confidence.</p>
           </div>
-          <h3 className="font-semibold mb-2">3. Get Insights</h3>
-          <p className="text-muted-foreground">Receive clear insights about emotional tones, red flags, and communication patterns.</p>
         </div>
       </div>
       
-      <div className="mt-8 bg-muted rounded-lg p-5">
+      <div className="mt-8 bg-white/80 rounded-lg p-5 max-w-4xl mx-auto">
         <div className="flex items-start md:items-center flex-col md:flex-row">
           <div className="mb-4 md:mb-0 md:mr-6">
             <div className="bg-primary/10 rounded-full p-3">
               <svg 
-                width="48" 
-                height="48" 
+                width="36" 
+                height="36" 
                 viewBox="0 0 64 64" 
                 fill="none" 
                 xmlns="http://www.w3.org/2000/svg"
