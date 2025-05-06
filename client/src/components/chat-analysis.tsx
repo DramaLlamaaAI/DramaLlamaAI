@@ -455,7 +455,7 @@ export default function ChatAnalysis() {
                       {/* Background color gradient from green to red */}
                       <div className="absolute top-0 left-0 h-full w-full" 
                            style={{ 
-                             background: 'linear-gradient(to right, #ef4444 0%, #f43f5e 25%, #f59e0b 50%, #10b981 75%, #22c55e 100%)' 
+                             background: 'linear-gradient(to right, #22c55e 0%, #10b981 25%, #f59e0b 50%, #f43f5e 75%, #ef4444 100%)' 
                            }}>
                       </div>
                       
@@ -468,10 +468,10 @@ export default function ChatAnalysis() {
 
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
-                    <span className="text-red-600">🚩 High Conflict</span>
-                    <span className="text-amber-600">⚠️ Strained</span>
-                    <span className="text-emerald-600">✅ Healthy</span>
                     <span className="text-green-600">🌿 Very Healthy</span>
+                    <span className="text-emerald-600">✅ Healthy</span>
+                    <span className="text-amber-600">⚠️ Strained</span>
+                    <span className="text-red-600">🚩 High Conflict</span>
                   </div>
 
                   
