@@ -147,6 +147,41 @@ export default function ChatAnalysis() {
       return;
     }
     
+    // First try to automatically detect names using patterns in the text
+    try {
+      // Simple regex pattern to identify common chat format: "Name: Message"
+      const namePattern = /^([A-Za-z]+):/gm;
+      let match;
+      const names: string[] = [];
+      
+      // Manually collect matches
+      while ((match = namePattern.exec(conversation)) !== null) {
+        names.push(match[1]);
+      }
+      
+      // Get unique names
+      const uniqueNames: string[] = [];
+      for (const name of names) {
+        if (!uniqueNames.includes(name)) {
+          uniqueNames.push(name);
+        }
+      }
+      
+      if (uniqueNames.length >= 2) {
+        setMe(uniqueNames[0]);
+        setThem(uniqueNames[1]);
+        
+        toast({
+          title: "Names Detected",
+          description: `Found participants: ${uniqueNames[0]} and ${uniqueNames[1]}`,
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Error in local name detection:", error);
+    }
+    
+    // If local detection fails or API key is invalid, try the API
     detectNamesMutation.mutate(conversation);
   };
 
@@ -310,11 +345,13 @@ export default function ChatAnalysis() {
           <div className="flex flex-wrap gap-4 mb-6">
             <Button 
               variant="outline" 
-              className="flex items-center" 
+              className="flex items-center gap-2" 
               onClick={handleDetectNames}
               disabled={!conversation || detectNamesMutation.isPending}
             >
-              <Search className="mr-2 h-4 w-4" /> Detect Names
+              <Search className="h-4 w-4" /> 
+              {detectNamesMutation.isPending ? "Detecting..." : "Detect Names"} 
+              <span className="text-xs text-muted-foreground">(No API Required)</span>
             </Button>
             <Button 
               variant="outline" 
