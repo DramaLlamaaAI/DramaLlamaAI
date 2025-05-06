@@ -452,13 +452,13 @@ export default function ChatAnalysis() {
                   <div className="flex items-center">
                     <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                       <div 
-                        className={`absolute top-0 left-0 h-full rounded-full ${
+                        className={`absolute top-0 right-0 h-full rounded-full ${
                           result.healthScore.color === 'red' ? 'bg-red-500' : 
                           result.healthScore.color === 'yellow' ? 'bg-amber-500' : 
                           result.healthScore.color === 'light-green' ? 'bg-emerald-500' : 
                           'bg-green-500'
                         }`}
-                        style={{ width: `${result.healthScore.score}%` }}
+                        style={{ width: `${100 - result.healthScore.score}%` }}
                       />
                     </div>
                     <span className="ml-3 font-bold">
@@ -466,23 +466,23 @@ export default function ChatAnalysis() {
                     </span>
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
-                    <span>High Conflict</span>
-                    <span>Tense</span>
-                    <span>Strained</span>
                     <span>Healthy</span>
+                    <span>Strained</span>
+                    <span>Tense</span>
+                    <span>High Conflict</span>
                   </div>
                   <div className="flex justify-between w-full mt-2">
                     <div className="w-[25%] flex justify-center">
-                      <span className="text-lg">🚩</span>
-                    </div>
-                    <div className="w-[25%] flex justify-center">
-                      <span className="text-lg">⚠️</span>
+                      <span className="text-lg">🌿</span>
                     </div>
                     <div className="w-[25%] flex justify-center">
                       <span className="text-lg">✅</span>
                     </div>
                     <div className="w-[25%] flex justify-center">
-                      <span className="text-lg">🌿</span>
+                      <span className="text-lg">⚠️</span>
+                    </div>
+                    <div className="w-[25%] flex justify-center">
+                      <span className="text-lg">🚩</span>
                     </div>
                   </div>
                 </div>

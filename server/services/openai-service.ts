@@ -69,9 +69,9 @@ const prompts = {
         "patterns": ["1-2 basic observable patterns"]
       },
       "healthScore": {
-        "score": number from 0-100 representing conversation health,
-        "label": "High Conflict / Emotionally Unsafe" if 0-30, "Tense / Needs Work" if 31-60, "Respectful but Strained" if 61-85, "Healthy Communication" if 86-100,
-        "color": "red" if 0-30, "yellow" if 31-60, "light-green" if 61-85, "green" if 86-100
+        "score": number from 0-100 representing conversation health (higher is healthier),
+        "label": "Healthy Communication" if 86-100, "Respectful but Strained" if 61-85, "Tense / Needs Work" if 31-60, "High Conflict / Emotionally Unsafe" if 0-30,
+        "color": "green" if 86-100, "light-green" if 61-85, "yellow" if 31-60, "red" if 0-30
       }
     }`,
     
