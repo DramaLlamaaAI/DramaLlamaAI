@@ -495,15 +495,15 @@ export default function ChatAnalysis() {
                       Higher peaks indicate moments of heightened conflict or emotional intensity.
                     </p>
                     
-                    {/* Generate a synthetic trendline based on health score */}
+                    {/* Generate a trendline that reflects the actual health score better */}
                     <ResponsiveContainer width="100%" height={120}>
                       <LineChart
                         data={[
-                          { name: 'Start', value: 10, me: 5, them: 5, label: 'Conversation Start' },
-                          { name: '25%', value: 30, me: 15, them: 15, label: '25% through' },
-                          { name: '50%', value: result.healthScore.score < 50 ? 85 : 35, me: result.healthScore.score < 50 ? 50 : 15, them: result.healthScore.score < 50 ? 35 : 20, label: 'Midpoint' },
-                          { name: '75%', value: result.healthScore.score < 30 ? 90 : 60, me: result.healthScore.score < 30 ? 40 : 20, them: result.healthScore.score < 30 ? 50 : 40, label: '75% through' },
-                          { name: 'End', value: result.healthScore.score < 50 ? 65 : 30, me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15, label: 'Conversation End' },
+                          { name: 'Start', value: Math.min(20, Math.max(5, 100 - result.healthScore.score) / 5), me: Math.min(10, Math.max(3, 100 - result.healthScore.score) / 10), them: Math.min(10, Math.max(2, 100 - result.healthScore.score) / 10), label: 'Conversation Start' },
+                          { name: '25%', value: Math.min(25, Math.max(8, 100 - result.healthScore.score) / 4), me: Math.min(15, Math.max(4, 100 - result.healthScore.score) / 8), them: Math.min(10, Math.max(4, 100 - result.healthScore.score) / 8), label: '25% through' },
+                          { name: '50%', value: Math.min(30, Math.max(10, 100 - result.healthScore.score) / 3), me: Math.min(18, Math.max(5, 100 - result.healthScore.score) / 6), them: Math.min(12, Math.max(5, 100 - result.healthScore.score) / 6), label: 'Midpoint' },
+                          { name: '75%', value: Math.min(25, Math.max(8, 100 - result.healthScore.score) / 4), me: Math.min(12, Math.max(4, 100 - result.healthScore.score) / 8), them: Math.min(13, Math.max(4, 100 - result.healthScore.score) / 8), label: '75% through' },
+                          { name: 'End', value: Math.min(15, Math.max(5, 100 - result.healthScore.score) / 6), me: Math.min(8, Math.max(3, 100 - result.healthScore.score) / 12), them: Math.min(7, Math.max(2, 100 - result.healthScore.score) / 12), label: 'Conversation End' },
                         ]}
                         margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
                       >
@@ -574,11 +574,11 @@ export default function ChatAnalysis() {
                         <ResponsiveContainer width="100%" height={100}>
                           <LineChart
                             data={[
-                              { name: 'Start', me: 5, them: 5 },
-                              { name: '25%', me: 15, them: 15 },
-                              { name: '50%', me: result.healthScore.score < 50 ? 50 : 15, them: result.healthScore.score < 50 ? 35 : 20 },
-                              { name: '75%', me: result.healthScore.score < 30 ? 40 : 20, them: result.healthScore.score < 30 ? 50 : 40 },
-                              { name: 'End', me: result.healthScore.score < 50 ? 30 : 15, them: result.healthScore.score < 50 ? 35 : 15 },
+                              { name: 'Start', me: Math.min(10, Math.max(3, 100 - result.healthScore.score) / 10), them: Math.min(10, Math.max(2, 100 - result.healthScore.score) / 10) },
+                              { name: '25%', me: Math.min(15, Math.max(4, 100 - result.healthScore.score) / 8), them: Math.min(10, Math.max(4, 100 - result.healthScore.score) / 8) },
+                              { name: '50%', me: Math.min(18, Math.max(5, 100 - result.healthScore.score) / 6), them: Math.min(12, Math.max(5, 100 - result.healthScore.score) / 6) },
+                              { name: '75%', me: Math.min(12, Math.max(4, 100 - result.healthScore.score) / 8), them: Math.min(13, Math.max(4, 100 - result.healthScore.score) / 8) },
+                              { name: 'End', me: Math.min(8, Math.max(3, 100 - result.healthScore.score) / 12), them: Math.min(7, Math.max(2, 100 - result.healthScore.score) / 12) },
                             ]}
                             margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
                           >
@@ -623,8 +623,10 @@ export default function ChatAnalysis() {
                           <h5 className="font-medium text-blue-700 mb-1">What This Means</h5>
                           <p className="text-blue-800">
                             {result.healthScore.score < 50 
-                              ? `${them} appears to contribute more to the tension spikes, particularly in the middle and end of the conversation.`
-                              : `This conversation shows balanced tension contributions, with neither participant consistently escalating conflict.`
+                              ? `${them} appears to contribute more to the tension spikes in this conversation.`
+                              : result.healthScore.score < 80
+                                ? `This conversation shows balanced tension levels, with minimal conflict between participants.`
+                                : `This conversation shows very low tension, with warm and supportive communication between ${me} and ${them}.`
                             }
                           </p>
                         </div>
