@@ -460,9 +460,7 @@ export default function ChatAnalysis() {
                         style={{ width: `${(100 - result.healthScore.score)}%` }}
                       />
                     </div>
-                    <span className="ml-3 font-bold">
-                      {result.healthScore.score}/100
-                    </span>
+
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
                     <span>Healthy</span>
