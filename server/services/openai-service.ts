@@ -57,7 +57,7 @@ const openai = new OpenAI({
 // Prompts for different tiers and analysis types
 const prompts = {
   chat: {
-    free: `Analyze this conversation between {me} and {them}. Focus only on the overall emotional tone and basic patterns. Respond with JSON in this format:
+    free: `Analyze this conversation between {me} and {them}. Focus on the overall emotional tone, basic patterns, and evaluate the conversation health. Respond with JSON in this format:
     {
       "toneAnalysis": {
         "overallTone": "brief 2-3 sentence summary of conversation tone",
@@ -67,10 +67,15 @@ const prompts = {
       },
       "communication": {
         "patterns": ["1-2 basic observable patterns"]
+      },
+      "healthScore": {
+        "score": number from 0-100 representing conversation health,
+        "label": "High Conflict / Emotionally Unsafe" if 0-30, "Tense / Needs Work" if 31-60, "Respectful but Strained" if 61-85, "Healthy Communication" if 86-100,
+        "color": "red" if 0-30, "yellow" if 31-60, "light-green" if 61-85, "green" if 86-100
       }
     }`,
     
-    personal: `Analyze this conversation between {me} and {them}. Identify emotional tone, communication patterns, and potential red flags. Respond with JSON in this format:
+    personal: `Analyze this conversation between {me} and {them}. Identify emotional tone, communication patterns, potential red flags, and evaluate the conversation health. Respond with JSON in this format:
     {
       "toneAnalysis": {
         "overallTone": "detailed analysis of conversation tone",
@@ -84,10 +89,18 @@ const prompts = {
       "communication": {
         "patterns": ["3-5 observable patterns"],
         "suggestions": ["2-3 communication improvement suggestions"]
-      }
+      },
+      "healthScore": {
+        "score": number from 0-100 representing conversation health,
+        "label": "High Conflict / Emotionally Unsafe" if 0-30, "Tense / Needs Work" if 31-60, "Respectful but Strained" if 61-85, "Healthy Communication" if 86-100,
+        "color": "red" if 0-30, "yellow" if 31-60, "light-green" if 61-85, "green" if 86-100
+      },
+      "keyQuotes": [
+        { "speaker": "name", "quote": "quoted text", "analysis": "brief analysis of the quote" }
+      ]
     }`,
     
-    pro: `Perform a comprehensive analysis of this conversation between {me} and {them}. Identify emotional tone, detailed communication patterns, red flags, and calculate a Drama Score™. Respond with JSON in this format:
+    pro: `Perform a comprehensive analysis of this conversation between {me} and {them}. Identify emotional tone, detailed communication patterns, red flags, evaluate the conversation health, and calculate a Drama Score™. Respond with JSON in this format:
     {
       "toneAnalysis": {
         "overallTone": "comprehensive analysis of conversation dynamics",
@@ -102,6 +115,14 @@ const prompts = {
         "patterns": ["4-6 detailed observable patterns"],
         "suggestions": ["3-5 personalized communication improvement suggestions"]
       },
+      "healthScore": {
+        "score": number from 0-100 representing conversation health,
+        "label": "High Conflict / Emotionally Unsafe" if 0-30, "Tense / Needs Work" if 31-60, "Respectful but Strained" if 61-85, "Healthy Communication" if 86-100,
+        "color": "red" if 0-30, "yellow" if 31-60, "light-green" if 61-85, "green" if 86-100
+      },
+      "keyQuotes": [
+        { "speaker": "name", "quote": "quoted text", "analysis": "brief analysis of the quote" }
+      ],
       "dramaScore": number from 1-10 representing overall drama level
     }`
   },

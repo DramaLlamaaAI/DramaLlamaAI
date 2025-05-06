@@ -94,6 +94,16 @@ export const chatAnalysisResultSchema = z.object({
     suggestions: z.array(z.string()).optional(),
   }),
   dramaScore: z.number().optional(),
+  healthScore: z.object({
+    score: z.number(),
+    label: z.string(),
+    color: z.enum(['red', 'yellow', 'light-green', 'green'])
+  }).optional(),
+  keyQuotes: z.array(z.object({
+    speaker: z.string(),
+    quote: z.string(),
+    analysis: z.string()
+  })).optional(),
 });
 
 export const messageAnalysisResultSchema = z.object({
