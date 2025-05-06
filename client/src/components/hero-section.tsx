@@ -1,9 +1,20 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BadgeInfo, Flag, BarChart2 } from "lucide-react";
-import llamaImage from "@assets/FB Profile Pic.png"; 
+import llamaImage from "@assets/FB Profile Pic.png";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function HeroSection() {
+  const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
+  
   return (
     <div className="mb-10">
       <Card className="rounded-2xl shadow-lg overflow-hidden border-0">
@@ -26,13 +37,39 @@ export default function HeroSection() {
               </div>
             </div>
             
-            <div className="flex flex-wrap space-x-0 space-y-2 sm:space-x-4 sm:space-y-0">
-              <Button size="lg" className="w-full sm:w-auto bg-secondary hover:bg-secondary-dark text-white">
-                Get Started
-              </Button>
-              <Button size="lg" className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white border-0">
-                How It Works
-              </Button>
+            <div className="flex flex-wrap">
+              <Dialog open={isHowItWorksOpen} onOpenChange={setIsHowItWorksOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white border-0">
+                    How It Works
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[85vw] sm:max-w-[550px]">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl">How Drama Llama Works</DialogTitle>
+                  </DialogHeader>
+                  <div className="pt-4 space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1">Chat Analysis</h3>
+                      <p>Paste a conversation to get insights about emotional tone, identify patterns and red flags, and receive advice on healthier communication.</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1">Message Analysis</h3>
+                      <p>Input a single message to understand its tone, potential interpretations, and get suggestions for effective responses.</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1">Vent Mode</h3>
+                      <p>Transform heated emotional messages into calm, constructive communication that preserves your concerns while opening the door to resolution.</p>
+                    </div>
+                    
+                    <div className="pt-2">
+                      <p className="text-sm text-muted-foreground">Drama Llama uses advanced AI to analyze communication patterns and emotional cues. All insights are meant to provide perspective, not definitive judgments about your relationships.</p>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
           

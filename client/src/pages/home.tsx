@@ -3,7 +3,6 @@ import Footer from "@/components/footer";
 import HeroSection from "@/components/hero-section";
 import FeaturesSection from "@/components/features-section";
 import PricingSection from "@/components/pricing-section";
-import HowItWorks from "@/components/how-it-works";
 import ChatAnalysis from "@/components/chat-analysis";
 import MessageAnalysis from "@/components/message-analysis";
 import VentMode from "@/components/vent-mode";
@@ -41,7 +40,6 @@ export default function Home() {
         <HeroSection />
         <FeaturesSection />
         <PricingSection />
-        <HowItWorks />
       </main>
       
       <Footer />
