@@ -192,76 +192,173 @@ function generateParticipantTone(name: string, conversation: string, globalAccus
   const lines = conversation.split('\n');
   const participantLines = lines.filter(line => line.toLowerCase().startsWith(name.toLowerCase()));
   
-  // Positive and negative words for sentiment analysis
-  const positiveWords = ['happy', 'good', 'great', 'love', 'thanks', 'appreciate', 'hope', 'glad', 'care'];
-  const negativeWords = ['sad', 'bad', 'hate', 'angry', 'upset', 'annoyed', 'disappointed', 'sorry'];
-  const accusatoryWords = ['you always', 'you never', 'your fault', 'you don\'t care'];
-  const defensiveWords = ['not ignoring', 'not blaming', 'that\'s not true', 'i care'];
+  // Define comprehensive communication pattern dictionaries
+  const positiveWords = ['happy', 'good', 'great', 'love', 'thanks', 'appreciate', 'hope', 'glad', 'care', 
+                         'enjoy', 'wonderful', 'amazing', 'excited', 'proud', 'understand', 'support'];
+                         
+  const negativeWords = ['sad', 'bad', 'hate', 'angry', 'upset', 'annoyed', 'disappointed', 'sorry', 'frustrated',
+                         'tired', 'exhausted', 'confused', 'worried', 'sucks', 'awful', 'terrible'];
+                         
+  const accusatoryWords = ['you always', 'you never', 'your fault', 'you don\'t care', 'you don\'t listen', 
+                          'you make me', 'should have', 'stop being', 'your problem', 'you did this'];
+                          
+  const defensiveWords = ['not ignoring', 'not blaming', 'that\'s not true', 'i care', 'i am listening',
+                         'i\'ve been trying', 'i didn\'t mean', 'i can\'t help', 'you\'re twisting', 'i never said'];
+                         
+  const supportiveWords = ['i understand', 'here for you', 'makes sense', 'i hear you', 'that sounds', 'tell me more',
+                          'how can i help', 'appreciate you', 'thank you for', 'good point'];
+                          
+  const vulnerabilityWords = ['i feel', 'scared', 'worried', 'hurts', 'struggling', 'overwhelmed', 'confused',
+                             'need help', 'i miss', 'i wish', 'i hope'];
+                             
+  const resolutionWords = ['let\'s talk', 'work through', 'figure this out', 'compromise', 'middle ground',
+                          'solution', 'try again', 'move forward', 'sorry', 'apologize', 'understand now'];
   
-  // Count sentiment in this participant's messages
+  // Count sentiment and communication patterns in this participant's messages
   let positiveCount = 0;
   let negativeCount = 0;
   let participantAccusatoryCount = 0;
   let participantDefensiveCount = 0;
+  let supportiveCount = 0;
+  let vulnerabilityCount = 0;
+  let resolutionCount = 0;
   
   const participantText = participantLines.join(' ');
   
-  // Count positive words
-  for (const word of positiveWords) {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
-    const matches = participantText.match(regex);
-    if (matches) positiveCount += matches.length;
+  // Only proceed if we have enough text to analyze
+  if (participantText.trim().length === 0) {
+    return `${name}'s communication style cannot be accurately analyzed due to limited data.`;
   }
   
-  // Count negative words
-  for (const word of negativeWords) {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
-    const matches = participantText.match(regex);
-    if (matches) negativeCount += matches.length;
+  // Count instances of different patterns
+  function countPatterns(wordList: string[], text: string): number {
+    let count = 0;
+    for (const word of wordList) {
+      const regex = new RegExp(`\\b${word.replace(/'/g, "\\'")}\\b|${word.replace(/'/g, "\\'")}`, 'gi');
+      const matches = text.match(regex);
+      if (matches) count += matches.length;
+    }
+    return count;
   }
   
-  // Count accusatory phrases
-  for (const phrase of accusatoryWords) {
-    const regex = new RegExp(phrase, 'gi');
-    const matches = participantText.match(regex);
-    if (matches) participantAccusatoryCount += matches.length;
+  // Count all patterns
+  positiveCount = countPatterns(positiveWords, participantText);
+  negativeCount = countPatterns(negativeWords, participantText);
+  participantAccusatoryCount = countPatterns(accusatoryWords, participantText);
+  participantDefensiveCount = countPatterns(defensiveWords, participantText);
+  supportiveCount = countPatterns(supportiveWords, participantText);
+  vulnerabilityCount = countPatterns(vulnerabilityWords, participantText);
+  resolutionCount = countPatterns(resolutionWords, participantText);
+  
+  // Check for communication tone progression through the conversation
+  let earlyMessages: string[] = [];
+  let lateMessages: string[] = [];
+  
+  if (participantLines.length >= 4) {
+    const midpoint = Math.floor(participantLines.length / 2);
+    earlyMessages = participantLines.slice(0, midpoint);
+    lateMessages = participantLines.slice(midpoint);
   }
   
-  // Count defensive phrases
-  for (const phrase of defensiveWords) {
-    const regex = new RegExp(phrase, 'gi');
-    const matches = participantText.match(regex);
-    if (matches) participantDefensiveCount += matches.length;
+  // Calculate early vs late counts for tone progression analysis
+  let earlyNegativeCount = 0;
+  let lateNegativeCount = 0;
+  let earlyAccusatoryCount = 0;
+  let lateAccusatoryCount = 0;
+  let earlyResolutionCount = 0;
+  let lateResolutionCount = 0;
+  
+  if (earlyMessages.length > 0 && lateMessages.length > 0) {
+    const earlyText = earlyMessages.join(' ');
+    const lateText = lateMessages.join(' ');
+    
+    earlyNegativeCount = countPatterns(negativeWords, earlyText);
+    lateNegativeCount = countPatterns(negativeWords, lateText);
+    
+    earlyAccusatoryCount = countPatterns(accusatoryWords, earlyText);
+    lateAccusatoryCount = countPatterns(accusatoryWords, lateText);
+    
+    earlyResolutionCount = countPatterns(resolutionWords, earlyText);
+    lateResolutionCount = countPatterns(resolutionWords, lateText);
   }
   
-  // Generate tone description based on the counts
+  // Determine if there's a significant tone shift
+  const hasPositiveToneShift = (earlyNegativeCount > lateNegativeCount * 1.5) || 
+                              (earlyAccusatoryCount > 0 && lateResolutionCount > earlyResolutionCount);
+                              
+  const hasNegativeToneShift = (lateNegativeCount > earlyNegativeCount * 1.5) || 
+                              (lateAccusatoryCount > earlyAccusatoryCount * 1.5);
+  
+  // Generate more sophisticated and insightful tone analysis
   let tone = "";
   
-  // Special patterns take precedence
-  if (participantText.match(/\bforget it\b|\bdone talking\b/gi)) {
-    tone = `${name} appears frustrated and is disengaging from the conversation.`;
+  // Check for specific communication patterns (ordered by priority)
+  if (participantLines.length <= 2 && participantText.split(/\s+/).length < 15) {
+    // Very limited data
+    tone = `${name} has limited participation in the conversation, making a complete tone analysis difficult.`;
+  }
+  // Pattern: Disengagement 
+  else if (participantText.match(/\bforget it\b|\bdone talking\b|\bnot discussing\b|\bstop texting\b|\bleave me alone\b/gi)) {
+    tone = `${name} demonstrates clear frustration and a desire to disengage from the conversation, signaling emotional overwhelm and communication shutdown.`;
   } 
-  else if (participantAccusatoryCount > 1) {
-    tone = `${name} uses accusatory language and appears frustrated with the other person.`;
+  // Pattern: Highly accusatory
+  else if (participantAccusatoryCount >= 2 && participantAccusatoryCount > supportiveCount * 2) {
+    if (hasPositiveToneShift) {
+      tone = `${name} begins with accusatory language but shifts to a more constructive tone later in the conversation, showing capacity to move toward resolution.`;
+    } else {
+      tone = `${name} employs accusatory language throughout, creating a cycle of blame that makes mutual understanding difficult. This approach tends to escalate conflict rather than resolve issues.`;
+    }
   }
-  else if (participantDefensiveCount > 1) {
-    tone = `${name} responds defensively, trying to explain their perspective.`;
+  // Pattern: Highly defensive
+  else if (participantDefensiveCount >= 2 && participantDefensiveCount > supportiveCount) {
+    if (hasPositiveToneShift) {
+      tone = `${name} initially responds defensively but later shifts to more open communication, suggesting increasing willingness to engage productively.`;
+    } else {
+      tone = `${name} maintains a defensive communication style, primarily focused on self-protection rather than understanding the other person's perspective.`;
+    }
   }
-  // General sentiment
-  else if (positiveCount > negativeCount * 2) {
-    tone = `${name} maintains a mostly positive and constructive tone throughout the conversation.`;
+  // Pattern: Supportive and empathetic
+  else if (supportiveCount >= 2 && supportiveCount > negativeCount) {
+    tone = `${name} demonstrates empathetic and supportive communication, actively listening and validating feelings even when discussing difficult topics.`;
   }
-  else if (negativeCount > positiveCount * 2) {
-    tone = `${name} expresses significant negative emotions and appears distressed.`;
+  // Pattern: Vulnerable and open
+  else if (vulnerabilityCount >= 2) {
+    tone = `${name} shows emotional openness and vulnerability, sharing feelings honestly while maintaining respectful communication.`;
   }
+  // Pattern: Solution-oriented
+  else if (resolutionCount >= 2 && resolutionCount > participantAccusatoryCount) {
+    tone = `${name} focuses on finding solutions and moving the conversation toward resolution, demonstrating a constructive approach to conflict.`;
+  }
+  // Pattern: Highly positive
+  else if (positiveCount > negativeCount * 2 && positiveCount > 3) {
+    tone = `${name} maintains a consistently positive and constructive tone, contributing to a supportive conversational environment.`;
+  }
+  // Pattern: Highly negative
+  else if (negativeCount > positiveCount * 2 && negativeCount > 3) {
+    if (hasPositiveToneShift) {
+      tone = `${name} expresses significant negative emotions initially but shifts toward more balanced communication as the conversation progresses.`;
+    } else {
+      tone = `${name} expresses consistently negative emotions throughout, which may make resolution difficult without a change in approach.`;
+    }
+  }
+  // Pattern: Mixed but more positive
   else if (positiveCount > negativeCount) {
-    tone = `${name} tries to keep the conversation positive despite some tensions.`;
+    tone = `${name} exhibits a generally constructive communication style with some moments of tension, but maintains a relatively positive approach overall.`;
   }
+  // Pattern: Mixed but more negative
   else if (negativeCount > positiveCount) {
-    tone = `${name} expresses some frustration, but generally stays engaged in the conversation.`;
+    tone = `${name} expresses frustration while attempting to stay engaged, showing a mix of emotional expression and efforts to communicate effectively.`;
   }
+  // Pattern: Balanced/neutral
   else {
-    tone = `${name} maintains a neutral tone throughout the conversation.`;
+    tone = `${name} maintains a balanced tone throughout the conversation, neither particularly positive nor negative in their communication approach.`;
+  }
+  
+  // Check for tone progression as a secondary factor
+  if (hasPositiveToneShift && !tone.includes("shifts")) {
+    tone += ` ${name}'s tone notably improves over the course of the conversation, suggesting increased understanding or willingness to resolve the discussion.`;
+  } else if (hasNegativeToneShift && !tone.includes("shifts")) {
+    tone += ` ${name}'s tone becomes more negative as the conversation progresses, indicating increasing frustration or disengagement.`;
   }
   
   return tone;
@@ -950,15 +1047,132 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     ];
   }
   
+  // Create more detailed emotion list based on specific language patterns
+  const emotionList = [];
+  
+  // Add primary emotion with intensity
+  emotionList.push({ emotion: sentiment, intensity: emotionalIntensity });
+  
+  // Add secondary emotions based on specific patterns
+  if (accusatoryCount > 1) {
+    emotionList.push({ emotion: "Frustration", intensity: Math.min(10, accusatoryCount * 2) });
+  }
+  
+  if (defensiveCount > 1) {
+    emotionList.push({ emotion: "Defensiveness", intensity: Math.min(10, defensiveCount * 2) });
+  }
+  
+  if (vulnerabilityCount > 0) {
+    emotionList.push({ emotion: "Vulnerability", intensity: Math.min(10, vulnerabilityCount * 2) });
+  }
+  
+  if (appreciationCount > 1) {
+    emotionList.push({ emotion: "Appreciation", intensity: Math.min(10, appreciationCount * 2) });
+  }
+  
+  if (resolutionCount > 1) {
+    emotionList.push({ emotion: "Reconciliation", intensity: Math.min(10, resolutionCount * 2) });
+  }
+  
+  if (supportiveCount > 1) {
+    emotionList.push({ emotion: "Support", intensity: Math.min(10, supportiveCount * 2) });
+  }
+  
+  // Add emotional tone changes if conversation shows progression
+  if (resolutionCount > 0 && accusatoryCount > 0) {
+    // Check if resolution appears later in conversation
+    const lines = conversation.split('\n');
+    const firstHalf = lines.slice(0, lines.length / 2).join('\n');
+    const secondHalf = lines.slice(lines.length / 2).join('\n');
+    
+    // Count resolution phrases in each half
+    let firstHalfResolution = 0;
+    let secondHalfResolution = 0;
+    
+    for (const phrase of resolutionPhrases) {
+      const regexFirst = new RegExp(phrase, 'gi');
+      const matchesFirst = firstHalf.match(regexFirst);
+      if (matchesFirst) firstHalfResolution += matchesFirst.length;
+      
+      const regexSecond = new RegExp(phrase, 'gi');
+      const matchesSecond = secondHalf.match(regexSecond);
+      if (matchesSecond) secondHalfResolution += matchesSecond.length;
+    }
+    
+    // If more resolution in second half, add emotional progression
+    if (secondHalfResolution > firstHalfResolution) {
+      emotionList.push({ emotion: "Emotional Progression", intensity: 7 });
+    }
+  }
+  
+  // Limit to top 4 most relevant emotions (by intensity)
+  const topEmotions = emotionList.sort((a, b) => b.intensity - a.intensity).slice(0, 4);
+  
+  // Enhance key quotes analysis by ensuring at least one quote from each participant
+  const enhancedKeyQuotes = [...keyQuotes];
+  
+  // Ensure we have at least one quote from each person
+  const meQuotes = enhancedKeyQuotes.filter(q => q.speaker.toLowerCase() === me.toLowerCase());
+  const themQuotes = enhancedKeyQuotes.filter(q => q.speaker.toLowerCase() === them.toLowerCase());
+  
+  // If missing quotes from a participant, try to add one
+  if (meQuotes.length === 0 || themQuotes.length === 0) {
+    const lines = conversation.split('\n');
+    for (const line of lines) {
+      const match = line.match(/^([A-Za-z]+):\s*(.+)$/);
+      if (!match) continue;
+      
+      const [_, speaker, message] = match;
+      
+      // Skip very short messages
+      if (message.split(/\s+/).length < 3) continue;
+      
+      if (meQuotes.length === 0 && speaker.toLowerCase() === me.toLowerCase()) {
+        enhancedKeyQuotes.push({
+          speaker: me,
+          quote: message,
+          analysis: `${me}'s perspective and communication style`
+        });
+        break;
+      }
+      
+      if (themQuotes.length === 0 && speaker.toLowerCase() === them.toLowerCase()) {
+        enhancedKeyQuotes.push({
+          speaker: them,
+          quote: message,
+          analysis: `${them}'s perspective and communication style`
+        });
+        break;
+      }
+    }
+  }
+  
+  // If we have a new quote from them but none from me, add a random me quote
+  if (meQuotes.length === 0 && themQuotes.length > 0) {
+    const lines = conversation.split('\n');
+    for (const line of lines) {
+      if (line.toLowerCase().startsWith(me.toLowerCase())) {
+        const content = line.substring(line.indexOf(':') + 1).trim();
+        if (content.split(/\s+/).length >= 3) {
+          enhancedKeyQuotes.push({
+            speaker: me,
+            quote: content,
+            analysis: `${me}'s communication style`
+          });
+          break;
+        }
+      }
+    }
+  }
+  
+  // Limit to 4 most relevant quotes
+  const limitedKeyQuotes = enhancedKeyQuotes.slice(0, 4);
+  
   // Generate a more nuanced fallback response
   const fallbackAnalysis: ChatAnalysisResponse = {
     toneAnalysis: {
       overallTone: overallTone,
-      emotionalState: [
-        { emotion: sentiment, intensity: emotionalIntensity },
-        { emotion: accusatoryCount > defensiveCount ? "Frustration" : "Defensiveness", 
-          intensity: Math.max(1, Math.min(10, accusatoryCount + defensiveCount)) }
-      ],
+      emotionalState: topEmotions,
       participantTones: {
         [me]: generateParticipantTone(me, conversation, accusatoryCount, defensiveCount),
         [them]: generateParticipantTone(them, conversation, accusatoryCount, defensiveCount)
@@ -972,7 +1186,7 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
       label: healthLabel,
       color: healthColor
     },
-    keyQuotes: keyQuotes.slice(0, 3), // Limit to 3 most relevant quotes
+    keyQuotes: limitedKeyQuotes,
     highTensionFactors: highTensionFactors.length > 0 ? highTensionFactors : undefined
   };
   
