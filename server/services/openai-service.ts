@@ -535,6 +535,15 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
   
   healthScore += Math.min(20, deEscalationCount * 4); // Max +20 bonus for de-escalation
   
+  // Bonus for supportive conversation elements
+  healthScore += Math.min(15, supportiveCount * 3); // Max +15 bonus for supportive phrases
+  
+  // Bonus for vulnerability sharing
+  healthScore += Math.min(10, vulnerabilityCount * 3); // Max +10 bonus for vulnerability expressions
+  
+  // Bonus for appreciation expressions
+  healthScore += Math.min(10, appreciationCount * 3); // Max +10 bonus for appreciation
+  
   // Ensure score is within 0-100 range
   healthScore = Math.max(0, Math.min(100, Math.round(healthScore)));
   
@@ -598,6 +607,55 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     }
   }
 
+  // Determine the appropriate communication patterns based on conversation type
+  let communicationPatterns: string[] = [];
+  
+  // Check for supportive check-in conversation (like Taylor/Riley example)
+  if (supportiveCount >= 1 && vulnerabilityCount >= 1 && appreciationCount >= 1 && accusatoryCount === 0) {
+    communicationPatterns = [
+      "Supportive check-in dialogue",
+      "Brief, sincere exchanges",
+      "Emotional vulnerability sharing",
+      "Mutual appreciation expressions"
+    ];
+  }
+  // Check for conflict-heavy conversation
+  else if (accusatoryCount > 1 && defensiveCount > 1) {
+    communicationPatterns = [
+      "Accusatory language patterns",
+      "Defensive responses to criticism",
+      "Emotional reactivity cycle",
+      "Attempt to justify positions"
+    ];
+  }
+  // Check for unresolved debate conversation
+  else if (questions > 3 && wordsPerLine > 15) {
+    communicationPatterns = [
+      "Detailed explanations and responses",
+      "Question-heavy engagement",
+      "Information-seeking dialogue",
+      "Extended perspective sharing"
+    ];
+  }
+  // Check for disengaged conversation
+  else if (shortReplyRatio > 0.6) {
+    communicationPatterns = [
+      "Brief, minimal responses",
+      "Limited engagement patterns",
+      "Conversation maintenance",
+      "Reduced information sharing"
+    ];
+  }
+  // Default patterns for mixed conversations
+  else {
+    communicationPatterns = [
+      positiveCount > negativeCount ? "Generally positive exchanges" : "Mixed emotional expressions",
+      shortReplyRatio > 0.4 ? "Concise message patterns" : "Detailed information sharing",
+      supportiveCount > 0 ? "Elements of supportive communication" : "Direct communication style",
+      questions > 2 ? "Inquiry-based dialogue" : "Statement-focused messaging"
+    ];
+  }
+  
   // Generate a more nuanced fallback response
   const fallbackAnalysis: ChatAnalysisResponse = {
     toneAnalysis: {
@@ -613,7 +671,7 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
       }
     },
     communication: {
-      patterns: []
+      patterns: communicationPatterns
     },
     healthScore: {
       score: healthScore,
