@@ -64,28 +64,73 @@ export interface OcrResponse {
 
 // API functions
 export async function analyzeChatConversation(request: ChatAnalysisRequest): Promise<ChatAnalysisResponse> {
-  const response = await apiRequest('POST', '/api/analyze/chat', request);
-  return await response.json();
+  try {
+    const response = await apiRequest('POST', '/api/analyze/chat', request);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Failed to analyze conversation');
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error('Analysis error:', error);
+    throw new Error(error.message || 'Something went wrong analyzing the chat. Please try again.');
+  }
 }
 
 export async function analyzeMessage(request: MessageAnalysisRequest): Promise<MessageAnalysisResponse> {
-  const response = await apiRequest('POST', '/api/analyze/message', request);
-  return await response.json();
+  try {
+    const response = await apiRequest('POST', '/api/analyze/message', request);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Failed to analyze message');
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error('Message analysis error:', error);
+    throw new Error(error.message || 'Failed to analyze message. Please try again.');
+  }
 }
 
 export async function ventMessage(request: VentModeRequest): Promise<VentModeResponse> {
-  const response = await apiRequest('POST', '/api/analyze/vent', request);
-  return await response.json();
+  try {
+    const response = await apiRequest('POST', '/api/analyze/vent', request);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Failed to rewrite message');
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error('Vent mode error:', error);
+    throw new Error(error.message || 'Failed to rewrite message. Please try again.');
+  }
 }
 
 export async function processImageOcr(request: OcrRequest): Promise<OcrResponse> {
-  const response = await apiRequest('POST', '/api/ocr', request);
-  return await response.json();
+  try {
+    const response = await apiRequest('POST', '/api/ocr', request);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'OCR processing failed');
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error('OCR error:', error);
+    throw new Error(error.message || 'Failed to extract text from image. Please try again.');
+  }
 }
 
 export async function detectParticipants(conversation: string): Promise<{me: string, them: string}> {
-  const response = await apiRequest('POST', '/api/analyze/detect-names', { conversation });
-  return await response.json();
+  try {
+    const response = await apiRequest('POST', '/api/analyze/detect-names', { conversation });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Failed to detect names');
+    }
+    return await response.json();
+  } catch (error: any) {
+    console.error('Name detection error:', error);
+    throw new Error(error.message || 'Failed to detect participants. Please enter names manually.');
+  }
 }
 
 export async function getUserUsage(): Promise<{used: number, limit: number, tier: string}> {

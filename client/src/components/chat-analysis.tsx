@@ -22,6 +22,7 @@ export default function ChatAnalysis() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -41,14 +42,19 @@ export default function ChatAnalysis() {
   const analysisMutation = useMutation({
     mutationFn: analyzeChatConversation,
     onSuccess: (data) => {
+      setErrorMessage(null);
       setResult(data);
       setShowResults(true);
       window.scrollTo({ top: document.getElementById('analysisResults')?.offsetTop || 0, behavior: 'smooth' });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorMsg = error.message || "Could not analyze conversation. Please try again.";
+      setErrorMessage(errorMsg);
+      console.error("Analysis error details:", error);
+      
       toast({
         title: "Analysis Failed",
-        description: error.message || "Could not analyze conversation. Please try again.",
+        description: errorMsg,
         variant: "destructive",
       });
     },
@@ -371,6 +377,19 @@ export default function ChatAnalysis() {
             </Button>
           </div>
           
+          {errorMessage && (
+            <Alert className="mb-4 border-red-400 bg-red-50" variant="destructive">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-700">
+                <div className="font-bold">Analysis failed</div>
+                <div>{errorMessage}</div>
+                <div className="mt-2 text-sm">
+                  If you're seeing API errors, please check that your OpenAI API key is configured correctly.
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
