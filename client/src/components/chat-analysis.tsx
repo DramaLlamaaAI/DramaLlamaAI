@@ -842,7 +842,7 @@ export default function ChatAnalysis() {
                           </p>
                           {quote.improvement && (
                             <div className="text-sm text-gray-600 bg-green-50 p-2 rounded border border-green-100">
-                              <span className="font-medium text-green-700">Recommended Improvement:</span> {quote.improvement}
+                              <span className="font-medium text-green-700">Possible Reframe:</span> {quote.improvement}
                             </div>
                           )}
                         </div>
