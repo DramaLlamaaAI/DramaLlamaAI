@@ -32,6 +32,7 @@ export interface ChatAnalysisResponse {
     speaker: string;
     quote: string;
     analysis: string;
+    manipulationScore?: number;
   }>;
 }
 
