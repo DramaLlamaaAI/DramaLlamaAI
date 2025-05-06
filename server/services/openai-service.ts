@@ -1154,8 +1154,8 @@ export async function ventMessage(message: string) {
   prompt = prompt.replace('{message}', message);
   
   try {
-    // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '') {
+    // Check if OpenAI API key is configured - use the processed apiKey variable
+    if (!apiKey || apiKey.trim() === '') {
       console.warn('OpenAI API key not configured, using fallback vent response');
       return generateFallbackVentResponse(message);
     }
@@ -1248,8 +1248,8 @@ function detectParticipantsLocally(conversation: string): { me: string, them: st
 // API function to detect participant names
 export async function detectParticipants(conversation: string) {
   try {
-    // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.trim() === '') {
+    // Check if OpenAI API key is configured - use the processed apiKey variable
+    if (!apiKey || apiKey.trim() === '') {
       console.warn('OpenAI API key not configured, using local name detection');
       return detectParticipantsLocally(conversation);
     }
