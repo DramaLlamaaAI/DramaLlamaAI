@@ -1,0 +1,105 @@
+Drama Llama – Replit App Build Brief
+📌 Overview
+Drama Llama is a web-based AI app that allows users to analyze conversations for emotional tone, communication dynamics, and red flags. It's built to offer clarity and insight — not judgment — using ChatGPT-4o via API. It has tiered access levels and multiple input methods.
+
+🛠️ Tech Stack (Replit-Compatible)
+Frontend: HTML, CSS, JS (Vanilla or React)
+
+Backend: Node.js or Flask (depending on familiarity)
+
+AI Integration: OpenAI API (GPT-4o)
+
+Storage: LocalStorage (for testing), Replit DB or Supabase (for account plans)
+
+OCR (for screenshots): Tesseract.js (client-side OCR)
+
+🔐 Tier-Based Access (attached tier model applies)
+Each account is linked to a tier:
+
+Free: Basic tone insights, 1/month limit
+
+Personal (£4.99/mo): 10/month, advice, flags, tracking
+
+Pro (£9.99/mo): Unlimited, benchmarks, Drama Score™, historical analysis
+
+Frontend should:
+
+Detect logged-in tier
+
+Show a visible count/limit
+
+Adjust backend prompt and output format based on plan
+
+💡 Core Features
+✅ 1. Chat Analysis
+UI has 3 tabs:
+
+Paste Chat (textarea)
+
+Import Chat File (.txt/.csv)
+
+Upload Screenshot (image input)
+
+Name Detection: Button to scan and detect speaker names → populate Me and Them fields
+
+Switch Roles: Swap fields if misassigned
+
+Analyze Button (enabled only after names are detected)
+
+✅ 2. One Message Analysis
+Simple textbox (max 500 characters)
+
+Toggle: “Who wrote this? Me / Them”
+
+Output: Tone, possible intent, suggested reply
+
+Disclaimer under box: “Single-message analysis may lack context. Interpret thoughtfully.”
+
+✅ 3. Vent Mode
+User pastes a message they want to send
+
+AI returns calmer, emotionally grounded version
+
+Use GPT to "de-escalate while preserving intent"
+
+✅ 4. Live Talk (Pro)
+Optional audio recorder → transcribe to text (Whisper API or placeholder)
+
+Treat transcript as chat for analysis
+
+🧠 AI Analysis Engine (GPT-4o)
+Each tier triggers a different prompt:
+
+Prompts are stored in backend (linked to account tier)
+
+Free tier uses basic tone + pattern prompt
+
+Personal/Pro use advanced prompts with more flags, summaries, and visuals
+
+(Use tier-based prompts already created in your project doc.)
+
+🖼️ Branding
+Use provided Drama Llama logo and cover images in header and about section
+
+Include footer with:
+
+yaml
+Copy
+Edit
+© 2025 Drama Llama AI Ltd  
+Company registration pending – England & Wales  
+“They gaslight. We spotlight.”  
+📊 Visual Output Examples
+Tone Meter (Free)
+
+Red Flag Meter (Personal)
+
+Drama Score™, Timeline, Benchmarks (Pro)
+
+🔒 Disclaimer Modal
+Trigger once per session or at first entry:
+
+“Drama Llama is an AI-powered tool for personal insight. It is not a diagnostic or clinical product. Interpret AI feedback with care and your own judgment.”
+
+🧪 Optional Enhancements
+Admin dashboard for managing limits
