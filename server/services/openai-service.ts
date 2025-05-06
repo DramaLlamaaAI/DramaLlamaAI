@@ -24,7 +24,6 @@ interface ChatAnalysisResponse {
     speaker: string;
     quote: string;
     analysis: string;
-    manipulationScore?: number;
   }>;
 }
 
@@ -244,7 +243,6 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     speaker: string;
     quote: string;
     analysis: string;
-    manipulationScore?: number;
   }> = [];
   
   // Find problematic or notable quotes
@@ -308,71 +306,10 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     
     // If we found a notable quote, add it to our collection
     if (isNotable) {
-      // Calculate manipulation score based on specific tactics
-      let manipulationScore = 0;
-      
-      // Check for manipulative tactics
-      // 1. Guilt tripping
-      if (message.toLowerCase().includes("after all i've done") || 
-          message.toLowerCase().includes("i do everything for you") ||
-          message.toLowerCase().includes("you never appreciate")) {
-        manipulationScore += 3;
-      }
-      
-      // 2. Gaslighting - denying reality or making other person doubt themselves
-      if (message.toLowerCase().includes("that never happened") || 
-          message.toLowerCase().includes("you're imagining") ||
-          message.toLowerCase().includes("you're too sensitive") ||
-          message.toLowerCase().includes("you're overreacting")) {
-        manipulationScore += 4;
-      }
-      
-      // 3. Silent treatment signals
-      if (message.toLowerCase().includes("not talking to you") ||
-          message.toLowerCase().includes("done talking")) {
-        manipulationScore += 2;
-      }
-      
-      // 4. Ultimatums or threats
-      if (message.toLowerCase().includes("if you don't") ||
-          message.toLowerCase().includes("last chance") ||
-          message.toLowerCase().includes("or else")) {
-        manipulationScore += 3;
-      }
-      
-      // 5. Absolute generalizations
-      if (message.toLowerCase().includes("you always") ||
-          message.toLowerCase().includes("you never")) {
-        manipulationScore += 2;
-      }
-      
-      // 6. Love bombing or excessive flattery followed by criticism
-      if ((message.toLowerCase().includes("i love you") && message.toLowerCase().includes("but")) ||
-          (message.toLowerCase().includes("you're amazing") && message.toLowerCase().includes("if only"))) {
-        manipulationScore += 2;
-      }
-      
-      // 7. "Look what you made me do"
-      if (message.toLowerCase().includes("made me") ||
-          message.toLowerCase().includes("because of you")) {
-        manipulationScore += 3;
-      }
-      
-      // 8. "Everyone agrees with me"/"Everyone thinks..."
-      if (message.toLowerCase().includes("everyone agrees") ||
-          message.toLowerCase().includes("everyone thinks") ||
-          message.toLowerCase().includes("nobody else would")) {
-        manipulationScore += 2;
-      }
-      
-      // Cap the score at 10
-      manipulationScore = Math.min(10, manipulationScore);
-      
       keyQuotes.push({
         speaker,
         quote: message,
-        analysis: quoteAnalysis,
-        manipulationScore: manipulationScore > 0 ? manipulationScore : undefined
+        analysis: quoteAnalysis
       });
     }
   }

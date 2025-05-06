@@ -498,32 +498,9 @@ export default function ChatAnalysis() {
                           <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">Quote #{idx + 1}</span>
                         </div>
                         <p className="text-gray-700 italic mb-2">"{quote.quote}"</p>
-                        <div className="flex flex-col gap-2">
-                          <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
-                            <span className="font-medium text-blue-700">Analysis:</span> {quote.analysis}
-                          </p>
-                          {quote.manipulationScore !== undefined && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">Manipulation Score:</span>
-                              <div className="relative h-2 w-32 bg-gray-200 rounded overflow-hidden">
-                                <div 
-                                  className="absolute top-0 left-0 h-full rounded"
-                                  style={{ 
-                                    width: `${quote.manipulationScore * 10}%`, 
-                                    backgroundColor: quote.manipulationScore > 6 ? '#ef4444' : 
-                                                    quote.manipulationScore > 3 ? '#f97316' : '#10b981'
-                                  }}
-                                />
-                              </div>
-                              <span className="text-sm font-bold" style={{ 
-                                color: quote.manipulationScore > 6 ? '#ef4444' : 
-                                       quote.manipulationScore > 3 ? '#f97316' : '#10b981'
-                              }}>
-                                {quote.manipulationScore}/10
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                        <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                          <span className="font-medium text-blue-700">Analysis:</span> {quote.analysis}
+                        </p>
                       </div>
                     ))}
                   </div>
