@@ -30,7 +30,7 @@ export default function HeroSection() {
               <Button size="lg" className="w-full sm:w-auto bg-secondary hover:bg-secondary-dark text-white">
                 Get Started
               </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white/10">
+              <Button size="lg" className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white border-0">
                 How It Works
               </Button>
             </div>
