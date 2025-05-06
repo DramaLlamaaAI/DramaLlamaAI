@@ -701,12 +701,16 @@ export default function ChatAnalysis() {
                               },
                               { 
                                 name: 'End', 
-                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(55, Math.max(25, 100 - result.healthScore.score) / 2) 
-                                  : Math.min(12, Math.max(5, 100 - result.healthScore.score) / 10),
-                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
-                                  ? Math.min(55, Math.max(25, 100 - result.healthScore.score) / 2) 
-                                  : Math.min(12, Math.max(5, 100 - result.healthScore.score) / 10)
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.5
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.7,
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.5
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.7
                               },
                             ]}
                             margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
