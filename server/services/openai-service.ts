@@ -2,8 +2,13 @@ import OpenAI from "openai";
 import { TIER_LIMITS } from "@shared/schema";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+// Check if API key exists and initialize OpenAI client
+if (!process.env.OPENAI_API_KEY) {
+  console.error('OPENAI_API_KEY environment variable is not set');
+}
+
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 // Prompts for different tiers and analysis types
@@ -117,7 +122,10 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     return result;
   } catch (error: any) {
     console.error('OpenAI API Error:', error?.message || error);
-    throw new Error('Failed to analyze conversation');
+    if (error?.message?.includes('API key')) {
+      throw new Error('OpenAI API key is invalid or not correctly configured. Please check your API key.');
+    }
+    throw new Error(`Failed to analyze conversation: ${error?.message || 'Unknown error'}`);
   }
 }
 
@@ -149,7 +157,10 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     return result;
   } catch (error: any) {
     console.error('OpenAI API Error:', error?.message || error);
-    throw new Error('Failed to analyze message');
+    if (error?.message?.includes('API key')) {
+      throw new Error('OpenAI API key is invalid or not correctly configured. Please check your API key.');
+    }
+    throw new Error(`Failed to analyze message: ${error?.message || 'Unknown error'}`);
   }
 }
 
@@ -180,7 +191,10 @@ export async function ventMessage(message: string) {
     return result;
   } catch (error: any) {
     console.error('OpenAI API Error:', error?.message || error);
-    throw new Error('Failed to rewrite message');
+    if (error?.message?.includes('API key')) {
+      throw new Error('OpenAI API key is invalid or not correctly configured. Please check your API key.');
+    }
+    throw new Error(`Failed to rewrite message: ${error?.message || 'Unknown error'}`);
   }
 }
 
@@ -209,6 +223,9 @@ export async function detectParticipants(conversation: string) {
     };
   } catch (error: any) {
     console.error('OpenAI API Error:', error?.message || error);
-    throw new Error('Failed to detect participants');
+    if (error?.message?.includes('API key')) {
+      throw new Error('OpenAI API key is invalid or not correctly configured. Please check your API key.');
+    }
+    throw new Error(`Failed to detect participants: ${error?.message || 'Unknown error'}`);
   }
 }
