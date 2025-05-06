@@ -1661,37 +1661,42 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   
   // Check accusatory statements that often combine multiple negative assertions
   if (lowerMessage.includes("don't care") && (lowerMessage.includes("selfish") || lowerMessage.includes("yourself"))) {
-    rewritten = "I feel neglected and unimportant in our relationship. I need more consideration and acknowledgment of my feelings.";
+    rewritten = "I've been feeling really hurt and unappreciated lately. I think it's important we have an honest conversation about how we can better support each other's needs.";
   }
   
   // Check for statements that attack someone's character
   else if (lowerMessage.includes("decent person") || lowerMessage.includes("good person") || lowerMessage.includes("bad person")) {
-    rewritten = "I'm feeling deeply frustrated with our relationship right now. I need to take some space to process my feelings.";
+    rewritten = "I've been feeling disconnected from our relationship lately. When you have time, I'd like to talk about some things that have been bothering me so we can work through them together.";
   }
   
   // Check for phrases indicating ending relationships or giving up
   else if (lowerMessage.includes("done with") || lowerMessage.includes("done pretending") || lowerMessage.includes("give up")) {
-    rewritten = "I'm feeling at a breaking point in this relationship. I need to discuss some serious concerns when we're both able to listen to each other.";
+    rewritten = "I'm feeling frustrated with our current patterns of communication. Could we set aside some time to talk about how we might build a healthier relationship?";
+  }
+  
+  // If there are multiple accusations in a single message
+  else if (message.includes("don't") && message.includes("you") && message.includes("I'm") && message.length > 50) {
+    rewritten = "I've been feeling really hurt and unappreciated lately, and I think it's important we have an honest conversation about how we treat each other. Would you be open to talking about this when we're both calm?";
   }
   
   // If the rewritten text is still the same as the original, provide a more substantial rewrite
   if (rewritten === originalMessage) {
     // Handle long accusatory messages
     if (message.length > 30 && (lowerMessage.includes("you") || lowerMessage.includes("your"))) {
-      rewritten = "I'm feeling hurt and frustrated right now. When I feel calmer, I'd like to discuss what's bothering me in a way that we can both hear each other.";
+      rewritten = "I've been feeling hurt by some recent interactions between us. When you have time, I'd like to talk about how we can better understand each other's perspectives and needs.";
     }
     // Handle shorter messages
     else if (message.endsWith('?')) {
       // If it's a question, reframe it
-      rewritten = "I'm curious and would like to understand better. Can we discuss this when we're both in a good place to talk?";
+      rewritten = "I'm trying to understand your perspective better. Could we talk about this when we both have time for a thoughtful conversation?";
     } else {
-      // For statements, completely reframe as feelings and needs
-      rewritten = "I'm feeling upset right now and need some space. When I'm calmer, I'd like to discuss what's bothering me.";
+      // For statements, completely reframe as feelings and needs with resolution aim
+      rewritten = "I feel there's something important we need to discuss. Can we find some time to talk when we're both in a good headspace to listen to each other?";
     }
   }
   
   // 7. Determine explanation based on the changes made
-  let explanation = "This rewritten message preserves your core concerns while expressing them in a way that's more likely to be heard. It uses 'I' statements to express feelings directly, avoids generalizations, and focuses on specific issues rather than character judgments.";
+  let explanation = "This rewritten message maintains your core concerns while expressing them in a constructive way that invites conversation. It uses 'I' statements to express feelings authentically, avoids accusations, and focuses on creating a path toward resolution.";
   
   return {
     original: originalMessage,
