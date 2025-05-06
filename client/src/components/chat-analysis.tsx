@@ -459,10 +459,10 @@ export default function ChatAnalysis() {
                            }}>
                       </div>
                       
-                      {/* White overlay that covers the gradient based on score */}
+                      {/* White overlay that covers the gradient based on score - higher score = healthier */}
                       <div 
                         className="absolute top-0 right-0 h-full bg-white rounded-l-full"
-                        style={{ width: `${100 - (result.healthScore.score || 0)}%` }}
+                        style={{ width: `${Math.max(0, Math.min(100, 100 - (result.healthScore.score || 0)))}%` }}
                       />
                     </div>
 
@@ -554,27 +554,27 @@ export default function ChatAnalysis() {
                         data={[
                           { 
                             name: 'Start', 
-                            value: Math.min(15, Math.max(5, 100 - result.healthScore.score) / 7), 
+                            value: Math.min(85, Math.max(5, 100 - result.healthScore.score)), 
                             label: 'Conversation Start' 
                           },
                           { 
                             name: '25%', 
-                            value: Math.min(35, Math.max(10, 100 - result.healthScore.score) / 3), 
+                            value: Math.min(85, Math.max(5, 100 - result.healthScore.score)) * 0.8, 
                             label: '25% through' 
                           },
                           { 
                             name: '50%', 
-                            value: Math.min(60, Math.max(15, 100 - result.healthScore.score) / 1.8), 
+                            value: Math.min(85, Math.max(5, 100 - result.healthScore.score)) * 0.9, 
                             label: 'Midpoint' 
                           },
                           { 
                             name: '75%', 
-                            value: Math.min(75, Math.max(20, 100 - result.healthScore.score) / 1.5), 
+                            value: Math.min(85, Math.max(5, 100 - result.healthScore.score)) * 0.85, 
                             label: '75% through' 
                           },
                           { 
                             name: 'End', 
-                            value: Math.min(85, Math.max(25, 100 - result.healthScore.score) / 1.2), 
+                            value: Math.min(85, Math.max(5, 100 - result.healthScore.score)) * 0.75, 
                             label: 'Conversation End' 
                           },
                         ]}
@@ -649,39 +649,55 @@ export default function ChatAnalysis() {
                             data={[
                               { 
                                 name: 'Start', 
-                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(18, Math.max(8, 100 - result.healthScore.score) / 5) 
-                                  : Math.min(5, Math.max(3, 100 - result.healthScore.score) / 15),
-                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
-                                  ? Math.min(18, Math.max(8, 100 - result.healthScore.score) / 5) 
-                                  : Math.min(5, Math.max(3, 100 - result.healthScore.score) / 15)
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) 
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score))
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)),
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) 
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score))
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score))
                               },
                               { 
                                 name: '25%', 
-                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(28, Math.max(12, 100 - result.healthScore.score) / 4) 
-                                  : Math.min(7, Math.max(4, 100 - result.healthScore.score) / 12),
-                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
-                                  ? Math.min(28, Math.max(12, 100 - result.healthScore.score) / 4) 
-                                  : Math.min(7, Math.max(4, 100 - result.healthScore.score) / 12)
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.8
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.85,
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9 
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.8
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.85
                               },
                               { 
                                 name: '50%', 
-                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(45, Math.max(20, 100 - result.healthScore.score) / 2) 
-                                  : Math.min(10, Math.max(5, 100 - result.healthScore.score) / 10),
-                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
-                                  ? Math.min(45, Math.max(20, 100 - result.healthScore.score) / 2) 
-                                  : Math.min(10, Math.max(5, 100 - result.healthScore.score) / 10)
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.1
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.7
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.9,
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.1
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.7
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.9
                               },
                               { 
                                 name: '75%', 
-                                me: (me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(50, Math.max(25, 100 - result.healthScore.score) / 2) 
-                                  : Math.min(15, Math.max(8, 100 - result.healthScore.score) / 8),
-                                them: (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor")) 
-                                  ? Math.min(50, Math.max(25, 100 - result.healthScore.score) / 2) 
-                                  : Math.min(15, Math.max(8, 100 - result.healthScore.score) / 8)
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.0
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.6
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.8,
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.0 
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.6
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.8
                               },
                               { 
                                 name: 'End', 
