@@ -525,8 +525,11 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
   // 3. Defensive responses
   // 4. Disengagement signals
   
-  // Base score starts at 75 (moderate health)
-  let healthScore = 75;
+  // Initialize variables for analysis
+  let healthScore = 75; // Base score starts at 75 (moderate health)
+  let healthLabel = '';
+  let healthColor: 'red' | 'yellow' | 'light-green' | 'green' = 'yellow';
+  const highTensionFactors: string[] = [];
   
   // Special case for Alex/Jamie conversation - force low health score (high conflict)
   if ((me.toLowerCase().includes('alex') || them.toLowerCase().includes('alex')) && 
@@ -603,10 +606,6 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
   // Ensure score is within 0-100 range
   healthScore = Math.max(0, Math.min(100, Math.round(healthScore)));
   
-  // Initialize health label and color (may be overridden by special cases)
-  let healthLabel = '';
-  let healthColor: 'red' | 'yellow' | 'light-green' | 'green' = 'yellow';
-  
   // The original score calculation produces lower numbers for unhealthy conversations
   // We need to invert it to match our UI (higher = healthier)
   let meterScore = 100 - healthScore;
@@ -628,9 +627,6 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
   
   // Update the healthScore to use the meter value
   healthScore = meterScore;
-  
-  // Generate high tension factors for unhealthy conversations
-  const highTensionFactors: string[] = [];
   
   if (healthScore < 30) { // New scale: low numbers (< 30) are for high conflict conversations
     if (accusatoryCount > 1) {
