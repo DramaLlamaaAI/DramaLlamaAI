@@ -472,10 +472,10 @@ export default function ChatAnalysis() {
 
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
-                    <span className="text-green-600">🌿 Very Healthy</span>
-                    <span className="text-emerald-600">✅ Healthy</span>
-                    <span className="text-amber-600">⚠️ Strained</span>
                     <span className="text-red-600">🚩 High Conflict</span>
+                    <span className="text-amber-600">⚠️ Strained</span>
+                    <span className="text-emerald-600">✅ Healthy</span>
+                    <span className="text-green-600">🌿 Very Healthy</span>
                   </div>
 
                   
