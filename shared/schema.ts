@@ -104,6 +104,7 @@ export const chatAnalysisResultSchema = z.object({
     quote: z.string(),
     analysis: z.string()
   })).optional(),
+  highTensionFactors: z.array(z.string()).optional(),
 });
 
 export const messageAnalysisResultSchema = z.object({
