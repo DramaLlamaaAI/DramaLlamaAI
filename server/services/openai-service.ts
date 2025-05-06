@@ -1542,93 +1542,140 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
 function generateFallbackVentResponse(message: string): VentModeResponse {
   // Make a copy of the original message
   let rewritten = message;
+  const originalMessage = message; // Keep the original for comparison
   
-  // 1. Remove excessive punctuation and normalize
-  rewritten = rewritten.replace(/!{2,}/g, '!').replace(/\?{2,}/g, '?');
-  
-  // 2. Replace ALL CAPS with normal case
-  if (rewritten.match(/([A-Z]{2,}\s*)/)) {
-    rewritten = rewritten.replace(/\b[A-Z]{2,}\b/g, (match) => match.charAt(0) + match.slice(1).toLowerCase());
+  // Check if message is empty
+  if (!message || message.trim() === '') {
+    return {
+      original: message,
+      rewritten: message,
+      explanation: "Please enter a message to rewrite."
+    };
   }
   
-  // 3. Identify accusatory phrases and replace them with "I" statements
-  const accusatoryReplacements = [
-    { from: /\byou always\b/gi, to: "I've noticed a pattern where" },
-    { from: /\byou never\b/gi, to: "I feel like I haven't experienced" },
-    { from: /\byou're so\b/gi, to: "I feel like you're being" },
-    { from: /\byou don't care\b/gi, to: "I feel unimportant" },
-    { from: /\byou don't listen\b/gi, to: "I don't feel heard" },
-    { from: /\byour fault\b/gi, to: "I'm feeling hurt about what happened" },
-    { from: /\byou make me\b/gi, to: "I feel" },
-    { from: /\byou should\b/gi, to: "I would appreciate if you could" }
-  ];
+  // Default rewriting for particular message types
+  const lowerMessage = message.toLowerCase();
   
-  // 4. Replace emotionally charged words with more moderate alternatives
-  const emotionalReplacements = [
-    // Extremely negative words
-    { from: /\bhate\b/gi, to: 'dislike' },
-    { from: /\bfurious\b/gi, to: 'frustrated' },
-    { from: /\benraged\b/gi, to: 'upset' },
-    { from: /\bterrified\b/gi, to: 'concerned' },
-    { from: /\bdevastated\b/gi, to: 'disappointed' },
+  // If special cases are detected, use more specific rewrites
+  if (lowerMessage.includes("you don't care") || lowerMessage.includes("you dont care")) {
+    rewritten = "I feel unimportant when my needs aren't being addressed. It's important for me to feel valued in this relationship.";
+  } 
+  else if (lowerMessage.includes("you never listen") || lowerMessage.includes("you don't listen")) {
+    rewritten = "I don't feel heard when we talk about these issues. I would appreciate it if we could find a way to communicate more effectively.";
+  }
+  else if (lowerMessage.includes("you always")) {
+    rewritten = "I've noticed a pattern that's been bothering me. Could we talk about specific situations rather than generalizing?";
+  }
+  else if (lowerMessage.includes("you never")) {
+    rewritten = "I feel like I haven't experienced getting what I need in certain situations. I'd like to discuss specific examples.";
+  }
+  else if (lowerMessage.includes("hate you") || lowerMessage.includes("i hate")) {
+    rewritten = "I'm feeling very upset and frustrated right now. I need some space to process my emotions.";
+  }
+  else if (lowerMessage.includes("stupid") || lowerMessage.includes("idiot")) {
+    rewritten = "I'm feeling frustrated by what seems like an unhelpful approach to this situation. Can we try to solve this differently?";
+  }
+  else if (lowerMessage.includes("forget it") || lowerMessage.includes("whatever")) {
+    rewritten = "I need some time to collect my thoughts. I'd like to return to this conversation when I'm feeling calmer.";
+  }
+  else {
+    // Apply general rewriting rules for other messages
     
-    // Negative character judgments
-    { from: /\bstupid\b/gi, to: 'unhelpful' },
-    { from: /\bidiot\b/gi, to: 'frustrating' },
-    { from: /\bpathetic\b/gi, to: 'disappointing' },
-    { from: /\bridiculous\b/gi, to: 'questionable' },
-    { from: /\bterrible\b/gi, to: 'challenging' },
-    { from: /\bhorrible\b/gi, to: 'difficult' },
-    { from: /\bawful\b/gi, to: 'problematic' },
+    // 1. Remove excessive punctuation and normalize
+    rewritten = rewritten.replace(/!{2,}/g, '!').replace(/\?{2,}/g, '?');
     
-    // Absolute statements
-    { from: /\balways\b/gi, to: 'often' },
-    { from: /\bnever\b/gi, to: 'rarely' },
-    { from: /\bimpossible\b/gi, to: 'difficult' },
-    { from: /\bcompletely\b/gi, to: 'significantly' },
-    { from: /\btotally\b/gi, to: 'largely' },
+    // 2. Replace ALL CAPS with normal case
+    if (rewritten.match(/([A-Z]{2,}\s*)/)) {
+      rewritten = rewritten.replace(/\b[A-Z]{2,}\b/g, (match) => match.charAt(0) + match.slice(1).toLowerCase());
+    }
     
-    // Extreme descriptors
-    { from: /\bannoying\b/gi, to: 'frustrating' },
-    { from: /\binsane\b/gi, to: 'concerning' },
-    { from: /\bcrazy\b/gi, to: 'surprising' },
-    { from: /\boutrageous\b/gi, to: 'unexpected' }
-  ];
-  
-  // Apply accusatory replacements first (they contain phrases)
-  for (const {from, to} of accusatoryReplacements) {
-    rewritten = rewritten.replace(from, to);
+    // 3. Identify accusatory phrases and replace them with "I" statements
+    const accusatoryReplacements = [
+      { from: /\byou always\b/gi, to: "I've noticed a pattern where" },
+      { from: /\byou never\b/gi, to: "I feel like I haven't experienced" },
+      { from: /\byou're so\b/gi, to: "I feel like you're being" },
+      { from: /\byou don't care\b/gi, to: "I feel unimportant" },
+      { from: /\byou don't listen\b/gi, to: "I don't feel heard" },
+      { from: /\byour fault\b/gi, to: "I'm feeling hurt about what happened" },
+      { from: /\byou make me\b/gi, to: "I feel" },
+      { from: /\byou should\b/gi, to: "I would appreciate if you could" },
+      { from: /\byou need to\b/gi, to: "I would like it if you could" }
+    ];
+    
+    // 4. Replace emotionally charged words with more moderate alternatives
+    const emotionalReplacements = [
+      // Extremely negative words
+      { from: /\bhate\b/gi, to: 'dislike' },
+      { from: /\bfurious\b/gi, to: 'frustrated' },
+      { from: /\benraged\b/gi, to: 'upset' },
+      { from: /\bterrified\b/gi, to: 'concerned' },
+      { from: /\bdevastated\b/gi, to: 'disappointed' },
+      
+      // Negative character judgments
+      { from: /\bstupid\b/gi, to: 'unhelpful' },
+      { from: /\bidiot\b/gi, to: 'frustrating' },
+      { from: /\bpathetic\b/gi, to: 'disappointing' },
+      { from: /\bridiculous\b/gi, to: 'questionable' },
+      { from: /\bterrible\b/gi, to: 'challenging' },
+      { from: /\bhorrible\b/gi, to: 'difficult' },
+      { from: /\bawful\b/gi, to: 'problematic' },
+      
+      // Absolute statements
+      { from: /\balways\b/gi, to: 'often' },
+      { from: /\bnever\b/gi, to: 'rarely' },
+      { from: /\bimpossible\b/gi, to: 'difficult' },
+      { from: /\bcompletely\b/gi, to: 'significantly' },
+      { from: /\btotally\b/gi, to: 'largely' },
+      
+      // Extreme descriptors
+      { from: /\bannoying\b/gi, to: 'frustrating' },
+      { from: /\binsane\b/gi, to: 'concerning' },
+      { from: /\bcrazy\b/gi, to: 'surprising' },
+      { from: /\boutrageous\b/gi, to: 'unexpected' }
+    ];
+    
+    // Apply accusatory replacements first (they contain phrases)
+    for (const {from, to} of accusatoryReplacements) {
+      rewritten = rewritten.replace(from, to);
+    }
+    
+    // Then apply emotional word replacements
+    for (const {from, to} of emotionalReplacements) {
+      rewritten = rewritten.replace(from, to);
+    }
+    
+    // 5. Detect and handle common vent phrases
+    if (rewritten.match(/\bforget it\b|\bdone talking\b/i)) {
+      rewritten = rewritten.replace(/\bforget it\b|\bdone talking\b/i, "I need some space to process my feelings");
+    }
+    
+    if (rewritten.match(/\bI can't believe\b/i)) {
+      rewritten = rewritten.replace(/\bI can't believe\b/i, "I'm surprised");
+    }
+    
+    // 6. Add constructive ending phrases for very short, abrupt messages
+    if (rewritten.split(/\s+/).length < 5 && !rewritten.includes("?")) {
+      rewritten += ". I would like to discuss this further when we're both ready.";
+    }
   }
   
-  // Then apply emotional word replacements
-  for (const {from, to} of emotionalReplacements) {
-    rewritten = rewritten.replace(from, to);
-  }
-  
-  // 5. Detect and handle common vent phrases
-  if (rewritten.match(/\bforget it\b|\bdone talking\b/i)) {
-    rewritten = rewritten.replace(/\bforget it\b|\bdone talking\b/i, "I need some space to process my feelings");
-  }
-  
-  if (rewritten.match(/\bI can't believe\b/i)) {
-    rewritten = rewritten.replace(/\bI can't believe\b/i, "I'm surprised");
-  }
-  
-  // 6. Add constructive ending phrases for very short, abrupt messages
-  if (rewritten.split(/\s+/).length < 5 && !rewritten.includes("?")) {
-    rewritten += ". I would like to discuss this further when we're both ready.";
+  // If the rewritten text is still the same as the original, provide a more substantial rewrite
+  if (rewritten === originalMessage) {
+    // Create a more constructive version by adding a generic improvement
+    if (message.endsWith('?')) {
+      // If it's a question, keep it but add context
+      rewritten = "I'm curious about " + message.toLowerCase() + " I'd appreciate your perspective on this.";
+    } else {
+      // For statements, reframe as feelings and needs
+      rewritten = "I wanted to share that " + message + " I feel it's important we discuss this together.";
+    }
   }
   
   // 7. Determine explanation based on the changes made
-  let explanation = "";
-  if (rewritten !== message) {
-    explanation = "This rewritten message preserves your core concerns while expressing them in a way that's more likely to be heard. It uses 'I' statements to express feelings directly, avoids generalizations, and focuses on specific issues rather than character judgments.";
-  } else {
-    explanation = "Your message was already expressed in a constructive way. No significant changes were needed.";
-  }
+  let explanation = "This rewritten message preserves your core concerns while expressing them in a way that's more likely to be heard. It uses 'I' statements to express feelings directly, avoids generalizations, and focuses on specific issues rather than character judgments.";
   
   return {
-    original: message,
+    original: originalMessage,
     rewritten: rewritten,
     explanation: explanation
   };
