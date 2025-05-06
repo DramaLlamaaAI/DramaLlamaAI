@@ -1659,15 +1659,34 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
     }
   }
   
+  // Check accusatory statements that often combine multiple negative assertions
+  if (lowerMessage.includes("don't care") && (lowerMessage.includes("selfish") || lowerMessage.includes("yourself"))) {
+    rewritten = "I feel neglected and unimportant in our relationship. I need more consideration and acknowledgment of my feelings.";
+  }
+  
+  // Check for statements that attack someone's character
+  else if (lowerMessage.includes("decent person") || lowerMessage.includes("good person") || lowerMessage.includes("bad person")) {
+    rewritten = "I'm feeling deeply frustrated with our relationship right now. I need to take some space to process my feelings.";
+  }
+  
+  // Check for phrases indicating ending relationships or giving up
+  else if (lowerMessage.includes("done with") || lowerMessage.includes("done pretending") || lowerMessage.includes("give up")) {
+    rewritten = "I'm feeling at a breaking point in this relationship. I need to discuss some serious concerns when we're both able to listen to each other.";
+  }
+  
   // If the rewritten text is still the same as the original, provide a more substantial rewrite
   if (rewritten === originalMessage) {
-    // Create a more constructive version by adding a generic improvement
-    if (message.endsWith('?')) {
-      // If it's a question, keep it but add context
-      rewritten = "I'm curious about " + message.toLowerCase() + " I'd appreciate your perspective on this.";
+    // Handle long accusatory messages
+    if (message.length > 30 && (lowerMessage.includes("you") || lowerMessage.includes("your"))) {
+      rewritten = "I'm feeling hurt and frustrated right now. When I feel calmer, I'd like to discuss what's bothering me in a way that we can both hear each other.";
+    }
+    // Handle shorter messages
+    else if (message.endsWith('?')) {
+      // If it's a question, reframe it
+      rewritten = "I'm curious and would like to understand better. Can we discuss this when we're both in a good place to talk?";
     } else {
-      // For statements, reframe as feelings and needs
-      rewritten = "I wanted to share that " + message + " I feel it's important we discuss this together.";
+      // For statements, completely reframe as feelings and needs
+      rewritten = "I'm feeling upset right now and need some space. When I'm calmer, I'd like to discuss what's bothering me.";
     }
   }
   
