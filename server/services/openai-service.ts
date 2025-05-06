@@ -569,28 +569,34 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
   // Ensure score is within 0-100 range
   healthScore = Math.max(0, Math.min(100, Math.round(healthScore)));
   
-  // Determine the health label and color based on the score
+  // Invert the score for the new health meter orientation (0 = healthy, 100 = high conflict)
+  let invertedScore = 100 - healthScore;
+  
+  // Determine the health label and color based on the inverted score
   let healthLabel = '';
   let healthColor: 'red' | 'yellow' | 'light-green' | 'green' = 'yellow';
   
-  if (healthScore <= 30) {
-    healthLabel = '🚩 High Conflict / Emotionally Unsafe';
-    healthColor = 'red';
-  } else if (healthScore <= 60) {
-    healthLabel = '⚠️ Tense / Needs Work';
-    healthColor = 'yellow';
-  } else if (healthScore <= 85) {
-    healthLabel = '✅ Respectful but Strained';
-    healthColor = 'light-green';
-  } else {
+  if (invertedScore >= 70) {
     healthLabel = '🌿 Healthy Communication';
     healthColor = 'green';
+  } else if (invertedScore >= 40) {
+    healthLabel = '✅ Respectful but Strained';
+    healthColor = 'light-green';
+  } else if (invertedScore >= 15) {
+    healthLabel = '⚠️ Tense / Needs Work';
+    healthColor = 'yellow';
+  } else {
+    healthLabel = '🚩 High Conflict / Emotionally Unsafe';
+    healthColor = 'red';
   }
+  
+  // Update the healthScore to use the inverted value
+  healthScore = invertedScore;
   
   // Generate high tension factors for unhealthy conversations
   const highTensionFactors: string[] = [];
   
-  if (healthScore <= 50) {
+  if (healthScore <= 50) { // Now healthScore is inverted (0-100, lower is worse)
     if (accusatoryCount > 1) {
       highTensionFactors.push("Accusatory language with emotional charging");
     }
