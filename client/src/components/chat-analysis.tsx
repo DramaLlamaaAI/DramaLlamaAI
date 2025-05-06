@@ -44,6 +44,8 @@ export default function ChatAnalysis() {
     mutationFn: analyzeChatConversation,
     onSuccess: (data) => {
       setErrorMessage(null);
+      console.log("Analysis result:", data);
+      console.log("Health Score:", data.healthScore);
       setResult(data);
       setShowResults(true);
       window.scrollTo({ top: document.getElementById('analysisResults')?.offsetTop || 0, behavior: 'smooth' });
@@ -457,7 +459,7 @@ export default function ChatAnalysis() {
                           result.healthScore.color === 'light-green' ? 'bg-emerald-500' : 
                           'bg-green-500'
                         }`}
-                        style={{ width: `${(100 - result.healthScore.score)}%` }}
+                        style={{ width: `${result.healthScore.score}%` }}
                       />
                     </div>
 
