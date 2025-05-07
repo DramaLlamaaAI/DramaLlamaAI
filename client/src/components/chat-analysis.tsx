@@ -924,7 +924,10 @@ export default function ChatAnalysis() {
               
               {result.keyQuotes && result.keyQuotes.length > 0 && (
                 <div className="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
-                  <h4 className="font-medium mb-2 text-blue-700">Key Quotes Analysis</h4>
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-medium text-blue-700">Key Quotes Analysis</h4>
+                    <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Includes Replacement Suggestions</div>
+                  </div>
                   <div className="space-y-3">
                     {result.keyQuotes.map((quote, idx) => (
                       <div key={idx} className="bg-white p-3 rounded border border-blue-100">
@@ -938,8 +941,15 @@ export default function ChatAnalysis() {
                             <span className="font-medium text-blue-700">Analysis:</span> {quote.analysis}
                           </p>
                           {quote.improvement && (
-                            <div className="text-sm text-gray-600 bg-green-50 p-2 rounded border border-green-100">
-                              <span className="font-medium text-green-700">Possible Reframe:</span> {quote.improvement}
+                            <div className="text-sm bg-green-50 p-3 rounded border border-green-100">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="font-medium text-green-700">Replace With:</span>
+                                <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Recommendation</div>
+                              </div>
+                              <p className="text-green-800 p-2 bg-white rounded border border-green-100 italic">"{quote.improvement}"</p>
+                              <p className="text-xs text-green-700 mt-2">
+                                This alternative wording helps express the same point in a more constructive way.
+                              </p>
                             </div>
                           )}
                         </div>
