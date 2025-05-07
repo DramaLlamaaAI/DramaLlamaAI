@@ -440,7 +440,19 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
           quote: "That makes sense. Let me know if there's anything I can do to help.", 
           analysis: "Validates feelings without judgment and offers support without pressure" 
         }
-      ]
+      ],
+      participantConflictScores: {
+        [taylor]: {
+          score: 95,
+          label: "Supportive Communicator",
+          isEscalating: false
+        },
+        [riley]: {
+          score: 92,
+          label: "Supportive Communicator",
+          isEscalating: false
+        }
+      }
     };
   }
   
@@ -498,7 +510,19 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
           analysis: "Showing willingness to accept the accountability and move forward, though 'for now' indicates the issue isn't fully resolved" 
         }
       ],
-      dramaScore: 6
+      dramaScore: 6,
+      participantConflictScores: {
+        [alex]: {
+          score: 55,
+          label: "Reactive Communicator",
+          isEscalating: true
+        },
+        [jamie]: {
+          score: 70,
+          label: "Balanced Communicator",
+          isEscalating: false
+        }
+      }
     };
   }
   
@@ -564,7 +588,19 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
         "Pattern of escalating accusations",
         "Inability to respect stated boundaries"
       ],
-      dramaScore: 9
+      dramaScore: 9,
+      participantConflictScores: {
+        [alex]: {
+          score: 25,
+          label: "Accusatory Communicator",
+          isEscalating: true
+        },
+        [jamie]: {
+          score: 40,
+          label: "Defensive Communicator",
+          isEscalating: false
+        }
+      }
     };
   }
   

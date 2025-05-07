@@ -42,7 +42,14 @@ export interface ChatAnalysisResponse {
     analysis: string;
     improvement?: string; // Added field for communication improvement recommendation
   }>;
-  highTensionFactors?: Array<string>; // New field to show why the conversation is high-tension
+  highTensionFactors?: Array<string>; // Field to show why the conversation is high-tension
+  participantConflictScores?: {  // Field for individual conflict ratings
+    [participant: string]: {
+      score: number;      // 0-100 scale (higher is better communication)
+      label: string;      // Text label describing communication style
+      isEscalating: boolean; // Whether this participant tends to escalate conflict
+    }
+  };
 }
 
 // Message analysis interfaces
