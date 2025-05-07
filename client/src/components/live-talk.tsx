@@ -28,7 +28,7 @@ export default function LiveTalk() {
   // Check for browser compatibility
   const isMediaRecorderSupported = 'MediaRecorder' in window;
 
-  // Function to handle starting the recording
+  // Function to handle starting the recording with enhanced audio quality
   const startRecording = async () => {
     if (!canUseFeature) {
       toast({
@@ -40,9 +40,40 @@ export default function LiveTalk() {
     }
     
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      // Request high-quality audio with noise suppression enabled
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+          sampleRate: 48000,
+          sampleSize: 16
+        } 
+      });
       
+      // Create audio context for processing
+      const audioContext = new AudioContext();
+      const source = audioContext.createMediaStreamSource(stream);
+      
+      // Add a compressor to normalize audio levels
+      const compressor = audioContext.createDynamicsCompressor();
+      compressor.threshold.value = -24;
+      compressor.knee.value = 30;
+      compressor.ratio.value = 12;
+      compressor.attack.value = 0.003;
+      compressor.release.value = 0.25;
+      source.connect(compressor);
+      
+      // Create MediaRecorder with high bitrate for better quality
+      const options = { 
+        audioBitsPerSecond: 128000,
+        mimeType: 'audio/webm;codecs=opus' 
+      };
+      
+      mediaRecorderRef.current = new MediaRecorder(stream, options);
+      
+      // Get data more frequently (every 1 second) to avoid buffer issues
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
@@ -50,19 +81,29 @@ export default function LiveTalk() {
       };
       
       mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        // Create a high-quality audio blob for better transcription
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
         setAudioBlob(audioBlob);
         
         // Create URL for playback
         if (audioRef.current) {
           audioRef.current.src = URL.createObjectURL(audioBlob);
         }
+        
+        // Log for debugging
+        console.log(`Recording completed: ${audioBlob.size} bytes, ${audioChunksRef.current.length} chunks`);
       };
       
-      // Start recording
+      // Start recording with frequent data collection (1 second slices)
       audioChunksRef.current = [];
-      mediaRecorderRef.current.start();
+      mediaRecorderRef.current.start(1000);
       setIsRecording(true);
+      
+      // Toast notification
+      toast({
+        title: "Recording Started",
+        description: "High-quality audio recording is now active. Speak clearly for best results.",
+      });
       
       // Start timer
       timerRef.current = setInterval(() => {
@@ -126,16 +167,38 @@ export default function LiveTalk() {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Audio transcription using OpenAI Whisper API
+  // Enhanced audio transcription using OpenAI Whisper API
   const transcribeAudio = async () => {
     if (!audioBlob) return;
     
     setIsTranscribing(true);
     
     try {
-      // Create a FormData object to send the audio file
+      // Display a guidance toast for better results
+      toast({
+        title: "Processing Audio",
+        description: "Analyzing your recording for transcription. This may take a minute for longer conversations.",
+      });
+      
+      // Create a FormData object to send the audio file with the optimal format
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.wav');
+      
+      // Convert to a file with proper extension for better codec recognition
+      const file = new File([audioBlob], 'recording.webm', { 
+        type: 'audio/webm;codecs=opus' 
+      });
+      formData.append('audio', file);
+      
+      // Add additional metadata to help the transcription
+      const contextInfo = {
+        isConversation: true,
+        speakerCount: 2,
+        speakerLabels: participants.me && participants.them ? [participants.me, participants.them] : undefined
+      };
+      
+      if (contextInfo.speakerLabels) {
+        formData.append('context', JSON.stringify(contextInfo));
+      }
       
       // Send the audio to our server endpoint that will call the OpenAI Whisper API
       const response = await fetch('/api/transcribe', {
@@ -150,9 +213,24 @@ export default function LiveTalk() {
       const result = await response.json();
       
       if (result.transcript) {
-        // Process the transcript to better identify speakers
-        const processedTranscript = processTranscriptWithSpeakerLabels(result.transcript);
+        // Process the transcript with improved speaker detection
+        let processedTranscript = result.transcript;
+        
+        // Remove any filler words and clean up the transcript
+        processedTranscript = processedTranscript
+          .replace(/(\s|^)(um|uh|er|ah|like,)(\s|$)/gi, ' ')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
+        
+        // Apply speaker labeling with our improved algorithm
+        processedTranscript = enhancedSpeakerDetection(processedTranscript);
+        
         setTranscript(processedTranscript);
+        
+        toast({
+          title: "Transcription Complete",
+          description: "Your conversation has been successfully transcribed and processed.",
+        });
       } else {
         throw new Error("No transcript returned from API");
       }
@@ -160,24 +238,60 @@ export default function LiveTalk() {
       console.error('Error transcribing audio:', error);
       toast({
         title: "Transcription Error",
-        description: "We encountered an error while transcribing your conversation. Please try again.",
+        description: "We encountered an error processing your audio. Please ensure you're speaking clearly and try again.",
         variant: "destructive"
       });
       
-      // Fallback to a reliable transcript format for testing
-      const fallbackTranscript = 
-      `Speaker 1: Hi there, how have you been lately?
-Speaker 2: I've been really busy with work. It feels like we don't talk as much anymore.
-Speaker 1: I'm sorry you feel that way. I've had a lot going on too, but I do care about staying in touch.
-Speaker 2: Well, it doesn't always seem like it. Sometimes I feel like I'm the only one making an effort in our friendship.
-Speaker 1: I didn't realize you felt that way. I should be better about reaching out first.
-Speaker 2: I appreciate you saying that. I miss our regular conversations.
-Speaker 1: Me too. Let's make more time for each other moving forward.`;
-      
-      setTranscript(fallbackTranscript);
+      // Contact support instead of using fallback
+      setTranscript("Transcription failed. Please contact support at DramaLlamaConsultancy@gmail.com if this issue persists.");
     } finally {
       setIsTranscribing(false);
     }
+  };
+  
+  // Enhanced speaker detection algorithm
+  const enhancedSpeakerDetection = (text: string): string => {
+    // If transcript already has speaker labels, keep them
+    if (text.includes("Speaker") || text.includes("Person")) {
+      return text;
+    }
+    
+    // Split the transcript into natural segments (sentences or pauses)
+    const segments = text.split(/(?<=[.!?])\s+/);
+    let currentSpeaker = 1;
+    let previousSegmentLength = 0;
+    
+    // More intelligent speaker alternation based on sentence patterns
+    const processedSegments = segments.map((segment, index) => {
+      // Check for question-answer patterns
+      const isQuestion = /\?$/.test(segment);
+      
+      // Speaker likely changes after questions
+      if (index > 0 && isQuestion) {
+        currentSpeaker = currentSpeaker === 1 ? 2 : 1;
+      } 
+      // Speaker likely changes after short responses
+      else if (index > 0 && previousSegmentLength < 30 && segment.length > 50) {
+        currentSpeaker = currentSpeaker === 1 ? 2 : 1;
+      }
+      // Speaker likely changes with contrasting statements
+      else if (index > 0 && 
+              (segment.toLowerCase().startsWith("but ") || 
+               segment.toLowerCase().startsWith("however ") ||
+               segment.toLowerCase().startsWith("actually "))) {
+        currentSpeaker = currentSpeaker === 1 ? 2 : 1;
+      }
+      // Natural alternation for conversational flow
+      else if (index > 0 && index % 2 === 0) {
+        currentSpeaker = currentSpeaker === 1 ? 2 : 1;
+      }
+      
+      previousSegmentLength = segment.length;
+      return `Speaker ${currentSpeaker}: ${segment}`;
+    });
+    
+    // Join the processed segments into a transcript with proper formatting
+    return processedSegments.join('\n\n');
   };
   
   // Function to improve speaker labeling in transcripts

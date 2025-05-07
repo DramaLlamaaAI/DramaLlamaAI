@@ -39,12 +39,14 @@ export const transcribeAudio = async (req: Request, res: Response) => {
     fs.writeFileSync(tempFilePath, req.file.buffer);
     
     try {
-      // Call OpenAI's transcription API
+      // Call OpenAI's transcription API with enhanced parameters
       const transcription = await openai.audio.transcriptions.create({
         file: fs.createReadStream(tempFilePath),
-        model: "whisper-1",
+        model: "whisper-1", // Using the best available Whisper model
         language: "en",
-        response_format: "json",
+        response_format: "verbose_json", // Get more detailed results
+        temperature: 0.2,  // Lower temperature for more accurate transcription
+        prompt: "This is a conversation about relationships, communication, or personal interactions. It may include common phrases, names, and emotional language.", // Context hint to improve accuracy
       });
 
       // Clean up the temporary file
