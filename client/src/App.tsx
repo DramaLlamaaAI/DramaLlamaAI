@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import DisclaimerModal from "./components/disclaimer-modal";
 import { hasAcceptedDisclaimer, saveDisclaimerAcceptance } from "./lib/utils";
+import { DevModeToggle } from "./components/dev-mode-toggle";
 import Home from "./pages/home";
 import NotFound from "@/pages/not-found";
 import ChatAnalysis from "./components/chat-analysis";
@@ -42,6 +43,7 @@ function App() {
           <DisclaimerModal onAccept={handleAcceptDisclaimer} />
         )}
         <Router />
+        <DevModeToggle />
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -7,10 +7,26 @@ const TRIAL_USED_KEY = 'drama_llama_trial_used';
 const ANALYSIS_COUNT_KEY = 'drama_llama_analysis_count';
 
 /**
+ * Check if developer mode is enabled
+ */
+export function isDevModeEnabled(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  return localStorage.getItem('drama_llama_dev_mode') === 'true';
+}
+
+/**
  * Check if the user has used their free trial
  */
 export function hasUsedFreeTrial(): boolean {
   if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  // Always return false if developer mode is enabled
+  if (isDevModeEnabled()) {
     return false;
   }
   
@@ -44,6 +60,11 @@ export function getAnalysisCount(): number {
     return 0;
   }
   
+  // Always return 0 if developer mode is enabled (unlimited usage)
+  if (isDevModeEnabled()) {
+    return 0;
+  }
+  
   const count = localStorage.getItem(ANALYSIS_COUNT_KEY);
   return count ? parseInt(count, 10) : 0;
 }
@@ -53,6 +74,11 @@ export function getAnalysisCount(): number {
  */
 export function incrementAnalysisCount(): void {
   if (typeof window === 'undefined') {
+    return;
+  }
+  
+  // Skip incrementing if in developer mode
+  if (isDevModeEnabled()) {
     return;
   }
   

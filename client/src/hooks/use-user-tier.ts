@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getDeviceId } from '@/lib/device-id';
-import { hasUsedFreeTrial, getAnalysisCount } from '@/lib/trial-utils';
+import { hasUsedFreeTrial, getAnalysisCount, isDevModeEnabled } from '@/lib/trial-utils';
 
 interface UseTierResult {
   tier: string;
@@ -74,11 +74,18 @@ export function useUserTier(): UseTierResult {
   const used = usageData?.used || 0;
   const limit = usageData?.limit || 1;
   
+  // Check if developer mode is enabled
+  const devMode = isDevModeEnabled();
+  
   // Determine if user can use features based on authentication status and usage
   let canUseFeature = true;
   
+  // Developer mode always allows feature usage
+  if (devMode) {
+    canUseFeature = true;
+  }
   // If user is authenticated, check their usage limits
-  if (isAuthenticated) {
+  else if (isAuthenticated) {
     canUseFeature = used < limit;
   } 
   // If not authenticated, check if they've used their free trial
@@ -87,6 +94,11 @@ export function useUserTier(): UseTierResult {
   }
   
   const featureEnabled = (feature: string): boolean => {
+    // In developer mode, all features are available
+    if (devMode) {
+      return true;
+    }
+    
     const availableFeatures = FEATURE_MAP[tier] || FEATURE_MAP.free;
     return availableFeatures.includes(feature);
   };
