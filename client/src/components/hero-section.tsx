@@ -47,7 +47,10 @@ export default function HeroSection() {
               
               <Dialog open={isHowItWorksOpen} onOpenChange={setIsHowItWorksOpen}>
                 <DialogTrigger asChild>
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10">
+                  <Button 
+                    size="lg" 
+                    className="w-full sm:w-auto bg-gradient-to-r from-[#FF69B4] to-[#22C9C9] text-white border-0 shadow-md hover:shadow-lg"
+                  >
                     How It Works
                   </Button>
                 </DialogTrigger>

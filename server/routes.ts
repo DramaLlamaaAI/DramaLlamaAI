@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analysisController } from "./controllers/analysis-controller";
 import { authController } from "./controllers/auth-controller";
+import { transcriptionUpload, transcribeAudio } from "./controllers/transcription-controller";
 import session from "express-session";
 import memoryStore from "memorystore";
 
@@ -74,6 +75,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // These routes don't count against usage limits
   app.post('/api/analyze/detect-names', analysisController.detectNames);
   app.post('/api/ocr', analysisController.processOcr);
+  
+  // Audio transcription route (Pro feature)
+  app.post('/api/transcribe', isAuthenticated, transcriptionUpload, transcribeAudio);
   
   // Protected routes that require authentication
   app.get('/api/user/analyses', isAuthenticated, async (req: Request, res: Response) => {
