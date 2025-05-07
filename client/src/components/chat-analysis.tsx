@@ -401,7 +401,7 @@ export default function ChatAnalysis() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between">
                   <div>
                     <p className="font-medium">Free tier includes basic tone analysis.</p>
-                    <p>Upgrade to Personal plan for red flags and pattern detection, or Pro for Drama Score™ and historical analysis.</p>
+                    <p>Upgrade to Personal plan for red flags and pattern detection, or Pro for more comprehensive analysis with conflict patterns.</p>
                   </div>
                   <Button variant="secondary" className="mt-2 md:mt-0 md:ml-4 whitespace-nowrap">
                     Upgrade Plan
@@ -411,7 +411,7 @@ export default function ChatAnalysis() {
                 <p className="font-medium">
                   {tier === 'personal'
                     ? "Personal plan includes red flags and pattern detection."
-                    : "Pro plan includes all analysis features, including Drama Score™."}
+                    : "Pro plan includes all analysis features with comprehensive conflict and tension insights."}
                 </p>
               )}
             </AlertDescription>

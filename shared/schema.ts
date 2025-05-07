@@ -71,7 +71,7 @@ export const TIER_LIMITS = {
   },
   pro: {
     monthlyLimit: Infinity,
-    features: ["basicTone", "redFlags", "advice", "patterns", "dramaScore", "historical"],
+    features: ["basicTone", "redFlags", "advice", "patterns", "conflictPatterns", "historical"],
   },
 };
 

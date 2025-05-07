@@ -91,7 +91,6 @@ const prompts = {
         "patterns": ["string describing patterns observed"],
         "suggestions": ["string with suggestions for improvement"]
       },
-      "dramaScore": number between 0-100,
       "healthScore": {
         "score": number between 0-100,
         "label": "Troubled/Needs Work/Good/Excellent",
@@ -115,7 +114,6 @@ const prompts = {
         "patterns": ["string describing patterns observed"],
         "suggestions": ["string with suggestions for improvement"]
       },
-      "dramaScore": number between 0-100,
       "healthScore": {
         "score": number between 0-100,
         "label": "Troubled/Needs Work/Good/Excellent",
@@ -148,7 +146,6 @@ const prompts = {
         "patterns": ["string describing patterns observed"],
         "suggestions": ["string with suggestions for improvement"]
       },
-      "dramaScore": number between 0-100,
       "healthScore": {
         "score": number between 0-100,
         "label": "Troubled/Needs Work/Good/Excellent",
