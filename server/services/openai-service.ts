@@ -1370,22 +1370,26 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   }
   // Handle passive-aggressive comments about being busy or not caring
   else if (lowerMessage.includes("busy") && lowerMessage.includes("i guess")) {
-    rewritten = "I'm feeling disappointed because I need more of your time and attention";
+    rewritten = "I've been feeling a little distant from you lately, and I just wanted to check in and see if everything's okay between us";
     
-    explanation = "The rewritten message directly expresses the underlying feeling of disappointment and the need for attention, rather than using sarcasm.";
+    explanation = "The rewritten message expresses the emotional truth (feeling overlooked) while removing sarcasm and using curiosity rather than accusation. It invites dialogue without blame.";
   }
   // Handle 'whatever' pattern specifically - completely replace the message
   else if (lowerMessage.includes("whatever") || lowerMessage.match(/^\s*whatever\b/i)) {
     // Create a brand new message instead of trying to modify the existing one
-    const context = lowerMessage.replace(/^\s*whatever\b[\s\.,]*/i, "").trim();
+    // Handle both "whatever" at the beginning and anywhere in the message
+    const context = lowerMessage.replace(/^\s*whatever[\s\.,]*/i, "")  // At the beginning
+                             .replace(/whatever[\s\.,]*/gi, "") // Anywhere else
+                             .replace(/^i guess/i, "")  // Also remove "I guess" if present
+                             .trim();
     
     if (context.length > 0) {
-      rewritten = "I'm feeling dismissed about " + context + ". I would like to discuss this when we're both ready.";
+      rewritten = "I think we might have had a miscommunication about " + context + ". Could we take a step back and talk about this when we're both in a good space?";
     } else {
-      rewritten = "I'm feeling dismissed and would like to discuss this more when we're both ready";
+      rewritten = "I sense we're at a bit of an impasse. I'd really like to understand where you're coming from so we can work through this together";
     }
     
-    explanation = "The rewritten message expresses the feeling of being dismissed without using dismissive language that cuts off communication.";
+    explanation = "The rewritten message transforms dismissive language into an invitation for mutual understanding, using curiosity and a desire for connection rather than expressing hurt feelings directly.";
     
     // Return early to avoid other replacement rules being applied
     return {
@@ -1398,9 +1402,13 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   else if (lowerMessage.includes("i guess") || lowerMessage.includes("wow") || 
            lowerMessage.includes("fine") || lowerMessage.includes("don't bother") || 
            lowerMessage.match(/\.{3,}/)) {
-    rewritten = "I'm feeling upset about " + message.toLowerCase().replace(/^(wow|oh|um|hmm|uh|well|so)[,\s]*/i, "");
+    // Get the core content without the passive-aggressive intro
+    const contentWithoutIntro = message.toLowerCase().replace(/^(wow|oh|um|hmm|uh|well|so|fine)[,\s\.]*/i, "");
     
-    explanation = "The rewritten message directly states the emotional impact while removing passive-aggressive phrasing that might escalate conflict.";
+    // Create a more balanced response focused on understanding rather than accusation
+    rewritten = "I've been thinking about " + contentWithoutIntro + " and I'm wondering if we could talk about it when you have time?";
+    
+    explanation = "The rewritten message removes passive-aggressive emotional tones while preserving the core issue. It uses a curious, open approach rather than expressing upset feelings directly.";
   }
   // General de-escalation for other messages
   else {
