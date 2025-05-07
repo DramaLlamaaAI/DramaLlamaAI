@@ -255,13 +255,8 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     
     console.log('Successfully received Anthropic response for chat analysis');
     
-    // Parse the JSON response
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse Anthropic response as JSON:', content);
-      throw new Error('Invalid response format from Anthropic API. Please contact support at DramaLlamaConsultancy@gmail.com');
-    }
+    // Parse the JSON response with markdown code block handling
+    return parseAnthropicJson(content);
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for chat analysis:', error);
@@ -304,13 +299,8 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     
     console.log('Successfully received Anthropic response for message analysis');
     
-    // Parse the JSON response
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse Anthropic response as JSON:', content);
-      throw new Error('Invalid response format from Anthropic API. Please contact support at DramaLlamaConsultancy@gmail.com');
-    }
+    // Parse the JSON response with markdown code block handling
+    return parseAnthropicJson(content);
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for message analysis:', error);
@@ -383,13 +373,8 @@ export async function detectParticipants(conversation: string) {
     
     console.log('Successfully received Anthropic response for participant detection');
     
-    // Parse the JSON response
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse Anthropic response as JSON:', content);
-      throw new Error('Invalid response format from Anthropic API. Please contact support at DramaLlamaConsultancy@gmail.com');
-    }
+    // Parse the JSON response with markdown code block handling
+    return parseAnthropicJson(content);
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for participant detection:', error);
