@@ -11,15 +11,27 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
+  options?: { headers?: HeadersInit }
 ): Promise<Response> {
+  // Combine default headers with custom headers if provided
+  const defaultHeaders: HeadersInit = data ? { "Content-Type": "application/json" } : {};
+  const headers = options?.headers 
+    ? { ...defaultHeaders, ...options.headers } 
+    : defaultHeaders;
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
-  await throwIfResNotOk(res);
+  // Skip automatic error throwing if status is 401 (Unauthorized)
+  // This allows us to handle auth errors specially in some cases
+  if (res.status !== 401) {
+    await throwIfResNotOk(res);
+  }
+  
   return res;
 }
 

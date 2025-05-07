@@ -11,8 +11,12 @@ import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnaly
 import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { getUserUsage } from "@/lib/openai";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import TrialLimiter from "./trial-limiter"; 
+import { useUserTier } from "@/hooks/use-user-tier";
+import { incrementAnalysisCount } from "@/lib/trial-utils";
+import { getDeviceId } from "@/lib/device-id";
+import { queryClient } from "@/lib/queryClient";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -24,21 +28,19 @@ export default function ChatAnalysis() {
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isEligibilityChecking, setIsEligibilityChecking] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
-
-  const { data: usage } = useQuery({
-    queryKey: ['/api/user/usage'],
-    queryFn: getUserUsage,
-  });
-  
-  const tier = usage?.tier || 'free';
-  const usedAnalyses = usage?.used || 0;
-  const limit = usage?.limit || 1;
-  const canUseFeature = usedAnalyses < limit;
+  const { 
+    tier, 
+    used: usedAnalyses, 
+    limit,
+    canUseFeature,
+    isAuthenticated
+  } = useUserTier();
 
   const analysisMutation = useMutation({
     mutationFn: analyzeChatConversation,
@@ -244,11 +246,19 @@ export default function ChatAnalysis() {
     });
   };
 
+  // Track usage and increment count when analysis is performed
+  const handleTrialUsed = () => {
+    incrementAnalysisCount();
+    // Force refresh usage data
+    queryClient.invalidateQueries({ queryKey: ['/api/user/usage'] });
+  };
+
   return (
-    <section id="chatAnalysis" className="mb-12">
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Chat Analysis</h2>
+    <TrialLimiter featureType="chat" onTrialUse={handleTrialUsed}>
+      <section id="chatAnalysis" className="mb-12">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Chat Analysis</h2>
           
           <Tabs value={tabValue} onValueChange={setTabValue} className="mb-6">
             <TabsList className="mb-4">
@@ -976,5 +986,6 @@ export default function ChatAnalysis() {
         </CardContent>
       </Card>
     </section>
+    </TrialLimiter>
   );
 }

@@ -78,7 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Protected routes that require authentication
   app.get('/api/user/analyses', isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = req.session!.userId;
+      // We're guaranteed to have userId because of the isAuthenticated middleware
+      const userId = req.session!.userId!;
       const analyses = await storage.getUserAnalyses(userId);
       res.json(analyses);
     } catch (error) {

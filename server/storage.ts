@@ -73,7 +73,13 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userId++;
-    const user: User = { ...insertUser, id };
+    // Ensure tier is set with a default if not provided
+    const userWithDefaultTier = {
+      ...insertUser,
+      tier: insertUser.tier || "free"
+    };
+    
+    const user: User = { ...userWithDefaultTier, id };
     this.users.set(id, user);
     
     // Create usage limits for new user
