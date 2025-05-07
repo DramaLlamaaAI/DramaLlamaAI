@@ -1270,116 +1270,118 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   // First identify what type of frustration is being expressed
   const lowerMessage = message.toLowerCase();
   
-  // Check for key patterns
-  const isBlaming = lowerMessage.includes("you always") || 
-                    lowerMessage.includes("you never") || 
-                    lowerMessage.includes("your fault");
-                   
-  const isAngry = lowerMessage.includes("angry") || 
-                 lowerMessage.includes("pissed") || 
-                 lowerMessage.includes("mad") ||
-                 lowerMessage.includes("hate");
-                 
-  const isDemanding = lowerMessage.includes("need to") || 
-                     lowerMessage.includes("have to") || 
-                     lowerMessage.includes("must");
-  
   // Variables for response
   let rewritten = message;
   let explanation = "The rewritten message aims to express the same core concerns in a more productive way.";
   
-  // If blaming language is detected, transform to "I" statements and specific examples
-  if (isBlaming) {
-    // Check for hate + always pattern first (special case)
-    if (lowerMessage.includes("hate") && lowerMessage.includes("you always")) {
-      rewritten = message
-        .replace(/hate how/gi, "feel frustrated by")
-        .replace(/you always/gi, "how often you seem to");
-    }
-    // Handle multiple accusations in the same message
-    else if (lowerMessage.includes("you always") && lowerMessage.includes("you never")) {
-      rewritten = message
-        .replace(/you always/gi, "I feel like sometimes you")
-        .replace(/you never make time/gi, "I would appreciate more time together");
-      // Make sure we handle any other "you never" patterns
-      if (rewritten.includes("you never")) {
-        rewritten = rewritten.replace(/you never/gi, "I feel like you rarely");
-      }
-    }
-    // Handle other cases
-    else if (lowerMessage.includes("you always")) {
-      rewritten = message.replace(/you always/gi, "I've noticed several times that you");
-    } else if (lowerMessage.includes("you never listen to me")) {
-      rewritten = message.replace(/you never listen to me/gi, "I feel like I'm not being heard");
-    } else if (lowerMessage.includes("you never listen")) {
-      rewritten = message.replace(/you never listen/gi, "I feel like I'm not being heard");
-    } else if (lowerMessage.includes("you never make time")) {
-      rewritten = message.replace(/you never make time/gi, "I would like more time together when");
-    } else if (lowerMessage.includes("you never")) {
-      rewritten = message.replace(/you never/gi, "I feel like you rarely");
-    }
-    
-    // Add a constructive ending
-    if (!rewritten.includes("Could we")) {
-      rewritten += " Could we discuss this when you have time?";
-    }
-    
-    explanation = "The rewritten message replaces accusatory 'you always/never' statements with 'I' statements that express observations rather than accusations, and ends with an invitation to discuss rather than a demand.";
-  }
-  // If angry language is detected, tone down and add context
-  else if (isAngry) {
-    // Replace harsh words with more moderate expressions
+  // Handle "hate how you always" pattern (special case)
+  if (lowerMessage.includes("hate") && lowerMessage.includes("you always")) {
     rewritten = message
-      .replace(/hate/gi, "feel frustrated by")
+      .replace(/hate how/gi, "feel frustrated by")
+      .replace(/you always/gi, "how often you seem to");
+    
+    explanation = "The rewritten message expresses frustration instead of hate and avoids generalizations, making it more likely to be heard constructively.";
+  }
+  // Handle "you never listen" pattern first as it's a specific case
+  else if (lowerMessage.includes("you never listen")) {
+    rewritten = message.replace(/you never listen/gi, "I feel like I'm not being heard");
+    
+    // Also process any "you always" in the same message
+    if (lowerMessage.includes("you always")) {
+      rewritten = rewritten.replace(/you always/gi, "I feel like sometimes you");
+    }
+    
+    explanation = "The rewritten message expresses your feeling of not being heard without accusing the other person, making it more likely they'll listen to your concern.";
+  }
+  // Special handling for messages with both "you always" and "you never"
+  else if (lowerMessage.includes("you always") && lowerMessage.includes("you never make time")) {
+    rewritten = message
+      .replace(/you always/gi, "I feel like sometimes you")
+      .replace(/you never make time/gi, "I would appreciate more time together");
+    
+    explanation = "The rewritten message transforms accusations into personal feelings and requests, making it easier for the other person to hear your needs without feeling attacked.";
+  }
+  // Handle when both always and never exist but not the specific patterns above
+  else if (lowerMessage.includes("you always") && lowerMessage.includes("you never")) {
+    rewritten = message
+      .replace(/you always/gi, "I feel like sometimes you")
+      .replace(/you never/gi, "I would appreciate if you could");
+    
+    explanation = "The rewritten message transforms 'always/never' generalizations into more specific feelings and requests, which are easier to address constructively.";
+  }
+  // Handle general "you always" pattern
+  else if (lowerMessage.includes("you always")) {
+    rewritten = message.replace(/you always/gi, "I've noticed several times that you");
+    
+    explanation = "The rewritten message replaces absolute statements with observations, which are harder to dispute and more likely to be considered.";
+  }
+  // Handle general "you never" pattern
+  else if (lowerMessage.includes("you never")) {
+    rewritten = message.replace(/you never/gi, "I feel like you rarely");
+    
+    explanation = "The rewritten message softens absolute language and expresses how you feel, rather than making accusations that might prompt defensiveness.";
+  }
+  // Handle "hate" language
+  else if (lowerMessage.includes("hate")) {
+    rewritten = message.replace(/hate/gi, "feel frustrated by");
+    
+    explanation = "The rewritten message expresses frustration instead of hate, which is less inflammatory and more likely to lead to productive conversation.";
+  }
+  // Handle angry language
+  else if (lowerMessage.includes("angry") || lowerMessage.includes("pissed") || lowerMessage.includes("mad")) {
+    rewritten = message
       .replace(/angry/gi, "upset")
       .replace(/pissed/gi, "bothered")
       .replace(/mad/gi, "concerned");
     
-    // Add context if not already present
-    if (!rewritten.includes("because")) {
-      rewritten += " I think I'm feeling this way because it's important to me.";
-    }
-    
-    // Add a forward-looking statement
-    if (!rewritten.includes("would like")) {
-      rewritten += " I would like to find a way forward that works for both of us.";
-    }
-    
-    explanation = "The rewritten message expresses the same feelings but with more moderate language, adds context to explain why it matters, and suggests a collaborative path forward.";
+    explanation = "The rewritten message uses more moderate emotional language that still conveys your feelings but is less likely to escalate the conflict.";
   }
-  // If demanding language is detected, transform to requests
-  else if (isDemanding) {
-    // Replace demands with requests and preferences
+  // Handle demanding language
+  else if (lowerMessage.includes("need to") || lowerMessage.includes("have to") || lowerMessage.includes("must")) {
     rewritten = message
       .replace(/need to/gi, "would appreciate if you could")
       .replace(/have to/gi, "I'd like it if you would")
       .replace(/must/gi, "I'd prefer if you would");
     
-    // Add acknowledgment
-    if (!rewritten.includes("understand")) {
-      rewritten += " I understand you might have your reasons, and I'm open to hearing them.";
-    }
+    explanation = "The rewritten message transforms demands into requests, which acknowledge the other person's autonomy and are more likely to be met positively.";
+  }
+  // Handle accusatory questions
+  else if (message.includes("?") && (lowerMessage.includes("why don't you") || lowerMessage.includes("how could you"))) {
+    rewritten = message
+      .replace(/why don't you/gi, "I wish you would")
+      .replace(/how could you/gi, "I was hurt when you")
+      .replace(/\?/g, ".");
     
-    explanation = "The rewritten message transforms demands into requests, acknowledges the other person's perspective, and opens the door for dialogue rather than compliance.";
+    explanation = "The rewritten message expresses your underlying wishes and feelings instead of asking questions that might come across as accusations.";
   }
   // General de-escalation for other messages
   else {
-    // If nothing specific detected, make general improvements
-    
-    // Convert questions that sound like accusations to statements
-    if (message.includes("?") && (lowerMessage.includes("why don't you") || lowerMessage.includes("how could you"))) {
-      rewritten = message
-        .replace(/why don't you/gi, "I wish you would")
-        .replace(/how could you/gi, "I was hurt when you")
-        .replace(/\?/g, ".");
-    }
-    
     // Add a constructive suggestion if the message is short
     if (message.length < 50) {
       rewritten += " I'd like to talk about how we can resolve this together.";
+      
+      explanation = "The rewritten message adds a constructive invitation to dialogue, which can help move the conversation toward problem-solving.";
+    } else {
+      explanation = "The message seems relatively measured already, so only minor adjustments were made to ensure it comes across constructively.";
     }
-    
-    explanation = "The rewritten message focuses on expressing feelings using 'I' statements rather than blaming, and suggests a path forward for resolution. This approach helps the other person understand your perspective without feeling attacked.";
+  }
+  
+  // Fix any remaining accusatory phrases that might have been missed
+  if (rewritten.toLowerCase().includes("you never listen")) {
+    rewritten = rewritten.replace(/you never listen when/gi, "I feel like I'm not being heard when");
+    rewritten = rewritten.replace(/you never listen/gi, "I feel like I'm not being heard");
+  }
+  
+  // Additional check for any other "you never" phrases
+  if (rewritten.toLowerCase().includes("you never")) {
+    rewritten = rewritten.replace(/you never/gi, "I feel like you rarely");
+  }
+  
+  // Add a constructive ending if not already present and if the message is blame-focused
+  if (lowerMessage.includes("you always") || lowerMessage.includes("you never") || lowerMessage.includes("your fault")) {
+    if (!rewritten.toLowerCase().includes("could we") && !rewritten.toLowerCase().includes("would like to")) {
+      rewritten += " Could we discuss this when you have time?";
+    }
   }
   
   return {
