@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserUsage } from "@/lib/openai";
 
 export default function PricingSection() {
+  const [showMoreFree, setShowMoreFree] = useState(false);
+  
   const { data: usage } = useQuery({
     queryKey: ['/api/user/usage'],
     queryFn: getUserUsage,
@@ -24,28 +27,62 @@ export default function PricingSection() {
             <p className="text-3xl font-bold mb-0">£0<span className="text-base font-normal text-primary/70">/month</span></p>
           </div>
           <CardContent className="p-6">
-            <ul className="mb-6 space-y-3">
+            <ul className="mb-3 space-y-3">
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Basic tone insights</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>1 analysis per month</span>
+                <span>1 chat analysis per month<span className="text-primary">*</span></span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Vent mode access</span>
+                <span>Overall Tone with Participant Analysis<span className="text-primary">*</span></span>
               </li>
-              <li className="flex items-start opacity-50">
-                <X className="w-5 h-5 mr-2 text-muted-foreground flex-shrink-0 mt-0.5" />
-                <span>No red flag detection</span>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                <span>Conversation Health Meter<span className="text-primary">*</span></span>
               </li>
-              <li className="flex items-start opacity-50">
-                <X className="w-5 h-5 mr-2 text-muted-foreground flex-shrink-0 mt-0.5" />
-                <span>No pattern tracking</span>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                <span>Individual contributions to tension & 'What This Means'<span className="text-primary">*</span></span>
               </li>
             </ul>
+            
+            {showMoreFree && (
+              <ul className="mb-3 space-y-3 animate-in fade-in duration-300">
+                <li className="flex items-start">
+                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Communication Insights</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Personalized suggestions</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Key Phrases, with quotes</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Simple PDF export</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                  <span>Vent mode access</span>
+                </li>
+              </ul>
+            )}
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full text-xs mb-4 flex items-center justify-center text-muted-foreground"
+              onClick={() => setShowMoreFree(!showMoreFree)}
+            >
+              {showMoreFree ? (
+                <>Show less <ChevronUp className="ml-1 h-3 w-3" /></>
+              ) : (
+                <>Show more <ChevronDown className="ml-1 h-3 w-3" /></>
+              )}
+            </Button>
             
             {currentTier === 'free' ? (
               <Button variant="outline" className="w-full border-primary text-primary" disabled>
