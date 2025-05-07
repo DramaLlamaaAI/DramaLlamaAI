@@ -497,6 +497,188 @@ export default function ChatAnalysis() {
                 </div>
               )}
               
+              {/* Simulated Tension Trendline */}
+              <div className="bg-white border border-gray-200 p-4 rounded-lg mb-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium text-gray-800 flex items-center">
+                    <TrendingUp className="h-4 w-4 mr-2 text-gray-600" />
+                    Simulated Tension Trendline
+                  </h4>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center">
+                      <span className="h-3 w-3 rounded-full bg-cyan-400 inline-block mr-1"></span>
+                      <span className="text-xs text-gray-600">{me}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="h-3 w-3 rounded-full bg-pink-400 inline-block mr-1"></span>
+                      <span className="text-xs text-gray-600">{them}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="h-64 mb-2">
+                  {/* Simplified conversation tension simulation */}
+                  {(() => {
+                    // Generate simulated conversation points based on health score
+                    const points = 8;  // Number of data points
+                    const healthScore = result.healthScore?.score || 75;
+                    
+                    // Generate random but weighted data based on health score
+                    // Lower health scores = more volatile line with higher tension values
+                    const volatility = 100 - healthScore;
+                    const baselinePersonA = Math.max(20, 80 - healthScore); 
+                    const baselinePersonB = Math.max(15, 75 - healthScore);
+                    
+                    const generatePoint = (baseline: number, index: number) => {
+                      const randomFactor = Math.sin(index * 0.9) * (volatility * 0.6);
+                      return Math.max(5, Math.min(95, baseline + randomFactor));
+                    };
+                    
+                    const data = Array.from({ length: points }).map((_, i) => {
+                      const personA = generatePoint(baselinePersonA, i);
+                      const personB = generatePoint(baselinePersonB, i + 2); // Offset to create different patterns
+                      
+                      return {
+                        name: `Point ${i + 1}`,
+                        [me]: personA,
+                        [them]: personB,
+                      };
+                    });
+                    
+                    // Simulate conversation "milestone" labels
+                    const milestones = [
+                      'Conversation start', 
+                      'Topic introduction',
+                      'First disagreement', 
+                      'Clarification',
+                      'Resolution attempt',
+                      'Emotional moment',
+                      'Understanding',
+                      'Conversation end'
+                    ];
+                    
+                    return (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={data}>
+                          <XAxis 
+                            dataKey="name"
+                            tickFormatter={(_, i) => milestones[i] || ''}
+                            tick={{ fontSize: 10 }}
+                            angle={-45}
+                            textAnchor="end"
+                            height={70}
+                          />
+                          <YAxis 
+                            domain={[0, 100]}
+                            tickFormatter={(value) => value === 0 ? 'Low' : value === 50 ? 'Medium' : value === 100 ? 'High' : ''}
+                            width={40}
+                          />
+                          <Tooltip 
+                            formatter={(value: number) => [`${value.toFixed(0)}% tension`, '']}
+                            labelFormatter={(_, data) => {
+                              const index = data[0]?.payload?.name?.split(' ')[1] - 1;
+                              return milestones[index] || '';
+                            }}
+                          />
+                          
+                          {/* Threshold line for high tension */}
+                          <ReferenceLine y={75} stroke="#f97316" strokeDasharray="3 3" />
+                          
+                          <Line 
+                            type="monotone" 
+                            dataKey={me} 
+                            stroke="#22d3ee" 
+                            strokeWidth={2.5}
+                            dot={{ stroke: '#22d3ee', strokeWidth: 2, r: 4, fill: 'white' }}
+                            activeDot={{ r: 6, strokeWidth: 2 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey={them} 
+                            stroke="#ec4899" 
+                            strokeWidth={2.5}
+                            dot={{ stroke: '#ec4899', strokeWidth: 2, r: 4, fill: 'white' }}
+                            activeDot={{ r: 6, strokeWidth: 2 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    );
+                  })()}
+                </div>
+                
+                <div className="flex justify-between text-xs text-gray-600 mb-2">
+                  <div>Conversation Start</div>
+                  <div>Conversation End</div>
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-2">
+                  This visual shows the simulated emotional tension throughout the conversation based on AI analysis of language patterns.
+                </p>
+              </div>
+              
+              {/* Individual Contributions to Tension */}
+              {result.participantConflictScores && (
+                <div className="bg-white border border-gray-200 p-4 rounded-lg mb-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-800 flex items-center">
+                      <Users className="h-4 w-4 mr-2 text-gray-600" />
+                      Individual Contributions to Tension
+                    </h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    {Object.entries(result.participantConflictScores).map(([name, data]) => (
+                      <div 
+                        key={name}
+                        className={`p-3 rounded-lg ${
+                          name === me 
+                            ? 'bg-cyan-50 border border-cyan-100' 
+                            : 'bg-pink-50 border border-pink-100'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="font-medium">{name}</div>
+                          <div className={`px-2 py-1 rounded text-xs ${
+                            data.score < 30 
+                              ? 'bg-green-100 text-green-700' 
+                              : data.score < 60 
+                              ? 'bg-yellow-100 text-yellow-700' 
+                              : 'bg-red-100 text-red-700'
+                          }`}>
+                            {data.label}
+                          </div>
+                        </div>
+                        
+                        <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                          <div 
+                            className={`absolute top-0 left-0 h-full rounded-r-full ${
+                              data.score < 30 
+                                ? 'bg-green-400' 
+                                : data.score < 60 
+                                ? 'bg-yellow-400' 
+                                : 'bg-red-400'
+                            }`}
+                            style={{ width: `${data.score}%` }}
+                          />
+                        </div>
+                        
+                        <div className="flex justify-between text-xs text-gray-600">
+                          <span>Low Tension</span>
+                          <span>High Tension</span>
+                        </div>
+                        
+                        {data.isEscalating && (
+                          <div className="flex items-center mt-2 text-orange-600 text-xs">
+                            <Flame className="h-3 w-3 mr-1" />
+                            Showing escalation patterns
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="bg-muted p-4 rounded-lg mb-4">
                 <h4 className="font-medium mb-2">Communication Insights</h4>
                 {(result.communication.patterns && result.communication.patterns.length > 0) ? (
