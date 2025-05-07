@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import { analyzeChatConversation, analyzeMessage, ventMessage, detectParticipants } from '../services/openai-service';
-import { processImage } from '../services/ocr-service';
+import { analyzeChatConversation, analyzeMessage, ventMessage, detectParticipants, processImageOcr } from '../services/anthropic-updated';
 import { TIER_LIMITS } from '@shared/schema';
 
 // For mock demo purposes - in real app this would use auth and database
@@ -137,8 +136,8 @@ export const analysisController = {
         return res.status(400).json({ message: 'Missing image data' });
       }
       
-      // Process OCR
-      const text = await processImage(image);
+      // Process OCR using Anthropic
+      const text = await processImageOcr(image);
       res.json({ text });
     } catch (error: any) {
       console.error(error);
