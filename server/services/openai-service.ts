@@ -1272,7 +1272,14 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       messages: [
         {
           role: "system",
-          content: "You are an expert in analyzing communication dynamics and emotional patterns in conversations."
+          content: "You are an emotionally intelligent assistant analyzing human conversations. Your job is to:\n" +
+            "- Detect emotional tone, manipulation, blame, and defensiveness.\n" +
+            "- Highlight efforts to resolve conflict, de-escalate, apologize, or use humor to repair the relationship.\n" +
+            "- Do not assume intent. Instead, focus on language patterns and how they may be perceived.\n" +
+            "- Consider multiple interpretations of messages rather than assuming negative intent.\n" +
+            "- Provide your analysis in a neutral, empathetic tone.\n" +
+            "- Avoid judgmental language.\n" +
+            "- Be sure to recognize both productive and unproductive communication patterns from all participants."
         },
         {
           role: "user",
@@ -1731,7 +1738,14 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
       messages: [
         {
           role: "system",
-          content: "You are an expert in analyzing communication tone and intent."
+          content: "You are an emotionally intelligent assistant analyzing human messages. Your job is to:\n" +
+            "- Detect emotional tone, manipulation, blame, and defensiveness.\n" +
+            "- Highlight efforts to resolve conflict, de-escalate, apologize, or use humor to repair relationships.\n" +
+            "- Do not assume intent. Instead, focus on language patterns and how they may be perceived.\n" +
+            "- Consider multiple interpretations of messages rather than assuming negative intent.\n" +
+            "- Provide your analysis in a neutral, empathetic tone.\n" +
+            "- Avoid judgmental language.\n" +
+            "- Be sure to recognize both productive and unproductive communication patterns."
         },
         {
           role: "user",
@@ -1874,7 +1888,7 @@ export async function detectParticipants(conversation: string) {
       messages: [
         {
           role: "system",
-          content: "You are an expert in analyzing conversations and identifying participants."
+          content: "You are an expert in analyzing conversations and identifying participants. Your goal is to accurately identify the two main people involved in a conversation and assign them roles of 'me' and 'them' based on the flow of communication."
         },
         {
           role: "user",
