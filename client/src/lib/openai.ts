@@ -30,7 +30,6 @@ export interface ChatAnalysisResponse {
     patterns?: string[];
     suggestions?: string[];
   };
-  dramaScore?: number;
   healthScore?: {
     score: number;
     label: string;
