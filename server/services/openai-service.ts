@@ -76,44 +76,52 @@ let openaiConfig: any = {
   maxRetries: 3
 };
 
-// Special configuration for project-based keys (sk-proj-...)
+// For project-based API keys starting with sk-proj-
 if (apiKey && apiKey.startsWith('sk-proj-')) {
   console.log('Configuring OpenAI client for project-based API key');
   
-  // Define a custom fetch implementation that includes the required beta header
-  const projectKeyFetch = async (url: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  // Set the defaultHeaders with the required beta header
+  openaiConfig.defaultHeaders = {
+    'OpenAI-Beta': 'project-keys=v1'
+  };
+  
+  // Create custom fetch implementation for debugging
+  openaiConfig.defaultQuery = { projectId: 'drama-llama-app' };
+  
+  // Custom fetch with detailed logging
+  openaiConfig.fetch = async (url: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     try {
-      // Create a copy of the headers to avoid modifying the original
+      // Create a new headers object to avoid modifying the original
       const headers = new Headers(init?.headers);
       
-      // Add the required header for project-based keys
-      headers.set('OpenAI-Beta', 'project-keys=v1');
+      // Ensure the beta header is present
+      if (!headers.has('OpenAI-Beta')) {
+        headers.set('OpenAI-Beta', 'project-keys=v1');
+      }
       
-      // Log the request URL and headers for debugging (excluding the auth token)
-      const headerDebug: Record<string, string> = {};
+      // Create a debug-friendly version of headers (without showing auth token)
+      const debugHeaders: Record<string, string> = {};
       headers.forEach((value, key) => {
-        if (key.toLowerCase() !== 'authorization') {
-          headerDebug[key] = value;
-        } else {
-          headerDebug[key] = 'Bearer sk-...';
-        }
+        debugHeaders[key] = key.toLowerCase() === 'authorization' ? 'Bearer sk-***' : value;
       });
       
-      console.log(`API Request to: ${url.toString()}`);
-      console.log('Request headers:', JSON.stringify(headerDebug, null, 2));
+      console.log(`OpenAI API Request: ${url.toString()}`);
+      console.log('Headers:', JSON.stringify(debugHeaders, null, 2));
       
-      // Return the fetch with modified headers
+      // Make the request with our modified headers
       const response = await fetch(url, {
         ...init,
         headers
       });
       
-      // Log response status for debugging
-      console.log(`API Response status: ${response.status}`);
-      
       if (!response.ok) {
-        const errorBody = await response.clone().text();
-        console.error('API Error Response:', errorBody);
+        console.error(`OpenAI API Error (${response.status})`);
+        try {
+          const errorText = await response.clone().text();
+          console.error('Error response:', errorText);
+        } catch (e) {
+          console.error('Could not read error response body');
+        }
       }
       
       return response;
@@ -122,9 +130,6 @@ if (apiKey && apiKey.startsWith('sk-proj-')) {
       throw error;
     }
   };
-  
-  // Add fetch implementation to the configuration
-  openaiConfig.fetch = projectKeyFetch;
 }
 
 // Initialize OpenAI client with the proper configuration
