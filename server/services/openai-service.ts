@@ -1258,8 +1258,15 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   
   // If blaming language is detected, transform to "I" statements and specific examples
   if (isBlaming) {
-    if (lowerMessage.includes("you always")) {
-      rewritten = message.replace(/you always/gi, "I've noticed several times that");
+    // Check for hate + always pattern first (special case)
+    if (lowerMessage.includes("hate") && lowerMessage.includes("you always")) {
+      rewritten = message
+        .replace(/hate how/gi, "feel frustrated by")
+        .replace(/you always/gi, "how often you seem to");
+    }
+    // Handle other cases
+    else if (lowerMessage.includes("you always")) {
+      rewritten = message.replace(/you always/gi, "I've noticed several times that you");
     } else if (lowerMessage.includes("you never listen to me")) {
       rewritten = message.replace(/you never listen to me/gi, "I feel like I'm not being heard");
     } else if (lowerMessage.includes("you never listen")) {
