@@ -306,17 +306,61 @@ export default function ChatAnalysis() {
             </TabsContent>
             
             <TabsContent value="file">
+              <div className="mb-4">
+                <details className="text-sm">
+                  <summary className="font-medium cursor-pointer hover:text-primary">
+                    How to Export and Import Chat Files
+                  </summary>
+                  <div className="mt-2 p-4 bg-muted rounded-md text-sm">
+                    <h5 className="font-medium mb-2">📱 WhatsApp Export Guide</h5>
+                    <ol className="list-decimal pl-5 space-y-1 mb-4">
+                      <li><strong>Open WhatsApp</strong> and go to the chat you want to export (1-on-1 or group).</li>
+                      <li><strong>Tap the Contact or Group Name</strong> to open the chat info screen.</li>
+                      <li><strong>Select "Export Chat"</strong>
+                        <ul className="list-disc pl-5 mt-1">
+                          <li>On iPhone: scroll down and tap Export Chat</li>
+                          <li>On Android: tap the 3-dot menu → More → Export Chat</li>
+                        </ul>
+                      </li>
+                      <li><strong>Choose "Without Media"</strong> - When prompted, select Without Media (recommended for faster upload and better analysis).</li>
+                      <li><strong>Save the File</strong> to your device or cloud (Email, Google Drive, Files app, Downloads folder).</li>
+                      <li><strong>Upload the .txt file</strong> below to analyze your conversation.</li>
+                    </ol>
+                    
+                    <h5 className="font-medium mb-2">💬 Facebook Messenger Export Guide</h5>
+                    <ol className="list-decimal pl-5 space-y-1 mb-4">
+                      <li><strong>Visit Facebook Settings</strong> - Log into Facebook.com → click your profile icon → Settings & Privacy → Settings.</li>
+                      <li><strong>Download Your Information</strong> - In the left menu, click "Your Facebook Information" → "Download Your Information".</li>
+                      <li><strong>Select Messages Only</strong> - Deselect all categories except "Messages" to make download faster.</li>
+                      <li><strong>Choose Format</strong> - Select "HTML" format (preferred) and "Low" media quality (faster).</li>
+                      <li><strong>Create File</strong> - Facebook will prepare your download (may take several hours or days).</li>
+                      <li><strong>Download &amp; Extract</strong> - Once ready, download, unzip, and find the "messages" folder.</li>
+                      <li><strong>Locate Chat File</strong> - Open the folder with the contact's name and find their "message.html" file.</li>
+                      <li><strong>Convert to Text</strong> - Open the HTML in a browser, select all (Ctrl+A), copy (Ctrl+C), and paste into a text file.</li>
+                      <li><strong>Upload the .txt file</strong> below.</li>
+                    </ol>
+                    
+                    <h5 className="font-medium mb-2">📱 iMessage/SMS Export Guide</h5>
+                    <ol className="list-decimal pl-5 space-y-1">
+                      <li><strong>For iPhone</strong>: Use a third-party backup tool like iExplorer or iMazing to export messages as text files.</li>
+                      <li><strong>For Android</strong>: Use SMS Backup & Restore app to export messages as XML or TXT.</li>
+                      <li><strong>Upload the exported file</strong> below for analysis.</li>
+                    </ol>
+                  </div>
+                </details>
+              </div>
+              
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-10 text-center">
                 <input
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileUpload}
-                  accept=".txt,.csv,.log"
+                  accept=".txt,.csv,.log,.html"
                   className="hidden"
                 />
                 <Upload className="h-10 w-10 text-muted-foreground/50 mx-auto mb-4" />
                 <h3 className="mb-2 font-medium">Upload Chat Log</h3>
-                <p className="text-sm text-muted-foreground mb-4">Drag and drop a .txt or .csv file, or click to browse</p>
+                <p className="text-sm text-muted-foreground mb-4">Drag and drop a .txt, .html, or .csv file, or click to browse</p>
                 <Button 
                   variant="outline" 
                   onClick={() => fileInputRef.current?.click()}
@@ -330,6 +374,41 @@ export default function ChatAnalysis() {
             </TabsContent>
             
             <TabsContent value="image">
+              <div className="mb-4">
+                <details className="text-sm">
+                  <summary className="font-medium cursor-pointer hover:text-primary">
+                    How to Take Good Screenshots for Analysis
+                  </summary>
+                  <div className="mt-2 p-4 bg-muted rounded-md text-sm">
+                    <h5 className="font-medium mb-2">📸 Tips for Better Screenshot Analysis</h5>
+                    <ol className="list-decimal pl-5 space-y-2 mb-4">
+                      <li><strong>Capture the Full Conversation</strong> - Include as much context as possible by showing a complete exchange.</li>
+                      <li><strong>Ensure Text is Clear</strong> - Make sure the screenshot is in focus and text is readable.</li>
+                      <li><strong>Preferred Chat Apps</strong>:
+                        <ul className="list-disc pl-5 mt-1">
+                          <li><strong>WhatsApp</strong>: Take long screenshots (use scrolling screenshot feature) to capture more context.</li>
+                          <li><strong>iMessage</strong>: Use light mode for better text recognition.</li>
+                          <li><strong>Messenger</strong>: Switch to a clean theme before taking screenshots.</li>
+                        </ul>
+                      </li>
+                      <li><strong>Taking Good Screenshots</strong>:
+                        <ul className="list-disc pl-5 mt-1">
+                          <li><strong>iPhone</strong>: Press Power + Volume Up buttons simultaneously. For longer screenshots, use the full-page capture option after taking a screenshot.</li>
+                          <li><strong>Android</strong>: Usually Power + Volume Down. Many Android phones have a "Scrolling screenshot" option for longer conversations.</li>
+                          <li><strong>Desktop</strong>: Windows (Win+Shift+S) or Mac (Cmd+Shift+4) for partial screenshots.</li>
+                        </ul>
+                      </li>
+                      <li><strong>Crop Personal Information</strong> - Remove any sensitive data like phone numbers or addresses, but keep names for analysis.</li>
+                    </ol>
+                    
+                    <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                      <p className="text-blue-700 text-xs mb-1 font-medium">💡 Pro Tip:</p>
+                      <p className="text-blue-700 text-xs">For more accurate analysis, export the chat text when possible instead of using screenshots. Our OCR technology works best with clear, high-contrast text.</p>
+                    </div>
+                  </div>
+                </details>
+              </div>
+              
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-10 text-center">
                 <input
                   type="file"
