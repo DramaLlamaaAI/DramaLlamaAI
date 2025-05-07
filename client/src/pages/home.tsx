@@ -42,6 +42,8 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <HeroSection />
         
+        <HowItWorks />
+        
         <div className="my-10">
           <h2 className="text-2xl font-bold text-center mb-6">Choose Your Tool</h2>
           
@@ -131,8 +133,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-        
-        <HowItWorks />
         <FeaturesSection />
         <PricingSection />
       </main>
