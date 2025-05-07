@@ -72,11 +72,21 @@ export default function Header() {
             </Tooltip>
           </TooltipProvider>
           
-          {tier === 'free' && (
-            <Button variant="secondary" size="sm">
-              Upgrade
-            </Button>
-          )}
+          <div className="flex items-center space-x-2">
+            <Link href="/auth">
+              <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10">
+                Sign up / Log in
+              </Button>
+            </Link>
+            
+            {tier === 'free' && (
+              <Link href="/subscription">
+                <Button variant="secondary" size="sm">
+                  Upgrade
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </header>
