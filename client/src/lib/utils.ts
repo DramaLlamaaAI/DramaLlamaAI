@@ -35,11 +35,58 @@ export const truncateText = (text: string, maxLength: number): string => {
   return text.slice(0, maxLength) + '...';
 };
 
+// Detect and standardize chat log format
+export const preprocessChatLog = (text: string): string => {
+  // Clean up extra whitespace and standardize line breaks
+  let cleanedText = text.replace(/\r\n/g, '\n').trim();
+  
+  // Identify common chat export formats
+  
+  // WhatsApp format: "[MM/DD/YY, HH:MM:SS] Name: Message"
+  const isWhatsApp = /\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s\d{1,2}:\d{2}(?::\d{2})?\]\s.*?:/i.test(cleanedText);
+  
+  // iMessage/SMS format: "YYYY-MM-DD HH:MM:SS Name: Message"
+  const isIMessage = /\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s.*?:/i.test(cleanedText);
+  
+  // Facebook Messenger format: "Name at HH:MM MM" or "MM/DD/YYYY, HH:MM AM/PM - Name:"
+  const isFBMessenger = /(?:.*?\sat\s\d{1,2}:\d{2}\s[AP]M|(?:\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}\s\w+\s\d{4}),\s\d{1,2}:\d{2}\s[AP]M\s-\s.*?:)/i.test(cleanedText);
+  
+  // Discord format: "Name — Today/Yesterday at HH:MM PM"
+  const isDiscord = /.*?\s(?:—|-)\s(?:Today|Yesterday|Last\s\w+|\d{1,2}\/\d{1,2}\/\d{4})\sat\s\d{1,2}:\d{2}\s[AP]M/i.test(cleanedText);
+  
+  // Standard chat format with names followed by colons  
+  const hasStandardFormat = /^[^:]+:\s.*$/m.test(cleanedText);
+  
+  // Handle different formats accordingly
+  if (isWhatsApp) {
+    // Just return the original text as it's usually well-structured
+    return cleanedText;
+  } else if (isIMessage || isFBMessenger || isDiscord) {
+    // These formats can be challenging for analysis - inform the AI
+    return `[This appears to be an ${isIMessage ? 'iMessage' : isFBMessenger ? 'Facebook Messenger' : 'Discord'} chat log format]\n\n${cleanedText}`;
+  } else if (!hasStandardFormat && cleanedText.length > 100) {
+    // If no clear chat format detected, try to separate paragraphs 
+    // to make it look more like a conversation
+    if (cleanedText.split('\n\n').length <= 3) {
+      cleanedText = cleanedText
+        .replace(/([.!?])\s+/g, '$1\n')
+        .replace(/\n{3,}/g, '\n\n');
+    }
+    return cleanedText;
+  }
+  
+  return cleanedText;
+};
+
 // Validate conversation format
 export const validateConversation = (conversation: string): boolean => {
   // Basic validation - ensure there's some content with likely message patterns
   // This is a simple check - could be enhanced for specific chat formats
-  return conversation.length > 10 && conversation.includes(':');
+  return conversation.length > 10 && (
+    conversation.includes(':') || 
+    // Match timestamps in various formats
+    /\[\d{1,2}\/\d{1,2}\/\d{2}|\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}/i.test(conversation)
+  );
 };
 
 // Get percentage of usage

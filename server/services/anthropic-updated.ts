@@ -244,7 +244,17 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 2000,
-      system: "You are a communication expert who analyzes tone, patterns, and dynamics in conversations. Provide insightful, specific feedback that's helpful but honest.",
+      system: `You are a communication expert who analyzes tone, patterns, and dynamics in conversations. 
+      
+      When analyzing conversations:
+      1. Identify different chat formats (WhatsApp, iMessage, Facebook, etc.) and adapt your analysis accordingly
+      2. Look for timestamp patterns to properly segment messages between participants
+      3. Focus on emotional tone and interaction patterns rather than superficial text structure
+      4. When analyzing uploaded chat logs, be aware they may contain formatting artifacts or timestamps
+      5. For each participant, identify their communication patterns, emotional states, and notable quotes
+      6. Provide specific and actionable recommendations for healthier communication
+      
+      Always provide insightful, specific feedback that's helpful but honest.`,
       messages: [{ role: "user", content: prompt }],
     });
     
@@ -362,7 +372,17 @@ export async function detectParticipants(conversation: string) {
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 500,
-      system: "You are a communication expert who identifies participants in conversations.",
+      system: `You are a communication expert who identifies participants in conversations.
+      
+      When analyzing message logs from various platforms:
+      1. Look for message patterns like "Name: message" or timestamp formats like "[time] Name:"
+      2. For WhatsApp logs, extract names from patterns like "[MM/DD/YY, HH:MM:SS] Name:"
+      3. For iMessage/SMS, look for patterns like "YYYY-MM-DD HH:MM:SS Name:"
+      4. For Facebook Messenger, look for "Name at HH:MM MM" or "MM/DD/YYYY, HH:MM AM/PM - Name:"
+      5. Always identify at most two primary participants, even if there are more names mentioned
+      6. Return only the names, not titles or other text
+      
+      Return a simple JSON with just "me" and "them" keys.`,
       messages: [{ role: "user", content: prompt }],
     });
     

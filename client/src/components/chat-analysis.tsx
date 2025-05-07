@@ -9,7 +9,7 @@ import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, Trendi
 import { useMutation } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
-import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/utils";
+import { fileToBase64, validateConversation, getParticipantColor, preprocessChatLog } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import TrialLimiter from "./trial-limiter"; 
@@ -119,13 +119,30 @@ export default function ChatAnalysis() {
     if (!file) return;
     
     try {
-      const text = await file.text();
-      setConversation(text);
+      // Read the raw file content
+      const rawText = await file.text();
+      
+      // Preprocess the chat log to handle different formats
+      const processedText = preprocessChatLog(rawText);
+      
+      // Set the processed conversation text
+      setConversation(processedText);
       setFileName(file.name);
+      
+      // Check if format was automatically detected
+      const formatDetected = processedText.startsWith('[This appears to be an');
+      
       toast({
         title: "File Uploaded",
-        description: `${file.name} has been loaded.`,
+        description: formatDetected 
+          ? `${file.name} has been loaded. Chat format detected.` 
+          : `${file.name} has been loaded.`,
       });
+      
+      // Automatically try to detect participants after file upload
+      if (processedText.length > 0) {
+        handleDetectNames();
+      }
     } catch (error) {
       toast({
         title: "Upload Failed",
