@@ -1366,16 +1366,20 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
     }
   }
   
-  // Fix any remaining accusatory phrases that might have been missed
-  if (rewritten.toLowerCase().includes("you never listen")) {
-    rewritten = rewritten.replace(/you never listen when/gi, "I feel like I'm not being heard when");
-    rewritten = rewritten.replace(/you never listen/gi, "I feel like I'm not being heard");
-  }
+  // Process each pattern in the message sequentially to handle multiple accusations
+  const replacementRules = [
+    { pattern: /you never listen when/gi, replacement: "I feel like I'm not being heard when" },
+    { pattern: /you never listen/gi, replacement: "I feel like I'm not being heard" },
+    { pattern: /you never make time/gi, replacement: "I would appreciate more time together" },
+    { pattern: /you never/gi, replacement: "I feel like you rarely" },
+    { pattern: /hate how/gi, replacement: "feel frustrated by" },
+    { pattern: /you always/gi, replacement: "I feel like sometimes you" }
+  ];
   
-  // Additional check for any other "you never" phrases
-  if (rewritten.toLowerCase().includes("you never")) {
-    rewritten = rewritten.replace(/you never/gi, "I feel like you rarely");
-  }
+  // Apply each replacement rule in sequence
+  replacementRules.forEach(rule => {
+    rewritten = rewritten.replace(rule.pattern, rule.replacement);
+  });
   
   // Add a constructive ending if not already present and if the message is blame-focused
   if (lowerMessage.includes("you always") || lowerMessage.includes("you never") || lowerMessage.includes("your fault")) {
