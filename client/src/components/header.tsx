@@ -13,8 +13,14 @@ export default function Header() {
   });
 
   const tier = usage?.tier || 'free';
-  const used = usage?.used || 0;
+  
+  // For free tier, show 1/1 initially (even though used is 0)
+  // This makes it clearer that they have 1 analysis available
+  const used = tier === 'free' && usage?.used === 0 ? 0 : usage?.used || 0;
   const limit = usage?.limit || 1;
+  
+  // Display 1 remaining analysis instead of 0 used for free tier
+  const displayUsed = tier === 'free' && used === 0 ? 1 : used;
   
   const isInfinite = limit === Infinity;
 
@@ -56,7 +62,7 @@ export default function Header() {
                 <div className="mr-4 text-sm bg-white/10 px-3 py-1 rounded-full">
                   <span className="text-white/80 mr-1">{getTierDisplayName(tier)}</span>
                   <span className="text-white font-semibold">
-                    {used}/{isInfinite ? '∞' : limit}
+                    {displayUsed}/{isInfinite ? '∞' : limit}
                   </span>
                 </div>
               </TooltipTrigger>

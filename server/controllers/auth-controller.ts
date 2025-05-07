@@ -199,7 +199,7 @@ export const authController = {
     try {
       if (!req.session || !req.session.userId) {
         // Return free tier info for non-authenticated users
-        return res.status(200).json({ tier: "free", used: 0, limit: 1 });
+        return res.status(200).json({ tier: "free", used: 0, limit: 1, remaining: 1 });
       }
       
       const userId = req.session.userId;
