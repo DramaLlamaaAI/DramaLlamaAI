@@ -9,7 +9,7 @@ import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, MessageCircle, RefreshCcw, Mic } from "lucide-react";
+import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap } from "lucide-react";
 
 export default function Home() {
   // Support smooth scrolling for anchor links
@@ -45,76 +45,90 @@ export default function Home() {
         <div className="my-10">
           <h2 className="text-2xl font-bold text-center mb-6">Choose Your Tool</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Chat Analysis Card */}
-            <Card className="overflow-hidden">
-              <div className="p-6 flex flex-col h-full">
-                <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                  <MessageSquare className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Chat Analysis</h3>
-                <p className="text-gray-500 mb-4 text-sm flex-grow">
-                  Analyze full conversations between you and another person to understand emotional dynamics.
-                </p>
-                <Link href="/chat-analysis">
-                  <Button className="w-full">Analyze Conversation</Button>
-                </Link>
-              </div>
-            </Card>
+          <div className="max-w-4xl mx-auto bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl p-8">
+            <p className="text-lg text-center mb-8">
+              Choose from our powerful AI-powered communication analysis tools to gain insights into your conversations.
+            </p>
             
-            {/* Message Analysis Card */}
-            <Card className="overflow-hidden">
-              <div className="p-6 flex flex-col h-full">
-                <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                  <MessageCircle className="h-6 w-6 text-primary" />
+            <div className="flex flex-wrap justify-center gap-4 mb-10">
+              <Link href="/chat-analysis">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
+                  <MessageSquare className="h-5 w-5 mr-2" /> Chat Analysis
+                </Button>
+              </Link>
+              
+              <Link href="/vent-mode">
+                <div className="relative">
+                  <Button 
+                    size="lg" 
+                    className="bg-[#2CCFCF] hover:bg-[#2CCFCF]/90 text-white"
+                  >
+                    <Zap className="h-5 w-5 mr-2" /> Vent Mode
+                  </Button>
+                  <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px]">FREE</Badge>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Message Analysis</h3>
-                <p className="text-gray-500 mb-4 text-sm flex-grow">
-                  Analyze a single message to understand tone, intent, and get suggestions for replies.
-                </p>
-                <Link href="/message-analysis">
-                  <Button className="w-full">Analyze Message</Button>
-                </Link>
-              </div>
-            </Card>
+              </Link>
+              
+              <Link href="/message-analysis">
+                <Button size="lg" className="bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white">
+                  <MessageCircle className="h-5 w-5 mr-2" /> Message Analysis
+                </Button>
+              </Link>
+              
+              <Link href="/live-talk">
+                <div className="relative">
+                  <Button 
+                    size="lg" 
+                    className="bg-gray-700 hover:bg-gray-800 text-white"
+                  >
+                    <Mic className="h-5 w-5 mr-2" /> Live Talk
+                  </Button>
+                  <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
+                </div>
+              </Link>
+            </div>
             
-            {/* Vent Mode Card */}
-            <Card className="overflow-hidden">
-              <div className="p-6 flex flex-col h-full">
-                <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                  <RefreshCcw className="h-6 w-6 text-primary" />
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              <div className="text-center">
+                <div className="text-primary mb-3 flex justify-center">
+                  <MessageSquare className="h-16 w-16" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">
-                  Vent Mode
-                  <Badge className="ml-2 bg-green-500 text-white text-[10px]">FREE</Badge>
-                </h3>
-                <p className="text-gray-500 mb-4 text-sm flex-grow">
-                  Rewrite emotional messages in a calmer, more constructive way before sending them.
+                <h3 className="text-lg font-semibold mb-2">Chat Analysis</h3>
+                <p className="text-sm text-muted-foreground">
+                  Upload or paste a conversation to get detailed insights about communication patterns and emotional tone.
                 </p>
-                <Link href="/vent-mode">
-                  <Button className="w-full">Try Vent Mode</Button>
-                </Link>
               </div>
-            </Card>
-            
-            {/* Live Talk Card */}
-            <Card className="overflow-hidden">
-              <div className="p-6 flex flex-col h-full">
-                <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                  <Mic className="h-6 w-6 text-primary" />
+              
+              <div className="text-center">
+                <div className="text-[#2CCFCF] mb-3 flex justify-center">
+                  <Zap className="h-16 w-16" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">
-                  Live Talk
-                  <Badge className="ml-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
-                </h3>
-                <p className="text-gray-500 mb-4 text-sm flex-grow">
-                  Record and transcribe live conversations for real-time or later analysis.
+                <h3 className="text-lg font-semibold mb-2">Vent Mode</h3>
+                <p className="text-sm text-muted-foreground">
+                  Rewrite emotional messages into calmer, more effective communication while preserving intent.
                 </p>
-                <Link href="/live-talk">
-                  <Button className="w-full">Try Live Talk</Button>
-                </Link>
               </div>
-            </Card>
+              
+              <div className="text-center">
+                <div className="text-[#FF69B4] mb-3 flex justify-center">
+                  <MessageCircle className="h-16 w-16" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Message Analysis</h3>
+                <p className="text-sm text-muted-foreground">
+                  Get quick insights on the tone and intent of a single message without context.
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-gray-700 mb-3 flex justify-center">
+                  <Mic className="h-16 w-16" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Live Talk</h3>
+                <p className="text-sm text-muted-foreground">
+                  Record conversations in real-time for immediate transcription and analysis.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
         

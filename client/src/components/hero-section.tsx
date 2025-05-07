@@ -37,10 +37,16 @@ export default function HeroSection() {
               </div>
             </div>
             
-            <div className="flex flex-wrap">
+            <div className="flex flex-wrap gap-3">
+              <Link href="/chat-analysis">
+                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-primary to-secondary text-white border-0 shadow-md hover:shadow-lg">
+                  Try For Free
+                </Button>
+              </Link>
+              
               <Dialog open={isHowItWorksOpen} onOpenChange={setIsHowItWorksOpen}>
                 <DialogTrigger asChild>
-                  <Button size="lg" className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white border-0">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10">
                     How It Works
                   </Button>
                 </DialogTrigger>

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { MessageSquare, MessageCircle, Zap } from "lucide-react";
+import { MessageSquare, MessageCircle, Zap, Mic } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function FeaturesSection() {
   return (
@@ -39,11 +40,25 @@ export default function FeaturesSection() {
               Message Analysis
             </Button>
           </Link>
+          
+          <Link href="/live-talk">
+            <div className="relative inline-block">
+              <Button size="lg" className="min-w-40 bg-gray-700 hover:bg-gray-800 text-white flex items-center gap-2">
+                <Mic className="w-5 h-5" />
+                Live Talk
+                <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-primary to-secondary text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">
+                  PRO
+                </Badge>
+              </Button>
+            </div>
+          </Link>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-10">
           <div className="text-center">
-            <MessageSquare className="w-12 h-12 text-primary mx-auto mb-2" />
+            <div className="bg-primary/10 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-3">
+              <MessageSquare className="w-8 h-8 text-primary" />
+            </div>
             <h3 className="text-lg font-semibold mb-2 text-primary">Chat Analysis</h3>
             <p className="text-sm text-muted-foreground">
               Upload or paste a conversation to get detailed insights about communication patterns and emotional tone.
@@ -51,9 +66,12 @@ export default function FeaturesSection() {
           </div>
           
           <div className="text-center relative">
-            <Zap className="w-12 h-12 mx-auto mb-2" style={{ color: '#FF69B4' }} />
-            <h3 className="text-lg font-semibold mb-2 text-primary">
+            <div className="bg-secondary/10 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-3">
+              <Zap className="w-8 h-8 text-secondary" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
               Vent Mode
+              <Badge className="bg-green-500 text-white text-[10px]">FREE</Badge>
             </h3>
             <p className="text-sm text-muted-foreground">
               Rewrite emotional messages into calmer, more effective communication while preserving intent.
@@ -61,10 +79,25 @@ export default function FeaturesSection() {
           </div>
           
           <div className="text-center">
-            <MessageCircle className="w-12 h-12 text-secondary mx-auto mb-2" />
+            <div className="bg-secondary/10 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-3">
+              <MessageCircle className="w-8 h-8 text-secondary" />
+            </div>
             <h3 className="text-lg font-semibold mb-2 text-secondary">Message Analysis</h3>
             <p className="text-sm text-muted-foreground">
               Get quick insights on the tone and intent of a single message without context.
+            </p>
+          </div>
+          
+          <div className="text-center">
+            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-3">
+              <Mic className="w-8 h-8 text-gray-700" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
+              Live Talk
+              <Badge className="bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Record conversations in real-time for immediate transcription and analysis.
             </p>
           </div>
         </div>

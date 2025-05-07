@@ -29,6 +29,7 @@ export default function ChatAnalysis() {
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isEligibilityChecking, setIsEligibilityChecking] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -259,6 +260,50 @@ export default function ChatAnalysis() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-4">Chat Analysis</h2>
+            
+            {/* Access restriction overlay */}
+            {!canUseFeature && (
+              <div className="absolute inset-0 bg-white/95 z-10 flex flex-col items-center justify-center p-6 text-center rounded-lg">
+                <div className="max-w-md">
+                  <h3 className="text-xl font-bold mb-4">
+                    {isAuthenticated ? 
+                      "You've reached your free analysis limit" : 
+                      "Please log in to analyze your conversations"}
+                  </h3>
+                  
+                  <p className="mb-6 text-gray-600">
+                    {isAuthenticated ? 
+                      `You've used all ${limit} analyses included in your ${tier} plan this month.` : 
+                      "Create an account to get your free analysis or subscribe for unlimited access."}
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-primary to-secondary text-white"
+                      onClick={() => setShowAuthModal(true)}
+                    >
+                      {isAuthenticated ? "Upgrade Your Plan" : "Sign In / Register"}
+                    </Button>
+                    
+                    <p className="text-sm text-gray-500 mt-3">
+                      {isAuthenticated ?
+                        "Upgrade to Personal ($4.99/mo) for 10 analyses/month or Pro ($9.99/mo) for unlimited analyses." :
+                        "Your free account includes 1 analysis per month. Paid plans start at just $4.99/month."
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <AuthModal
+              isOpen={showAuthModal}
+              onClose={() => setShowAuthModal(false)}
+              onSuccess={() => {
+                setShowAuthModal(false);
+                queryClient.invalidateQueries({ queryKey: ['/api/user/usage'] });
+              }}
+            />
           
           <Tabs value={tabValue} onValueChange={setTabValue} className="mb-6">
             <TabsList className="mb-4">
