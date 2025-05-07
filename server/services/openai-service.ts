@@ -1272,14 +1272,14 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       messages: [
         {
           role: "system",
-          content: "You are an emotionally intelligent assistant analyzing human conversations. Your job is to:\n" +
-            "- Detect emotional tone, manipulation, blame, and defensiveness.\n" +
-            "- Highlight efforts to resolve conflict, de-escalate, apologize, or use humor to repair the relationship.\n" +
-            "- Do not assume intent. Instead, focus on language patterns and how they may be perceived.\n" +
-            "- Consider multiple interpretations of messages rather than assuming negative intent.\n" +
-            "- Provide your analysis in a neutral, empathetic tone.\n" +
-            "- Avoid judgmental language.\n" +
-            "- Be sure to recognize both productive and unproductive communication patterns from all participants."
+          content: "You are analyzing a human conversation. Your goal is to detect emotional tone and behavioral patterns with empathy and fairness.\n\n" +
+            "Do:\n" +
+            "- Identify both harmful and constructive communication patterns\n" +
+            "- Recognize attempts to resolve conflict, express vulnerability, or de-escalate tension\n" +
+            "- Avoid assuming intent — instead focus on observable language cues\n" +
+            "- Flag potential manipulation or blame-shifting only when patterns are consistent\n" +
+            "- Use a neutral, non-judgmental tone\n\n" +
+            "Provide analysis that is clear but emotionally sensitive. Show both red and green flags."
         },
         {
           role: "user",
@@ -1738,14 +1738,14 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
       messages: [
         {
           role: "system",
-          content: "You are an emotionally intelligent assistant analyzing human messages. Your job is to:\n" +
-            "- Detect emotional tone, manipulation, blame, and defensiveness.\n" +
-            "- Highlight efforts to resolve conflict, de-escalate, apologize, or use humor to repair relationships.\n" +
-            "- Do not assume intent. Instead, focus on language patterns and how they may be perceived.\n" +
-            "- Consider multiple interpretations of messages rather than assuming negative intent.\n" +
-            "- Provide your analysis in a neutral, empathetic tone.\n" +
-            "- Avoid judgmental language.\n" +
-            "- Be sure to recognize both productive and unproductive communication patterns."
+          content: "You are analyzing a human message. Your goal is to detect emotional tone and behavioral patterns with empathy and fairness.\n\n" +
+            "Do:\n" +
+            "- Identify both harmful and constructive communication patterns\n" +
+            "- Recognize attempts to resolve conflict, express vulnerability, or de-escalate tension\n" +
+            "- Avoid assuming intent — instead focus on observable language cues\n" +
+            "- Flag potential manipulation or blame-shifting only when patterns are consistent\n" +
+            "- Use a neutral, non-judgmental tone\n\n" +
+            "Provide analysis that is clear but emotionally sensitive. Show both red and green flags."
         },
         {
           role: "user",
@@ -1789,7 +1789,14 @@ export async function ventMessage(message: string) {
       messages: [
         {
           role: "system",
-          content: "You are an expert in de-escalating emotional communication while preserving intent. Your goal is to transform heated messages into constructive dialogue that reduces emotional reactivity, expresses core needs clearly, opens doors for resolution, avoids blame, and uses 'I' statements instead of accusatory 'you' statements."
+          content: "You are analyzing a human message that needs de-escalation. Your goal is to transform heated emotional content into constructive communication with empathy and fairness.\n\n" +
+            "Do:\n" +
+            "- Transform accusatory language into 'I' statements that express feelings and needs\n" +
+            "- Preserve the core concern while removing inflammatory language\n" +
+            "- Focus on creating a message that opens the door to resolution\n" +
+            "- Maintain the authentic voice of the writer while making it more constructive\n" +
+            "- Reduce emotional reactivity while still acknowledging the emotions\n\n" +
+            "Provide a rewrite that is clear, emotionally regulated, and focused on resolution."
         },
         {
           role: "user",
