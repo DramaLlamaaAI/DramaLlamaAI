@@ -877,16 +877,53 @@ export default function ChatAnalysis() {
                 <h4 className="font-medium mb-2">Communication Insights</h4>
                 {(result.communication.patterns && result.communication.patterns.length > 0) ? (
                   <div className="mb-4">
-                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Patterns</h5>
-                    <ul className="list-disc list-inside space-y-1">
-                      {result.communication.patterns.map((pattern, idx) => (
-                        <li key={idx}>{pattern}</li>
-                      ))}
-                    </ul>
+                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
+                    <div className="space-y-3">
+                      {result.communication.patterns.map((pattern, idx) => {
+                        // Check if the pattern contains a quote (text inside quotes)
+                        const quoteMatch = pattern.match(/"([^"]+)"/);
+                        const hasQuote = quoteMatch && quoteMatch[1];
+                        
+                        // Split pattern into parts before and after the quote
+                        let beforeQuote = pattern;
+                        let quote = '';
+                        let afterQuote = '';
+                        
+                        if (hasQuote) {
+                          const parts = pattern.split(quoteMatch[0]);
+                          beforeQuote = parts[0];
+                          quote = quoteMatch[1];
+                          afterQuote = parts[1] || '';
+                        }
+                        
+                        // Detect which participant is mentioned
+                        const meColor = pattern.includes(me) ? "text-cyan-700 bg-cyan-50" : "";
+                        const themColor = pattern.includes(them) ? "text-pink-700 bg-pink-50" : "";
+                        
+                        return (
+                          <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
+                            <p>
+                              <span className="text-gray-700">{beforeQuote}</span>
+                              {hasQuote && (
+                                <>
+                                  <span className={`italic px-2 py-1 rounded my-1 inline-block ${meColor || themColor || "bg-blue-50 text-blue-600"}`}>
+                                    "{quote}"
+                                  </span>
+                                  <span className="text-gray-700">{afterQuote}</span>
+                                </>
+                              )}
+                              {!hasQuote && (
+                                <span className="text-gray-700">{pattern}</span>
+                              )}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : (
                   <div className="mb-4">
-                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Patterns</h5>
+                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
                     <div className="bg-blue-50 p-2 rounded">
                       <p className="text-blue-500">
                         {result.healthScore && result.healthScore.score > 85 ? 
@@ -901,12 +938,61 @@ export default function ChatAnalysis() {
                 
                 {result.communication.suggestions && (
                   <div>
-                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Suggestions</h5>
-                    <ul className="list-disc list-inside space-y-1">
-                      {result.communication.suggestions.map((suggestion, idx) => (
-                        <li key={idx}>{suggestion}</li>
-                      ))}
-                    </ul>
+                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Personalized Suggestions</h5>
+                    <div className="space-y-3 mt-2">
+                      {result.communication.suggestions.map((suggestion, idx) => {
+                        // Determine if suggestion is specifically for one participant
+                        const forMe = suggestion.toLowerCase().includes(me.toLowerCase());
+                        const forThem = suggestion.toLowerCase().includes(them.toLowerCase());
+                        
+                        return (
+                          <div 
+                            key={idx} 
+                            className={`p-3 rounded border ${
+                              forMe 
+                                ? "border-cyan-200 bg-cyan-50" 
+                                : forThem 
+                                ? "border-pink-200 bg-pink-50" 
+                                : "border-purple-200 bg-purple-50"
+                            }`}
+                          >
+                            <div className="flex items-start">
+                              <div className={`mt-1 mr-2 ${
+                                forMe 
+                                  ? "text-cyan-600" 
+                                  : forThem 
+                                  ? "text-pink-600" 
+                                  : "text-purple-600"
+                              }`}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                </svg>
+                              </div>
+                              <div>
+                                {forMe && (
+                                  <div className="text-xs font-medium text-cyan-600 mb-1">For {me}</div>
+                                )}
+                                {forThem && (
+                                  <div className="text-xs font-medium text-pink-600 mb-1">For {them}</div>
+                                )}
+                                {!forMe && !forThem && (
+                                  <div className="text-xs font-medium text-purple-600 mb-1">For both participants</div>
+                                )}
+                                <p className={`text-sm ${
+                                  forMe 
+                                    ? "text-cyan-700" 
+                                    : forThem 
+                                    ? "text-pink-700" 
+                                    : "text-purple-700"
+                                }`}>
+                                  {suggestion}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>

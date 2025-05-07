@@ -842,12 +842,16 @@ export async function analyzeChatConversation(conversation: string, me: string, 
             role: "system",
             content: "You are analyzing a human conversation. Your goal is to detect emotional tone and behavioral patterns with empathy and fairness.\n\n" +
               "Do:\n" +
-              "- Identify both harmful and constructive communication patterns\n" +
+              "- Identify both harmful and constructive communication patterns with direct quotes from the conversation\n" +
               "- Recognize attempts to resolve conflict, express vulnerability, or de-escalate tension\n" +
               "- Avoid assuming intent — instead focus on observable language cues\n" +
               "- Flag potential manipulation or blame-shifting only when patterns are consistent\n" +
-              "- Use a neutral, non-judgmental tone\n\n" +
-              "Provide analysis that is clear but emotionally sensitive. Show both red and green flags."
+              "- Use a neutral, non-judgmental tone\n" +
+              "- Make all communication pattern insights personalized to the participants\n" +
+              "- Include direct quotes from the conversation whenever possible\n" +
+              "- Provide specific examples rather than general observations\n" +
+              "- Make suggestions that directly address each participant's communication style\n\n" +
+              "Provide analysis that is clear but emotionally sensitive. Show both red and green flags. When stating a pattern or making a suggestion, always include specific text from the conversation to support your analysis."
           },
           {
             role: "user",
