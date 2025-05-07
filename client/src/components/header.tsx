@@ -14,13 +14,13 @@ export default function Header() {
 
   const tier = usage?.tier || 'free';
   
-  // For free tier, show 1/1 initially (even though used is 0)
-  // This makes it clearer that they have 1 analysis available
-  const used = tier === 'free' && usage?.used === 0 ? 0 : usage?.used || 0;
+  // Get basic usage data
+  const used = usage?.used || 0;
   const limit = usage?.limit || 1;
   
-  // Display 1 remaining analysis instead of 0 used for free tier
-  const displayUsed = tier === 'free' && used === 0 ? 1 : used;
+  // For free tier, initially show "1/1" when no analyses used,
+  // but show "0/1" after they've used their free analysis
+  const displayUsed = tier === 'free' && used === 0 ? 1 - used : used;
   
   const isInfinite = limit === Infinity;
 

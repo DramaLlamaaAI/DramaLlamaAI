@@ -8,6 +8,7 @@ interface UseTierResult {
   tier: string;
   used: number;
   limit: number;
+  remaining: number;
   isLoading: boolean;
   canUseFeature: boolean;
   featureEnabled: (feature: string) => boolean;
@@ -73,6 +74,7 @@ export function useUserTier(): UseTierResult {
   const tier = usageData?.tier || 'free';
   const used = usageData?.used || 0;
   const limit = usageData?.limit || 1;
+  const remaining = usageData?.remaining !== undefined ? usageData.remaining : (limit - used);
   
   // Check if developer mode is enabled
   const devMode = isDevModeEnabled();
@@ -107,6 +109,7 @@ export function useUserTier(): UseTierResult {
     tier,
     used,
     limit,
+    remaining,
     isLoading: isUsageLoading || isAuthLoading,
     canUseFeature,
     featureEnabled,

@@ -174,6 +174,7 @@ export const authController = {
         return res.status(200).json({ 
           canUse: true, 
           usageCount: updatedUsage.count,
+          remaining: updatedUsage.count < 1 ? 1 : 0,
           message: updatedUsage.count === 1 ? "This is your free trial usage" : "Free trial already used" 
         });
       }
@@ -182,6 +183,7 @@ export const authController = {
       return res.status(200).json({ 
         canUse: false, 
         usageCount: usage.count,
+        remaining: 0,
         message: "Free trial already used. Please sign up or log in to continue."
       });
     } catch (error) {

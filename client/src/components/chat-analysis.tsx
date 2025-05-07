@@ -54,6 +54,10 @@ export default function ChatAnalysis() {
       console.log("Health Score:", data.healthScore);
       setResult(data);
       setShowResults(true);
+      
+      // Track usage when analysis is successful
+      handleTrialUsed();
+      
       window.scrollTo({ top: document.getElementById('analysisResults')?.offsetTop || 0, behavior: 'smooth' });
     },
     onError: (error: any) => {
