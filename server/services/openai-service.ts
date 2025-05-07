@@ -1289,11 +1289,38 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
       explanation
     };
   }
-  // Handle "hate how you always" pattern (special case)
+  // Handle "hate how/that you always" pattern (special case)
   else if (lowerMessage.includes("hate") && lowerMessage.includes("you always")) {
-    rewritten = message
-      .replace(/hate how/gi, "feel frustrated by")
-      .replace(/you always/gi, "how often you seem to");
+    // Handle both "hate how" and "hate that" patterns
+    if (lowerMessage.includes("hate how")) {
+      rewritten = message
+        .replace(/hate how/gi, "feel frustrated by")
+        .replace(/you always/gi, "how often you seem to");
+        
+      // Check if the message ends with proper punctuation
+      if (!rewritten.match(/[.!?]$/)) {
+        rewritten += ".";
+      }
+    } else if (lowerMessage.includes("hate that")) {
+      rewritten = message
+        .replace(/hate that/gi, "feel frustrated when")
+        .replace(/you always/gi, "you frequently");
+        
+      // Check if the message ends with proper punctuation
+      if (!rewritten.match(/[.!?]$/)) {
+        rewritten += ".";
+      }
+    } else {
+      // Generic hate + always pattern
+      rewritten = message
+        .replace(/hate/gi, "feel frustrated")
+        .replace(/you always/gi, "when you frequently");
+        
+      // Check if the message ends with proper punctuation
+      if (!rewritten.match(/[.!?]$/)) {
+        rewritten += ".";
+      }
+    }
     
     explanation = "The rewritten message expresses frustration instead of hate and avoids generalizations, making it more likely to be heard constructively.";
   }
