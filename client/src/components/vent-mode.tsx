@@ -84,7 +84,8 @@ export default function VentMode() {
                 onClick={handleVent}
                 disabled={ventMutation.isPending || message.length === 0 || !canUseFeature}
                 variant="default"
-                className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all flex items-center pr-12 shadow-md rounded-lg"
+                className="flex items-center pr-12 shadow-md rounded-lg"
+                style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white' }}
               >
                 <Heart className="mr-2 h-4 w-4" />
                 {ventMutation.isPending ? "De-escalating..." : "De-escalate Message"}
@@ -109,12 +110,12 @@ export default function VentMode() {
             </div>
           )}
           
-          <Alert className="bg-gradient-to-r from-primary/10 to-accent/15 border border-accent/30 rounded-lg shadow-sm">
+          <Alert className="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-r from-primary to-accent p-2 rounded-full">
+              <div className="p-2 rounded-full" style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)' }}>
                 <Heart className="h-4 w-4 text-white" />
               </div>
-              <AlertDescription className="text-accent-foreground font-medium">
+              <AlertDescription className="text-gray-700 font-medium">
                 Vent Mode helps transform emotional reactions into constructive communication.
               </AlertDescription>
             </div>
