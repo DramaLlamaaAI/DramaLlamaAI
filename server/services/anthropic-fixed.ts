@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { TIER_LIMITS } from "@shared/schema";
-import { getTextFromContentBlock, parseAnthropicJson } from './anthropic-helpers';
 
 // Define response types (keeping the same structure as before)
 interface ChatAnalysisResponse {
@@ -225,7 +224,39 @@ const prompts = {
   {conversation}`
 };
 
-// Helper functions are imported from anthropic-helpers.ts
+// Helper function to safely extract text from Anthropic content blocks
+function getTextFromContentBlock(content: any): string {
+  if (!content || !Array.isArray(content) || content.length === 0) {
+    throw new Error('Empty response from Anthropic API');
+  }
+  
+  const firstBlock = content[0];
+  if (firstBlock.type !== 'text' || typeof firstBlock.text !== 'string') {
+    throw new Error('Invalid response format from Anthropic API');
+  }
+  
+  return firstBlock.text;
+}
+
+// Helper function to parse JSON from Anthropic responses
+// Sometimes Anthropic returns JSON wrapped in markdown code blocks
+function parseAnthropicJson(jsonText: string): any {
+  try {
+    // Check if content is wrapped in markdown code blocks
+    const codeBlockMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      const extractedJson = codeBlockMatch[1].trim();
+      console.log('Extracted JSON from code block');
+      return JSON.parse(extractedJson);
+    }
+    
+    // Try parsing the string directly if no code blocks
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('Failed to parse Anthropic response:', jsonText);
+    throw new Error('Invalid response format from Anthropic API. Please contact support at DramaLlamaConsultancy@gmail.com');
+  }
+}
 
 export async function analyzeChatConversation(conversation: string, me: string, them: string, tier: string = 'free'): Promise<ChatAnalysisResponse> {
   try {
@@ -255,13 +286,8 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     
     console.log('Successfully received Anthropic response for chat analysis');
     
-    // Parse the JSON response
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse Anthropic response as JSON:', content);
-      throw new Error('Invalid response format from Anthropic API. Please contact support at DramaLlamaConsultancy@gmail.com');
-    }
+    // Parse the JSON response using our specialized helper
+    return parseAnthropicJson(content);
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for chat analysis:', error);
@@ -304,13 +330,8 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     
     console.log('Successfully received Anthropic response for message analysis');
     
-    // Parse the JSON response
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse Anthropic response as JSON:', content);
-      throw new Error('Invalid response format from Anthropic API. Please contact support at DramaLlamaConsultancy@gmail.com');
-    }
+    // Parse the JSON response using our specialized helper
+    return parseAnthropicJson(content);
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for message analysis:', error);
@@ -346,7 +367,7 @@ export async function ventMessage(message: string) {
     
     console.log('Successfully received Anthropic response for vent mode');
     
-    // Parse the JSON response with markdown code block handling
+    // Parse the JSON response using our specialized helper
     return parseAnthropicJson(content);
   } catch (error: any) {
     // Log the specific error for debugging
@@ -383,13 +404,8 @@ export async function detectParticipants(conversation: string) {
     
     console.log('Successfully received Anthropic response for participant detection');
     
-    // Parse the JSON response
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse Anthropic response as JSON:', content);
-      throw new Error('Invalid response format from Anthropic API. Please contact support at DramaLlamaConsultancy@gmail.com');
-    }
+    // Parse the JSON response using our specialized helper
+    return parseAnthropicJson(content);
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for participant detection:', error);
