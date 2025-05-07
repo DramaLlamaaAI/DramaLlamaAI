@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { getDeviceId } from "./device-id";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -13,8 +14,15 @@ export async function apiRequest(
   data?: unknown | undefined,
   options?: { headers?: HeadersInit }
 ): Promise<Response> {
-  // Combine default headers with custom headers if provided
-  const defaultHeaders: HeadersInit = data ? { "Content-Type": "application/json" } : {};
+  // Get device ID for anonymous user tracking
+  const deviceId = getDeviceId();
+  
+  // Combine default headers with device ID and custom headers if provided
+  const defaultHeaders: HeadersInit = {
+    ...(data ? { "Content-Type": "application/json" } : {}),
+    "X-Device-ID": deviceId
+  };
+  
   const headers = options?.headers 
     ? { ...defaultHeaders, ...options.headers } 
     : defaultHeaders;
@@ -41,8 +49,14 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Get device ID for anonymous user tracking
+    const deviceId = getDeviceId();
+    
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
+      headers: {
+        "X-Device-ID": deviceId
+      }
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
