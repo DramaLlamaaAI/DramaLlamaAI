@@ -1260,8 +1260,12 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   if (isBlaming) {
     if (lowerMessage.includes("you always")) {
       rewritten = message.replace(/you always/gi, "I've noticed several times that");
+    } else if (lowerMessage.includes("you never listen to me")) {
+      rewritten = message.replace(/you never listen to me/gi, "I feel like I'm not being heard");
+    } else if (lowerMessage.includes("you never listen")) {
+      rewritten = message.replace(/you never listen/gi, "I feel like I'm not being heard");
     } else if (lowerMessage.includes("you never")) {
-      rewritten = message.replace(/you never/gi, "I feel like I need more");
+      rewritten = message.replace(/you never/gi, "I feel like you rarely");
     }
     
     // Add a constructive ending
