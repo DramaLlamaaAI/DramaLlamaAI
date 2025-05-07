@@ -87,7 +87,6 @@ export default function VentMode() {
                 className="flex items-center pr-12 shadow-md rounded-lg"
                 style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white' }}
               >
-                <Heart className="mr-2 h-4 w-4 fill-red-500 text-red-500" />
                 {ventMutation.isPending ? "De-escalating..." : "De-escalate Message"}
                 <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-lg border border-white">
                   FREE
