@@ -1,5 +1,6 @@
-import { Upload, Sparkles, FileBarChart } from "lucide-react";
+import { Upload, Sparkles, FileBarChart, Mic, BadgePlus } from "lucide-react";
 import llamaImage from "@assets/FB Profile Pic.png";
+import { Badge } from "@/components/ui/badge";
 
 export default function HowItWorks() {
   return (
@@ -37,6 +38,33 @@ export default function HowItWorks() {
             </div>
             <h3 className="font-semibold mb-2 text-lg">3. Get Clarity</h3>
             <p className="text-muted-foreground">Uncover red flags, emotional trends, and communication dynamics — so you can respond with confidence.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-md p-6 relative overflow-hidden border-2 border-primary/20">
+          <div className="absolute top-0 right-0 py-1 px-3 bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold rounded-bl-lg">
+            PRO
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center flex-shrink-0">
+              <Mic className="h-8 w-8 text-primary" />
+            </div>
+            
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Live Talk Recording</h3>
+                <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20">NEW</Badge>
+              </div>
+              <p className="text-muted-foreground mb-3">Record conversations directly through your microphone and let our AI transcribe and analyze the discussion in real-time.</p>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="bg-primary/10 hover:bg-primary/20 text-primary border-0">Real-time transcription</Badge>
+                <Badge variant="secondary" className="bg-primary/10 hover:bg-primary/20 text-primary border-0">Automatic speaker detection</Badge>
+                <Badge variant="secondary" className="bg-primary/10 hover:bg-primary/20 text-primary border-0">Instant analysis</Badge>
+              </div>
+            </div>
           </div>
         </div>
       </div>

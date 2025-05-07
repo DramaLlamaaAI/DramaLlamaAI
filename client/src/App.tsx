@@ -11,6 +11,7 @@ import NotFound from "@/pages/not-found";
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
 import VentMode from "./components/vent-mode";
+import LiveTalk from "./components/live-talk";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/chat-analysis" component={ChatAnalysis} />
       <Route path="/message-analysis" component={MessageAnalysis} />
       <Route path="/vent-mode" component={VentMode} />
+      <Route path="/live-talk" component={LiveTalk} />
       <Route component={NotFound} />
     </Switch>
   );

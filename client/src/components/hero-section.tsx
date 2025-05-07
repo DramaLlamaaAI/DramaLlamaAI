@@ -67,6 +67,14 @@ export default function HeroSection() {
                       <p>Transform heated emotional messages into calm, constructive communication that preserves your concerns while opening the door to resolution.</p>
                     </div>
                     
+                    <div className="relative">
+                      <div className="absolute -top-2 -right-2">
+                        <span className="bg-gradient-to-r from-primary to-secondary text-white text-xs px-2 py-0.5 rounded-full">PRO</span>
+                      </div>
+                      <h3 className="text-lg font-semibold mb-1">Live Talk</h3>
+                      <p>Record conversations in real-time, have them automatically transcribed, and receive immediate AI-powered analysis of the discussion dynamics.</p>
+                    </div>
+                    
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-2">
                       <h3 className="text-lg font-semibold mb-1 text-blue-700">Your Privacy Matters</h3>
                       <p>Drama Llama doesn't store or have visibility into your conversations. All processing happens securely between your device and our AI system. Your data is never saved.</p>
