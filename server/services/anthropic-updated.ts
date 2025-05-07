@@ -95,7 +95,8 @@ const prompts = {
         "score": number between 0-100,
         "label": "Troubled/Needs Work/Good/Excellent",
         "color": "red/yellow/light-green/green"
-      }
+      },
+      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for how to reword this statement to be more constructive"}]
     }
     
     Here's the conversation:
@@ -119,7 +120,7 @@ const prompts = {
         "label": "Troubled/Needs Work/Good/Excellent",
         "color": "red/yellow/light-green/green"
       },
-      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation"}],
+      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for how to reword this statement to be more constructive"}],
       "highTensionFactors": ["string with reason"],
       "participantConflictScores": {
         "participant name": {

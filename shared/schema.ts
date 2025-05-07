@@ -101,7 +101,8 @@ export const chatAnalysisResultSchema = z.object({
   keyQuotes: z.array(z.object({
     speaker: z.string(),
     quote: z.string(),
-    analysis: z.string()
+    analysis: z.string(),
+    improvement: z.string().optional()
   })).optional(),
   highTensionFactors: z.array(z.string()).optional(),
   participantConflictScores: z.record(z.object({
