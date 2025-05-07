@@ -1296,6 +1296,16 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
         .replace(/hate how/gi, "feel frustrated by")
         .replace(/you always/gi, "how often you seem to");
     }
+    // Handle multiple accusations in the same message
+    else if (lowerMessage.includes("you always") && lowerMessage.includes("you never")) {
+      rewritten = message
+        .replace(/you always/gi, "I feel like sometimes you")
+        .replace(/you never make time/gi, "I would appreciate more time together");
+      // Make sure we handle any other "you never" patterns
+      if (rewritten.includes("you never")) {
+        rewritten = rewritten.replace(/you never/gi, "I feel like you rarely");
+      }
+    }
     // Handle other cases
     else if (lowerMessage.includes("you always")) {
       rewritten = message.replace(/you always/gi, "I've noticed several times that you");
@@ -1303,6 +1313,8 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
       rewritten = message.replace(/you never listen to me/gi, "I feel like I'm not being heard");
     } else if (lowerMessage.includes("you never listen")) {
       rewritten = message.replace(/you never listen/gi, "I feel like I'm not being heard");
+    } else if (lowerMessage.includes("you never make time")) {
+      rewritten = message.replace(/you never make time/gi, "I would like more time together when");
     } else if (lowerMessage.includes("you never")) {
       rewritten = message.replace(/you never/gi, "I feel like you rarely");
     }
