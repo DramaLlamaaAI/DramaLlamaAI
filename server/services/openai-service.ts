@@ -1520,27 +1520,132 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
 }
 
 export async function analyzeMessage(message: string, author: 'me' | 'them', tier: string = 'free') {
-  const validTier = tier === 'personal' ? 'personal' : 'free';
-  let prompt = prompts.message[validTier as keyof typeof prompts.message];
-  
-  // Replace placeholders
-  prompt = prompt.replace('{message}', message).replace('{author}', author);
-  
-  // Since we're seeing issues with the OpenAI API key, let's use our local analysis
-  console.log('Using fallback message analysis');
-  return generateFallbackMessageAnalysis(message, author, tier);
+  try {
+    console.log('Attempting to use OpenAI for message analysis');
+    
+    const validTier = tier === 'personal' ? 'personal' : 'free';
+    let prompt = prompts.message[validTier as keyof typeof prompts.message];
+    
+    // Replace placeholders
+    prompt = prompt.replace('{message}', message).replace('{author}', author);
+    
+    // Make the API call with proper error handling
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a communication expert who analyzes messages for tone, intent, and potential responses." },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" }
+    });
+    
+    // Get the response content
+    const content = response.choices[0].message.content;
+    if (!content) {
+      throw new Error('Empty response from OpenAI API');
+    }
+    
+    console.log('Successfully received OpenAI response for message analysis');
+    
+    // Parse the JSON response
+    try {
+      return JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response as JSON:', content);
+      throw new Error('Invalid response format from OpenAI');
+    }
+  } catch (error) {
+    // Log the specific error for debugging
+    console.error('Error using OpenAI for message analysis:', error);
+    console.log('Falling back to local message analysis');
+    
+    // Fall back to the local implementation
+    return generateFallbackMessageAnalysis(message, author, tier);
+  }
 }
 
 export async function ventMessage(message: string) {
-  // Since we're seeing issues with the OpenAI API key, let's use our local analysis
-  console.log('Using fallback vent mode response');
-  return generateFallbackVentResponse(message);
+  try {
+    console.log('Attempting to use OpenAI for vent mode analysis');
+    
+    // Construct a proper prompt from our vent mode template
+    const prompt = prompts.vent.free.replace('{message}', message);
+    
+    // Make the API call with proper error handling
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a communication expert who helps transform emotional messages into grounded, constructive ones that de-escalate conflict." },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" }
+    });
+    
+    // Get the response content
+    const content = response.choices[0].message.content;
+    if (!content) {
+      throw new Error('Empty response from OpenAI API');
+    }
+    
+    console.log('Successfully received OpenAI response for vent mode');
+    
+    // Parse the JSON response
+    try {
+      return JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response as JSON:', content);
+      throw new Error('Invalid response format from OpenAI');
+    }
+  } catch (error) {
+    // Log the specific error for debugging
+    console.error('Error using OpenAI for vent mode:', error);
+    console.log('Falling back to local vent mode response');
+    
+    // Fall back to the local implementation
+    return generateFallbackVentResponse(message);
+  }
 }
 
 export async function detectParticipants(conversation: string) {
-  // Since we're seeing issues with the OpenAI API key, let's use our local analysis
-  console.log('Using local participant detection');
-  return detectParticipantsLocally(conversation);
+  try {
+    console.log('Attempting to use OpenAI for participant detection');
+    
+    // Prepare the prompt
+    const prompt = prompts.detectNames.replace('{conversation}', conversation);
+    
+    // Make the API call with proper error handling
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a communication expert who identifies participants in conversations." },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" }
+    });
+    
+    // Get the response content
+    const content = response.choices[0].message.content;
+    if (!content) {
+      throw new Error('Empty response from OpenAI API');
+    }
+    
+    console.log('Successfully received OpenAI response for participant detection');
+    
+    // Parse the JSON response
+    try {
+      return JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response as JSON:', content);
+      throw new Error('Invalid response format from OpenAI');
+    }
+  } catch (error) {
+    // Log the specific error for debugging
+    console.error('Error using OpenAI for participant detection:', error);
+    console.log('Falling back to local participant detection');
+    
+    // Fall back to the local implementation
+    return detectParticipantsLocally(conversation);
+  }
 }
 
 export async function processImageOcr(image: string): Promise<string> {
