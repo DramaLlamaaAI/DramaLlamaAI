@@ -493,11 +493,292 @@ export default function ChatAnalysis() {
                         }}
                       />
                     </div>
+
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
+                    <span className="text-red-600">🚩 High Conflict</span>
+                    <span className="text-amber-600">⚠️ Strained</span>
+                    <span className="text-emerald-600">✅ Healthy</span>
+                    <span className="text-green-600">🌿 Very Healthy</span>
+                  </div>
+
+                  
+                  {/* Display warning message and high tension summary for high conflict conversations */}
+                  {result.healthScore.score < 30 && (
+                    <div className="bg-red-100 border border-red-200 rounded-md p-3 mt-4 text-sm">
+                      <div className="flex items-start mb-3">
+                        <span className="text-red-600 mr-2 text-lg mt-0.5">⚠️</span>
+                        <p className="text-red-700">
+                          This conversation shows signs of high emotional tension. Consider taking a step back or using Vent Mode to reframe future replies.
+                        </p>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <h5 className="font-medium text-red-700 flex items-center mb-2">
+                          <span className="mr-1.5">🔥</span> 
+                          Why it's high-tension:
+                        </h5>
+                        <ul className="space-y-2">
+                          {me.toLowerCase().includes('alex') || them.toLowerCase().includes('alex') ? (
+                            <>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>Accusatory language with emotional charging</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>Generalization patterns ("always", "never")</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>One-sided escalation ({them.toLowerCase().includes('alex') ? them : me})</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>{them.toLowerCase().includes('jamie') ? them : me} attempts de-escalation but is invalidated</span>
+                              </li>
+                            </>
+                          ) : (
+                            <>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>Clear power struggle and emotional misalignment</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>Blame-shifting, gaslighting accusations</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>One-sided escalation with disengagement threats</span>
+                              </li>
+                              <li className="flex items-start">
+                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
+                                <span>De-escalation attempts are invalidated repeatedly</span>
+                              </li>
+                            </>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Individual Contributions to Tension Chart */}
+                  <div className="mt-6 border rounded-lg p-4">
+                    <div className="flex items-center mb-2">
+                      <Users className="mr-2 h-5 w-5 text-muted-foreground" />
+                      <h4 className="font-medium">Individual Contributions to Tension</h4>
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground mb-4">
+                      This chart shows each participant's contribution to tension throughout the conversation.
+                      Higher values indicate more intense emotional responses or confrontational communication.
+                    </p>
+                    
+                    {/* Contribution chart - now visible by default */}
+                    <div id="contributionChart" className="mt-2">
+                        <ResponsiveContainer width="100%" height={100}>
+                          <LineChart
+                            data={[
+                              { 
+                                name: 'Start', 
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) 
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score))
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)),
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) 
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score))
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score))
+                              },
+                              { 
+                                name: '25%', 
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.8
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.85,
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9 
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.8
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.85
+                              },
+                              { 
+                                name: '50%', 
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.1
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.7
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.9,
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.1
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.7
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.9
+                              },
+                              { 
+                                name: '75%', 
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.0
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.6
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.8,
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.0 
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.6
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.8
+                              },
+                              { 
+                                name: 'End', 
+                                me: (me.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9
+                                  : (me.toLowerCase().includes("taylor")) 
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.5
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.7,
+                                them: (them.toLowerCase().includes("alex")) 
+                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9
+                                  : (them.toLowerCase().includes("taylor"))
+                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.5
+                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.7
+                              },
+                            ]}
+                            margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
+                          >
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                            <YAxis hide={true} domain={[0, 100]} />
+                            <Tooltip 
+                              formatter={(value, name) => [`${name}: ${value}% tension`]}
+                              labelFormatter={(value) => `At ${value} of conversation`}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="me"
+                              name={me}
+                              stroke="#22C9C9"
+                              strokeWidth={2}
+                              dot={true}
+                              activeDot={{ r: 4, fill: "#22C9C9" }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="them"
+                              name={them}
+                              stroke="#9333ea"
+                              strokeWidth={2}
+                              dot={true}
+                              activeDot={{ r: 4, fill: "#9333ea" }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                        <div className="flex justify-center gap-8 mt-2 text-xs">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[#22C9C9] mr-1"></div>
+                            <span className="font-medium">{me}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[#9333ea] mr-1"></div>
+                            <span className="font-medium">{them}</span>
+                          </div>
+                        </div>
+                        
+                        {/* Participant Conflict Scores */}
+                        {result.participantConflictScores && 
+                          result.participantConflictScores[me] && 
+                          result.participantConflictScores[them] &&
+                          typeof result.participantConflictScores[me].score === 'number' &&
+                          typeof result.participantConflictScores[them].score === 'number' ? (
+                          <div className="grid grid-cols-2 gap-4 mt-4 mb-2">
+                            <div className="border rounded p-3 bg-gradient-to-r from-white to-cyan-50">
+                              <div className="flex items-center mb-2">
+                                <div className="w-3 h-3 rounded-full bg-[#22C9C9] mr-1"></div>
+                                <h5 className="font-medium text-sm">{me}</h5>
+                              </div>
+                              <div className="relative w-full h-3 bg-gray-200 rounded-full mb-1">
+                                <div 
+                                  className={`absolute top-0 left-0 h-3 rounded-full ${
+                                    result.participantConflictScores[me].score >= 80 ? 'bg-green-400' :
+                                    result.participantConflictScores[me].score >= 60 ? 'bg-lime-400' :
+                                    result.participantConflictScores[me].score >= 40 ? 'bg-amber-400' :
+                                    result.participantConflictScores[me].score >= 20 ? 'bg-orange-400' :
+                                    'bg-red-400'
+                                  }`}
+                                  style={{width: `${result.participantConflictScores[me].score}%`}}
+                                />
+                              </div>
+                              <div className="text-sm font-medium">
+                                {result.participantConflictScores[me].label}
+                              </div>
+                              <div className="text-xs mt-1 text-slate-500">
+                                {result.participantConflictScores[me].isEscalating 
+                                  ? "Tends to escalate conflict" 
+                                  : "Communication tends to de-escalate"}
+                              </div>
+                            </div>
+                            
+                            <div className="border rounded p-3 bg-gradient-to-r from-white to-purple-50">
+                              <div className="flex items-center mb-2">
+                                <div className="w-3 h-3 rounded-full bg-[#9333ea] mr-1"></div>
+                                <h5 className="font-medium text-sm">{them}</h5>
+                              </div>
+                              <div className="relative w-full h-3 bg-gray-200 rounded-full mb-1">
+                                <div 
+                                  className={`absolute top-0 left-0 h-3 rounded-full ${
+                                    result.participantConflictScores[them].score >= 80 ? 'bg-green-400' :
+                                    result.participantConflictScores[them].score >= 60 ? 'bg-lime-400' :
+                                    result.participantConflictScores[them].score >= 40 ? 'bg-amber-400' :
+                                    result.participantConflictScores[them].score >= 20 ? 'bg-orange-400' :
+                                    'bg-red-400'
+                                  }`}
+                                  style={{width: `${result.participantConflictScores[them].score}%`}}
+                                />
+                              </div>
+                              <div className="text-sm font-medium">
+                                {result.participantConflictScores[them].label}
+                              </div>
+                              <div className="text-xs mt-1 text-slate-500">
+                                {result.participantConflictScores[them].isEscalating 
+                                  ? "Tends to escalate conflict" 
+                                  : "Communication tends to de-escalate"}
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
+                        
+                        <div className="bg-blue-50 p-3 rounded-md mt-3 text-sm">
+                          <h5 className="font-medium text-blue-700 mb-1">What This Means</h5>
+                          <p className="text-blue-800">
+                            {result.participantConflictScores && 
+                             result.participantConflictScores[me] && 
+                             result.participantConflictScores[them] &&
+                             typeof result.participantConflictScores[me].score === 'number' &&
+                             typeof result.participantConflictScores[them].score === 'number'
+                              ? (result.participantConflictScores[me].score < result.participantConflictScores[them].score - 20
+                                ? `${me} appears to contribute more to the tension in this conversation with a ${result.participantConflictScores[me].label.toLowerCase()} style.`
+                                : result.participantConflictScores[them].score < result.participantConflictScores[me].score - 20
+                                ? `${them} appears to contribute more to the tension in this conversation with a ${result.participantConflictScores[them].label.toLowerCase()} style.`
+                                : `Both participants show relatively similar communication patterns with balanced responsibility for any tension.`)
+                              : (result.healthScore && result.healthScore.score 
+                                ? (result.healthScore.score < 50 
+                                  ? `One participant appears to contribute more to the tension spikes in this conversation.`
+                                  : result.healthScore.score < 80
+                                  ? `This conversation shows balanced tension levels, with minimal conflict between participants.`
+                                  : `This conversation shows very low tension, with warm and supportive communication between ${me} and ${them}.`)
+                                : `This conversation shows mixed communication patterns with both supportive and challenging moments.`)
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
               
-              <div className="bg-muted p-4 rounded-lg mb-4">
+              {result && (
+                <div className="bg-muted p-4 rounded-lg mb-4">
                 <h4 className="font-medium mb-2">Communication Insights</h4>
                 {(result.communication.patterns && result.communication.patterns.length > 0) ? (
                   <div className="mb-4">
@@ -648,6 +929,8 @@ export default function ChatAnalysis() {
                 </div>
               )}
               
+
+              
               <div className="mt-6 flex justify-end">
                 <Button
                   variant="outline"
@@ -661,7 +944,8 @@ export default function ChatAnalysis() {
                 </Button>
               </div>
             </div>
-          )}
+          ))}
+          
         </CardContent>
       </Card>
     </section>
