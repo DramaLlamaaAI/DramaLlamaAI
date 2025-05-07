@@ -34,7 +34,14 @@ interface ChatAnalysisResponse {
     analysis: string;
     improvement?: string; // Added field for communication improvement recommendation
   }>;
-  highTensionFactors?: Array<string>; // New field for listing specific high tension factors
+  highTensionFactors?: Array<string>; // Field for listing specific high tension factors
+  participantConflictScores?: {  // New field for individual conflict ratings
+    [participant: string]: {
+      score: number;      // 0-100 scale (lower is higher conflict)
+      label: string;      // Text label describing communication style
+      isEscalating: boolean; // Whether this participant tends to escalate conflict
+    }
+  };
 }
 
 interface MessageAnalysisResponse {

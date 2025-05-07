@@ -105,6 +105,11 @@ export const chatAnalysisResultSchema = z.object({
     analysis: z.string()
   })).optional(),
   highTensionFactors: z.array(z.string()).optional(),
+  participantConflictScores: z.record(z.object({
+    score: z.number(),
+    label: z.string(),
+    isEscalating: z.boolean()
+  })).optional(),
 });
 
 export const messageAnalysisResultSchema = z.object({
