@@ -227,14 +227,16 @@ const prompts = {
   },
   
   vent: {
-    free: `Rewrite this emotional message in a calmer, more effective way while preserving the core intent: "{message}". 
-    Focus on de-escalating emotional tension and creating a resolution-focused message.
-    Your goal is to help the user transform heated communication into constructive dialogue that:
-      - Reduces emotional reactivity
-      - Clearly expresses the core needs/concerns
-      - Opens the door for resolution
-      - Avoids blame language
-      - Uses "I" statements instead of accusatory "you" statements
+    free: `Please change this message to a more grounded version, to de-escalate a situation, and come across calm and composed, specifically to avoid conflict: "{message}"
+
+    Focus on creating a response that:
+      - Remains calm and composed even when the original message is heated
+      - Expresses needs without blame or accusation
+      - Invites dialogue through curiosity rather than confrontation
+      - Replaces absolutist language ("always", "never") with more measured observations
+      - Uses "I" statements that focus on personal feelings rather than the other person's actions
+      - Maintains emotional truth while removing emotional reactivity
+      - Softens tone while preserving the core message
 
     Respond with JSON in this format:
     {
@@ -1377,11 +1379,30 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   // Handle 'whatever' pattern specifically - completely replace the message
   else if (lowerMessage.includes("whatever") || lowerMessage.match(/^\s*whatever\b/i)) {
     // Create a brand new message instead of trying to modify the existing one
-    // Handle both "whatever" at the beginning and anywhere in the message
-    const context = lowerMessage.replace(/^\s*whatever[\s\.,]*/i, "")  // At the beginning
+    // Get the real concern from a "whatever" message by removing dismissive language
+    let context = lowerMessage.replace(/^\s*whatever[\s\.,]*/i, "")  // At the beginning
                              .replace(/whatever[\s\.,]*/gi, "") // Anywhere else
-                             .replace(/^i guess/i, "")  // Also remove "I guess" if present
+                             .replace(/^i guess/i, "")  // Remove "I guess" at the beginning
+                             .replace(/i guess/i, "")   // Remove "I guess" anywhere
+                             .replace(/it doesn['']?t matter/i, "") // Remove "it doesn't matter"
+                             .replace(/anyways?[\.]+$/i, "") // Remove "anyway..." at the end
                              .trim();
+                             
+    // Extract the core feeling/concern
+    if (context.includes("what i think")) {
+      rewritten = "I'd like us to find a way to communicate where we both feel our opinions are valued. Could we talk about this when you have time?";
+      
+      explanation = "The rewritten message addresses the core feeling of not being heard while inviting a constructive conversation without blame.";
+      
+      // Return early to avoid other replacements
+      return {
+        original: message,
+        rewritten,
+        explanation
+      };
+    } else if (context.length === 0 || context.length < 5) {
+      context = ""; // Empty context triggers the generic response
+    }
     
     if (context.length > 0) {
       rewritten = "I think we might have had a miscommunication about " + context + ". Could we take a step back and talk about this when we're both in a good space?";
@@ -1412,9 +1433,15 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   }
   // General de-escalation for other messages
   else {
+    // Use "I" statements for messages that contain "You make me feel" pattern
+    if (lowerMessage.includes("you make me feel")) {
+      rewritten = message.replace(/you make me feel/gi, "I feel");
+      explanation = "The rewritten message uses 'I feel' statements rather than attributing feelings to the other person's actions, which can reduce defensiveness.";
+    }
+    
     // Add a constructive suggestion if the message is short
     if (message.length < 50) {
-      rewritten += " I'd like to talk about how we can resolve this together.";
+      rewritten += ". I'd like to talk about how we can resolve this together.";
       
       explanation = "The rewritten message adds a constructive invitation to dialogue, which can help move the conversation toward problem-solving.";
     } else {
