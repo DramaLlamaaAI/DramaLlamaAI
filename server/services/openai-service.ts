@@ -1274,8 +1274,21 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   let rewritten = message;
   let explanation = "The rewritten message aims to express the same core concerns in a more productive way.";
   
+  // Handle "I hate how you never listen" pattern (most specific case)
+  if (lowerMessage.includes("hate") && lowerMessage.includes("you never listen")) {
+    rewritten = "I feel frustrated when I don't feel heard in our conversations";
+    
+    explanation = "The rewritten message directly expresses your feeling of frustration without using accusatory language that might make the other person defensive.";
+    
+    // Return early to prevent other replacements
+    return {
+      original: message,
+      rewritten,
+      explanation
+    };
+  }
   // Handle "hate how you always" pattern (special case)
-  if (lowerMessage.includes("hate") && lowerMessage.includes("you always")) {
+  else if (lowerMessage.includes("hate") && lowerMessage.includes("you always")) {
     rewritten = message
       .replace(/hate how/gi, "feel frustrated by")
       .replace(/you always/gi, "how often you seem to");
