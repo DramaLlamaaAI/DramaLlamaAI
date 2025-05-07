@@ -79,15 +79,20 @@ export default function VentMode() {
           </div>
           
           <div className="mb-6">
-            <Button
-              onClick={handleVent}
-              disabled={ventMutation.isPending || message.length === 0 || !canUseFeature}
-              variant="default"
-              className="bg-accent hover:bg-accent-dark flex items-center"
-            >
-              <Heart className="mr-2 h-4 w-4" />
-              {ventMutation.isPending ? "De-escalating..." : "De-escalate Message"}
-            </Button>
+            <div className="relative inline-block">
+              <Button
+                onClick={handleVent}
+                disabled={ventMutation.isPending || message.length === 0 || !canUseFeature}
+                variant="default"
+                className="bg-accent hover:bg-accent-dark flex items-center pr-10"
+              >
+                <Heart className="mr-2 h-4 w-4" />
+                {ventMutation.isPending ? "De-escalating..." : "De-escalate Message"}
+                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
+                  FREE
+                </span>
+              </Button>
+            </div>
           </div>
           
           {result && (
