@@ -81,32 +81,27 @@ if (apiKey && apiKey.startsWith('sk-proj-')) {
   console.log('Configuring OpenAI client for project-based API key');
   
   // Set the defaultHeaders with the required beta header
-  openaiConfig.defaultHeaders = {
-    'OpenAI-Beta': 'project-keys=v1'
+  openaiConfig = {
+    apiKey,
+    maxRetries: 3,
+    defaultHeaders: {
+      'OpenAI-Beta': 'project-keys=v1'
+    },
+    defaultQuery: { projectId: 'drama-llama-app' }
   };
   
-  // Create custom fetch implementation for debugging
-  openaiConfig.defaultQuery = { projectId: 'drama-llama-app' };
-  
-  // Custom fetch with detailed logging
+  // Custom fetch with detailed logging and proper beta header handling
   openaiConfig.fetch = async (url: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     try {
       // Create a new headers object to avoid modifying the original
       const headers = new Headers(init?.headers);
       
       // Ensure the beta header is present
-      if (!headers.has('OpenAI-Beta')) {
-        headers.set('OpenAI-Beta', 'project-keys=v1');
-      }
+      headers.set('OpenAI-Beta', 'project-keys=v1');
       
-      // Create a debug-friendly version of headers (without showing auth token)
-      const debugHeaders: Record<string, string> = {};
-      headers.forEach((value, key) => {
-        debugHeaders[key] = key.toLowerCase() === 'authorization' ? 'Bearer sk-***' : value;
-      });
-      
-      console.log(`OpenAI API Request: ${url.toString()}`);
-      console.log('Headers:', JSON.stringify(debugHeaders, null, 2));
+      // Log request details (without sensitive info)
+      const requestUrl = url.toString();
+      console.log(`OpenAI API Request: ${requestUrl}`);
       
       // Make the request with our modified headers
       const response = await fetch(url, {
@@ -115,12 +110,17 @@ if (apiKey && apiKey.startsWith('sk-proj-')) {
       });
       
       if (!response.ok) {
-        console.error(`OpenAI API Error (${response.status})`);
+        console.error(`OpenAI API Error (Status: ${response.status})`);
         try {
-          const errorText = await response.clone().text();
-          console.error('Error response:', errorText);
+          const errorData = await response.clone().json();
+          console.error('Error details:', JSON.stringify(errorData, null, 2));
         } catch (e) {
-          console.error('Could not read error response body');
+          try {
+            const errorText = await response.clone().text();
+            console.error('Error response:', errorText);
+          } catch (textError) {
+            console.error('Could not read error response body');
+          }
         }
       }
       
