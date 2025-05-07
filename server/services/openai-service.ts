@@ -1073,6 +1073,15 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
   // Determine tone with more nuance
   let tone = 'Neutral';
   
+  // Check for exclamation marks (indicates emphasis/emotion)
+  const exclamationCount = (message.match(/!/g) || []).length;
+  
+  // Check for ALL CAPS words (indicates shouting/strong emphasis)
+  const capsCount = (message.match(/\b[A-Z]{2,}\b/g) || []).length;
+  
+  // Enhanced emotional detection
+  const lowerMessage = message.toLowerCase();
+  
   // Check for specific patterns that override general sentiment counting
   if (message.match(/\bforget it\b|\bshouldn't have to\b|\bdone talking\b/i)) {
     tone = 'Frustrated and disengaging';
@@ -1080,8 +1089,14 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
     tone = 'Accusatory';
   } else if (message.match(/\bnot blaming\b|\bnot ignoring\b|\bthat's not true\b/i)) {
     tone = 'Defensive';
+  } else if (lowerMessage.includes('promised') && lowerMessage.includes('waited') && exclamationCount > 0) {
+    tone = 'Upset and disappointed';
   } else if (accusatoryCount > 0) {
     tone = 'Confrontational';
+  } else if (exclamationCount >= 2 && negativeCount > 0) {
+    tone = 'Frustrated';
+  } else if (capsCount > 0 && negativeCount > 0) {
+    tone = 'Angry';
   } else if (negativeCount > positiveCount * 2) {
     tone = 'Strongly negative';
   } else if (negativeCount > positiveCount) {
@@ -1106,6 +1121,11 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
   // Defensiveness
   else if (defensiveCount > 0) {
     intents.push('Defending against perceived accusations');
+  }
+  // Special case - disappointment
+  else if (lowerMessage.includes('promised') && lowerMessage.includes('waited')) {
+    intents.push('Expressing disappointment');
+    intents.push('Seeking accountability');
   }
   // Standard intents
   else {
@@ -1149,7 +1169,6 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
   let possibleReword = "";
   
   // Check for specific message patterns and provide tailored responses
-  const lowerMessage = message.toLowerCase();
   
   if (lowerMessage.includes("you never listen")) {
     potentialResponse = "I hear that you're feeling unheard. Can we talk about specific times when you felt I wasn't listening?";
@@ -1175,6 +1194,10 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
     potentialResponse = "That's important to know. Can you tell me more about what would help meet that need?";
     possibleReword = "It would really help me if we could work together on finding a way to address this specific need I have.";
   }
+  else if (lowerMessage.includes("promised") && lowerMessage.includes("waited")) {
+    potentialResponse = "I understand you feel let down. I'd like to discuss what happened and how we can address this issue.";
+    possibleReword = "I felt disappointed when I was waiting and you didn't arrive as planned. I'd like to understand what happened.";
+  }
   else if (lowerMessage.includes("i feel")) {
     potentialResponse = "Thank you for sharing how you feel. That helps me understand better. What would help you feel better about this?";
     possibleReword = "I wanted to share how I'm feeling about this situation because I think it's important for us to understand each other.";
@@ -1194,6 +1217,15 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
     } else if (tone === 'Defensive') {
       potentialResponse = "I'm not attacking you. Let's try to understand each other's perspectives without getting defensive.";
       possibleReword = "I understand how this might come across. Here's what I was trying to convey...";
+    } else if (tone === 'Upset and disappointed') {
+      potentialResponse = "I understand you're feeling let down. I'd like to discuss what happened and how we might be able to resolve this.";
+      possibleReword = "I felt disappointed when my expectations weren't met. I'd appreciate it if we could talk about this and find a way forward.";
+    } else if (tone === 'Frustrated') {
+      potentialResponse = "I can tell this is frustrating for you. Let's take a step back and see if we can address what's bothering you.";
+      possibleReword = "I'm feeling frustrated right now because this is important to me. Could we talk about some potential solutions?";
+    } else if (tone === 'Angry') {
+      potentialResponse = "I see you're upset about this. Once we've both had a chance to cool down, I'd like to understand your perspective better.";
+      possibleReword = "This situation has been challenging for me. When we're both ready, I'd like to discuss it calmly.";
     } else if (tone.includes('negative')) {
       potentialResponse = "I hear your concerns. What do you think would help resolve this situation?";
       possibleReword = "I wanted to share my concerns about this. Would you be open to discussing some possible solutions?";
