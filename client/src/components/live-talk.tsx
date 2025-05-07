@@ -345,7 +345,11 @@ export default function LiveTalk() {
               <Badge className="mb-2 bg-gradient-to-r from-primary to-secondary">PRO ONLY</Badge>
               <h3 className="text-xl font-bold mb-2">Live Talk Recording</h3>
               <p className="mb-4 text-muted-foreground">Upgrade to our Pro plan to unlock live conversation recording and analysis.</p>
-              <Button className="w-full" style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white', border: 'none' }}>
+              <Button 
+                className="w-full" 
+                style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white', border: 'none' }}
+                onClick={() => window.location.href = '/subscription'}
+              >
                 Upgrade Now
               </Button>
             </div>

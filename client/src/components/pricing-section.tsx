@@ -136,7 +136,10 @@ export default function PricingSection() {
                 Current Plan
               </Button>
             ) : (
-              <Button className="w-full bg-secondary hover:bg-secondary-dark text-white">
+              <Button 
+                className="w-full bg-secondary hover:bg-secondary-dark text-white"
+                onClick={() => window.location.href = '/subscription'}
+              >
                 {currentTier === 'pro' ? 'Downgrade' : 'Upgrade Now'}
               </Button>
             )}
@@ -179,7 +182,11 @@ export default function PricingSection() {
                 Current Plan
               </Button>
             ) : (
-              <Button className="w-full" style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white', border: 'none' }}>
+              <Button 
+                className="w-full" 
+                style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white', border: 'none' }}
+                onClick={() => window.location.href = '/subscription'}
+              >
                 Upgrade Now
               </Button>
             )}

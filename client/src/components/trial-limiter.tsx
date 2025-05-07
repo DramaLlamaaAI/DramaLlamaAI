@@ -57,21 +57,31 @@ export default function TrialLimiter({
 
   const handleUpgrade = async (tier: string) => {
     try {
-      // First, show auth modal to register/login
+      // Hide the modal
       setShowLimitModal(false);
-      setShowAuthModal(true);
+      
+      // If user is not authenticated, show auth modal first
+      if (!isAuthenticated) {
+        setShowAuthModal(true);
+        toast({
+          title: "Sign in required",
+          description: "Please sign in first to upgrade your account.",
+        });
+        return;
+      }
+      
+      // Redirect to subscription page
+      window.location.href = `/subscription`;
       
       toast({
-        title: "Select a plan",
-        description: `After signing in, you'll be upgraded to the ${tier} plan.`,
+        title: "Choose a plan",
+        description: `Select the ${tier} plan to unlock more features.`,
       });
-      
-      // Note: actual payment processing would happen after auth
     } catch (error) {
       console.error("Error upgrading:", error);
       toast({
-        title: "Upgrade failed",
-        description: "There was an error upgrading your account. Please try again.",
+        title: "Navigation failed",
+        description: "There was an error. Please try visiting the subscription page directly.",
         variant: "destructive",
       });
     }

@@ -9,9 +9,9 @@ import { useLocation } from 'wouter';
 
 export default function SubscriptionPage() {
   const [billingPeriod, setBillingPeriod] = useState('monthly');
-  const { user, isLoading } = useAuth();
+  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [_, navigate] = useLocation();
   
   const handleUpgrade = (plan: string) => {
     if (!user) {
