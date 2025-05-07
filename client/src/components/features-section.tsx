@@ -20,13 +20,6 @@ export default function FeaturesSection() {
             </Button>
           </Link>
           
-          <Link href="/message-analysis">
-            <Button size="lg" className="min-w-40 bg-secondary hover:bg-secondary-dark text-white flex items-center gap-2">
-              <MessageCircle className="w-5 h-5" />
-              Message Analysis
-            </Button>
-          </Link>
-          
           <Link href="/vent-mode">
             <div className="relative inline-block">
               <Button size="lg" className="min-w-40 flex items-center gap-2 pr-10" 
@@ -39,6 +32,13 @@ export default function FeaturesSection() {
               </Button>
             </div>
           </Link>
+          
+          <Link href="/message-analysis">
+            <Button size="lg" className="min-w-40 bg-secondary hover:bg-secondary-dark text-white flex items-center gap-2">
+              <MessageCircle className="w-5 h-5" />
+              Message Analysis
+            </Button>
+          </Link>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
@@ -47,14 +47,6 @@ export default function FeaturesSection() {
             <h3 className="text-lg font-semibold mb-2 text-primary">Chat Analysis</h3>
             <p className="text-sm text-muted-foreground">
               Upload or paste a conversation to get detailed insights about communication patterns and emotional tone.
-            </p>
-          </div>
-          
-          <div className="text-center">
-            <MessageCircle className="w-12 h-12 text-secondary mx-auto mb-2" />
-            <h3 className="text-lg font-semibold mb-2 text-secondary">Message Analysis</h3>
-            <p className="text-sm text-muted-foreground">
-              Get quick insights on the tone and intent of a single message without context.
             </p>
           </div>
           
@@ -68,6 +60,14 @@ export default function FeaturesSection() {
             </h3>
             <p className="text-sm text-muted-foreground">
               Rewrite emotional messages into calmer, more effective communication while preserving intent.
+            </p>
+          </div>
+          
+          <div className="text-center">
+            <MessageCircle className="w-12 h-12 text-secondary mx-auto mb-2" />
+            <h3 className="text-lg font-semibold mb-2 text-secondary">Message Analysis</h3>
+            <p className="text-sm text-muted-foreground">
+              Get quick insights on the tone and intent of a single message without context.
             </p>
           </div>
         </div>
