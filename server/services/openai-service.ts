@@ -1414,7 +1414,7 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     // Replace placeholders
     prompt = prompt.replace('{message}', message).replace('{author}', author);
     
-    // Make the API call with proper error handling
+    // Make the API call with enhanced error handling for project API keys
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -1439,9 +1439,17 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
       console.error('Failed to parse OpenAI response as JSON:', content);
       throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com');
     }
-  } catch (error) {
-    // Log the specific error for debugging
+  } catch (error: any) {
+    // Log the specific error for debugging with more details for project API keys
     console.error('Error using OpenAI for message analysis:', error);
+    
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      if (error.response.data) {
+        console.error('Error data:', JSON.stringify(error.response.data, null, 2));
+      }
+    }
     
     // Throw error with support information instead of using fallback
     throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
@@ -1455,7 +1463,7 @@ export async function ventMessage(message: string) {
     // Construct a proper prompt from our vent mode template
     const prompt = prompts.vent.free.replace('{message}', message);
     
-    // Make the API call with proper error handling
+    // Make the API call with enhanced error handling for project API keys
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -1480,9 +1488,17 @@ export async function ventMessage(message: string) {
       console.error('Failed to parse OpenAI response as JSON:', content);
       throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com');
     }
-  } catch (error) {
-    // Log the specific error for debugging
+  } catch (error: any) {
+    // Log the specific error for debugging with more details for project API keys
     console.error('Error using OpenAI for vent mode:', error);
+    
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      if (error.response.data) {
+        console.error('Error data:', JSON.stringify(error.response.data, null, 2));
+      }
+    }
     
     // Throw error with support information instead of using fallback
     throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
@@ -1496,7 +1512,7 @@ export async function detectParticipants(conversation: string) {
     // Prepare the prompt
     const prompt = prompts.detectNames.replace('{conversation}', conversation);
     
-    // Make the API call with proper error handling
+    // Make the API call with enhanced error handling for project API keys
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -1521,9 +1537,17 @@ export async function detectParticipants(conversation: string) {
       console.error('Failed to parse OpenAI response as JSON:', content);
       throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com');
     }
-  } catch (error) {
-    // Log the specific error for debugging
+  } catch (error: any) {
+    // Log the specific error for debugging with more details for project API keys
     console.error('Error using OpenAI for participant detection:', error);
+    
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      if (error.response.data) {
+        console.error('Error data:', JSON.stringify(error.response.data, null, 2));
+      }
+    }
     
     // Throw error with support information instead of using fallback
     throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
@@ -1536,7 +1560,7 @@ export async function processImageOcr(image: string): Promise<string> {
     console.error('Unable to use OpenAI Vision API, fallback OCR should be implemented');
     // In a real app, we would implement a fallback using Tesseract.js
     throw new Error('OCR requires a valid API key. Please check your API key configuration.');
-  } catch (error) {
+  } catch (error: any) {
     console.error('OCR Error:', error);
     throw error;
   }
