@@ -28,11 +28,16 @@ export default function FeaturesSection() {
           </Link>
           
           <Link href="/vent-mode">
-            <Button size="lg" className="min-w-40 flex items-center gap-2" 
-              style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white' }}>
-              <Zap className="w-5 h-5" />
-              Vent Mode
-            </Button>
+            <div className="relative inline-block">
+              <Button size="lg" className="min-w-40 flex items-center gap-2 pr-10" 
+                style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white' }}>
+                <Zap className="w-5 h-5" />
+                Vent Mode
+                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
+                  FREE
+                </span>
+              </Button>
+            </div>
           </Link>
         </div>
         
@@ -53,10 +58,13 @@ export default function FeaturesSection() {
             </p>
           </div>
           
-          <div className="text-center">
+          <div className="text-center relative">
             <Zap className="w-12 h-12 mx-auto mb-2" style={{ color: '#FF69B4' }} />
             <h3 className="text-lg font-semibold mb-2" style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Vent Mode
+              <span className="absolute top-0 -right-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
+                FREE
+              </span>
             </h3>
             <p className="text-sm text-muted-foreground">
               Rewrite emotional messages into calmer, more effective communication while preserving intent.
