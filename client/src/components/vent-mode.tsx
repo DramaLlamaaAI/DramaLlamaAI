@@ -88,7 +88,7 @@ export default function VentMode() {
               >
                 <Heart className="mr-2 h-4 w-4" />
                 {ventMutation.isPending ? "De-escalating..." : "De-escalate Message"}
-                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
+                <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
                   FREE
                 </span>
               </Button>
