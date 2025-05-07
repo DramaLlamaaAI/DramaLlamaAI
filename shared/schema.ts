@@ -93,7 +93,6 @@ export const chatAnalysisResultSchema = z.object({
     patterns: z.array(z.string()).optional(),
     suggestions: z.array(z.string()).optional(),
   }),
-  dramaScore: z.number().optional(),
   healthScore: z.object({
     score: z.number(),
     label: z.string(),

@@ -1024,27 +1024,7 @@ export default function ChatAnalysis() {
                 </div>
               )}
               
-              {result.dramaScore !== undefined && (
-                <div className="bg-primary/10 p-4 rounded-lg">
-                  <h4 className="font-medium mb-2 text-primary">Drama Score™</h4>
-                  <div className="flex items-center">
-                    <div className="w-full bg-muted rounded-full h-4 mr-4">
-                      <div 
-                        className="bg-primary h-4 rounded-full"
-                        style={{ width: `${result.dramaScore * 10}%` }}
-                      />
-                    </div>
-                    <span className="font-bold text-lg">{result.dramaScore}/10</span>
-                  </div>
-                  <p className="text-sm mt-2">
-                    {result.dramaScore < 3
-                      ? "Low drama - healthy communication patterns detected."
-                      : result.dramaScore < 7
-                      ? "Moderate drama - some concerning patterns present."
-                      : "High drama - significant communication issues detected."}
-                  </p>
-                </div>
-              )}
+
               
               <div className="mt-6 flex justify-end">
                 <Button
