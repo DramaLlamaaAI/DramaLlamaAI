@@ -287,6 +287,22 @@ export default function ChatAnalysis() {
                 value={conversation}
                 onChange={(e) => setConversation(e.target.value)}
               />
+              <div className="mt-2 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-sm"
+                  onClick={() => {
+                    setConversation('');
+                    toast({
+                      title: "Text Cleared",
+                      description: "The conversation has been cleared.",
+                    });
+                  }}
+                >
+                  Clear Text
+                </Button>
+              </div>
             </TabsContent>
             
             <TabsContent value="file">
