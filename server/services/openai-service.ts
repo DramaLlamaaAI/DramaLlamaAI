@@ -1265,8 +1265,6 @@ function generateFallbackMessageAnalysis(message: string, author: 'me' | 'them',
   return result;
 }
 
-// Note: Passive-aggressive pattern detection is now directly handled in the generateFallbackVentResponse function
-
 // Function to generate fallback vent mode response
 function generateFallbackVentResponse(message: string): VentModeResponse {
   // First identify what type of frustration is being expressed
@@ -1362,10 +1360,16 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
     
     explanation = "The rewritten message directly expresses the underlying feeling of disappointment and the need for attention, rather than using sarcasm.";
   }
+  // Handle 'whatever' pattern specifically
+  else if (lowerMessage.includes("whatever")) {
+    rewritten = "I'm feeling dismissed and would like to discuss this more when we're both ready";
+    
+    explanation = "The rewritten message expresses the feeling of being dismissed without using dismissive language that cuts off communication.";
+  }
   // Handle other passive-aggressive or sarcastic patterns
   else if (lowerMessage.includes("i guess") || lowerMessage.includes("wow") || 
-           lowerMessage.includes("whatever") || lowerMessage.includes("fine") ||
-           lowerMessage.includes("don't bother") || lowerMessage.match(/\.{3,}/)) {
+           lowerMessage.includes("fine") || lowerMessage.includes("don't bother") || 
+           lowerMessage.match(/\.{3,}/)) {
     rewritten = "I'm feeling upset about " + message.toLowerCase().replace(/^(wow|oh|um|hmm|uh|well|so)[,\s]*/i, "");
     
     explanation = "The rewritten message directly states the emotional impact while removing passive-aggressive phrasing that might escalate conflict.";
