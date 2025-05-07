@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Download, FileText, Copy } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation, getParticipantColor, preprocessChatLog } from "@/lib/utils";
+import html2pdf from 'html2pdf.js';
+import { toPng } from 'html-to-image';
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import TrialLimiter from "./trial-limiter"; 
@@ -270,6 +272,80 @@ export default function ChatAnalysis() {
     incrementAnalysisCount();
     // Force refresh usage data
     queryClient.invalidateQueries({ queryKey: ['/api/user/usage'] });
+  };
+  
+  // Export results to PDF
+  const exportResultsToPdf = async () => {
+    if (!result) return;
+    
+    const resultsElement = document.getElementById('analysisResults');
+    if (!resultsElement) return;
+    
+    try {
+      toast({
+        title: "Preparing PDF",
+        description: "Creating your PDF file...",
+      });
+      
+      // Create a snapshot of the charts first
+      const charts = resultsElement.querySelectorAll('.recharts-wrapper');
+      const chartPromises = Array.from(charts).map(async (chart, index) => {
+        try {
+          const dataUrl = await toPng(chart as HTMLElement);
+          const img = document.createElement('img');
+          img.src = dataUrl;
+          img.style.width = '100%';
+          img.style.maxWidth = '600px';
+          chart.parentNode?.replaceChild(img, chart);
+        } catch (e) {
+          console.error('Error converting chart to image:', e);
+        }
+      });
+      
+      await Promise.all(chartPromises);
+      
+      // Create a clone of the results element to avoid modifying the original
+      const clonedResults = resultsElement.cloneNode(true) as HTMLElement;
+      
+      // Add a header to the PDF
+      const header = document.createElement('div');
+      header.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="color: #22d3ee; margin-bottom: 10px;">Drama Llama - Chat Analysis</h1>
+          <p style="color: #666;">Analysis date: ${new Date().toLocaleDateString()}</p>
+          <p style="color: #666;">Participants: ${me} and ${them}</p>
+        </div>
+      `;
+      clonedResults.insertBefore(header, clonedResults.firstChild);
+      
+      // Generate PDF
+      const options = {
+        margin: 10,
+        filename: `Drama-Llama-Analysis-${new Date().toISOString().slice(0,10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      await html2pdf().from(clonedResults).set(options).save();
+      
+      toast({
+        title: "PDF Exported",
+        description: "Your analysis has been saved as a PDF file.",
+      });
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Could not export the results. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      // Refresh the page to restore the charts
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
   };
 
   return (
@@ -1040,8 +1116,12 @@ export default function ChatAnalysis() {
                 >
                   Back to Analysis
                 </Button>
-                <Button>
-                  Export Results
+                <Button 
+                  className="flex items-center gap-2" 
+                  onClick={exportResultsToPdf}
+                >
+                  <FileText className="h-4 w-4" />
+                  Export to PDF
                 </Button>
               </div>
             </div>
