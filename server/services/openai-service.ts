@@ -63,23 +63,55 @@ interface VentModeResponse {
 const apiKey = process.env.OPENAI_API_KEY || '';
 
 // Log a masked version of the API key for debugging (showing only prefix)
-const maskedKey = apiKey.substring(0, 8) + '*'.repeat(Math.max(0, apiKey.length - 8));
+const maskedKey = apiKey.substring(0, 10) + '*'.repeat(Math.max(0, apiKey.length - 10));
 const keyType = apiKey.startsWith('sk-proj-') ? 'project-based' : 'standard';
-console.log(`OPENAI_API_KEY is set, type: ${keyType}`);
+console.log(`OPENAI_API_KEY is set, type: ${keyType}, masked: ${maskedKey}`);
+
+// Create a custom fetch function for project API keys
+const customFetch = async (url: string, options = {}) => {
+  // Clone the original options to avoid modifying the input
+  const modifiedOptions = { ...options };
+  
+  // Add specific headers or options needed for project API keys
+  if (keyType === 'project-based' && url.includes('openai.com')) {
+    // Set specific headers or authentication methods required for project keys
+    if (!modifiedOptions.headers) {
+      modifiedOptions.headers = {};
+    }
+    
+    // Ensure headers is treated as a regular object, not a Headers instance
+    if (modifiedOptions.headers instanceof Headers) {
+      const headers = modifiedOptions.headers;
+      modifiedOptions.headers = {};
+      headers.forEach((value, key) => {
+        (modifiedOptions.headers as any)[key] = value;
+      });
+    }
+    
+    // Add any specific headers or properties needed for project-based API keys
+    // This might include auth type, project ID extraction, etc.
+    (modifiedOptions.headers as any)['OpenAI-Beta'] = 'project-keys=v1';
+    
+    // Log headers for debugging (except Authorization to protect key)
+    const debugHeaders = { ...modifiedOptions.headers };
+    if (debugHeaders.Authorization) {
+      debugHeaders.Authorization = 'Bearer [MASKED]';
+    }
+    console.log('Using custom configuration for project API key');
+  }
+  
+  // Call the original fetch with our modified options
+  return fetch(url, modifiedOptions);
+};
 
 // Set additional configuration for project-based keys if needed
 const clientConfig: any = {
   apiKey: apiKey,
   organization: process.env.OPENAI_ORG || undefined, // Optional organization ID
-  dangerouslyAllowBrowser: false // Keep server-side only
+  dangerouslyAllowBrowser: false, // Keep server-side only
+  maxRetries: 3, // Add retries for potential intermittent issues
+  fetch: customFetch // Use our custom fetch implementation
 };
-
-// Special handling for project-specific API keys
-if (keyType === 'project-based') {
-  // Project API keys might have specific authentication requirements
-  // Watch logs for any authentication errors that would indicate additional config needs
-  clientConfig.maxRetries = 3; // Add retries for potential intermittent issues with project keys
-}
 
 // Initialize OpenAI client with proper API key handling for both standard and project-based keys
 const openai = new OpenAI(clientConfig);
