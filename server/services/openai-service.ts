@@ -829,44 +829,8 @@ export async function analyzeChatConversation(conversation: string, me: string, 
   
   // Before making the API call, check if we have a valid API key
   if (!apiKey || apiKey.trim() === '') {
-    console.error('Missing OpenAI API key. Using fallback analysis.');
-    // Return fallback analysis for Alex/Jamie or Taylor/Riley conversations if names match
-    if ((me.toLowerCase() === 'alex' || them.toLowerCase() === 'alex') && 
-         (me.toLowerCase() === 'jamie' || them.toLowerCase() === 'jamie')) {
-      return analyzeAlexJamieConversation(conversation, me, them);
-    } else if ((me.toLowerCase() === 'taylor' || them.toLowerCase() === 'taylor') && 
-                (me.toLowerCase() === 'riley' || them.toLowerCase() === 'riley')) {
-      return analyzeTaylorRileyConversation(conversation, me, them);
-    }
-    
-    // Default fallback analysis
-    return {
-      toneAnalysis: {
-        overallTone: "This conversation shows varying communication patterns.",
-        emotionalState: [
-          { emotion: "Mixed", intensity: 5 }
-        ],
-        participantTones: {
-          [me]: `${me}'s communication style is generally consistent.`,
-          [them]: `${them}'s communication shows distinct patterns.`
-        }
-      },
-      communication: {
-        patterns: [
-          "Mixed communication styles",
-          "Varying engagement levels"
-        ]
-      },
-      healthScore: {
-        score: 60,
-        label: "Tense / Needs Work",
-        color: "yellow"
-      },
-      participantConflictScores: {
-        [me]: generateParticipantConflictScore(me, conversation),
-        [them]: generateParticipantConflictScore(them, conversation)
-      }
-    };
+    console.error('Missing OpenAI API key.');
+    throw new Error('API configuration error. Please contact support at DramaLlamaConsultancy@gmail.com');
   } else {
     try {
       console.log('Making OpenAI API request with gpt-4o model...');
@@ -902,7 +866,7 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       // Detailed error logging for debugging
       console.error('OpenAI API Error:', error?.message || error);
       
-      // Try to provide more specific error messages
+      // Try to provide more specific error messages for the logs
       if (error.status === 401) {
         console.error('Authentication error: Invalid API key or token. Please update your OPENAI_API_KEY environment variable.');
       } else if (error.status === 429) {
@@ -919,96 +883,8 @@ export async function analyzeChatConversation(conversation: string, me: string, 
         console.error('Stack trace:', error.stack);
       }
       
-      // Use specialized analysis since API failed
-      console.log('Using fallback analysis due to API error');
-    
-      // Check for specific pattern matches first
-      if ((me.toLowerCase() === 'taylor' || them.toLowerCase() === 'taylor') && 
-          (me.toLowerCase() === 'riley' || them.toLowerCase() === 'riley')) {
-        return analyzeTaylorRileyConversation(conversation, me, them);
-      } else if ((me.toLowerCase() === 'alex' || them.toLowerCase() === 'alex') && 
-                 (me.toLowerCase() === 'jamie' || them.toLowerCase() === 'jamie')) {
-        return analyzeAlexJamieConversation(conversation, me, them);
-      }
-      
-      // Analyze for general supportive conversation pattern
-      const supportive = conversation.toLowerCase().includes("check in") || 
-                        conversation.toLowerCase().includes("how are you") ||
-                        conversation.toLowerCase().includes("here for you");
-                        
-      const grateful = conversation.toLowerCase().includes("thank you") || 
-                       conversation.toLowerCase().includes("thanks") ||
-                       conversation.toLowerCase().includes("appreciate");
-      
-      // If conversation appears supportive, use a positive analysis
-      if (supportive && grateful) {
-        return {
-          toneAnalysis: {
-            overallTone: "This conversation demonstrates healthy communication with mutual support and positive engagement.",
-            emotionalState: [
-              { emotion: "Connection", intensity: 7 },
-              { emotion: "Support", intensity: 8 }
-            ],
-            participantTones: {
-              [me]: `${me} shows a supportive and engaged communication style.`,
-              [them]: `${them} responds with openness and appreciation.`
-            }
-          },
-          communication: {
-            patterns: [
-              "Supportive exchanges",
-              "Balanced participation",
-              "Healthy engagement"
-            ]
-          },
-          healthScore: {
-            score: 88,
-            label: "Healthy Communication",
-            color: "green"
-          },
-          participantConflictScores: {
-            [me]: {
-              score: 85,
-              label: "Supportive Communicator",
-              isEscalating: false
-            },
-            [them]: {
-              score: 85,
-              label: "Supportive Communicator",
-              isEscalating: false
-            }
-          }
-        };
-      }
-      
-      // Default to a more neutral analysis
-      return {
-        toneAnalysis: {
-          overallTone: "This conversation shows a mix of communication styles.",
-          emotionalState: [
-            { emotion: "Mixed", intensity: 5 }
-          ],
-          participantTones: {
-            [me]: `${me}'s communication style is generally balanced.`,
-            [them]: `${them}'s responses show a distinct pattern.`
-          }
-        },
-        communication: {
-          patterns: [
-            "Mixed communication styles",
-            "Varying engagement levels"
-          ]
-        },
-        healthScore: {
-          score: 65,
-          label: "Respectful but Strained",
-          color: "light-green"
-        },
-        participantConflictScores: {
-          [me]: generateParticipantConflictScore(me, conversation),
-          [them]: generateParticipantConflictScore(them, conversation)
-        }
-      };
+      // Throw error with support information instead of using fallback
+      throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
     }
   }
 }
@@ -1552,15 +1428,14 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
       return JSON.parse(content);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', content);
-      throw new Error('Invalid response format from OpenAI');
+      throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com');
     }
   } catch (error) {
     // Log the specific error for debugging
     console.error('Error using OpenAI for message analysis:', error);
-    console.log('Falling back to local message analysis');
     
-    // Fall back to the local implementation
-    return generateFallbackMessageAnalysis(message, author, tier);
+    // Throw error with support information instead of using fallback
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
   }
 }
 
@@ -1594,15 +1469,14 @@ export async function ventMessage(message: string) {
       return JSON.parse(content);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', content);
-      throw new Error('Invalid response format from OpenAI');
+      throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com');
     }
   } catch (error) {
     // Log the specific error for debugging
     console.error('Error using OpenAI for vent mode:', error);
-    console.log('Falling back to local vent mode response');
     
-    // Fall back to the local implementation
-    return generateFallbackVentResponse(message);
+    // Throw error with support information instead of using fallback
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
   }
 }
 
@@ -1636,15 +1510,14 @@ export async function detectParticipants(conversation: string) {
       return JSON.parse(content);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', content);
-      throw new Error('Invalid response format from OpenAI');
+      throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com');
     }
   } catch (error) {
     // Log the specific error for debugging
     console.error('Error using OpenAI for participant detection:', error);
-    console.log('Falling back to local participant detection');
     
-    // Fall back to the local implementation
-    return detectParticipantsLocally(conversation);
+    // Throw error with support information instead of using fallback
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
   }
 }
 
