@@ -1354,6 +1354,12 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
     
     explanation = "The rewritten message expresses your underlying wishes and feelings instead of asking questions that might come across as accusations.";
   }
+  // Handle passive-aggressive messages that don't fall into the above categories
+  else if (isPassiveAggressive(message)) {
+    rewritten = "I'm feeling upset about " + message.toLowerCase().replace(/^[^a-z0-9]+/i, "");
+    
+    explanation = "The rewritten message directly states the emotional impact while removing passive-aggressive phrasing that might escalate conflict.";
+  }
   // General de-escalation for other messages
   else {
     // Add a constructive suggestion if the message is short
@@ -1368,12 +1374,27 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
   
   // Process each pattern in the message sequentially to handle multiple accusations
   const replacementRules = [
+    // Direct accusations
     { pattern: /you never listen when/gi, replacement: "I feel like I'm not being heard when" },
     { pattern: /you never listen/gi, replacement: "I feel like I'm not being heard" },
     { pattern: /you never make time/gi, replacement: "I would appreciate more time together" },
     { pattern: /you never/gi, replacement: "I feel like you rarely" },
     { pattern: /hate how/gi, replacement: "feel frustrated by" },
-    { pattern: /you always/gi, replacement: "I feel like sometimes you" }
+    { pattern: /you always/gi, replacement: "I feel like sometimes you" },
+    
+    // Passive aggressive patterns
+    { pattern: /i guess you/gi, replacement: "I feel like you might" },
+    { pattern: /wow,/gi, replacement: "I notice that" },
+    { pattern: /too busy/gi, replacement: "have other priorities" },
+    { pattern: /don't care/gi, replacement: "might not understand how important this is" },
+    { pattern: /my feelings (again|once more)/gi, replacement: "how I feel about this" },
+    { pattern: /whatever/gi, replacement: "I'm feeling dismissed right now" },
+    { pattern: /fine/gi, replacement: "I'm feeling uncomfortable with this" },
+    
+    // Sarcastic patterns
+    { pattern: /sure, right/gi, replacement: "I'm having trouble believing" },
+    { pattern: /of course/gi, replacement: "I feel skeptical that" },
+    { pattern: /thanks for nothing/gi, replacement: "I was hoping for your support" }
   ];
   
   // Apply each replacement rule in sequence
