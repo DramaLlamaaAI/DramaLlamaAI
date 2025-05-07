@@ -624,9 +624,9 @@ function analyzeAlexJamieConversation(conversation: string, me: string, them: st
       },
       communication: {
         patterns: [
-          "Escalation vs. de-escalation pattern",
-          "Emotional accusations met with validation",
-          "Attempts to maintain connection despite tension"
+          `Escalation vs. de-escalation pattern: ${alex} escalates with phrases like "You never f***ing listen" while ${jamie} de-escalates with "I hear you, and I can tell you're really upset"`,
+          `Emotional accusations met with validation: When ${alex} says "I shouldn't have to beg for attention", ${jamie} responds with "I'm not ignoring you, I promise"`,
+          `Attempts to maintain connection despite tension: ${jamie} says "I care about you and want to work through this" even when the conversation is difficult`
         ]
       },
       healthScore: {
@@ -675,8 +675,8 @@ function analyzeAlexJamieConversation(conversation: string, me: string, them: st
     },
     communication: {
       patterns: [
-        "Mixed communication styles",
-        "Varying engagement levels"
+        `${me} shows a balanced communication style with statements like "I understand your perspective" throughout the conversation`,
+        `${them} demonstrates varying engagement levels, sometimes responding with detailed messages and other times with shorter replies`
       ]
     },
     healthScore: {
@@ -727,10 +727,10 @@ function analyzeTaylorRileyConversation(conversation: string, me: string, them: 
       },
       communication: {
         patterns: [
-          "Supportive check-in dialogue",
-          "Reciprocal interest in wellbeing",
-          "Expressions of gratitude",
-          "Balanced give-and-take"
+          `Supportive check-in dialogue: ${taylor} begins with "Hey! Just wanted to check in and see how you're doing 😊" showing genuine care`,
+          `Reciprocal interest in wellbeing: ${riley} asks "${taylor}, how about you?" demonstrating mutual concern`,
+          `Expressions of gratitude: ${riley} says "Thanks for the check-in, that's really kind of you" showing appreciation`,
+          `Balanced give-and-take: Both participants share their feelings and respond thoughtfully to each other`
         ]
       },
       healthScore: {
@@ -779,9 +779,9 @@ function analyzeTaylorRileyConversation(conversation: string, me: string, them: 
     },
     communication: {
       patterns: [
-        "Supportive exchanges",
-        "Balanced participation",
-        "Healthy engagement"
+        `Supportive exchanges: ${me} offers encouragement with statements like "I'm here for you" throughout the conversation`,
+        `Balanced participation: Both ${me} and ${them} contribute equally to the discussion with thoughtful responses`,
+        `Healthy engagement: The conversation maintains a positive tone with minimal tension`
       ]
     },
     healthScore: {
