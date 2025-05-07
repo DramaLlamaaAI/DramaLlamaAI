@@ -1250,7 +1250,41 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
       color: healthColor
     },
     keyQuotes: limitedKeyQuotes,
-    highTensionFactors: highTensionFactors.length > 0 ? highTensionFactors : undefined
+    highTensionFactors: highTensionFactors.length > 0 ? highTensionFactors : undefined,
+    
+    // Generate participant conflict scores
+    participantConflictScores: {
+      [me]: {
+        score: mePositiveCount > negativeCount * 1.5 
+          ? Math.min(100, 75 + mePositiveCount - accusatoryCount * 3)
+          : accusatoryCount > 2 
+            ? Math.max(20, 50 - accusatoryCount * 5)
+            : Math.max(40, 60 - negativeCount + positiveCount),
+        label: mePositiveCount > negativeCount * 1.5
+          ? "Supportive Communicator"
+          : accusatoryCount > 2
+            ? "Accusatory Communicator"
+            : defensiveCount > 2
+              ? "Defensive Communicator"
+              : "Balanced Communicator",
+        isEscalating: accusatoryCount > defensiveCount || (negativeCount > positiveCount * 2) 
+      },
+      [them]: {
+        score: supportiveCount > accusatoryCount * 2
+          ? Math.min(100, 75 + supportiveCount - accusatoryCount * 3)
+          : accusatoryCount > defensiveCount
+            ? Math.max(20, 45 - accusatoryCount * 5)
+            : Math.max(40, 60 - negativeCount + supportiveCount),
+        label: supportiveCount > accusatoryCount * 2
+          ? "Supportive Communicator"
+          : accusatoryCount > defensiveCount
+            ? "Accusatory Communicator"
+            : defensiveCount > accusatoryCount
+              ? "Defensive Communicator"
+              : "Balanced Communicator",
+        isEscalating: accusatoryCount > supportiveCount || conversation.includes("forget it") || conversation.includes("stop messaging me")
+      }
+    }
   };
   
   // Add extra features based on tier

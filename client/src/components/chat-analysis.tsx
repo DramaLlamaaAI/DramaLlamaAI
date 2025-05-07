@@ -757,18 +757,79 @@ export default function ChatAnalysis() {
                           </div>
                         </div>
                         
+                        {/* Participant Conflict Scores */}
+                        {result.participantConflictScores && (
+                          <div className="grid grid-cols-2 gap-4 mt-4 mb-2">
+                            <div className="border rounded p-3 bg-gradient-to-r from-white to-cyan-50">
+                              <div className="flex items-center mb-2">
+                                <div className="w-3 h-3 rounded-full bg-[#22C9C9] mr-1"></div>
+                                <h5 className="font-medium text-sm">{me}</h5>
+                              </div>
+                              <div className="relative w-full h-3 bg-gray-200 rounded-full mb-1">
+                                <div 
+                                  className={`absolute top-0 left-0 h-3 rounded-full ${
+                                    result.participantConflictScores[me].score >= 80 ? 'bg-green-400' :
+                                    result.participantConflictScores[me].score >= 60 ? 'bg-lime-400' :
+                                    result.participantConflictScores[me].score >= 40 ? 'bg-amber-400' :
+                                    result.participantConflictScores[me].score >= 20 ? 'bg-orange-400' :
+                                    'bg-red-400'
+                                  }`}
+                                  style={{width: `${result.participantConflictScores[me].score}%`}}
+                                />
+                              </div>
+                              <div className="text-sm font-medium">
+                                {result.participantConflictScores[me].label}
+                              </div>
+                              <div className="text-xs mt-1 text-slate-500">
+                                {result.participantConflictScores[me].isEscalating 
+                                  ? "Tends to escalate conflict" 
+                                  : "Communication tends to de-escalate"}
+                              </div>
+                            </div>
+                            
+                            <div className="border rounded p-3 bg-gradient-to-r from-white to-purple-50">
+                              <div className="flex items-center mb-2">
+                                <div className="w-3 h-3 rounded-full bg-[#9333ea] mr-1"></div>
+                                <h5 className="font-medium text-sm">{them}</h5>
+                              </div>
+                              <div className="relative w-full h-3 bg-gray-200 rounded-full mb-1">
+                                <div 
+                                  className={`absolute top-0 left-0 h-3 rounded-full ${
+                                    result.participantConflictScores[them].score >= 80 ? 'bg-green-400' :
+                                    result.participantConflictScores[them].score >= 60 ? 'bg-lime-400' :
+                                    result.participantConflictScores[them].score >= 40 ? 'bg-amber-400' :
+                                    result.participantConflictScores[them].score >= 20 ? 'bg-orange-400' :
+                                    'bg-red-400'
+                                  }`}
+                                  style={{width: `${result.participantConflictScores[them].score}%`}}
+                                />
+                              </div>
+                              <div className="text-sm font-medium">
+                                {result.participantConflictScores[them].label}
+                              </div>
+                              <div className="text-xs mt-1 text-slate-500">
+                                {result.participantConflictScores[them].isEscalating 
+                                  ? "Tends to escalate conflict" 
+                                  : "Communication tends to de-escalate"}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
                         <div className="bg-blue-50 p-3 rounded-md mt-3 text-sm">
                           <h5 className="font-medium text-blue-700 mb-1">What This Means</h5>
                           <p className="text-blue-800">
-                            {result.healthScore.score < 50 
-                              ? (them.toLowerCase().includes("alex") || them.toLowerCase().includes("taylor") || me.toLowerCase().includes("jamie") || me.toLowerCase().includes("riley")
-                                ? `${them} appears to contribute more to the tension spikes in this conversation through accusatory language and negative assumptions.`
-                                : me.toLowerCase().includes("alex") || me.toLowerCase().includes("taylor") || them.toLowerCase().includes("jamie") || them.toLowerCase().includes("riley")
-                                ? `${me} appears to contribute more to the tension spikes in this conversation through accusatory language and negative assumptions.`
-                                : `One participant appears to contribute more to the tension spikes in this conversation.`)
-                              : result.healthScore.score < 80
+                            {result.participantConflictScores 
+                              ? (result.participantConflictScores[me].score < result.participantConflictScores[them].score - 20
+                                ? `${me} appears to contribute more to the tension in this conversation with a ${result.participantConflictScores[me].label.toLowerCase()} style.`
+                                : result.participantConflictScores[them].score < result.participantConflictScores[me].score - 20
+                                ? `${them} appears to contribute more to the tension in this conversation with a ${result.participantConflictScores[them].label.toLowerCase()} style.`
+                                : `Both participants show relatively similar communication patterns with balanced responsibility for any tension.`)
+                              : (result.healthScore.score < 50 
+                                ? `One participant appears to contribute more to the tension spikes in this conversation.`
+                                : result.healthScore.score < 80
                                 ? `This conversation shows balanced tension levels, with minimal conflict between participants.`
-                                : `This conversation shows very low tension, with warm and supportive communication between ${me} and ${them}.`
+                                : `This conversation shows very low tension, with warm and supportive communication between ${me} and ${them}.`)
                             }
                           </p>
                         </div>
