@@ -4,13 +4,12 @@ import HeroSection from "@/components/hero-section";
 import FeaturesSection from "@/components/features-section";
 import PricingSection from "@/components/pricing-section";
 import HowItWorks from "@/components/how-it-works";
-import LiveTalk from "@/components/live-talk";
-import ChatAnalysis from "@/components/chat-analysis";
-import MessageAnalysis from "@/components/message-analysis";
-import VentMode from "@/components/vent-mode";
 import { Helmet } from "react-helmet-async";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "wouter";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MessageSquare, MessageCircle, RefreshCcw, Mic } from "lucide-react";
 
 export default function Home() {
   // Support smooth scrolling for anchor links
@@ -44,41 +43,79 @@ export default function Home() {
         <HeroSection />
         
         <div className="my-10">
-          <h2 className="text-2xl font-bold text-center mb-6">Try Drama Llama Tools</h2>
+          <h2 className="text-2xl font-bold text-center mb-6">Choose Your Tool</h2>
           
-          <Tabs defaultValue="chat" className="w-full">
-            <TabsList className="grid grid-cols-2 md:grid-cols-4 h-auto p-1 mb-6">
-              <TabsTrigger value="chat" className="py-3">
-                Chat Analysis
-              </TabsTrigger>
-              <TabsTrigger value="message" className="py-3">
-                Message Analysis
-              </TabsTrigger>
-              <TabsTrigger value="vent" className="py-3">
-                Vent Mode
-              </TabsTrigger>
-              <TabsTrigger value="live" className="py-3 relative">
-                Live Talk
-                <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px] px-1.5">PRO</Badge>
-              </TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Chat Analysis Card */}
+            <Card className="overflow-hidden">
+              <div className="p-6 flex flex-col h-full">
+                <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
+                  <MessageSquare className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Chat Analysis</h3>
+                <p className="text-gray-500 mb-4 text-sm flex-grow">
+                  Analyze full conversations between you and another person to understand emotional dynamics.
+                </p>
+                <Link href="/chat-analysis">
+                  <Button className="w-full">Analyze Conversation</Button>
+                </Link>
+              </div>
+            </Card>
             
-            <TabsContent value="chat">
-              <ChatAnalysis />
-            </TabsContent>
+            {/* Message Analysis Card */}
+            <Card className="overflow-hidden">
+              <div className="p-6 flex flex-col h-full">
+                <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
+                  <MessageCircle className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Message Analysis</h3>
+                <p className="text-gray-500 mb-4 text-sm flex-grow">
+                  Analyze a single message to understand tone, intent, and get suggestions for replies.
+                </p>
+                <Link href="/message-analysis">
+                  <Button className="w-full">Analyze Message</Button>
+                </Link>
+              </div>
+            </Card>
             
-            <TabsContent value="message">
-              <MessageAnalysis />
-            </TabsContent>
+            {/* Vent Mode Card */}
+            <Card className="overflow-hidden">
+              <div className="p-6 flex flex-col h-full">
+                <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
+                  <RefreshCcw className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">
+                  Vent Mode
+                  <Badge className="ml-2 bg-green-500 text-white text-[10px]">FREE</Badge>
+                </h3>
+                <p className="text-gray-500 mb-4 text-sm flex-grow">
+                  Rewrite emotional messages in a calmer, more constructive way before sending them.
+                </p>
+                <Link href="/vent-mode">
+                  <Button className="w-full">Try Vent Mode</Button>
+                </Link>
+              </div>
+            </Card>
             
-            <TabsContent value="vent">
-              <VentMode />
-            </TabsContent>
-            
-            <TabsContent value="live">
-              <LiveTalk />
-            </TabsContent>
-          </Tabs>
+            {/* Live Talk Card */}
+            <Card className="overflow-hidden">
+              <div className="p-6 flex flex-col h-full">
+                <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
+                  <Mic className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">
+                  Live Talk
+                  <Badge className="ml-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
+                </h3>
+                <p className="text-gray-500 mb-4 text-sm flex-grow">
+                  Record and transcribe live conversations for real-time or later analysis.
+                </p>
+                <Link href="/live-talk">
+                  <Button className="w-full">Try Live Talk</Button>
+                </Link>
+              </div>
+            </Card>
+          </div>
         </div>
         
         <HowItWorks />
