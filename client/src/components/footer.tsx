@@ -16,7 +16,7 @@ export default function Footer() {
               <span className="ml-3 text-xl font-bold">Drama Llama</span>
             </div>
             <p className="mt-2 text-sm text-white/80">© 2025 Drama Llama AI Ltd</p>
-            <p className="text-sm text-white/80">Company registration pending – England & Wales</p>
+            <p className="text-sm text-white/80">Company number: 16428423 – England & Wales</p>
             <p className="mt-2 font-medium text-secondary">"They gaslight. We spotlight."</p>
           </div>
           
