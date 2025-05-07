@@ -84,11 +84,11 @@ export default function VentMode() {
                 onClick={handleVent}
                 disabled={ventMutation.isPending || message.length === 0 || !canUseFeature}
                 variant="default"
-                className="bg-accent hover:bg-accent-dark flex items-center pr-10"
+                className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all flex items-center pr-12 shadow-md rounded-lg"
               >
                 <Heart className="mr-2 h-4 w-4" />
                 {ventMutation.isPending ? "De-escalating..." : "De-escalate Message"}
-                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
+                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-lg border border-white">
                   FREE
                 </span>
               </Button>
@@ -109,11 +109,15 @@ export default function VentMode() {
             </div>
           )}
           
-          <Alert className="bg-accent/10 border-accent/20">
-            <Heart className="h-4 w-4 text-accent" />
-            <AlertDescription className="text-accent-foreground">
-              Vent Mode helps transform emotional reactions into constructive communication.
-            </AlertDescription>
+          <Alert className="bg-gradient-to-r from-primary/10 to-accent/15 border border-accent/30 rounded-lg shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-r from-primary to-accent p-2 rounded-full">
+                <Heart className="h-4 w-4 text-white" />
+              </div>
+              <AlertDescription className="text-accent-foreground font-medium">
+                Vent Mode helps transform emotional reactions into constructive communication.
+              </AlertDescription>
+            </div>
           </Alert>
         </CardContent>
       </Card>
