@@ -13,6 +13,7 @@ import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/u
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import TrialLimiter from "./trial-limiter"; 
+import AuthModal from "./auth-modal";
 import { useUserTier } from "@/hooks/use-user-tier";
 import { incrementAnalysisCount } from "@/lib/trial-utils";
 import { getDeviceId } from "@/lib/device-id";

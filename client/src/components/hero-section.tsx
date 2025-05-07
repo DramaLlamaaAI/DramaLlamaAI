@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BadgeInfo, Flag, BarChart2 } from "lucide-react";
 import llamaImage from "@assets/FB Profile Pic.png";
+import { Link } from "wouter";
 import {
   Dialog,
   DialogContent,
