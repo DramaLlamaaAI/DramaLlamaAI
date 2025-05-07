@@ -52,7 +52,7 @@ export default function FeaturesSection() {
           
           <div className="text-center relative">
             <Zap className="w-12 h-12 mx-auto mb-2" style={{ color: '#FF69B4' }} />
-            <h3 className="text-lg font-semibold mb-2" style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h3 className="text-lg font-semibold mb-2 text-primary">
               Vent Mode
               <span className="absolute top-0 -right-1 bg-pink-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-sm">
                 FREE
