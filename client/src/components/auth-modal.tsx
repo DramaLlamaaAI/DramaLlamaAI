@@ -1,304 +1,221 @@
 import { useState } from "react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// Login form schema
-const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-});
-
-// Registration form schema
-const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
-type RegisterFormValues = z.infer<typeof registerSchema>;
+import { resetFreeTrial } from "@/lib/trial-utils";
+import { clearDeviceId } from "@/lib/device-id";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  title?: string;
-  description?: string;
 }
 
-export default function AuthModal({ 
+export default function AuthModal({
   isOpen,
   onClose,
-  onSuccess,
-  title = "Sign In or Sign Up",
-  description = "Create an account or sign in to continue using Drama Llama."
+  onSuccess
 }: AuthModalProps) {
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
+  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  
   const { toast } = useToast();
-
-  // Login form setup
-  const loginForm = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      username: "",
-      password: "",
+  
+  // Register mutation
+  const registerMutation = useMutation({
+    mutationFn: async (userData: { username: string; email: string; password: string }) => {
+      const response = await apiRequest("POST", "/api/auth/register", userData);
+      return response.json();
     },
-  });
-
-  // Registration form setup
-  const registerForm = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+    onSuccess: () => {
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created.",
+      });
+      
+      // Reset the free trial status when user registers
+      resetFreeTrial();
+      clearDeviceId();
+      
+      onSuccess();
     },
+    onError: (error: any) => {
+      toast({
+        title: "Registration failed",
+        description: error.message || "Could not create your account. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
-
-  // Handle login submission
-  const onLoginSubmit = async (values: LoginFormValues) => {
-    setIsLoggingIn(true);
-    try {
-      const response = await apiRequest("POST", "/api/auth/login", values);
-      
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Login failed");
-      }
-      
+  
+  // Login mutation
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: { username: string; password: string }) => {
+      const response = await apiRequest("POST", "/api/auth/login", credentials);
+      return response.json();
+    },
+    onSuccess: () => {
       toast({
         title: "Login successful",
         description: "Welcome back to Drama Llama!",
       });
       
+      // Reset the free trial status when user logs in
+      resetFreeTrial();
+      clearDeviceId();
+      
       onSuccess();
-    } catch (error: any) {
+    },
+    onError: (error: any) => {
       toast({
         title: "Login failed",
-        description: error.message || "Failed to sign in. Please try again.",
+        description: error.message || "Invalid credentials. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoggingIn(false);
     }
-  };
-
-  // Handle registration submission
-  const onRegisterSubmit = async (values: RegisterFormValues) => {
-    setIsRegistering(true);
-    try {
-      // Remove confirmPassword from the data sent to API
-      const { confirmPassword, ...registrationData } = values;
-      
-      const response = await apiRequest("POST", "/api/auth/register", registrationData);
-      
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Registration failed");
-      }
-      
+  });
+  
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!username || !email || !password) {
       toast({
-        title: "Registration successful",
-        description: "Welcome to Drama Llama!",
-      });
-      
-      onSuccess();
-    } catch (error: any) {
-      toast({
-        title: "Registration failed",
-        description: error.message || "Failed to create account. Please try again.",
+        title: "Missing information",
+        description: "Please fill out all fields.",
         variant: "destructive",
       });
-    } finally {
-      setIsRegistering(false);
+      return;
     }
+    
+    registerMutation.mutate({ username, email, password });
   };
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    // Reset forms when changing tabs
-    if (value === "login") {
-      registerForm.reset();
-    } else {
-      loginForm.reset();
+  
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!username || !password) {
+      toast({
+        title: "Missing information",
+        description: "Please enter your username and password.",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    loginMutation.mutate({ username, password });
   };
-
+  
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle className="text-xl">
+            {activeTab === "login" ? "Sign In" : "Create Account"}
+          </DialogTitle>
+          <DialogDescription>
+            {activeTab === "login" 
+              ? "Sign in to your Drama Llama account to continue." 
+              : "Create a new account to unlock more features."}
+          </DialogDescription>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="login" className="mt-4">
-            <Form {...loginForm}>
-              <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                <FormField
-                  control={loginForm.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="username" {...field} disabled={isLoggingIn} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+          <TabsContent value="login">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="login-username">Username</Label>
+                <Input 
+                  id="login-username" 
+                  placeholder="Your username" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
                 />
-                
-                <FormField
-                  control={loginForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} disabled={isLoggingIn} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Password</Label>
+                <Input 
+                  id="login-password" 
+                  type="password" 
+                  placeholder="Your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
-                
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoggingIn}
-                >
-                  {isLoggingIn ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
-                    </>
-                  ) : (
-                    "Login"
-                  )}
-                </Button>
-              </form>
-            </Form>
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? "Signing in..." : "Sign In"}
+              </Button>
+            </form>
           </TabsContent>
           
-          <TabsContent value="register" className="mt-4">
-            <Form {...registerForm}>
-              <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                <FormField
-                  control={registerForm.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="username" {...field} disabled={isRegistering} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+          <TabsContent value="register">
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="register-username">Username</Label>
+                <Input 
+                  id="register-username" 
+                  placeholder="Choose a username" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
                 />
-                
-                <FormField
-                  control={registerForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="your@email.com" {...field} disabled={isRegistering} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="register-email">Email</Label>
+                <Input 
+                  id="register-email" 
+                  type="email" 
+                  placeholder="Your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
-                
-                <FormField
-                  control={registerForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} disabled={isRegistering} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="register-password">Password</Label>
+                <Input 
+                  id="register-password" 
+                  type="password" 
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
-                
-                <FormField
-                  control={registerForm.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} disabled={isRegistering} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isRegistering}
-                >
-                  {isRegistering ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
-                    </>
-                  ) : (
-                    "Create Account"
-                  )}
-                </Button>
-              </form>
-            </Form>
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={registerMutation.isPending}
+              >
+                {registerMutation.isPending ? "Creating account..." : "Create Account"}
+              </Button>
+            </form>
           </TabsContent>
         </Tabs>
         
-        <DialogFooter className="text-xs text-gray-500 text-center">
-          <p className="w-full">
-            By continuing, you agree to Drama Llama's Terms of Service and Privacy Policy.
-          </p>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,22 +1,27 @@
 /**
- * Utilities for generating and managing device IDs
+ * Generates and manages a unique device ID for anonymous users
+ * This helps track free trial usage before users create an account
  */
 
-const DEVICE_ID_KEY = 'dramallama_device_id';
+// Key used to store the device ID in localStorage
+const DEVICE_ID_KEY = 'drama_llama_device_id';
 
 /**
- * Generate a random device ID
+ * Generates a random string to use as device ID
  */
 function generateDeviceId(): string {
-  const timestamp = new Date().getTime().toString(36);
-  const randomStr = Math.random().toString(36).substring(2, 10);
-  return `${timestamp}-${randomStr}`;
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15);
 }
 
 /**
- * Get the device ID or create one if it doesn't exist
+ * Gets the existing device ID from localStorage or creates a new one
  */
 export function getDeviceId(): string {
+  if (typeof window === 'undefined') {
+    return 'server-side';
+  }
+  
   let deviceId = localStorage.getItem(DEVICE_ID_KEY);
   
   if (!deviceId) {
@@ -25,4 +30,14 @@ export function getDeviceId(): string {
   }
   
   return deviceId;
+}
+
+/**
+ * Clears the device ID (used when a user logs in to prevent
+ * them from bypassing the trial by using incognito/different browser)
+ */
+export function clearDeviceId(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(DEVICE_ID_KEY);
+  }
 }

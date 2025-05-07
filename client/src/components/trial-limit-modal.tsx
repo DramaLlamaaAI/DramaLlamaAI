@@ -1,22 +1,7 @@
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Check, X } from "lucide-react";
-import { useState } from "react";
 
 interface PricingFeature {
   name: string;
@@ -25,16 +10,18 @@ interface PricingFeature {
   pro: boolean;
 }
 
-const pricingFeatures: PricingFeature[] = [
-  { name: "Basic tone analysis", free: true, personal: true, pro: true },
-  { name: "One-time use only", free: true, personal: false, pro: false },
-  { name: "10 analyses per month", free: false, personal: true, pro: false },
-  { name: "Unlimited analyses", free: false, personal: false, pro: true },
-  { name: "Red flag detection", free: false, personal: true, pro: true },
-  { name: "Communication pattern insights", free: false, personal: true, pro: true },
-  { name: "Tone progression tracking", free: false, personal: false, pro: true },
-  { name: "Replacements for problematic phrases", free: false, personal: true, pro: true },
-  { name: "Live conversation recording & analysis", free: false, personal: false, pro: true },
+// Pricing features table data
+const features: PricingFeature[] = [
+  { name: "Message Analysis", free: true, personal: true, pro: true },
+  { name: "Vent Mode", free: true, personal: true, pro: true },
+  { name: "Red Flag Detection", free: false, personal: true, pro: true },
+  { name: "Communication Patterns", free: false, personal: true, pro: true },
+  { name: "Actionable Advice", free: false, personal: true, pro: true },
+  { name: "Detailed Quote Analysis", free: false, personal: true, pro: true },
+  { name: "Alternative Wording Suggestions", free: false, personal: true, pro: true },
+  { name: "Tension Trendline", free: false, personal: false, pro: true },
+  { name: "Live Talk Recording & Analysis", free: false, personal: false, pro: true },
+  { name: "Unlimited Analyses", free: false, personal: false, pro: true },
 ];
 
 interface TrialLimitModalProps {
@@ -48,157 +35,157 @@ export default function TrialLimitModal({
   isOpen,
   onClose,
   onUpgrade,
-  onSignIn,
+  onSignIn
 }: TrialLimitModalProps) {
-  const [selectedTab, setSelectedTab] = useState("pricing");
-  const [showAnnualPricing, setShowAnnualPricing] = useState(false);
-
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">You've reached your free trial limit</DialogTitle>
+          <DialogTitle className="text-2xl">Free Trial Complete</DialogTitle>
           <DialogDescription>
-            Your free trial analysis has been used. Upgrade to continue using Drama Llama's powerful insights or sign in to your account.
+            You've used your free analysis! Create an account to continue using Drama Llama.
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full mt-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="pricing">Upgrade Options</TabsTrigger>
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="pricing" className="mt-4 space-y-4">
-            <div className="flex items-center justify-end space-x-2">
-              <span className="text-sm text-muted-foreground">Monthly</span>
-              <Switch
-                checked={showAnnualPricing}
-                onCheckedChange={setShowAnnualPricing}
-              />
-              <div className="flex items-center">
-                <span className="text-sm text-muted-foreground">Annual</span>
-                <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 border-green-200">
-                  Save 20%
-                </Badge>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Free Tier */}
-              <div className="border rounded-lg p-4 flex flex-col relative">
-                <h3 className="font-bold text-lg">Free</h3>
-                <p className="text-2xl font-bold mt-2">$0</p>
-                <p className="text-sm text-muted-foreground mb-4">One-time use</p>
-                <div className="space-y-2 flex-grow">
-                  {pricingFeatures.map((feature, i) => (
-                    <div key={i} className="flex items-start">
-                      {feature.free ? (
-                        <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <X className="h-5 w-5 text-gray-300 mr-2 mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className={feature.free ? "" : "text-gray-400"}>
-                        {feature.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full mt-4"
-                  disabled
-                >
-                  Current Plan
-                </Button>
-              </div>
-
-              {/* Personal Tier */}
-              <div className="border-2 border-primary rounded-lg p-4 flex flex-col relative">
-                <div className="absolute -top-3 -right-3">
-                  <Badge className="bg-primary text-white">Popular</Badge>
-                </div>
-                <h3 className="font-bold text-lg">Personal</h3>
-                <p className="text-2xl font-bold mt-2">
-                  ${showAnnualPricing ? "6.99" : "8.99"}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    /{showAnnualPricing ? "mo (billed yearly)" : "month"}
-                  </span>
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">For individuals</p>
-                <div className="space-y-2 flex-grow">
-                  {pricingFeatures.map((feature, i) => (
-                    <div key={i} className="flex items-start">
-                      {feature.personal ? (
-                        <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <X className="h-5 w-5 text-gray-300 mr-2 mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className={feature.personal ? "" : "text-gray-400"}>
-                        {feature.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  className="w-full mt-4"
-                  onClick={() => onUpgrade("personal")}
-                >
-                  Get Personal
-                </Button>
-              </div>
-
-              {/* Pro Tier */}
-              <div className="border rounded-lg p-4 flex flex-col relative">
-                <h3 className="font-bold text-lg">Pro</h3>
-                <p className="text-2xl font-bold mt-2">
-                  ${showAnnualPricing ? "14.99" : "19.99"}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    /{showAnnualPricing ? "mo (billed yearly)" : "month"}
-                  </span>
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">For power users</p>
-                <div className="space-y-2 flex-grow">
-                  {pricingFeatures.map((feature, i) => (
-                    <div key={i} className="flex items-start">
-                      {feature.pro ? (
-                        <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <X className="h-5 w-5 text-gray-300 mr-2 mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className={feature.pro ? "" : "text-gray-400"}>
-                        {feature.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full mt-4"
-                  onClick={() => onUpgrade("pro")}
-                >
-                  Get Pro
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="login" className="mt-4">
-            <div className="flex flex-col items-center justify-center py-6">
-              <h3 className="text-lg font-medium mb-2">Already have an account?</h3>
-              <p className="text-center text-muted-foreground mb-6">
-                Sign in to your Drama Llama account to continue your journey of improved communication.
-              </p>
-              <Button onClick={onSignIn} className="w-full max-w-xs">
+        <div className="py-6">
+          <h3 className="text-lg font-semibold mb-4">Choose a plan that's right for you</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Free Plan */}
+            <div className="rounded-lg border p-6 bg-background shadow-sm">
+              <h3 className="text-xl font-bold mb-2">Free</h3>
+              <p className="text-2xl font-bold mb-4">$0</p>
+              <p className="text-muted-foreground mb-6">Get started with basic analysis</p>
+              <ul className="space-y-2 mb-6 text-sm">
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>1 free analysis</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>Basic conversation insights</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>Simple tone analysis</span>
+                </li>
+                <li className="flex items-center">
+                  <X className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Advanced features</span>
+                </li>
+              </ul>
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={onSignIn}
+              >
                 Sign In
               </Button>
             </div>
-          </TabsContent>
-        </Tabs>
-
-        <DialogFooter className="gap-2 sm:gap-0 flex-col sm:flex-row">
-          <div className="text-xs text-muted-foreground text-center sm:text-left w-full">
-            Need help choosing? Contact us at support@dramallama.ai
+            
+            {/* Personal Plan */}
+            <div className="rounded-lg border p-6 bg-primary/5 border-primary shadow-md">
+              <div className="bg-primary text-primary-foreground text-xs py-1 px-3 rounded-full w-fit mb-2">Popular</div>
+              <h3 className="text-xl font-bold mb-2">Personal</h3>
+              <p className="text-2xl font-bold mb-1">$9.99</p>
+              <p className="text-xs text-muted-foreground mb-4">per month</p>
+              <p className="text-muted-foreground mb-6">Everything in Free, plus advanced analysis</p>
+              <ul className="space-y-2 mb-6 text-sm">
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>10 analyses per month</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>Red flag detection</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>Pattern recognition</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>Actionable advice</span>
+                </li>
+              </ul>
+              <Button 
+                className="w-full" 
+                onClick={() => onUpgrade('personal')}
+              >
+                Choose Personal
+              </Button>
+            </div>
+            
+            {/* Pro Plan */}
+            <div className="rounded-lg border p-6 bg-background shadow-sm">
+              <h3 className="text-xl font-bold mb-2">Pro</h3>
+              <p className="text-2xl font-bold mb-1">$19.99</p>
+              <p className="text-xs text-muted-foreground mb-4">per month</p>
+              <p className="text-muted-foreground mb-6">Everything in Personal, plus unlimited usage</p>
+              <ul className="space-y-2 mb-6 text-sm">
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>Unlimited analyses</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>Tension timeline tracking</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>Live conversation analysis</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-primary" />
+                  <span>Priority support</span>
+                </li>
+              </ul>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => onUpgrade('pro')}
+              >
+                Choose Pro
+              </Button>
+            </div>
+          </div>
+          
+          <div className="mt-8 border rounded-lg">
+            <h4 className="text-md font-semibold p-4 border-b">Feature Comparison</h4>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[40%]">Feature</TableHead>
+                  <TableHead className="text-center">Free</TableHead>
+                  <TableHead className="text-center">Personal</TableHead>
+                  <TableHead className="text-center">Pro</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {features.map((feature) => (
+                  <TableRow key={feature.name}>
+                    <TableCell>{feature.name}</TableCell>
+                    <TableCell className="text-center">
+                      {feature.free ? <Check className="mx-auto h-4 w-4 text-primary" /> : <X className="mx-auto h-4 w-4 text-muted-foreground" />}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {feature.personal ? <Check className="mx-auto h-4 w-4 text-primary" /> : <X className="mx-auto h-4 w-4 text-muted-foreground" />}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {feature.pro ? <Check className="mx-auto h-4 w-4 text-primary" /> : <X className="mx-auto h-4 w-4 text-muted-foreground" />}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+        
+        <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-2">
+          <Button variant="ghost" onClick={onClose}>Maybe Later</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onSignIn}>Sign In</Button>
+            <Button onClick={() => onUpgrade('personal')}>Upgrade Now</Button>
           </div>
         </DialogFooter>
       </DialogContent>
