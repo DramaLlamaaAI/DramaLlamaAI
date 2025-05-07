@@ -1255,12 +1255,12 @@ function generateFallbackAnalysis(conversation: string, me: string, them: string
     // Generate participant conflict scores
     participantConflictScores: {
       [me]: {
-        score: mePositiveCount > negativeCount * 1.5 
-          ? Math.min(100, 75 + mePositiveCount - accusatoryCount * 3)
+        score: positiveCount > negativeCount * 1.5 
+          ? Math.min(100, 75 + positiveCount - accusatoryCount * 3)
           : accusatoryCount > 2 
             ? Math.max(20, 50 - accusatoryCount * 5)
             : Math.max(40, 60 - negativeCount + positiveCount),
-        label: mePositiveCount > negativeCount * 1.5
+        label: positiveCount > negativeCount * 1.5
           ? "Supportive Communicator"
           : accusatoryCount > 2
             ? "Accusatory Communicator"

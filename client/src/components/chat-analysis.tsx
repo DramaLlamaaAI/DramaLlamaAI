@@ -758,7 +758,11 @@ export default function ChatAnalysis() {
                         </div>
                         
                         {/* Participant Conflict Scores */}
-                        {result.participantConflictScores && (
+                        {result.participantConflictScores && 
+                          result.participantConflictScores[me] && 
+                          result.participantConflictScores[them] &&
+                          typeof result.participantConflictScores[me].score === 'number' &&
+                          typeof result.participantConflictScores[them].score === 'number' ? (
                           <div className="grid grid-cols-2 gap-4 mt-4 mb-2">
                             <div className="border rounded p-3 bg-gradient-to-r from-white to-cyan-50">
                               <div className="flex items-center mb-2">
@@ -814,22 +818,28 @@ export default function ChatAnalysis() {
                               </div>
                             </div>
                           </div>
-                        )}
+                        ) : null}
                         
                         <div className="bg-blue-50 p-3 rounded-md mt-3 text-sm">
                           <h5 className="font-medium text-blue-700 mb-1">What This Means</h5>
                           <p className="text-blue-800">
-                            {result.participantConflictScores 
+                            {result.participantConflictScores && 
+                             result.participantConflictScores[me] && 
+                             result.participantConflictScores[them] &&
+                             typeof result.participantConflictScores[me].score === 'number' &&
+                             typeof result.participantConflictScores[them].score === 'number'
                               ? (result.participantConflictScores[me].score < result.participantConflictScores[them].score - 20
                                 ? `${me} appears to contribute more to the tension in this conversation with a ${result.participantConflictScores[me].label.toLowerCase()} style.`
                                 : result.participantConflictScores[them].score < result.participantConflictScores[me].score - 20
                                 ? `${them} appears to contribute more to the tension in this conversation with a ${result.participantConflictScores[them].label.toLowerCase()} style.`
                                 : `Both participants show relatively similar communication patterns with balanced responsibility for any tension.`)
-                              : (result.healthScore.score < 50 
-                                ? `One participant appears to contribute more to the tension spikes in this conversation.`
-                                : result.healthScore.score < 80
-                                ? `This conversation shows balanced tension levels, with minimal conflict between participants.`
-                                : `This conversation shows very low tension, with warm and supportive communication between ${me} and ${them}.`)
+                              : (result.healthScore && result.healthScore.score 
+                                ? (result.healthScore.score < 50 
+                                  ? `One participant appears to contribute more to the tension spikes in this conversation.`
+                                  : result.healthScore.score < 80
+                                  ? `This conversation shows balanced tension levels, with minimal conflict between participants.`
+                                  : `This conversation shows very low tension, with warm and supportive communication between ${me} and ${them}.`)
+                                : `This conversation shows mixed communication patterns with both supportive and challenging moments.`)
                             }
                           </p>
                         </div>
