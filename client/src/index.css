@@ -128,4 +128,25 @@
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
+  
+  /* Custom button disabled styles */
+  button.bg-cyan-100:disabled {
+    background-color: rgba(207, 250, 254, 0.5);
+    color: rgba(8, 145, 178, 0.5);
+    border-color: rgba(165, 243, 252, 0.5);
+  }
+  
+  button.bg-cyan-100:disabled * {
+    color: rgba(8, 145, 178, 0.5);
+  }
+  
+  button.bg-pink-100:disabled {
+    background-color: rgba(252, 231, 243, 0.5);
+    color: rgba(219, 39, 119, 0.5);
+    border-color: rgba(251, 207, 232, 0.5);
+  }
+  
+  button.bg-pink-100:disabled * {
+    color: rgba(219, 39, 119, 0.5);
+  }
 }

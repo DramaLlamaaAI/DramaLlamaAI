@@ -354,21 +354,22 @@ export default function ChatAnalysis() {
           <div className="flex flex-wrap gap-4 mb-6">
             <Button 
               variant="outline" 
-              className="flex items-center gap-2" 
+              className="flex items-center gap-2 bg-cyan-100 hover:bg-cyan-200 border-cyan-200" 
               onClick={handleDetectNames}
               disabled={!conversation || detectNamesMutation.isPending}
             >
-              <Search className="h-4 w-4" /> 
-              {detectNamesMutation.isPending ? "Detecting..." : "Detect Names"} 
-              <span className="text-xs text-muted-foreground">(No API Required)</span>
+              <Search className="h-4 w-4 text-cyan-700" /> 
+              <span className="text-cyan-800">{detectNamesMutation.isPending ? "Detecting..." : "Detect Names"}</span>
+              <span className="text-xs text-cyan-600">(No API Required)</span>
             </Button>
             <Button 
               variant="outline" 
-              className="flex items-center"
+              className="flex items-center bg-pink-100 hover:bg-pink-200 border-pink-200"
               onClick={handleSwitchRoles}
               disabled={!me && !them}
             >
-              <ArrowLeftRight className="mr-2 h-4 w-4" /> Switch Roles
+              <ArrowLeftRight className="mr-2 h-4 w-4 text-pink-700" /> 
+              <span className="text-pink-800">Switch Roles</span>
             </Button>
             <Button 
               className={`ml-auto flex items-center ${analysisMutation.isPending ? '' : 'pulsing'}`}
