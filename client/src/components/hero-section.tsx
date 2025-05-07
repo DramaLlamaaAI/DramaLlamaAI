@@ -54,44 +54,46 @@ export default function HeroSection() {
                     How It Works
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[85vw] sm:max-w-[550px]" aria-describedby="how-it-works-description">
+                <DialogContent className="max-w-[85vw] sm:max-w-[480px]" aria-describedby="how-it-works-description">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl">How Drama Llama Works</DialogTitle>
+                    <DialogTitle className="text-xl">How Drama Llama Works</DialogTitle>
                     <DialogDescription id="how-it-works-description" className="sr-only">
                       Learn how Drama Llama analyzes your conversations and messages
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="pt-4 space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1">Chat Analysis</h3>
-                      <p>Paste a conversation to get insights about emotional tone, identify patterns and red flags, and receive advice on healthier communication.</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1">Message Analysis</h3>
-                      <p>Input a single message to understand its tone, potential interpretations, and get suggestions for effective responses.</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1">Vent Mode</h3>
-                      <p>Transform heated emotional messages into calm, constructive communication that preserves your concerns while opening the door to resolution.</p>
-                    </div>
-                    
-                    <div className="relative">
-                      <div className="absolute -top-2 -right-2">
-                        <span className="bg-gradient-to-r from-primary to-secondary text-white text-xs px-2 py-0.5 rounded-full">PRO</span>
+                  <div className="pt-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h3 className="text-sm font-semibold mb-0.5">Chat Analysis</h3>
+                        <p className="text-xs">Analyze conversations for tone, patterns, and suggestions for healthier communication.</p>
                       </div>
-                      <h3 className="text-lg font-semibold mb-1">Live Talk</h3>
-                      <p>Record conversations in real-time, have them automatically transcribed, and receive immediate AI-powered analysis of the discussion dynamics.</p>
+                      
+                      <div>
+                        <h3 className="text-sm font-semibold mb-0.5">Message Analysis</h3>
+                        <p className="text-xs">Understand tone and intent of single messages with response suggestions.</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-semibold mb-0.5">Vent Mode</h3>
+                        <p className="text-xs">Transform emotional messages into calm, constructive communication.</p>
+                      </div>
+                      
+                      <div className="relative">
+                        <div className="absolute -top-1 -right-1">
+                          <span className="bg-gradient-to-r from-primary to-secondary text-white text-[10px] px-1.5 py-0.5 rounded-full">PRO</span>
+                        </div>
+                        <h3 className="text-sm font-semibold mb-0.5">Live Talk</h3>
+                        <p className="text-xs">Record and transcribe conversations with real-time AI analysis.</p>
+                      </div>
                     </div>
                     
-                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-2">
-                      <h3 className="text-lg font-semibold mb-1 text-blue-700">Your Privacy Matters</h3>
-                      <p>Drama Llama doesn't store or have visibility into your conversations. All processing happens securely between your device and our AI system. Your data is never saved.</p>
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mt-1">
+                      <h3 className="text-sm font-semibold mb-0.5 text-blue-700">Your Privacy Matters</h3>
+                      <p className="text-xs">Your conversations are not stored. All processing happens securely with no data saved.</p>
                     </div>
                     
-                    <div className="pt-2">
-                      <p className="text-sm text-muted-foreground">Drama Llama uses advanced AI to analyze communication patterns and emotional cues. All insights are meant to provide perspective, not definitive judgments about your relationships.</p>
+                    <div className="pt-1">
+                      <p className="text-xs text-muted-foreground">AI analysis provides perspective, not definitive judgments about your relationships.</p>
                     </div>
                   </div>
                 </DialogContent>
