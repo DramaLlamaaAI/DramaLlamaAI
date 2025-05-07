@@ -146,7 +146,7 @@ const prompts = {
         }
       },
       "communication": {
-        "patterns": ["1-2 basic observable patterns"]
+        "patterns": ["1-2 basic observable patterns with specific examples from the conversation"]
       },
       "healthScore": {
         "score": number from 0-100 representing conversation health (higher is healthier),
@@ -164,11 +164,11 @@ const prompts = {
         ]
       },
       "redFlags": [
-        { "type": "type of flag", "description": "description", "severity": number from 1-10 }
+        { "type": "type of flag", "description": "description that includes a specific quote from the conversation", "severity": number from 1-10 }
       ],
       "communication": {
-        "patterns": ["3-5 observable patterns"],
-        "suggestions": ["2-3 communication improvement suggestions"]
+        "patterns": ["3-5 observable patterns that include specific examples from the conversation"],
+        "suggestions": ["2-3 personalized communication improvement suggestions specifically addressing {me} and {them}'s communication styles"]
       },
       "healthScore": {
         "score": number from 0-100 representing conversation health (higher is healthier),
@@ -189,11 +189,11 @@ const prompts = {
         ]
       },
       "redFlags": [
-        { "type": "type of flag", "description": "description", "severity": number from 1-10 }
+        { "type": "type of flag", "description": "detailed description that includes a specific quote from the conversation", "severity": number from 1-10 }
       ],
       "communication": {
-        "patterns": ["4-6 detailed observable patterns"],
-        "suggestions": ["3-5 personalized communication improvement suggestions"]
+        "patterns": ["4-6 detailed observable patterns that reference specific quotes or moments from the conversation"],
+        "suggestions": ["3-5 personalized communication improvement suggestions specifically for {me} and {them} based on their actual communication patterns"]
       },
       "healthScore": {
         "score": number from 0-100 representing conversation health (higher is healthier),
