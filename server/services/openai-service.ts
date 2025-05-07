@@ -1321,9 +1321,10 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
     
     explanation = "The rewritten message softens absolute language and expresses how you feel, rather than making accusations that might prompt defensiveness.";
   }
-  // Handle "hate" language
-  else if (lowerMessage.includes("hate")) {
-    rewritten = message.replace(/hate/gi, "feel frustrated by");
+  // Handle "hate" language - but make sure we're not matching "whatever"
+  else if (lowerMessage.includes("hate") && !lowerMessage.includes("whatever")) {
+    // Use a more specific pattern with word boundaries to avoid matching "hate" in words like "whatever"
+    rewritten = message.replace(/\bhate\b/gi, "feel frustrated by");
     
     explanation = "The rewritten message expresses frustration instead of hate, which is less inflammatory and more likely to lead to productive conversation.";
   }
@@ -1360,11 +1361,25 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
     
     explanation = "The rewritten message directly expresses the underlying feeling of disappointment and the need for attention, rather than using sarcasm.";
   }
-  // Handle 'whatever' pattern specifically
-  else if (lowerMessage.includes("whatever")) {
-    rewritten = "I'm feeling dismissed and would like to discuss this more when we're both ready";
+  // Handle 'whatever' pattern specifically - completely replace the message
+  else if (lowerMessage.includes("whatever") || lowerMessage.match(/^\s*whatever\b/i)) {
+    // Create a brand new message instead of trying to modify the existing one
+    const context = lowerMessage.replace(/^\s*whatever\b[\s\.,]*/i, "").trim();
+    
+    if (context.length > 0) {
+      rewritten = "I'm feeling dismissed about " + context + ". I would like to discuss this when we're both ready.";
+    } else {
+      rewritten = "I'm feeling dismissed and would like to discuss this more when we're both ready";
+    }
     
     explanation = "The rewritten message expresses the feeling of being dismissed without using dismissive language that cuts off communication.";
+    
+    // Return early to avoid other replacement rules being applied
+    return {
+      original: message,
+      rewritten,
+      explanation
+    };
   }
   // Handle other passive-aggressive or sarcastic patterns
   else if (lowerMessage.includes("i guess") || lowerMessage.includes("wow") || 
@@ -1393,7 +1408,7 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
     { pattern: /you never listen/gi, replacement: "I feel like I'm not being heard" },
     { pattern: /you never make time/gi, replacement: "I would appreciate more time together" },
     { pattern: /you never/gi, replacement: "I feel like you rarely" },
-    { pattern: /hate how/gi, replacement: "feel frustrated by" },
+    { pattern: /\bhate how\b/gi, replacement: "feel frustrated by" },
     { pattern: /you always/gi, replacement: "I feel like sometimes you" },
     
     // Passive aggressive patterns
@@ -1402,7 +1417,6 @@ function generateFallbackVentResponse(message: string): VentModeResponse {
     { pattern: /too busy/gi, replacement: "have other priorities" },
     { pattern: /don't care/gi, replacement: "might not understand how important this is" },
     { pattern: /my feelings (again|once more)/gi, replacement: "how I feel about this" },
-    { pattern: /whatever/gi, replacement: "I'm feeling dismissed right now" },
     { pattern: /fine/gi, replacement: "I'm feeling uncomfortable with this" },
     
     // Sarcastic patterns
