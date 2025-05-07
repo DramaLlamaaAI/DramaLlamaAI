@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Heart } from "lucide-react";
+import { Heart, Copy } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ventMessage, VentModeResponse, getUserUsage } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -97,10 +97,28 @@ export default function VentMode() {
           
           {result && (
             <div className="rounded-lg border border-border p-4 mb-6 bg-muted slide-in">
-              <h3 className="font-medium mb-2 text-foreground">Calmer Version</h3>
-              <p className="bg-background p-3 rounded border border-border mb-4">
-                {result.rewritten}
-              </p>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-medium text-foreground">Calmer Version</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs flex items-center gap-1 h-8"
+                  onClick={() => {
+                    // Copy the rewritten text to clipboard
+                    navigator.clipboard.writeText(result.rewritten);
+                    toast({
+                      title: "Copied to Clipboard",
+                      description: "The calmer version has been copied to your clipboard.",
+                    });
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5 mr-1" />
+                  Copy Text
+                </Button>
+              </div>
+              <div className="relative bg-background p-3 rounded border border-border mb-4">
+                <p>{result.rewritten}</p>
+              </div>
               
               <h4 className="text-sm font-medium text-muted-foreground mb-1">Why This Works Better</h4>
               <p className="text-sm text-muted-foreground">
