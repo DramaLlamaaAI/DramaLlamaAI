@@ -543,6 +543,30 @@ export default function ChatAnalysis() {
                 <h4 className="font-medium mb-2">Overall Tone</h4>
                 <p className="text-lg mb-4">{result.toneAnalysis.overallTone}</p>
                 
+                {/* Chat Examples Section */}
+                {result.keyQuotes && result.keyQuotes.length > 0 && (
+                  <div className="mt-3 mb-4 bg-white p-3 rounded border border-gray-200">
+                    <h5 className="font-medium mb-2 text-sm">Examples from Chat</h5>
+                    <div className="space-y-2">
+                      {result.keyQuotes.slice(0, 2).map((quote, idx) => (
+                        <div key={idx} className={`p-2 rounded ${
+                          quote.speaker === me ? 'bg-cyan-50 border border-cyan-100' : 
+                          'bg-pink-50 border border-pink-100'
+                        }`}>
+                          <div className="flex items-start">
+                            <span className={`font-medium mr-2 ${
+                              quote.speaker === me ? 'text-cyan-700' : 'text-pink-700'
+                            }`}>
+                              {quote.speaker}:
+                            </span>
+                            <span className="italic">"{quote.quote}"</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 {result.toneAnalysis.participantTones && (
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <h5 className="font-medium mb-2 text-sm uppercase tracking-wide text-muted-foreground">Participant Analysis</h5>
