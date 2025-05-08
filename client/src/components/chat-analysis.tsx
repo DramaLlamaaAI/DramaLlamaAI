@@ -868,7 +868,7 @@ export default function ChatAnalysis() {
             <TabsList className="mb-4">
               <TabsTrigger value="paste" className="relative">
                 Paste Chat
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                <span className="absolute -top-1 -right-2 bg-green-100 text-green-700 text-[9px] px-1.5 py-0.5 font-medium transform rotate-[-8deg] border border-green-300">
                   Recommended
                 </span>
               </TabsTrigger>
