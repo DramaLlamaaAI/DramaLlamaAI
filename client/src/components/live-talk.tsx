@@ -40,40 +40,63 @@ export default function LiveTalk() {
     }
     
     try {
+      // Show guidance toast for better recording
+      toast({
+        title: "Starting Recording",
+        description: "Preparing your microphone. Please speak clearly when recording starts.",
+      });
+      
       // Request high-quality audio with noise suppression enabled
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      // Use different constraints depending on the browser for best compatibility
+      const constraints = {
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
+          // Use standard settings that work across browsers
           channelCount: 1,
-          sampleRate: 48000,
+          sampleRate: 44100,  // Standard CD-quality sampling rate for better compatibility
           sampleSize: 16
-        } 
-      });
-      
-      // Create audio context for processing
-      const audioContext = new AudioContext();
-      const source = audioContext.createMediaStreamSource(stream);
-      
-      // Add a compressor to normalize audio levels
-      const compressor = audioContext.createDynamicsCompressor();
-      compressor.threshold.value = -24;
-      compressor.knee.value = 30;
-      compressor.ratio.value = 12;
-      compressor.attack.value = 0.003;
-      compressor.release.value = 0.25;
-      source.connect(compressor);
-      
-      // Create MediaRecorder with high bitrate for better quality
-      const options = { 
-        audioBitsPerSecond: 128000,
-        mimeType: 'audio/webm;codecs=opus' 
+        }
       };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      // Determine the best supported mime type for this browser
+      const getMimeType = () => {
+        const types = [
+          'audio/webm;codecs=opus',
+          'audio/webm',
+          'audio/mp4',
+          'audio/ogg;codecs=opus',
+          'audio/ogg'
+        ];
+        
+        for (const type of types) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            console.log(`Using supported mime type: ${type}`);
+            return type;
+          }
+        }
+        
+        // Fallback to default
+        console.log('No preferred mime type supported, using default');
+        return '';
+      };
+      
+      // Create MediaRecorder with optimal settings for current browser
+      const options: MediaRecorderOptions = { 
+        audioBitsPerSecond: 128000
+      };
+      
+      const mimeType = getMimeType();
+      if (mimeType) {
+        options.mimeType = mimeType;
+      }
       
       mediaRecorderRef.current = new MediaRecorder(stream, options);
       
-      // Get data more frequently (every 1 second) to avoid buffer issues
+      // Get data frequently to ensure we don't lose any audio
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
@@ -81,28 +104,55 @@ export default function LiveTalk() {
       };
       
       mediaRecorderRef.current.onstop = () => {
-        // Create a high-quality audio blob for better transcription
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
-        setAudioBlob(audioBlob);
-        
-        // Create URL for playback
-        if (audioRef.current) {
-          audioRef.current.src = URL.createObjectURL(audioBlob);
+        try {
+          // Create a high-quality audio blob for better transcription
+          // Use the same mime type as recording for consistency
+          const audioBlob = new Blob(audioChunksRef.current, { 
+            type: mediaRecorderRef.current?.mimeType || 'audio/webm' 
+          });
+          setAudioBlob(audioBlob);
+          
+          // Create URL for playback
+          if (audioRef.current) {
+            const url = URL.createObjectURL(audioBlob);
+            audioRef.current.src = url;
+            
+            // Test playability
+            audioRef.current.onloadedmetadata = () => {
+              console.log("Audio loaded successfully, duration:", audioRef.current?.duration);
+            };
+            
+            audioRef.current.onerror = (e) => {
+              console.error("Audio playback error:", e);
+              toast({
+                title: "Playback Issue",
+                description: "There was a problem with the recording. Try recording again.",
+                variant: "destructive"
+              });
+            };
+          }
+          
+          // Log for debugging
+          console.log(`Recording completed: ${audioBlob.size} bytes, ${audioChunksRef.current.length} chunks, type: ${audioBlob.type}`);
+        } catch (error) {
+          console.error("Error creating audio blob:", error);
+          toast({
+            title: "Recording Error",
+            description: "There was a problem processing your recording. Please try again.",
+            variant: "destructive"
+          });
         }
-        
-        // Log for debugging
-        console.log(`Recording completed: ${audioBlob.size} bytes, ${audioChunksRef.current.length} chunks`);
       };
       
-      // Start recording with frequent data collection (1 second slices)
+      // Start recording with frequent data collection (500ms slices)
       audioChunksRef.current = [];
-      mediaRecorderRef.current.start(1000);
+      mediaRecorderRef.current.start(500); // More frequent chunks
       setIsRecording(true);
       
       // Toast notification
       toast({
         title: "Recording Started",
-        description: "High-quality audio recording is now active. Speak clearly for best results.",
+        description: "Audio recording is now active. Speak clearly for best results.",
       });
       
       // Start timer

@@ -51,13 +51,22 @@ export const transcribeAudio = async (req: Request, res: Response) => {
     try {
       console.log(`Processing audio file: ${req.file.originalname}, size: ${req.file.size} bytes, mimetype: ${req.file.mimetype}`);
       
+      // Define proper type for context info
+      interface ContextInfo {
+        isConversation?: boolean;
+        speakerCount?: number;
+        speakerLabels?: string[];
+      }
+      
       // Get context information if provided
-      let contextInfo: {speakerLabels?: string[]} = {};
+      let contextInfo: ContextInfo = {};
       let speakerPrompt = "This is a conversation between two people discussing personal matters or relationships.";
       
       if (req.body.context) {
         try {
-          contextInfo = JSON.parse(req.body.context);
+          const parsedContext = JSON.parse(req.body.context);
+          contextInfo = parsedContext as ContextInfo;
+          
           if (contextInfo.speakerLabels && contextInfo.speakerLabels.length >= 2) {
             speakerPrompt = `This is a conversation between ${contextInfo.speakerLabels[0]} and ${contextInfo.speakerLabels[1]}.`;
           }
