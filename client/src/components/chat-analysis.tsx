@@ -33,6 +33,7 @@ export default function ChatAnalysis() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isEligibilityChecking, setIsEligibilityChecking] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showParticipant, setShowParticipant] = useState<'both' | 'me' | 'them'>('both');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -799,46 +800,83 @@ export default function ChatAnalysis() {
                 </div>
               )}
               
-              {/* Simulated Tension Trendline */}
+              {/* Simulated Tension Trendline with Enhanced Accuracy */}
               <div className="bg-white border border-gray-200 p-4 rounded-lg mb-4">
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="font-medium text-gray-800 flex items-center">
                     <TrendingUp className="h-4 w-4 mr-2 text-gray-600" />
                     Simulated Tension Trendline
                   </h4>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center">
-                      <span className="h-3 w-3 rounded-full bg-cyan-400 inline-block mr-1"></span>
-                      <span className="text-xs text-gray-600">{me}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="h-3 w-3 rounded-full bg-pink-400 inline-block mr-1"></span>
-                      <span className="text-xs text-gray-600">{them}</span>
+                  
+                  {/* Participant Toggle */}
+                  <div className="flex items-center">
+                    <div className="flex items-center border rounded-md p-1 bg-gray-50">
+                      <button 
+                        className={`text-xs px-2 py-1 rounded ${showParticipant === 'both' ? 'bg-gray-200' : ''}`}
+                        onClick={() => setShowParticipant('both')}
+                      >
+                        Both
+                      </button>
+                      <button 
+                        className={`text-xs px-2 py-1 rounded flex items-center ${showParticipant === 'me' ? 'bg-cyan-100 text-cyan-700' : ''}`}
+                        onClick={() => setShowParticipant('me')}
+                      >
+                        <span className="h-2 w-2 rounded-full bg-cyan-400 inline-block mr-1"></span>
+                        {me}
+                      </button>
+                      <button 
+                        className={`text-xs px-2 py-1 rounded flex items-center ${showParticipant === 'them' ? 'bg-pink-100 text-pink-700' : ''}`}
+                        onClick={() => setShowParticipant('them')}
+                      >
+                        <span className="h-2 w-2 rounded-full bg-pink-400 inline-block mr-1"></span>
+                        {them}
+                      </button>
                     </div>
                   </div>
                 </div>
                 
                 <div className="h-64 mb-2">
-                  {/* Simplified conversation tension simulation */}
+                  {/* Enhanced conversation tension simulation */}
                   {(() => {
-                    // Generate simulated conversation points based on health score
-                    const points = 8;  // Number of data points
+                    // Generate more data points for smoother curves
+                    const points = 12;  // Increased number of data points
                     const healthScore = result.healthScore?.score || 75;
                     
-                    // Generate random but weighted data based on health score
-                    // Lower health scores = more volatile line with higher tension values
-                    const volatility = 100 - healthScore;
-                    const baselinePersonA = Math.max(20, 80 - healthScore); 
-                    const baselinePersonB = Math.max(15, 75 - healthScore);
+                    // Enhanced parameters based on analysis data
+                    // Use redFlags count and severity to influence volatility
+                    const redFlagSeverity = result.redFlags ? 
+                      result.redFlags.reduce((sum, flag) => sum + flag.severity, 0) / (result.redFlags.length || 1) : 
+                      3;
                     
-                    const generatePoint = (baseline: number, index: number) => {
-                      const randomFactor = Math.sin(index * 0.9) * (volatility * 0.6);
-                      return Math.max(5, Math.min(95, baseline + randomFactor));
+                    // Use conflict scores if available
+                    const conflictScoreMe = result.participantConflictScores?.[me]?.score || 50;
+                    const conflictScoreThem = result.participantConflictScores?.[them]?.score || 50;
+                    
+                    const volatility = Math.min(100, (100 - healthScore) + (redFlagSeverity * 5));
+                    const baselinePersonA = Math.max(10, conflictScoreMe * 0.9); 
+                    const baselinePersonB = Math.max(10, conflictScoreThem * 0.9);
+                    
+                    // Enhanced point generation with trend patterns
+                    const generatePoint = (baseline: number, index: number, isEscalating: boolean) => {
+                      // Create a more natural progression with cubic function
+                      const progressionFactor = isEscalating ? 
+                        Math.pow(index / points, 1.5) * 25 : 
+                        Math.sin(index / (points/2) * Math.PI) * 15;
+                      
+                      // Add volatility based on health score and conflict indicators
+                      const randomFactor = (Math.sin(index * 1.5) + Math.cos(index * 0.7)) * (volatility * 0.3);
+                      
+                      // Apply a trend - higher points toward the middle of conversation for escalating patterns
+                      return Math.max(5, Math.min(95, baseline + progressionFactor + randomFactor));
                     };
                     
+                    // Check if participants have escalation patterns
+                    const isPersonAEscalating = result.participantConflictScores?.[me]?.isEscalating || false;
+                    const isPersonBEscalating = result.participantConflictScores?.[them]?.isEscalating || false;
+                    
                     const data = Array.from({ length: points }).map((_, i) => {
-                      const personA = generatePoint(baselinePersonA, i);
-                      const personB = generatePoint(baselinePersonB, i + 2); // Offset to create different patterns
+                      const personA = generatePoint(baselinePersonA, i, isPersonAEscalating);
+                      const personB = generatePoint(baselinePersonB, i + 1, isPersonBEscalating); // Slight offset
                       
                       return {
                         name: `Point ${i + 1}`,
@@ -847,28 +885,47 @@ export default function ChatAnalysis() {
                       };
                     });
                     
-                    // Simulate conversation "milestone" labels
+                    // Improved conversation "milestone" labels
                     const milestones = [
-                      'Conversation start', 
-                      'Topic introduction',
-                      'First disagreement', 
-                      'Clarification',
-                      'Resolution attempt',
-                      'Emotional moment',
-                      'Understanding',
-                      'Conversation end'
+                      "Initial exchange",
+                      "Topic introduction",
+                      "First disagreement",
+                      "Escalation begins",
+                      "Rising tensions",
+                      "Main conflict",
+                      "Peak disagreement", 
+                      "Attempted resolution",
+                      "Partial agreement",
+                      "Final statements",
+                      "Closing remarks",
+                      "Conversation end"
                     ];
                     
                     return (
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={data}>
                           <XAxis 
-                            dataKey="name"
-                            tickFormatter={(_, i) => milestones[i] || ''}
-                            tick={{ fontSize: 10 }}
-                            angle={-45}
+                            dataKey="name" 
+                            tick={(props) => {
+                              const { x, y, index } = props;
+                              return (
+                                <g transform={`translate(${x},${y})`}>
+                                  <text 
+                                    x={0} 
+                                    y={0} 
+                                    dy={16} 
+                                    fontSize={10} 
+                                    textAnchor="middle" 
+                                    fill="#666"
+                                  >
+                                    {index === 0 || index === points - 1 || index === Math.floor(points/2) ? 
+                                      milestones[index] : ''}
+                                  </text>
+                                </g>
+                              );
+                            }}
+                            height={45}
                             textAnchor="end"
-                            height={70}
                           />
                           <YAxis 
                             domain={[0, 100]}
@@ -886,22 +943,28 @@ export default function ChatAnalysis() {
                           {/* Threshold line for high tension */}
                           <ReferenceLine y={75} stroke="#f97316" strokeDasharray="3 3" />
                           
-                          <Line 
-                            type="monotone" 
-                            dataKey={me} 
-                            stroke="#22d3ee" 
-                            strokeWidth={2.5}
-                            dot={{ stroke: '#22d3ee', strokeWidth: 2, r: 4, fill: 'white' }}
-                            activeDot={{ r: 6, strokeWidth: 2 }}
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey={them} 
-                            stroke="#ec4899" 
-                            strokeWidth={2.5}
-                            dot={{ stroke: '#ec4899', strokeWidth: 2, r: 4, fill: 'white' }}
-                            activeDot={{ r: 6, strokeWidth: 2 }}
-                          />
+                          {/* Show lines based on toggle selection */}
+                          {(showParticipant === 'both' || showParticipant === 'me') && (
+                            <Line 
+                              type="monotone" 
+                              dataKey={me} 
+                              stroke="#22d3ee" 
+                              strokeWidth={2.5}
+                              dot={{ stroke: '#22d3ee', strokeWidth: 2, r: 4, fill: 'white' }}
+                              activeDot={{ r: 6, strokeWidth: 2 }}
+                            />
+                          )}
+                          
+                          {(showParticipant === 'both' || showParticipant === 'them') && (
+                            <Line 
+                              type="monotone" 
+                              dataKey={them} 
+                              stroke="#ec4899" 
+                              strokeWidth={2.5}
+                              dot={{ stroke: '#ec4899', strokeWidth: 2, r: 4, fill: 'white' }}
+                              activeDot={{ r: 6, strokeWidth: 2 }}
+                            />
+                          )}
                         </LineChart>
                       </ResponsiveContainer>
                     );
@@ -914,7 +977,12 @@ export default function ChatAnalysis() {
                 </div>
                 
                 <p className="text-xs text-gray-500 mt-2">
-                  This visual shows the simulated emotional tension throughout the conversation based on AI analysis of language patterns.
+                  This enhanced visualization shows the simulated emotional tension throughout the conversation based on AI analysis of language patterns, conflict indicators, and communication styles.
+                  {showParticipant !== 'both' && (
+                    <span className="block mt-1">
+                      Currently showing {showParticipant === 'me' ? me : them}'s tension patterns in isolation.
+                    </span>
+                  )}
                 </p>
               </div>
               
