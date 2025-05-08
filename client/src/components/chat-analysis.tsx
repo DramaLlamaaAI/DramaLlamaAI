@@ -860,6 +860,55 @@ export default function ChatAnalysis() {
                       <Archive className="mr-2 h-4 w-4" />
                       Select ZIP File
                     </Button>
+                    
+                    {/* Sample chat preview area */}
+                    <div className="mt-6 p-3 bg-blue-50 rounded-md border border-blue-100 text-left">
+                      <p className="text-sm text-blue-800 mb-2">Example of extracted chat content:</p>
+                      
+                      {/* Preview of example extracted content */}
+                      <div className="mt-2 mb-3 bg-white border border-blue-200 rounded p-2 max-h-36 overflow-y-auto text-left">
+                        <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+                          {`[5/1/23, 10:15:23 AM] Dad: Good morning, how's your day going?
+[5/1/23, 10:17:45 AM] Els: Hi Dad! It's going well, just working on some projects
+[5/1/23, 10:18:32 AM] Dad: That's great. Have you had lunch yet?
+[5/1/23, 10:19:20 AM] Els: Not yet, thinking about getting some sandwiches soon
+[5/1/23, 10:20:05 AM] Dad: Make sure you eat something healthy!
+[5/1/23, 10:21:19 AM] Els: I will! How about you?`}
+                        </pre>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Button 
+                          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                          onClick={() => setTabValue("paste")}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          View/Edit Full Content
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                          onClick={() => {
+                            const sampleText = `[5/1/23, 10:15:23 AM] Dad: Good morning, how's your day going?
+[5/1/23, 10:17:45 AM] Els: Hi Dad! It's going well, just working on some projects
+[5/1/23, 10:18:32 AM] Dad: That's great. Have you had lunch yet?
+[5/1/23, 10:19:20 AM] Els: Not yet, thinking about getting some sandwiches soon
+[5/1/23, 10:20:05 AM] Dad: Make sure you eat something healthy!
+[5/1/23, 10:21:19 AM] Els: I will! How about you?`;
+                            navigator.clipboard.writeText(sampleText);
+                            setConversation(sampleText);
+                            toast({
+                              title: "Example Copied",
+                              description: "Sample conversation has been copied and loaded for analysis.",
+                            });
+                          }}
+                        >
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy to Clipboard
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   /* Regular File Upload */
