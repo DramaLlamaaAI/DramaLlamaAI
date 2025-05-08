@@ -287,17 +287,49 @@ export default function ChatAnalysis() {
       console.log("isZipFile result:", isZip);
       setFileIsZip(isZip);
       
-      // Read the file - this is the same for all files
-      rawText = await file.text();
+      try {
+        // Read the file - this is the same for all files
+        rawText = await file.text();
+        console.log("File content read, length:", rawText.length);
+        
+        // Always set the filename first - whether it's "zip" tab or normal upload
+        setFileName(file.name);
           
-      if (isZip) {
-        // For "zip-like" files, process through our special section
-        console.log("Processing like zip/special file");
-        // No need to extract anything since we've already read the text content
-        // Just set the UI state to show in the zip section
-      } else {
-        // For non-special files, processing continues as normal
-        console.log("Processing as regular file");
+        if (isZip) {
+          // For WhatsApp files, process through our special section
+          console.log("Processing like WhatsApp file");
+          
+          // Check if content was successfully read
+          if (!rawText || rawText.trim().length === 0) {
+            console.error("Empty file content detected");
+            toast({
+              title: "Empty File",
+              description: "The file appears to be empty. Please check that it contains chat content.",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          // Check if it's a WhatsApp export by format
+          const isWhatsAppContent = /\[\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}(:\d{2})?\s[AP]M\]/i.test(rawText);
+          
+          if (!isWhatsAppContent) {
+            console.log("File content is not in WhatsApp format, but continuing anyway");
+          } else {
+            console.log("WhatsApp format content confirmed");
+          }
+        } else {
+          // For non-special files, processing continues as normal
+          console.log("Processing as regular file");
+        }
+      } catch (readError) {
+        console.error("Error reading file:", readError);
+        toast({
+          title: "File Reading Error",
+          description: "Could not read the file content. The file may be corrupted.",
+          variant: "destructive",
+        });
+        return;
       }
       
       // Check if it's a WhatsApp export (has date patterns and standard format)
@@ -309,11 +341,7 @@ export default function ChatAnalysis() {
       
       // Set the processed conversation text to display in the text area
       setConversation(processedText);
-      
-      // Update file name display
-      if (!isZip) {
-        setFileName(file.name);
-      }
+      // File name is already set above, no need to set it again here
       
       // If we're processing a zip file, automatically switch to the paste tab to show content
       if (isZip) {
@@ -928,11 +956,20 @@ export default function ChatAnalysis() {
                         
                         {/* Preview of chat content */}
                         <div className="mt-2 mb-3 bg-white border border-blue-200 rounded p-2 max-h-36 overflow-y-auto text-left">
-                          <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                            {conversation.length > 500 
-                              ? conversation.substring(0, 500) + "..." 
-                              : conversation || "No content found in the file."}
-                          </pre>
+                          {conversation && conversation.trim().length > 0 ? (
+                            <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+                              {conversation.length > 500 
+                                ? conversation.substring(0, 500) + "..." 
+                                : conversation}
+                            </pre>
+                          ) : (
+                            <div className="text-center py-3">
+                              <p className="text-red-500 font-medium text-sm">No content found in the file.</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Try selecting a different WhatsApp export or check that the file is not empty.
+                              </p>
+                            </div>
+                          )}
                         </div>
                         
                         <div className="flex flex-col sm:flex-row gap-2">

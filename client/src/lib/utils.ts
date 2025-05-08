@@ -168,24 +168,47 @@ export const hasAcceptedDisclaimer = (): boolean => {
   return localStorage.getItem('dramaLlama_disclaimerAccepted') === 'true';
 };
 
-// Check if a file is a zip archive
+// Check if a file is a zip archive or WhatsApp chat export
 export const isZipFile = (file: File | string): boolean => {
   if (!file) return false;
   
   if (typeof file === 'string') {
     return file.toLowerCase().endsWith('.zip');
   } else {
-    // Check if it's a WhatsApp chat export from the name
-    if (file.name.toLowerCase().includes('whatsapp chat with') || 
-        file.name.toLowerCase().includes('_chat') || 
-        file.name.toLowerCase() === 'chat.txt') {
-      // Consider WhatsApp chat exports as special case for "zip processing" tab
-      console.log("Treating WhatsApp chat export as archive file:", file.name);
+    // First detect WhatsApp chat exports (handle all common naming patterns)
+    // This is a broader detection than before to catch more WhatsApp export formats
+    const filename = file.name.toLowerCase();
+    
+    // WhatsApp export detection checks
+    const isWhatsAppExport = 
+      // Standard WhatsApp exports
+      filename.includes('whatsapp chat with') || 
+      // Chat with Person format
+      filename.includes('chat with') ||
+      // Generic chat.txt that might be WhatsApp export
+      filename === 'chat.txt' ||
+      // Common export patterns
+      filename.includes('_chat') ||
+      // .txt files that are likely chat exports
+      (filename.endsWith('.txt') && filename.includes('chat'));
+    
+    if (isWhatsAppExport) {
+      console.log("Treating as WhatsApp chat export:", file.name);
       return true;
     }
     
-    return file.type === 'application/zip' || 
-           file.name.toLowerCase().endsWith('.zip');
+    // Then check for zip files
+    const isZipArchive = 
+      file.type === 'application/zip' || 
+      file.type === 'application/x-zip-compressed' ||
+      file.name.toLowerCase().endsWith('.zip');
+    
+    if (isZipArchive) {
+      console.log("Treating as ZIP archive file:", file.name);
+      return true;
+    }
+    
+    return false;
   }
 };
 
