@@ -44,11 +44,11 @@ export default function DisclaimerModal({ onAccept }: DisclaimerModalProps) {
           <AlertDialogTitle className="text-2xl text-center mb-2">
             Welcome to Drama Llama
           </AlertDialogTitle>
-          <div className="w-full flex justify-center mb-2">
+          <div className="w-full flex justify-center mb-4">
             <img 
-              src="/drama-llama-logo.svg" 
+              src="/src/assets/drama-llama-logo.png" 
               alt="Drama Llama Logo" 
-              className="h-12 w-12 opacity-80"
+              className="h-28 w-28"
             />
           </div>
           
