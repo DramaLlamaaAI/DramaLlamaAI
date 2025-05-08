@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analysisController } from "./controllers/analysis-controller";
 import { authController } from "./controllers/auth-controller";
+import { paymentController } from "./controllers/payment-controller";
 import { transcriptionUpload, transcribeAudio } from "./controllers/transcription-controller";
 import session from "express-session";
 import memoryStore from "memorystore";
@@ -78,6 +79,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Audio transcription route (Pro feature)
   app.post('/api/transcribe', isAuthenticated, transcriptionUpload, transcribeAudio);
+  
+  // Payment routes
+  app.post('/api/create-subscription', isAuthenticated, paymentController.createSubscription);
+  app.post('/api/webhook', paymentController.handleWebhook);
   
   // Protected routes that require authentication
   app.get('/api/user/analyses', isAuthenticated, async (req: Request, res: Response) => {

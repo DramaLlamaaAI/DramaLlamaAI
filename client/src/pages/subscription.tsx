@@ -1,17 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, CheckCircle2, Star } from "lucide-react";
+import { Check, CheckCircle2, Loader2, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  tier: string;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+}
 
 export default function SubscriptionPage() {
   const [billingPeriod, setBillingPeriod] = useState('monthly');
-  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
   const [_, navigate] = useLocation();
+  const searchParams = new URLSearchParams(window.location.search);
+  const success = searchParams.get('success');
+  
+  // Fetch authenticated user
+  const { data: user, isLoading } = useQuery<User>({
+    queryKey: ['/api/auth/user'],
+    staleTime: 30000, // 30 seconds
+  });
+  
+  // Show success message if payment was successful
+  useEffect(() => {
+    if (success === 'true') {
+      toast({
+        title: "Subscription Successful!",
+        description: "Thank you for subscribing to Drama Llama!",
+      });
+      
+      // Clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [success, toast]);
   
   const handleUpgrade = (plan: string) => {
     if (!user) {
@@ -20,14 +50,12 @@ export default function SubscriptionPage() {
         description: "Please sign in to upgrade your subscription.",
         variant: "destructive",
       });
+      navigate('/auth');
       return;
     }
     
-    // In a real app, this would redirect to a checkout page
-    toast({
-      title: "Coming Soon",
-      description: `Subscription upgrade to ${plan} plan will be available soon.`,
-    });
+    // Redirect to the checkout page with the plan parameter
+    navigate(`/checkout?plan=${plan.toLowerCase()}`);
   };
   
   const featureCheck = (included: boolean) => {
@@ -40,6 +68,18 @@ export default function SubscriptionPage() {
     );
   };
 
+  // Display a loading state while fetching user data
+  if (isLoading) {
+    return (
+      <div className="container py-12">
+        <div className="flex flex-col items-center justify-center min-h-[50vh]">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-lg text-muted-foreground">Loading subscription information...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container max-w-6xl py-12">
       <div className="mb-12 text-center">
@@ -47,6 +87,14 @@ export default function SubscriptionPage() {
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Unlock more features to gain deeper insights into your conversations and improve your communication
         </p>
+        
+        {user && (
+          <div className="mt-4 bg-muted/50 max-w-lg mx-auto rounded-lg p-3">
+            <p className="text-sm font-medium">
+              You are currently on the <span className="font-bold text-primary">{user.tier.charAt(0).toUpperCase() + user.tier.slice(1)} Plan</span>
+            </p>
+          </div>
+        )}
         
         <div className="flex justify-center mt-8">
           <Tabs
@@ -76,11 +124,12 @@ export default function SubscriptionPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
-              variant={user ? "outline" : "default"} 
+              variant={user && user.tier === 'free' ? "outline" : "default"} 
               className="w-full" 
+              disabled={user && user.tier === 'free'}
               onClick={() => user ? null : navigate('/auth')}
             >
-              {user ? 'Current Plan' : 'Sign Up Free'}
+              {user ? (user.tier === 'free' ? 'Current Plan' : 'Free Plan') : 'Sign Up Free'}
             </Button>
             
             <ul className="space-y-3 mt-6">

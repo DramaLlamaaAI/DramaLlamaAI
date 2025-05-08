@@ -81,7 +81,12 @@ export class MemStorage implements IStorage {
       tier: insertUser.tier || "free"
     };
     
-    const user: User = { ...userWithDefaultTier, id };
+    const user: User = { 
+      ...userWithDefaultTier, 
+      id,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null 
+    };
     this.users.set(id, user);
     
     // Create usage limits for new user
@@ -103,6 +108,28 @@ export class MemStorage implements IStorage {
     }
     
     const updatedUser = { ...user, tier };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateStripeCustomerId(userId: number, customerId: string): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+    
+    const updatedUser = { ...user, stripeCustomerId: customerId };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+    
+    const updatedUser = { ...user, stripeSubscriptionId: subscriptionId };
     this.users.set(userId, updatedUser);
     return updatedUser;
   }
