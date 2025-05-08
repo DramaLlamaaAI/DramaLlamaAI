@@ -141,6 +141,10 @@ export default function ChatAnalysis() {
       // Read the raw file content
       const rawText = await file.text();
       
+      // Check if it's a WhatsApp export (has date patterns and standard format)
+      const isWhatsAppFormat = /\[\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}(:\d{2})?\s[AP]M\]/i.test(rawText) || 
+                               /\[\d{1,2}\/\d{1,2}\/\d{2,4}\s\d{1,2}:\d{2}(:\d{2})?\]/i.test(rawText);
+      
       // Preprocess the chat log to handle different formats
       const processedText = preprocessChatLog(rawText);
       
@@ -149,13 +153,15 @@ export default function ChatAnalysis() {
       setFileName(file.name);
       
       // Check if format was automatically detected
-      const formatDetected = processedText.startsWith('[This appears to be an');
+      const formatDetected = processedText.startsWith('[This appears to be an') || isWhatsAppFormat;
       
       toast({
         title: "File Uploaded",
-        description: formatDetected 
-          ? `${file.name} has been loaded. Chat format detected.` 
-          : `${file.name} has been loaded.`,
+        description: isWhatsAppFormat 
+          ? `WhatsApp chat detected. ${file.name} has been loaded.` 
+          : formatDetected 
+            ? `${file.name} has been loaded. Chat format detected.` 
+            : `${file.name} has been loaded.`,
       });
       
       // Automatically try to detect participants after file upload
@@ -698,12 +704,12 @@ export default function ChatAnalysis() {
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileUpload}
-                  accept=".txt,.csv,.log,.html"
+                  accept=".txt,.csv,.log,.html,text/*,application/octet-stream"
                   className="hidden"
                 />
                 <Upload className="h-10 w-10 text-muted-foreground/50 mx-auto mb-4" />
                 <h3 className="mb-2 font-medium">Upload Chat Log</h3>
-                <p className="text-sm text-muted-foreground mb-4">Drag and drop a .txt, .html, or .csv file, or click to browse</p>
+                <p className="text-sm text-muted-foreground mb-4">Drag and drop a WhatsApp export, .txt, .html, or .csv file, or click to browse</p>
                 <Button 
                   variant="outline" 
                   onClick={() => fileInputRef.current?.click()}

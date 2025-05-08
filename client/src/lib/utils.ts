@@ -42,8 +42,12 @@ export const preprocessChatLog = (text: string): string => {
   
   // Identify common chat export formats
   
-  // WhatsApp format: "[MM/DD/YY, HH:MM:SS] Name: Message"
-  const isWhatsApp = /\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s\d{1,2}:\d{2}(?::\d{2})?\]\s.*?:/i.test(cleanedText);
+  // WhatsApp format: multiple variations possible
+  // Format 1: "[MM/DD/YY, HH:MM:SS AM/PM] Name: Message"
+  // Format 2: "[MM/DD/YY HH:MM:SS] Name: Message"
+  const isWhatsApp = /\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s\d{1,2}:\d{2}(?::\d{2})?(?:\s[AP]M)?\]\s.*?:/i.test(cleanedText) ||
+                     // Also detect WhatsApp group chat export format
+                     /\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}\s-\s.*?:/i.test(cleanedText);
   
   // iMessage/SMS format: "YYYY-MM-DD HH:MM:SS Name: Message"
   const isIMessage = /\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s.*?:/i.test(cleanedText);
@@ -81,12 +85,21 @@ export const preprocessChatLog = (text: string): string => {
 // Validate conversation format
 export const validateConversation = (conversation: string): boolean => {
   // Basic validation - ensure there's some content with likely message patterns
-  // This is a simple check - could be enhanced for specific chat formats
-  return conversation.length > 10 && (
-    conversation.includes(':') || 
-    // Match timestamps in various formats
-    /\[\d{1,2}\/\d{1,2}\/\d{2}|\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}/i.test(conversation)
-  );
+  
+  // Check if it's long enough to be a real conversation
+  if (conversation.length < 10) return false;
+  
+  // Check for standard chat format with names and colons
+  const hasNameColonFormat = conversation.includes(':');
+  
+  // Check for WhatsApp export format
+  const hasWhatsAppFormat = /\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s\d{1,2}:\d{2}(?::\d{2})?(?:\s[AP]M)?\]/i.test(conversation) ||
+                           /\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}\s-\s/i.test(conversation);
+  
+  // Check for other timestamp formats (iMessage, Discord, etc.)
+  const hasOtherTimestampFormat = /\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}|\d{1,2}:\d{2}\s[AP]M/i.test(conversation);
+  
+  return hasNameColonFormat || hasWhatsAppFormat || hasOtherTimestampFormat;
 };
 
 // Get percentage of usage
