@@ -15,7 +15,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
-import { fileToBase64, validateConversation, getParticipantColor, preprocessChatLog } from "@/lib/utils";
+import { fileToBase64, validateConversation, getParticipantColor, preprocessChatLog, isZipFile } from "@/lib/utils";
 import html2pdf from 'html2pdf.js';
 import { toPng } from 'html-to-image';
 import { Progress } from "@/components/ui/progress";
@@ -138,6 +138,16 @@ export default function ChatAnalysis() {
     if (!file) return;
     
     try {
+      // Check if the file is a zip archive
+      if (isZipFile(file)) {
+        toast({
+          title: "Zip File Detected",
+          description: "Please extract the zip file and upload the .txt file inside it.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Read the raw file content
       const rawText = await file.text();
       
@@ -704,12 +714,12 @@ export default function ChatAnalysis() {
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileUpload}
-                  accept=".txt,.csv,.log,.html,text/*,application/octet-stream"
+                  accept=".txt,.csv,.log,.html,.zip,text/*,application/zip,application/octet-stream"
                   className="hidden"
                 />
                 <Upload className="h-10 w-10 text-muted-foreground/50 mx-auto mb-4" />
                 <h3 className="mb-2 font-medium">Upload Chat Log</h3>
-                <p className="text-sm text-muted-foreground mb-4">Drag and drop a WhatsApp export, .txt, .html, or .csv file, or click to browse</p>
+                <p className="text-sm text-muted-foreground mb-4">Drag and drop a WhatsApp export, .txt, .html, .csv, or .zip file, or click to browse</p>
                 <Button 
                   variant="outline" 
                   onClick={() => fileInputRef.current?.click()}

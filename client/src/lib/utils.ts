@@ -168,6 +168,12 @@ export const hasAcceptedDisclaimer = (): boolean => {
   return localStorage.getItem('dramaLlama_disclaimerAccepted') === 'true';
 };
 
+// Check if a file is a zip archive
+export const isZipFile = (file: File): boolean => {
+  return file.type === 'application/zip' || 
+         file.name.toLowerCase().endsWith('.zip');
+};
+
 // Get participant name color
 export const getParticipantColor = (name: string): string => {
   // Generate a consistent color based on the name
