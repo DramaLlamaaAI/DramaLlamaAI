@@ -21,6 +21,7 @@ interface ChatAnalysisResponse {
   }>;
   communication: {
     patterns: string[];
+    dynamics?: string[];
     suggestions?: string[];
   };
   dramaScore?: number;
@@ -229,16 +230,101 @@ export async function analyzeChatConversation(conversation: string, me: string, 
   try {
     console.log('Attempting to use Anthropic for chat analysis');
     
-    // Select the prompt based on the tier
-    const promptTemplate = tier === 'pro' ? prompts.chat.pro : 
-                          tier === 'personal' ? prompts.chat.personal : 
-                          prompts.chat.free;
+    // Create a custom enhanced prompt with improved communication pattern analysis
+    let enhancedPrompt = '';
     
-    // Replace placeholders
-    const prompt = promptTemplate
-      .replace('{conversation}', conversation)
-      .replace('{me}', me)
-      .replace('{them}', them);
+    if (tier === 'pro') {
+      enhancedPrompt = `Perform a comprehensive analysis of this conversation between ${me} and ${them}.
+      Return a JSON object with the following structure:
+      {
+        "toneAnalysis": {
+          "overallTone": "string describing the conversation's overall tone",
+          "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
+          "participantTones": {"participant name": "tone description"}
+        },
+        "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
+        "communication": {
+          "patterns": ["specific and varied interaction patterns - avoid repetitive descriptions like 'X attacks, Y defends'"],
+          "dynamics": ["detailed analysis of how the conversation flow evolves and shifts"],
+          "suggestions": ["specific tailored suggestions for improvement"]
+        },
+        "healthScore": {
+          "score": number between 0-100,
+          "label": "Troubled/Needs Work/Good/Excellent",
+          "color": "red/yellow/light-green/green"
+        },
+        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for improvement"}],
+        "highTensionFactors": ["string with reason"],
+        "participantConflictScores": {
+          "participant name": {
+            "score": number between 0-100,
+            "label": "string describing style",
+            "isEscalating": boolean
+          }
+        }
+      }
+      
+      Here's the conversation:
+      ${conversation}`;
+    } else if (tier === 'personal') {
+      enhancedPrompt = `Analyze this conversation between ${me} and ${them}. 
+      Return a JSON object with the following structure:
+      {
+        "toneAnalysis": {
+          "overallTone": "string describing the conversation's overall tone",
+          "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
+          "participantTones": {"participant name": "tone description"}
+        },
+        "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
+        "communication": {
+          "patterns": ["specific and varied interaction patterns - avoid repetitive descriptions"],
+          "dynamics": ["analysis of how the conversation flow changes and evolves"],
+          "suggestions": ["specific tailored suggestions for improvement"]
+        },
+        "healthScore": {
+          "score": number between 0-100,
+          "label": "Troubled/Needs Work/Good/Excellent",
+          "color": "red/yellow/light-green/green"
+        },
+        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for how to reword this statement to be more constructive"}],
+        "highTensionFactors": ["string with reason"],
+        "participantConflictScores": {
+          "participant name": {
+            "score": number between 0-100,
+            "label": "string describing style",
+            "isEscalating": boolean
+          }
+        }
+      }
+      
+      Here's the conversation:
+      ${conversation}`;
+    } else {
+      enhancedPrompt = `Analyze this conversation between ${me} and ${them}. 
+      Return a JSON object with the following structure:
+      {
+        "toneAnalysis": {
+          "overallTone": "string describing the conversation's overall tone",
+          "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
+          "participantTones": {"participant name": "tone description"}
+        },
+        "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
+        "communication": {
+          "patterns": ["specific and varied interaction patterns - avoid repetitive descriptions"],
+          "dynamics": ["analysis of how the conversation flow changes and evolves"],
+          "suggestions": ["specific tailored suggestions for improvement"]
+        },
+        "healthScore": {
+          "score": number between 0-100,
+          "label": "Troubled/Needs Work/Good/Excellent",
+          "color": "red/yellow/light-green/green"
+        },
+        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for how to reword this statement to be more constructive"}]
+      }
+      
+      Here's the conversation:
+      ${conversation}`;
+    }
     
     // Make the API call with enhanced error handling
     const response = await anthropic.messages.create({
@@ -249,13 +335,14 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       When analyzing conversations:
       1. Identify different chat formats (WhatsApp, iMessage, Facebook, etc.) and adapt your analysis accordingly
       2. Look for timestamp patterns to properly segment messages between participants
-      3. Focus on emotional tone and interaction patterns rather than superficial text structure
+      3. Focus on emotional tone and interaction patterns rather than repetitive descriptions
       4. When analyzing uploaded chat logs, be aware they may contain formatting artifacts or timestamps
-      5. For each participant, identify their communication patterns, emotional states, and notable quotes
+      5. For each participant, identify their unique communication styles, varied emotional states, and notable quotes
       6. Provide specific and actionable recommendations for healthier communication
+      7. When describing communication patterns, be specific and varied - avoid repetitive descriptions
       
       Always provide insightful, specific feedback that's helpful but honest.`,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: enhancedPrompt }],
     });
     
     // Safely get content text using our helper function
