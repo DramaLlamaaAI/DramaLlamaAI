@@ -4,6 +4,13 @@ import { apiRequest } from '@/lib/queryClient';
 import { getDeviceId } from '@/lib/device-id';
 import { hasUsedFreeTrial, getAnalysisCount, isDevModeEnabled } from '@/lib/trial-utils';
 
+interface UsageData {
+  tier: string;
+  used: number;
+  limit: number;
+  remaining: number;
+}
+
 interface UseTierResult {
   tier: string;
   used: number;
@@ -23,7 +30,7 @@ const FEATURE_MAP: Record<string, string[]> = {
   'pro': ['basicTone', 'ventMode', 'redFlags', 'advice', 'patterns', 'replacements', 'dramaScore', 'historical', 'liveTalk']
 };
 
-async function getUserUsage() {
+async function getUserUsage(): Promise<UsageData> {
   const deviceId = getDeviceId();
   const headers = new Headers({ 'x-device-id': deviceId });
   
@@ -54,7 +61,7 @@ async function getCurrentUser() {
 
 export function useUserTier(): UseTierResult {
   // Get usage data from the server
-  const { data: usageData, isLoading: isUsageLoading } = useQuery({
+  const { data: usageData, isLoading: isUsageLoading } = useQuery<UsageData>({
     queryKey: ['/api/user/usage'],
     queryFn: getUserUsage,
   });
