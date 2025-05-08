@@ -1368,7 +1368,7 @@ export default function ChatAnalysis() {
                   <div className="mb-4">
                     <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
                     <div className="space-y-3">
-                      {result.communication.patterns.map((pattern, idx) => {
+                      {result.communication.patterns.map((pattern: string, idx: number) => {
                         // Check if the pattern contains a quote (text inside quotes)
                         const quoteMatch = pattern.match(/"([^"]+)"/);
                         const hasQuote = quoteMatch && quoteMatch[1];
@@ -1430,7 +1430,7 @@ export default function ChatAnalysis() {
                   <div className="mb-4">
                     <h5 className="text-sm font-medium text-muted-foreground mb-1">Conversation Flow & Dynamics</h5>
                     <div className="space-y-3">
-                      {result.communication.dynamics.map((dynamic, idx) => (
+                      {result.communication.dynamics.map((dynamic: string, idx: number) => (
                         <div key={idx} className="p-3 rounded bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100 shadow-sm">
                           <p className="text-gray-700">
                             {dynamic}
@@ -1445,7 +1445,7 @@ export default function ChatAnalysis() {
                   <div>
                     <h5 className="text-sm font-medium text-muted-foreground mb-1">Personalized Suggestions</h5>
                     <div className="space-y-3 mt-2">
-                      {result.communication.suggestions.map((suggestion, idx) => {
+                      {result.communication.suggestions.map((suggestion: string, idx: number) => {
                         // Determine if suggestion is specifically for one participant
                         const forMe = suggestion.toLowerCase().includes(me.toLowerCase());
                         const forThem = suggestion.toLowerCase().includes(them.toLowerCase());
@@ -1509,7 +1509,7 @@ export default function ChatAnalysis() {
                     <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Includes Replacement Suggestions</div>
                   </div>
                   <div className="space-y-3">
-                    {result.keyQuotes.map((quote, idx) => (
+                    {result.keyQuotes.map((quote: any, idx: number) => (
                       <div key={idx} className="bg-white p-3 rounded border border-blue-100">
                         <div className="flex justify-between items-start mb-1">
                           <span className="font-semibold text-blue-800">{quote.speaker}</span>

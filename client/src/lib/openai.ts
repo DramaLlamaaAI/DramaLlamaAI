@@ -28,6 +28,7 @@ export interface ChatAnalysisResponse {
   }>;
   communication: {
     patterns?: string[];
+    dynamics?: string[];
     suggestions?: string[];
   };
   healthScore?: {
