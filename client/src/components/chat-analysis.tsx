@@ -5,7 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Download, FileText, Copy } from "lucide-react";
+import { 
+  Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, 
+  TrendingUp, Flame, Activity, Users, Download, FileText, Copy, 
+  ThumbsUp, AlertTriangle, Shield, HeartHandshake
+} from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -13,13 +17,16 @@ import { fileToBase64, validateConversation, getParticipantColor, preprocessChat
 import html2pdf from 'html2pdf.js';
 import { toPng } from 'html-to-image';
 import { Progress } from "@/components/ui/progress";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Scatter } from "recharts";
 import TrialLimiter from "./trial-limiter"; 
 import AuthModal from "./auth-modal";
 import { useUserTier } from "@/hooks/use-user-tier";
 import { incrementAnalysisCount } from "@/lib/trial-utils";
 import { getDeviceId } from "@/lib/device-id";
 import { queryClient } from "@/lib/queryClient";
+
+// Define our new trend line types
+type TrendLineType = 'all' | 'manipulation' | 'positive' | 'gaslighting';
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -34,6 +41,9 @@ export default function ChatAnalysis() {
   const [isEligibilityChecking, setIsEligibilityChecking] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showParticipant, setShowParticipant] = useState<'both' | 'me' | 'them'>('both');
+  const [activeTrendLine, setActiveTrendLine] = useState<TrendLineType>('all');
+  const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
+  const [highlightedQuote, setHighlightedQuote] = useState<{text: string, speaker: string, type: TrendLineType} | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);

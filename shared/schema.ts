@@ -93,6 +93,7 @@ export const chatAnalysisResultSchema = z.object({
   })).optional(),
   communication: z.object({
     patterns: z.array(z.string()).optional(),
+    dynamics: z.array(z.string()).optional(),
     suggestions: z.array(z.string()).optional(),
   }),
   healthScore: z.object({
