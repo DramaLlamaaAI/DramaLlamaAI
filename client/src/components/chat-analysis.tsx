@@ -17,7 +17,7 @@ import { fileToBase64, validateConversation, getParticipantColor, preprocessChat
 import html2pdf from 'html2pdf.js';
 import { toPng } from 'html-to-image';
 import { Progress } from "@/components/ui/progress";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Scatter } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import TrialLimiter from "./trial-limiter"; 
 import AuthModal from "./auth-modal";
 import { useUserTier } from "@/hooks/use-user-tier";
@@ -289,78 +289,121 @@ export default function ChatAnalysis() {
     queryClient.invalidateQueries({ queryKey: ['/api/user/usage'] });
   };
   
-  // Generate multi-line tension data for the new charts
-  const generateTensionData = () => {
-    if (!result) return [];
+  // Calculate participant balance scores for emotional balance meters
+  const calculateParticipantBalances = () => {
+    if (!result) return null;
     
-    // Simulation parameters
-    const points = 20;
-    const redFlags = result.redFlags || [];
-    const healthScore = result.healthScore?.score || 50;
-    const emotionalIntensity = result.toneAnalysis.emotionalState.reduce((sum, item) => sum + item.intensity, 0) / 
-      (result.toneAnalysis.emotionalState.length || 1);
+    // Default scores if no specific participant data is available
+    const defaultScores = {
+      me: {
+        positive: 50,
+        negative: 50,
+        isEscalating: false
+      },
+      them: {
+        positive: 50,
+        negative: 50,
+        isEscalating: false
+      }
+    };
     
-    // Calculate baseline parameters
-    const redFlagSeverity = redFlags.length > 0 
-      ? redFlags.reduce((sum, flag) => sum + flag.severity, 0) / redFlags.length
-      : 0;
-    
-    // Derived parameters for different trend lines
-    const manipulationBaseline = Math.min(100, redFlagSeverity * 15 + (100 - healthScore) * 0.3);
-    const gaslightingBaseline = Math.min(90, redFlags.filter(f => 
-      f.type.toLowerCase().includes('gaslight') || 
-      f.description.toLowerCase().includes('gaslight')
-    ).length * 20 + (100 - healthScore) * 0.4);
-    const positiveBaseline = Math.max(20, healthScore - 20);
-    
-    // Generate the three trend lines with different patterns
-    return Array.from({ length: points }).map((_, i) => {
-      // Position in conversation normalized (0 to 1)
-      const pos = i / (points - 1);
+    // If we have participant conflict scores, use them
+    if (result.participantConflictScores) {
+      const meScore = result.participantConflictScores[me];
+      const themScore = result.participantConflictScores[them];
       
-      // Midpoint tension spike pattern for manipulation
-      const manipulationSpike = Math.sin(pos * Math.PI) * 30;
-      // Early high with gradual decline for gaslighting
-      const gaslightingPattern = Math.max(0, 100 - pos * 120) * Math.sin(pos * 6);
-      // Declining positive communication 
-      const positivePattern = Math.cos(pos * 2) * 15 + (1 - pos) * 30;
-      
-      // Random variations
-      const manipulationNoise = (Math.sin(i * 1.5) + Math.cos(i * 0.7)) * 8;
-      const gaslightingNoise = (Math.sin(i * 2.3) + Math.cos(i * 1.1)) * 7;
-      const positiveNoise = (Math.sin(i * 3.1) + Math.cos(i * 1.7)) * 6;
-      
-      // Compute final values with constraints
-      const manipulation = Math.max(5, Math.min(95, 
-        manipulationBaseline + manipulationSpike + manipulationNoise
-      ));
-      
-      const gaslighting = Math.max(5, Math.min(95, 
-        gaslightingBaseline + gaslightingPattern + gaslightingNoise
-      ));
-      
-      const positive = Math.max(5, Math.min(95, 
-        positiveBaseline + positivePattern + positiveNoise
-      ));
-      
-      // Create escalation pattern if health score is low
-      const tensionIncreases = healthScore < 40 && i > points * 0.7;
-      if (tensionIncreases) {
+      if (meScore && themScore) {
         return {
-          name: `Point ${i + 1}`,
-          manipulation: manipulation + (i / points) * 25,
-          gaslighting: gaslighting + (i / points) * 20,
-          positive: Math.max(5, positive - (i / points) * 30),
+          me: {
+            positive: meScore.score, // Higher score means better communication
+            negative: 100 - meScore.score, // Inverse of score for negative balance
+            isEscalating: meScore.isEscalating
+          },
+          them: {
+            positive: themScore.score,
+            negative: 100 - themScore.score,
+            isEscalating: themScore.isEscalating
+          }
         };
       }
+    }
+    
+    // If we don't have specific scores but have participant tones, estimate from those
+    if (result.toneAnalysis.participantTones) {
+      const meTone = result.toneAnalysis.participantTones[me];
+      const themTone = result.toneAnalysis.participantTones[them];
+      
+      // Define positive and negative tone indicators
+      const negativeTones = ['hostile', 'accusatory', 'aggressive', 'defensive', 'angry', 'dismissive', 'frustrated', 'manipulative', 'gaslighting'];
+      const positiveTones = ['calm', 'respectful', 'understanding', 'measured', 'supportive', 'conciliatory', 'de-escalating', 'collaborative'];
+      
+      // Calculate rough scores based on tone descriptions
+      const calculateFromTone = (tone: string) => {
+        if (!tone) return { positive: 50, negative: 50, isEscalating: false };
+        
+        tone = tone.toLowerCase();
+        let positive = 50;
+        let isEscalating = false;
+        
+        // Check for negative indicators
+        negativeTones.forEach(negTone => {
+          if (tone.includes(negTone)) {
+            positive -= 10;
+            if (['hostile', 'accusatory', 'aggressive', 'angry'].includes(negTone)) {
+              isEscalating = true;
+            }
+          }
+        });
+        
+        // Check for positive indicators
+        positiveTones.forEach(posTone => {
+          if (tone.includes(posTone)) {
+            positive += 10;
+            if (['de-escalating', 'conciliatory'].includes(posTone)) {
+              isEscalating = false;
+            }
+          }
+        });
+        
+        // Ensure values stay in range
+        positive = Math.max(10, Math.min(90, positive));
+        
+        return {
+          positive,
+          negative: 100 - positive,
+          isEscalating
+        };
+      };
       
       return {
-        name: `Point ${i + 1}`,
-        manipulation,
-        gaslighting,
-        positive,
+        me: calculateFromTone(meTone),
+        them: calculateFromTone(themTone)
       };
-    });
+    }
+    
+    // If no specific data is available, use defaults influenced by overall health score
+    const healthScore = result.healthScore?.score || 50;
+    
+    // For low health scores, make the balance more uneven
+    if (healthScore < 40) {
+      // Randomly assign one participant as the primary escalator
+      const meIsEscalator = Math.random() > 0.5;
+      
+      return {
+        me: {
+          positive: meIsEscalator ? 30 : 70,
+          negative: meIsEscalator ? 70 : 30,
+          isEscalating: meIsEscalator
+        },
+        them: {
+          positive: meIsEscalator ? 70 : 30,
+          negative: meIsEscalator ? 30 : 70,
+          isEscalating: !meIsEscalator
+        }
+      };
+    }
+    
+    return defaultScores;
   };
   
   // Generate quotes for interactive chart points
