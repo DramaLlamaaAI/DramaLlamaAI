@@ -37,6 +37,7 @@ export default function ChatAnalysis() {
   const [me, setMe] = useState("");
   const [them, setThem] = useState("");
   const [fileName, setFileName] = useState("");
+  const [fileIsZip, setFileIsZip] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
@@ -227,7 +228,10 @@ export default function ChatAnalysis() {
       let rawText = "";
       
       // Check if the file is a zip archive
-      if (isZipFile(file)) {
+      const isZip = isZipFile(file);
+      setFileIsZip(isZip);
+      
+      if (isZip) {
         const extractedText = await handleZipFile(file);
         if (!extractedText) return;  // Exit if zip processing failed
         rawText = extractedText;
@@ -247,12 +251,12 @@ export default function ChatAnalysis() {
       setConversation(processedText);
       
       // Update file name display
-      if (!isZipFile(file)) {
+      if (!isZip) {
         setFileName(file.name);
       }
       
       // If we're processing a zip file, automatically switch to the paste tab to show content
-      if (isZipFile(file)) {
+      if (isZip) {
         setTabValue("paste");
       }
       
@@ -260,7 +264,7 @@ export default function ChatAnalysis() {
       const formatDetected = processedText.startsWith('[This appears to be an') || isWhatsAppFormat;
       
       // Show appropriate success message
-      if (!isZipFile(file)) {
+      if (!isZip) {
         toast({
           title: "File Uploaded",
           description: isWhatsAppFormat 
@@ -818,12 +822,24 @@ export default function ChatAnalysis() {
                 <Upload className="h-10 w-10 text-muted-foreground/50 mx-auto mb-4" />
                 <h3 className="mb-2 font-medium">Upload Chat Log</h3>
                 <p className="text-sm text-muted-foreground mb-4">Drag and drop a WhatsApp export, .txt, .html, .csv, or .zip file, or click to browse</p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Choose File
-                </Button>
+                <div className="flex flex-col sm:flex-row justify-center gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Choose File
+                  </Button>
+                  {fileIsZip && (
+                    <Button 
+                      variant="secondary"
+                      className="bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300"
+                      onClick={() => setTabValue("paste")}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      View Extracted Chat
+                    </Button>
+                  )}
+                </div>
                 {fileName && (
                   <p className="mt-4 text-sm">Selected: {fileName}</p>
                 )}

@@ -169,9 +169,15 @@ export const hasAcceptedDisclaimer = (): boolean => {
 };
 
 // Check if a file is a zip archive
-export const isZipFile = (file: File): boolean => {
-  return file.type === 'application/zip' || 
-         file.name.toLowerCase().endsWith('.zip');
+export const isZipFile = (file: File | string): boolean => {
+  if (!file) return false;
+  
+  if (typeof file === 'string') {
+    return file.toLowerCase().endsWith('.zip');
+  } else {
+    return file.type === 'application/zip' || 
+           file.name.toLowerCase().endsWith('.zip');
+  }
 };
 
 // Get participant name color
