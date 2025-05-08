@@ -888,15 +888,45 @@ export default function ChatAnalysis() {
                       </div>
                       
                       {fileIsZip && (
-                        <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-100">
-                          <p className="text-sm text-blue-800 mb-3">We've extracted chat content from this ZIP archive.</p>
-                          <Button 
-                            className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                            onClick={() => setTabValue("paste")}
-                          >
-                            <FileText className="mr-2 h-4 w-4" />
-                            View Extracted Chat Content
-                          </Button>
+                        <div className="mt-3">
+                          <div className="p-3 bg-blue-50 rounded-md border border-blue-100 mb-3">
+                            <p className="text-sm text-blue-800 mb-2">We've extracted chat content from this ZIP archive:</p>
+                            
+                            {/* Preview of extracted content */}
+                            <div className="mt-2 mb-3 bg-white border border-blue-200 rounded p-2 max-h-36 overflow-y-auto text-left">
+                              <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+                                {conversation.length > 500 
+                                  ? conversation.substring(0, 500) + "..." 
+                                  : conversation || "No content found in the archive."}
+                              </pre>
+                            </div>
+                            
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <Button 
+                                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                                onClick={() => setTabValue("paste")}
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Edit Extracted Content
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                                onClick={() => {
+                                  // Copy to clipboard
+                                  navigator.clipboard.writeText(conversation);
+                                  toast({
+                                    title: "Copied to Clipboard",
+                                    description: "The extracted content has been copied to your clipboard.",
+                                  });
+                                }}
+                              >
+                                <Copy className="mr-2 h-4 w-4" />
+                                Copy to Clipboard
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
