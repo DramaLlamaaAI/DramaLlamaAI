@@ -47,6 +47,16 @@ export default function ChatAnalysis() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showParticipant, setShowParticipant] = useState<'both' | 'me' | 'them'>('both');
   const [activeTrendLine, setActiveTrendLine] = useState<TrendLineType>('all');
+  
+  // Error dialog state for WhatsApp import issues
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorDialogContent, setErrorDialogContent] = useState<{
+    title: string;
+    steps: string[];
+  }>({
+    title: "WhatsApp Chat Import Problem",
+    steps: []
+  });
   const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
   const [highlightedQuote, setHighlightedQuote] = useState<{text: string, speaker: string, type: TrendLineType} | null>(null);
   
@@ -288,12 +298,51 @@ export default function ChatAnalysis() {
       setFileIsZip(isZip);
       
       try {
-        // Read the file - this is the same for all files
-        rawText = await file.text();
-        console.log("File content read, length:", rawText.length);
-        
-        // Always set the filename first - whether it's "zip" tab or normal upload
+        // Always set the filename first
         setFileName(file.name);
+        
+        // Try to read file using different methods
+        try {
+          // First try the text() method
+          rawText = await file.text();
+          console.log("File content read with text(), length:", rawText.length);
+          
+          // If content is empty, try reading as ArrayBuffer
+          if (!rawText || rawText.trim().length === 0) {
+            console.log("Trying alternative reading method for:", file.name);
+            
+            // Create a FileReader to read as text
+            const reader = new FileReader();
+            const textPromise = new Promise<string>((resolve) => {
+              reader.onload = (e) => {
+                const content = e.target?.result as string || "";
+                console.log("FileReader read content length:", content.length);
+                resolve(content);
+              };
+              reader.onerror = () => {
+                console.error("FileReader error");
+                resolve("");
+              };
+            });
+            
+            reader.readAsText(file);
+            rawText = await textPromise;
+          }
+        } catch (fileReadError) {
+          console.error("Error in first read attempt:", fileReadError);
+          throw fileReadError;
+        }
+        
+        // Check file size
+        if (file.size === 0) {
+          console.error("File size is 0 bytes");
+          toast({
+            title: "Empty File",
+            description: "The file has 0 bytes. Please check that you're using a valid WhatsApp chat export.",
+            variant: "destructive",
+          });
+          return;
+        }
           
         if (isZip) {
           // For WhatsApp files, process through our special section
@@ -304,14 +353,30 @@ export default function ChatAnalysis() {
             console.error("Empty file content detected");
             toast({
               title: "Empty File",
-              description: "The file appears to be empty. Please check that it contains chat content.",
+              description: "Could not extract content from the file. Please try these steps: 1) Export the chat again from WhatsApp 2) Choose 'Without Media' 3) Make sure the file has content before uploading.",
               variant: "destructive",
+            });
+            
+            // Show a more helpful dialog for empty WhatsApp exports
+            setShowErrorDialog(true);
+            setErrorDialogContent({
+              title: "WhatsApp Chat Import Problem",
+              steps: [
+                "Make sure you're exporting directly from WhatsApp (not from a third-party app)",
+                "In WhatsApp, tap on the chat → tap the 3 dots → More → Export chat",
+                "Choose 'Without Media' when prompted",
+                "Email the export to yourself or save it to your device",
+                "Upload the .txt file here without modifying it",
+                "If the problem persists, try pasting the chat text directly in the 'Paste Text' tab"
+              ]
             });
             return;
           }
           
           // Check if it's a WhatsApp export by format
-          const isWhatsAppContent = /\[\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}(:\d{2})?\s[AP]M\]/i.test(rawText);
+          const isWhatsAppContent = 
+            /\[\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}(:\d{2})?\s[AP]M\]/i.test(rawText) ||
+            /\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}\s-\s/i.test(rawText);
           
           if (!isWhatsAppContent) {
             console.log("File content is not in WhatsApp format, but continuing anyway");
@@ -1850,4 +1915,29 @@ export default function ChatAnalysis() {
     </section>
     </TrialLimiter>
   );
+
+  {/* WhatsApp Import Error Help Dialog */}
+  {showErrorDialog && (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 className="text-lg font-semibold mb-2">{errorDialogContent.title}</h3>
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-3">Follow these steps to fix the issue:</p>
+          <ol className="list-decimal pl-5 space-y-2">
+            {errorDialogContent.steps.map((step, index) => (
+              <li key={index} className="text-sm">{step}</li>
+            ))}
+          </ol>
+        </div>
+        <div className="flex justify-end">
+          <Button 
+            onClick={() => setShowErrorDialog(false)}
+            className="bg-primary"
+          >
+            Got it
+          </Button>
+        </div>
+      </div>
+    </div>
+  )}
 }
