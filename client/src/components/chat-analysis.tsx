@@ -822,26 +822,36 @@ export default function ChatAnalysis() {
                 <Upload className="h-10 w-10 text-muted-foreground/50 mx-auto mb-4" />
                 <h3 className="mb-2 font-medium">Upload Chat Log</h3>
                 <p className="text-sm text-muted-foreground mb-4">Drag and drop a WhatsApp export, .txt, .html, .csv, or .zip file, or click to browse</p>
-                <div className="flex flex-col sm:flex-row justify-center gap-3">
+                
+                {/* First button row for upload */}
+                <div className="flex flex-col sm:flex-row justify-center gap-3 mb-3">
                   <Button 
                     variant="outline" 
                     onClick={() => fileInputRef.current?.click()}
                   >
                     Choose File
                   </Button>
-                  {fileIsZip && (
-                    <Button 
-                      variant="secondary"
-                      className="bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300"
-                      onClick={() => setTabValue("paste")}
-                    >
-                      <FileText className="mr-2 h-4 w-4" />
-                      View Extracted Chat
-                    </Button>
-                  )}
                 </div>
+                
+                {/* Show the file name if selected */}
                 {fileName && (
-                  <p className="mt-4 text-sm">Selected: {fileName}</p>
+                  <div className="mt-3 mb-4">
+                    <p className="text-sm mb-1">Selected: <span className="font-medium">{fileName}</span></p>
+                    {fileIsZip && (
+                      <div className="bg-blue-50 border border-blue-100 rounded-md p-3 mt-2 text-blue-800">
+                        <p className="font-medium text-sm mb-1">Zip file detected!</p>
+                        <p className="text-xs mb-2">We've extracted chat content from this archive. Click the button below to view it.</p>
+                        <Button 
+                          variant="secondary"
+                          className="mt-1 bg-blue-100 hover:bg-blue-200 border-blue-300"
+                          onClick={() => setTabValue("paste")}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          Extract & View Chat
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </TabsContent>
