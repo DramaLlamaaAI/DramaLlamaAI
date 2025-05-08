@@ -289,6 +289,157 @@ export default function ChatAnalysis() {
     queryClient.invalidateQueries({ queryKey: ['/api/user/usage'] });
   };
   
+  // Generate multi-line tension data for the new charts
+  const generateTensionData = () => {
+    if (!result) return [];
+    
+    // Simulation parameters
+    const points = 20;
+    const redFlags = result.redFlags || [];
+    const healthScore = result.healthScore?.score || 50;
+    const emotionalIntensity = result.toneAnalysis.emotionalState.reduce((sum, item) => sum + item.intensity, 0) / 
+      result.toneAnalysis.emotionalState.length;
+    
+    // Data for the chart
+    const tensionData = [];
+    const baseline = Math.max(20, Math.min(60, 100 - healthScore));
+    
+    // Helper function: get conflict score for a participant
+    const getConflictScore = (participant: string) => {
+      if (!result.participantConflictScores) return 50;
+      const score = result.participantConflictScores[participant]?.score || 50;
+      return score;
+    };
+    
+    // Generate individual data points with some realistic variation
+    for (let i = 0; i < points; i++) {
+      const progress = i / (points - 1);
+      
+      // Variation amplitude based on position in conversation
+      const variationAmplitude = Math.sin(progress * Math.PI) * 30;
+      
+      // Use red flags to create peaks in various metrics
+      const redFlagFactor = redFlags.length > 0 
+        ? redFlags.reduce((factor, flag) => {
+            // Create peaks around specific points based on red flag severity
+            const peakPoint = (flag.severity / 5) * (points - 1);
+            const distance = Math.abs(i - peakPoint);
+            const peakEffect = distance < 3 ? (3 - distance) * (flag.severity * 3) : 0;
+            return factor + peakEffect;
+          }, 0) 
+        : 0;
+      
+      // Base values for the three different metrics
+      const manipulationFactor = redFlags.length > 0 
+        ? redFlags
+            .filter(flag => ['accusatory language', 'blame-shifting', 'manipulation'].some(term => 
+              flag.type.toLowerCase().includes(term.toLowerCase())))
+            .reduce((sum, flag) => sum + flag.severity, 0) / redFlags.length * 15 
+        : 10;
+      
+      const gaslightingFactor = redFlags.length > 0 
+        ? redFlags
+            .filter(flag => ['gaslighting', 'reality distortion', 'denial'].some(term => 
+              flag.type.toLowerCase().includes(term.toLowerCase())))
+            .reduce((sum, flag) => sum + flag.severity, 0) / redFlags.length * 15 
+        : 5;
+      
+      // Generate the three different types of metrics
+      const manipulationValue = Math.min(100, Math.max(10, 
+        baseline - 20 + 
+        variationAmplitude * (Math.sin(i * 0.7) * 0.5 + 0.5) + 
+        redFlagFactor * (i % 3 === 0 ? 1.2 : 0.8) +
+        manipulationFactor
+      ));
+      
+      const positiveValue = Math.min(100, Math.max(10, 
+        Math.min(80, 100 - manipulationValue) * (Math.cos(i * 0.8 + 1) * 0.3 + 0.7) - 
+        redFlagFactor * 0.3 +
+        (healthScore > 70 ? 20 : 0)
+      ));
+      
+      const gaslightingValue = Math.min(100, Math.max(5, 
+        baseline - 10 + 
+        variationAmplitude * (Math.cos(i * 0.9 + 2) * 0.4 + 0.6) + 
+        gaslightingFactor +
+        (i % 4 === 2 ? redFlagFactor * 0.8 : 0)
+      ));
+      
+      // Create the data point
+      tensionData.push({
+        name: `Point ${i+1}`,
+        manipulation: Math.round(manipulationValue),
+        positive: Math.round(positiveValue),
+        gaslighting: Math.round(gaslightingValue),
+        // Participant-specific values
+        [me]: Math.round((manipulationValue + 100 - positiveValue + gaslightingValue) / 3),
+        [them]: Math.round((manipulationValue * 0.8 + (100 - positiveValue) * 1.2 + gaslightingValue * 0.9) / 3)
+      });
+    }
+    
+    return tensionData;
+  };
+  
+  // Generate quotes for interactive chart points
+  const generateQuotes = () => {
+    if (!result) return [];
+    
+    const quotes = [];
+    const points = 20;
+    const redFlags = result.redFlags || [];
+    const keyQuotes = result.keyQuotes || [];
+    
+    // Add quotes from red flags
+    redFlags.forEach((flag, idx) => {
+      // Place red flags at spaced intervals
+      const pointIndex = Math.floor((idx + 1) / (redFlags.length + 1) * points);
+      
+      quotes.push({
+        index: pointIndex,
+        type: 'manipulation' as TrendLineType,
+        text: flag.description,
+        speaker: idx % 2 === 0 ? me : them
+      });
+    });
+    
+    // Add positive quotes (constructed or from key quotes)
+    for (let i = 0; i < 5; i++) {
+      const pointIndex = Math.floor((i + 1) / 6 * points);
+      
+      // Find a positive or neutral key quote if available
+      const positiveQuote = keyQuotes.find(q => !q.analysis.toLowerCase().includes('negative') && 
+                                               !q.analysis.toLowerCase().includes('concern'));
+      
+      quotes.push({
+        index: pointIndex,
+        type: 'positive' as TrendLineType,
+        text: positiveQuote ? positiveQuote.quote : "I appreciate you sharing your perspective with me.",
+        speaker: (i % 2 === 0) ? me : them
+      });
+    }
+    
+    // Add gaslighting quotes (constructed based on the general tone)
+    for (let i = 0; i < 4; i++) {
+      const pointIndex = Math.floor((i + 2) / 6 * points);
+      
+      // Find a quote that might indicate gaslighting
+      const gasQuote = keyQuotes.find(q => 
+        q.analysis.toLowerCase().includes('dismissive') || 
+        q.analysis.toLowerCase().includes('invalidating') ||
+        q.analysis.toLowerCase().includes('distorts')
+      );
+      
+      quotes.push({
+        index: pointIndex,
+        type: 'gaslighting' as TrendLineType,
+        text: gasQuote ? gasQuote.quote : "You're completely overreacting. That never happened the way you're describing it.",
+        speaker: (i % 2 === 0) ? them : me
+      });
+    }
+    
+    return quotes;
+  };
+
   // Export results to PDF
   const exportResultsToPdf = async () => {
     if (!result) return;
@@ -810,38 +961,102 @@ export default function ChatAnalysis() {
                 </div>
               )}
               
-              {/* Simulated Tension Trendline with Enhanced Accuracy */}
+              {/* Advanced Multi-Layer Tension Analysis - NEW VERSION */}
               <div className="bg-white border border-gray-200 p-4 rounded-lg mb-4">
-                <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <h4 className="font-medium text-gray-800 flex items-center">
                     <TrendingUp className="h-4 w-4 mr-2 text-gray-600" />
-                    Simulated Tension Trendline
+                    Advanced Communication Patterns
                   </h4>
                   
-                  {/* Participant Toggle */}
-                  <div className="flex items-center">
-                    <div className="flex items-center border rounded-md p-1 bg-gray-50">
-                      <button 
-                        className={`text-xs px-2 py-1 rounded ${showParticipant === 'both' ? 'bg-gray-200' : ''}`}
-                        onClick={() => setShowParticipant('both')}
-                      >
-                        Both
-                      </button>
-                      <button 
-                        className={`text-xs px-2 py-1 rounded flex items-center ${showParticipant === 'me' ? 'bg-cyan-100 text-cyan-700' : ''}`}
-                        onClick={() => setShowParticipant('me')}
-                      >
-                        <span className="h-2 w-2 rounded-full bg-cyan-400 inline-block mr-1"></span>
-                        {me}
-                      </button>
-                      <button 
-                        className={`text-xs px-2 py-1 rounded flex items-center ${showParticipant === 'them' ? 'bg-pink-100 text-pink-700' : ''}`}
-                        onClick={() => setShowParticipant('them')}
-                      >
-                        <span className="h-2 w-2 rounded-full bg-pink-400 inline-block mr-1"></span>
-                        {them}
-                      </button>
-                    </div>
+                  {/* Layer Selector */}
+                  <div className="flex flex-wrap gap-1">
+                    <Button
+                      variant={activeTrendLine === 'all' ? 'default' : 'outline'} 
+                      size="xs"
+                      onClick={() => {
+                        setActiveTrendLine('all');
+                        setHighlightedQuote(null);
+                      }}
+                      className="flex items-center gap-1"
+                    >
+                      <Activity className="h-3 w-3" />
+                      All Patterns
+                    </Button>
+                    <Button
+                      variant={activeTrendLine === 'manipulation' ? 'default' : 'outline'} 
+                      size="xs"
+                      onClick={() => {
+                        setActiveTrendLine('manipulation');
+                        setHighlightedQuote(null);
+                      }}
+                      className={`flex items-center gap-1 ${
+                        activeTrendLine === 'manipulation' 
+                          ? 'bg-red-600 hover:bg-red-700 text-white' 
+                          : 'text-red-600 hover:text-red-700'
+                      }`}
+                    >
+                      <AlertTriangle className="h-3 w-3" />
+                      Red Flags
+                    </Button>
+                    <Button
+                      variant={activeTrendLine === 'positive' ? 'default' : 'outline'} 
+                      size="xs"
+                      onClick={() => {
+                        setActiveTrendLine('positive');
+                        setHighlightedQuote(null);
+                      }}
+                      className={`flex items-center gap-1 ${
+                        activeTrendLine === 'positive' 
+                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                          : 'text-green-600 hover:text-green-700'
+                      }`}
+                    >
+                      <ThumbsUp className="h-3 w-3" />
+                      Positive
+                    </Button>
+                    <Button
+                      variant={activeTrendLine === 'gaslighting' ? 'default' : 'outline'} 
+                      size="xs"
+                      onClick={() => {
+                        setActiveTrendLine('gaslighting');
+                        setHighlightedQuote(null);
+                      }}
+                      className={`flex items-center gap-1 ${
+                        activeTrendLine === 'gaslighting' 
+                          ? 'bg-orange-600 hover:bg-orange-700 text-white' 
+                          : 'text-orange-600 hover:text-orange-700'
+                      }`}
+                    >
+                      <Shield className="h-3 w-3" />
+                      Gaslighting
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Participant Selector */}
+                <div className="flex justify-end mt-1">
+                  <div className="flex items-center border rounded-md p-1 bg-gray-50">
+                    <button 
+                      className={`text-xs px-2 py-1 rounded ${showParticipant === 'both' ? 'bg-gray-200' : ''}`}
+                      onClick={() => setShowParticipant('both')}
+                    >
+                      Both
+                    </button>
+                    <button 
+                      className={`text-xs px-2 py-1 rounded flex items-center ${showParticipant === 'me' ? 'bg-cyan-100 text-cyan-700' : ''}`}
+                      onClick={() => setShowParticipant('me')}
+                    >
+                      <span className="h-2 w-2 rounded-full bg-cyan-400 inline-block mr-1"></span>
+                      {me}
+                    </button>
+                    <button 
+                      className={`text-xs px-2 py-1 rounded flex items-center ${showParticipant === 'them' ? 'bg-pink-100 text-pink-700' : ''}`}
+                      onClick={() => setShowParticipant('them')}
+                    >
+                      <span className="h-2 w-2 rounded-full bg-pink-400 inline-block mr-1"></span>
+                      {them}
+                    </button>
                   </div>
                 </div>
                 
