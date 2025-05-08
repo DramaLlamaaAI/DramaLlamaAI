@@ -14,6 +14,8 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserTier(userId: number, tier: string): Promise<User>;
+  updateStripeCustomerId(userId: number, customerId: string): Promise<User>;
+  updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User>;
   
   // Analysis Management
   saveAnalysis(analysis: InsertAnalysis): Promise<Analysis>;

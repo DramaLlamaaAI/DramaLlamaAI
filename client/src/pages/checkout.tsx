@@ -1,0 +1,197 @@
+import { useStripe, Elements, PaymentElement, useElements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { useEffect, useState } from 'react';
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from 'wouter';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from 'lucide-react';
+
+// Make sure to call `loadStripe` outside of a component's render to avoid
+// recreating the `Stripe` object on every render.
+if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
+}
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+const CheckoutForm = ({ plan }: { plan: string }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
+  const [_, navigate] = useLocation();
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: window.location.origin + '/subscription?success=true',
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "Payment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Payment Successful",
+        description: "Thank you for subscribing to Drama Llama!",
+      });
+      navigate('/subscription?success=true');
+    }
+    
+    setIsProcessing(false);
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <PaymentElement className="mb-6" />
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={!stripe || isProcessing}
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          `Subscribe to ${plan} Plan`
+        )}
+      </Button>
+    </form>
+  );
+};
+
+export default function Checkout() {
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [plan, setPlan] = useState('Personal');
+  const { toast } = useToast();
+  const [_, navigate] = useLocation();
+  
+  // Get plan from URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const planParam = params.get('plan');
+    if (planParam) {
+      setPlan(planParam.charAt(0).toUpperCase() + planParam.slice(1).toLowerCase());
+    }
+  }, []);
+
+  useEffect(() => {
+    // Create subscription intent on page load
+    const createSubscription = async () => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams(window.location.search);
+        const planParam = params.get('plan')?.toLowerCase() || 'personal';
+        
+        const response = await apiRequest('POST', '/api/create-subscription', { plan: planParam });
+        
+        if (!response.ok) {
+          throw new Error('Failed to create subscription');
+        }
+        
+        const data = await response.json();
+        setClientSecret(data.clientSecret);
+      } catch (err: any) {
+        console.error('Error creating subscription:', err);
+        setError(err.message || 'Something went wrong. Please try again.');
+        toast({
+          title: "Error",
+          description: "Could not initialize the payment system. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    createSubscription();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <div className="container py-12">
+        <div className="max-w-md mx-auto flex flex-col items-center justify-center p-8">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-center text-muted-foreground">Preparing your checkout...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container py-12">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Something went wrong</CardTitle>
+            <CardDescription>We couldn't initialize the payment system</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">{error}</p>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={() => navigate('/subscription')} className="w-full">
+              Back to Plans
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!clientSecret) {
+    return (
+      <div className="container py-12">
+        <div className="max-w-md mx-auto flex flex-col items-center justify-center p-8">
+          <p className="text-center text-muted-foreground">Unable to initialize payment. Please try again.</p>
+          <Button onClick={() => navigate('/subscription')} className="mt-4">
+            Back to Plans
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container py-12">
+      <div className="max-w-md mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscribe to {plan} Plan</CardTitle>
+            <CardDescription>
+              Please enter your payment details to continue
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <CheckoutForm plan={plan} />
+            </Elements>
+          </CardContent>
+          <CardFooter className="flex justify-center border-t pt-6">
+            <p className="text-xs text-center text-muted-foreground">
+              Secured by Stripe. Your payment information is encrypted and secure.
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
+}
