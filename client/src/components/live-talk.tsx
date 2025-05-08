@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, MicOff, Loader2, Play, Square, Volume2 } from "lucide-react";
+import { Mic, MicOff, Loader2, Play, Square, Volume2, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useUserTier } from "@/hooks/use-user-tier";
 import { useToast } from "@/hooks/use-toast";
+import { analyzeChatConversation } from "@/lib/openai";
+import { useNavigate } from "wouter";
 
 export default function LiveTalk() {
   const [isRecording, setIsRecording] = useState(false);
