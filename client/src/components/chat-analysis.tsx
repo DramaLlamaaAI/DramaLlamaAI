@@ -1286,7 +1286,11 @@ export default function ChatAnalysis() {
                   <div className="mb-4">
                     <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
                     <div className="space-y-3">
-                      {result.communication.patterns.map((pattern: string, idx: number) => {
+                      {/* Filter out duplicate patterns to avoid repetition */}
+                      {result.communication.patterns
+                        .filter((pattern, index, self) => 
+                          self.indexOf(pattern) === index)
+                        .map((pattern: string, idx: number) => {
                         // Check if the pattern contains a quote (text inside quotes)
                         const quoteMatch = pattern.match(/"([^"]+)"/);
                         const hasQuote = quoteMatch && quoteMatch[1];
