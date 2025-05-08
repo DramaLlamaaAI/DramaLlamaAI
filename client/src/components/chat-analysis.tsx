@@ -746,25 +746,55 @@ export default function ChatAnalysis() {
                   <div className="flex items-center mb-2">
                     <span className="font-medium text-lg">{result.healthScore.label}</span>
                   </div>
-                  <div className="flex items-center">
-                    <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                      {/* Background color gradient from green to red */}
-                      <div className="absolute top-0 left-0 h-full w-full bg-gray-200">
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center">
+                      <div className="relative w-full h-3 bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-full overflow-hidden">
+                        {/* Marker showing current position */}
+                        <div 
+                          className="absolute top-0 h-5 w-1 bg-white border border-gray-400 rounded-full"
+                          style={{ 
+                            left: `${Math.max(0, Math.min(100, result.healthScore.score || 0))}%`,
+                            transform: 'translateX(-50%)',
+                            top: '-1px'
+                          }}
+                        />
                       </div>
-                      
-                      {/* Green bar that shows health score */}
-                      <div 
-                        className="absolute top-0 left-0 h-full rounded-r-full"
-                        style={{ 
-                          width: `${Math.max(0, Math.min(100, result.healthScore.score || 0))}%`,
-                          background: result.healthScore.score >= 80 
-                            ? 'linear-gradient(to right, #22c55e, #10b981)' 
-                            : result.healthScore.score >= 50 
-                            ? 'linear-gradient(to right, #10b981, #f59e0b)' 
-                            : 'linear-gradient(to right, #f59e0b, #ef4444)'
-                        }}
-                      />
                     </div>
+                    
+                    {/* Labels for different sections of health meter */}
+                    <div className="flex justify-between text-xs text-gray-600 px-1">
+                      <span>Conflict</span>
+                      <span>Tension</span>
+                      <span>Healthy</span>
+                      <span>Very Healthy</span>
+                    </div>
+                    
+                    {/* Individual communication style indicators */}
+                    {result.participantConflictScores && (
+                      <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(result.participantConflictScores).map(([name, data]) => (
+                          <div key={name} className="flex flex-col">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className={`text-sm font-medium ${name === me ? 'text-cyan-700' : 'text-pink-700'}`}>
+                                {name}
+                              </span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${
+                                data.score < 30 ? 'bg-green-100 text-green-700' : 
+                                data.score < 60 ? 'bg-yellow-100 text-yellow-700' : 
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {data.label}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-600 italic">
+                              {data.isEscalating 
+                                ? 'Shows escalation patterns throughout conversation' 
+                                : 'Maintains consistent communication style'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
