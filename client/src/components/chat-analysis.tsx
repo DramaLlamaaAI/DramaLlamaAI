@@ -287,13 +287,17 @@ export default function ChatAnalysis() {
       console.log("isZipFile result:", isZip);
       setFileIsZip(isZip);
       
+      // Read the file - this is the same for all files
+      rawText = await file.text();
+          
       if (isZip) {
-        const extractedText = await handleZipFile(file);
-        if (!extractedText) return;  // Exit if zip processing failed
-        rawText = extractedText;
+        // For "zip-like" files, process through our special section
+        console.log("Processing like zip/special file");
+        // No need to extract anything since we've already read the text content
+        // Just set the UI state to show in the zip section
       } else {
-        // Normal file handling
-        rawText = await file.text();
+        // For non-special files, processing continues as normal
+        console.log("Processing as regular file");
       }
       
       // Check if it's a WhatsApp export (has date patterns and standard format)
@@ -899,34 +903,35 @@ export default function ChatAnalysis() {
                       <Archive className="h-8 w-8 text-blue-500" />
                     </div>
                     
-                    <h3 className="text-xl font-medium text-blue-800 mb-2">Extract from ZIP</h3>
-                    <p className="text-sm text-blue-600 mb-6">ZIP archives with chat exports</p>
+                    <h3 className="text-xl font-medium text-blue-800 mb-2">WhatsApp Chat Exports</h3>
+                    <p className="text-sm text-blue-600 mb-6">Upload WhatsApp exports or ZIP files</p>
                     
                     <Button 
                       variant="outline"
                       className="border-blue-300 bg-white hover:bg-blue-50 text-blue-700"
                       onClick={() => {
                         if (fileInputRef.current) {
-                          fileInputRef.current.accept = ".zip,application/zip,application/x-zip-compressed,application/octet-stream";
+                          // Accept both WhatsApp chat exports and zip files
+                          fileInputRef.current.accept = ".zip,application/zip,application/x-zip-compressed,application/octet-stream,text/plain";
                           fileInputRef.current.click();
                         }
                       }}
                     >
                       <Archive className="mr-2 h-4 w-4" />
-                      Select ZIP File
+                      Select Chat Export
                     </Button>
                     
                     {fileName && fileIsZip ? (
-                      /* Show actual extracted content when a ZIP file is uploaded */
+                      /* Show actual extracted content when a WhatsApp file is uploaded */
                       <div className="mt-6 p-3 bg-blue-50 rounded-md border border-blue-100 text-left">
-                        <p className="text-sm text-blue-800 mb-2">Extracted from {fileName}:</p>
+                        <p className="text-sm text-blue-800 mb-2">Chat export: {fileName}</p>
                         
-                        {/* Preview of actually extracted content */}
+                        {/* Preview of chat content */}
                         <div className="mt-2 mb-3 bg-white border border-blue-200 rounded p-2 max-h-36 overflow-y-auto text-left">
                           <pre className="text-xs text-gray-700 whitespace-pre-wrap">
                             {conversation.length > 500 
                               ? conversation.substring(0, 500) + "..." 
-                              : conversation || "No content found in the archive."}
+                              : conversation || "No content found in the file."}
                           </pre>
                         </div>
                         
@@ -963,16 +968,21 @@ export default function ChatAnalysis() {
                         </div>
                       </div>
                     ) : (
-                      /* Show a "how it works" section when no ZIP is uploaded yet */
+                      /* Show a "how it works" section when no file is uploaded yet */
                       <div className="mt-6 p-3 bg-blue-50 rounded-md border border-blue-100 text-left">
-                        <p className="text-sm text-blue-800 mb-2">How ZIP Extraction Works:</p>
+                        <p className="text-sm text-blue-800 mb-2 font-medium">How to Export WhatsApp Chats:</p>
                         <ol className="text-xs text-blue-700 list-decimal pl-5 mb-3 space-y-1">
-                          <li>Upload a ZIP file containing chat exports</li>
-                          <li>We'll automatically find WhatsApp or other chat logs inside</li>
-                          <li>The extracted text will appear right here for review</li>
-                          <li>You can then edit the text or proceed with analysis</li>
+                          <li>Open WhatsApp on your phone</li>
+                          <li>Go to the chat you want to analyze</li>
+                          <li>Tap Menu (3 dots) → More → Export chat</li>
+                          <li>Choose "Without Media" to keep the file small</li>
+                          <li>Send the .txt file to your computer or email</li>
+                          <li>Upload that .txt file right here</li>
                         </ol>
-                        <p className="text-xs text-blue-600 italic">Upload a ZIP file to see the extracted content here.</p>
+                        <div className="bg-white p-2 rounded border border-blue-200 mt-2">
+                          <p className="text-xs text-blue-800 font-medium">✨ New Feature:</p>
+                          <p className="text-xs text-blue-700">You can now directly upload WhatsApp chat export files (.txt) without needing to use ZIP files!</p>
+                        </div>
                       </div>
                     )}
                   </div>

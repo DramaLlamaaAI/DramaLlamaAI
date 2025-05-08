@@ -175,6 +175,15 @@ export const isZipFile = (file: File | string): boolean => {
   if (typeof file === 'string') {
     return file.toLowerCase().endsWith('.zip');
   } else {
+    // Check if it's a WhatsApp chat export from the name
+    if (file.name.toLowerCase().includes('whatsapp chat with') || 
+        file.name.toLowerCase().includes('_chat') || 
+        file.name.toLowerCase() === 'chat.txt') {
+      // Consider WhatsApp chat exports as special case for "zip processing" tab
+      console.log("Treating WhatsApp chat export as archive file:", file.name);
+      return true;
+    }
+    
     return file.type === 'application/zip' || 
            file.name.toLowerCase().endsWith('.zip');
   }
