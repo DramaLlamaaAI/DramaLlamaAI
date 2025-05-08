@@ -861,54 +861,65 @@ export default function ChatAnalysis() {
                       Select ZIP File
                     </Button>
                     
-                    {/* Sample chat preview area */}
-                    <div className="mt-6 p-3 bg-blue-50 rounded-md border border-blue-100 text-left">
-                      <p className="text-sm text-blue-800 mb-2">Example of extracted chat content:</p>
-                      
-                      {/* Preview of example extracted content */}
-                      <div className="mt-2 mb-3 bg-white border border-blue-200 rounded p-2 max-h-36 overflow-y-auto text-left">
-                        <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                          {`[5/1/23, 10:15:23 AM] Dad: Good morning, how's your day going?
-[5/1/23, 10:17:45 AM] Els: Hi Dad! It's going well, just working on some projects
-[5/1/23, 10:18:32 AM] Dad: That's great. Have you had lunch yet?
-[5/1/23, 10:19:20 AM] Els: Not yet, thinking about getting some sandwiches soon
-[5/1/23, 10:20:05 AM] Dad: Make sure you eat something healthy!
-[5/1/23, 10:21:19 AM] Els: I will! How about you?`}
-                        </pre>
-                      </div>
-                      
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <Button 
-                          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                          onClick={() => setTabValue("paste")}
-                        >
-                          <FileText className="mr-2 h-4 w-4" />
-                          View/Edit Full Content
-                        </Button>
+                    {fileName && fileIsZip ? (
+                      /* Show actual extracted content when a ZIP file is uploaded */
+                      <div className="mt-6 p-3 bg-blue-50 rounded-md border border-blue-100 text-left">
+                        <p className="text-sm text-blue-800 mb-2">Extracted from {fileName}:</p>
                         
-                        <Button
-                          variant="outline"
-                          className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
-                          onClick={() => {
-                            const sampleText = `[5/1/23, 10:15:23 AM] Dad: Good morning, how's your day going?
-[5/1/23, 10:17:45 AM] Els: Hi Dad! It's going well, just working on some projects
-[5/1/23, 10:18:32 AM] Dad: That's great. Have you had lunch yet?
-[5/1/23, 10:19:20 AM] Els: Not yet, thinking about getting some sandwiches soon
-[5/1/23, 10:20:05 AM] Dad: Make sure you eat something healthy!
-[5/1/23, 10:21:19 AM] Els: I will! How about you?`;
-                            navigator.clipboard.writeText(sampleText);
-                            setConversation(sampleText);
-                            toast({
-                              title: "Example Copied",
-                              description: "Sample conversation has been copied and loaded for analysis.",
-                            });
-                          }}
-                        >
-                          <Copy className="mr-2 h-4 w-4" />
-                          Copy to Clipboard
-                        </Button>
+                        {/* Preview of actually extracted content */}
+                        <div className="mt-2 mb-3 bg-white border border-blue-200 rounded p-2 max-h-36 overflow-y-auto text-left">
+                          <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+                            {conversation.length > 500 
+                              ? conversation.substring(0, 500) + "..." 
+                              : conversation || "No content found in the archive."}
+                          </pre>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Button 
+                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                            onClick={() => {
+                              // Switch to the paste tab to show the full extracted content in editable form
+                              setTabValue("paste");
+                              // If we've automatically detected participants, try to get their names
+                              if (conversation && !me && !them) {
+                                handleDetectNames();
+                              }
+                            }}
+                          >
+                            <FileText className="mr-2 h-4 w-4" />
+                            Edit Extracted Content
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                            onClick={() => {
+                              navigator.clipboard.writeText(conversation);
+                              toast({
+                                title: "Copied to Clipboard",
+                                description: "The extracted content has been copied to your clipboard.",
+                              });
+                            }}
+                          >
+                            <Copy className="mr-2 h-4 w-4" />
+                            Copy to Clipboard
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      /* Show a "how it works" section when no ZIP is uploaded yet */
+                      <div className="mt-6 p-3 bg-blue-50 rounded-md border border-blue-100 text-left">
+                        <p className="text-sm text-blue-800 mb-2">How ZIP Extraction Works:</p>
+                        <ol className="text-xs text-blue-700 list-decimal pl-5 mb-3 space-y-1">
+                          <li>Upload a ZIP file containing chat exports</li>
+                          <li>We'll automatically find WhatsApp or other chat logs inside</li>
+                          <li>The extracted text will appear right here for review</li>
+                          <li>You can then edit the text or proceed with analysis</li>
+                        </ol>
+                        <p className="text-xs text-blue-600 italic">Upload a ZIP file to see the extracted content here.</p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   /* Regular File Upload */
@@ -944,21 +955,16 @@ export default function ChatAnalysis() {
                 )}
               </div>
               
-              {/* Show file selected interface */}
-              {fileName && (
+              {/* Show file selected interface for non-ZIP files only */}
+              {fileName && !fileIsZip && (
                 <div className="mt-6 border rounded-md p-4">
                   <div className="flex items-start gap-3">
-                    {fileIsZip ? (
-                      <Archive className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                    ) : (
-                      <FileText className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                    )}
+                    <FileText className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
                     
                     <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                           <span className="font-medium">{fileName}</span>
-                          {fileIsZip && <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 border-blue-200">ZIP Archive</Badge>}
                         </div>
                         
                         <Button 
@@ -968,54 +974,12 @@ export default function ChatAnalysis() {
                           onClick={() => {
                             setFileName("");
                             setFileIsZip(false);
+                            setConversation("");
                           }}
                         >
                           Clear
                         </Button>
                       </div>
-                      
-                      {fileIsZip && (
-                        <div className="mt-3">
-                          <div className="p-3 bg-blue-50 rounded-md border border-blue-100 mb-3">
-                            <p className="text-sm text-blue-800 mb-2">We've extracted chat content from this ZIP archive:</p>
-                            
-                            {/* Preview of extracted content */}
-                            <div className="mt-2 mb-3 bg-white border border-blue-200 rounded p-2 max-h-36 overflow-y-auto text-left">
-                              <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                                {conversation.length > 500 
-                                  ? conversation.substring(0, 500) + "..." 
-                                  : conversation || "No content found in the archive."}
-                              </pre>
-                            </div>
-                            
-                            <div className="flex flex-col sm:flex-row gap-2">
-                              <Button 
-                                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                                onClick={() => setTabValue("paste")}
-                              >
-                                <FileText className="mr-2 h-4 w-4" />
-                                Edit Extracted Content
-                              </Button>
-                              
-                              <Button
-                                variant="outline"
-                                className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
-                                onClick={() => {
-                                  // Copy to clipboard
-                                  navigator.clipboard.writeText(conversation);
-                                  toast({
-                                    title: "Copied to Clipboard",
-                                    description: "The extracted content has been copied to your clipboard.",
-                                  });
-                                }}
-                              >
-                                <Copy className="mr-2 h-4 w-4" />
-                                Copy to Clipboard
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
