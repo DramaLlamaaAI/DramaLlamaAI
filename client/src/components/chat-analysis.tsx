@@ -196,7 +196,7 @@ export default function ChatAnalysis() {
         
         toast({
           title: "Zip File Processed",
-          description: `Extracted ${foundFile} from the zip archive.`,
+          description: `Extracted "${foundFile}" from the zip archive. Check the text box to see the conversation and use "Detect Names" to identify participants.`,
         });
       } else {
         toast({
@@ -243,10 +243,17 @@ export default function ChatAnalysis() {
       // Preprocess the chat log to handle different formats
       const processedText = preprocessChatLog(rawText);
       
-      // Set the processed conversation text
+      // Set the processed conversation text to display in the text area
       setConversation(processedText);
+      
+      // Update file name display
       if (!isZipFile(file)) {
         setFileName(file.name);
+      }
+      
+      // If we're processing a zip file, automatically switch to the paste tab to show content
+      if (isZipFile(file)) {
+        setTabValue("paste");
       }
       
       // Check if format was automatically detected
