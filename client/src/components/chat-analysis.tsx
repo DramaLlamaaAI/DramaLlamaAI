@@ -136,6 +136,8 @@ export default function ChatAnalysis() {
     },
   });
 
+  // Use the imported isZipFile from utils.ts
+
   // Handle zip file by extracting WhatsApp chat export or other text files
   const handleZipFile = async (file: File): Promise<string | null> => {
     try {
@@ -836,7 +838,7 @@ export default function ChatAnalysis() {
                       type="file"
                       ref={fileInputRef}
                       onChange={handleFileUpload}
-                      accept=".zip,application/zip,application/octet-stream"
+                      accept=".zip,application/zip,application/x-zip-compressed,application/octet-stream"
                       className="hidden"
                     />
                     
@@ -852,7 +854,7 @@ export default function ChatAnalysis() {
                       className="border-blue-300 bg-white hover:bg-blue-50 text-blue-700"
                       onClick={() => {
                         if (fileInputRef.current) {
-                          fileInputRef.current.accept = ".zip,application/zip,application/octet-stream";
+                          fileInputRef.current.accept = ".zip,application/zip,application/x-zip-compressed,application/octet-stream";
                           fileInputRef.current.click();
                         }
                       }}
