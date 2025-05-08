@@ -973,24 +973,22 @@ export default function ChatAnalysis() {
                   <div className="flex flex-wrap gap-1">
                     <Button
                       variant={activeTrendLine === 'all' ? 'default' : 'outline'} 
-                      size="xs"
                       onClick={() => {
                         setActiveTrendLine('all');
                         setHighlightedQuote(null);
                       }}
-                      className="flex items-center gap-1"
+                      className="text-xs h-7 px-2 py-0 flex items-center gap-1"
                     >
                       <Activity className="h-3 w-3" />
                       All Patterns
                     </Button>
                     <Button
                       variant={activeTrendLine === 'manipulation' ? 'default' : 'outline'} 
-                      size="xs"
                       onClick={() => {
                         setActiveTrendLine('manipulation');
                         setHighlightedQuote(null);
                       }}
-                      className={`flex items-center gap-1 ${
+                      className={`text-xs h-7 px-2 py-0 flex items-center gap-1 ${
                         activeTrendLine === 'manipulation' 
                           ? 'bg-red-600 hover:bg-red-700 text-white' 
                           : 'text-red-600 hover:text-red-700'
@@ -1001,12 +999,11 @@ export default function ChatAnalysis() {
                     </Button>
                     <Button
                       variant={activeTrendLine === 'positive' ? 'default' : 'outline'} 
-                      size="xs"
                       onClick={() => {
                         setActiveTrendLine('positive');
                         setHighlightedQuote(null);
                       }}
-                      className={`flex items-center gap-1 ${
+                      className={`text-xs h-7 px-2 py-0 flex items-center gap-1 ${
                         activeTrendLine === 'positive' 
                           ? 'bg-green-600 hover:bg-green-700 text-white' 
                           : 'text-green-600 hover:text-green-700'
@@ -1017,12 +1014,11 @@ export default function ChatAnalysis() {
                     </Button>
                     <Button
                       variant={activeTrendLine === 'gaslighting' ? 'default' : 'outline'} 
-                      size="xs"
                       onClick={() => {
                         setActiveTrendLine('gaslighting');
                         setHighlightedQuote(null);
                       }}
-                      className={`flex items-center gap-1 ${
+                      className={`text-xs h-7 px-2 py-0 flex items-center gap-1 ${
                         activeTrendLine === 'gaslighting' 
                           ? 'bg-orange-600 hover:bg-orange-700 text-white' 
                           : 'text-orange-600 hover:text-orange-700'
@@ -1060,140 +1056,161 @@ export default function ChatAnalysis() {
                   </div>
                 </div>
                 
-                <div className="h-64 mb-2">
-                  {/* Enhanced conversation tension simulation */}
-                  {(() => {
-                    // Generate more data points for smoother curves
-                    const points = 12;  // Increased number of data points
-                    const healthScore = result.healthScore?.score || 75;
-                    
-                    // Enhanced parameters based on analysis data
-                    // Use redFlags count and severity to influence volatility
-                    const redFlagSeverity = result.redFlags ? 
-                      result.redFlags.reduce((sum, flag) => sum + flag.severity, 0) / (result.redFlags.length || 1) : 
-                      3;
-                    
-                    // Use conflict scores if available
-                    const conflictScoreMe = result.participantConflictScores?.[me]?.score || 50;
-                    const conflictScoreThem = result.participantConflictScores?.[them]?.score || 50;
-                    
-                    const volatility = Math.min(100, (100 - healthScore) + (redFlagSeverity * 5));
-                    const baselinePersonA = Math.max(10, conflictScoreMe * 0.9); 
-                    const baselinePersonB = Math.max(10, conflictScoreThem * 0.9);
-                    
-                    // Enhanced point generation with trend patterns
-                    const generatePoint = (baseline: number, index: number, isEscalating: boolean) => {
-                      // Create a more natural progression with cubic function
-                      const progressionFactor = isEscalating ? 
-                        Math.pow(index / points, 1.5) * 25 : 
-                        Math.sin(index / (points/2) * Math.PI) * 15;
-                      
-                      // Add volatility based on health score and conflict indicators
-                      const randomFactor = (Math.sin(index * 1.5) + Math.cos(index * 0.7)) * (volatility * 0.3);
-                      
-                      // Apply a trend - higher points toward the middle of conversation for escalating patterns
-                      return Math.max(5, Math.min(95, baseline + progressionFactor + randomFactor));
-                    };
-                    
-                    // Check if participants have escalation patterns
-                    const isPersonAEscalating = result.participantConflictScores?.[me]?.isEscalating || false;
-                    const isPersonBEscalating = result.participantConflictScores?.[them]?.isEscalating || false;
-                    
-                    const data = Array.from({ length: points }).map((_, i) => {
-                      const personA = generatePoint(baselinePersonA, i, isPersonAEscalating);
-                      const personB = generatePoint(baselinePersonB, i + 1, isPersonBEscalating); // Slight offset
-                      
-                      return {
-                        name: `Point ${i + 1}`,
-                        [me]: personA,
-                        [them]: personB,
-                      };
-                    });
-                    
-                    // Improved conversation "milestone" labels
-                    const milestones = [
-                      "Initial exchange",
-                      "Topic introduction",
-                      "First disagreement",
-                      "Escalation begins",
-                      "Rising tensions",
-                      "Main conflict",
-                      "Peak disagreement", 
-                      "Attempted resolution",
-                      "Partial agreement",
-                      "Final statements",
-                      "Closing remarks",
-                      "Conversation end"
-                    ];
-                    
-                    return (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={data}>
-                          <XAxis 
-                            dataKey="name" 
-                            tick={(props) => {
-                              const { x, y, index } = props;
-                              return (
-                                <g transform={`translate(${x},${y})`}>
-                                  <text 
-                                    x={0} 
-                                    y={0} 
-                                    dy={16} 
-                                    fontSize={10} 
-                                    textAnchor="middle" 
-                                    fill="#666"
-                                  >
-                                    {index === 0 || index === points - 1 || index === Math.floor(points/2) ? 
-                                      milestones[index] : ''}
-                                  </text>
-                                </g>
-                              );
-                            }}
-                            height={45}
-                            textAnchor="end"
-                          />
-                          <YAxis 
-                            domain={[0, 100]}
-                            tickFormatter={(value) => value === 0 ? 'Low' : value === 50 ? 'Medium' : value === 100 ? 'High' : ''}
-                            width={40}
-                          />
-                          <Tooltip 
-                            formatter={(value: number) => [`${value.toFixed(0)}% tension`, '']}
-                            labelFormatter={(_, data) => {
-                              const index = data[0]?.payload?.name?.split(' ')[1] - 1;
-                              return milestones[index] || '';
-                            }}
-                          />
-                          
-                          {/* Threshold line for high tension */}
-                          <ReferenceLine y={75} stroke="#f97316" strokeDasharray="3 3" />
-                          
-                          {/* Show lines based on toggle selection */}
-                          {(showParticipant === 'both' || showParticipant === 'me') && (
+                <div className="mt-2">
+                  <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart 
+                        data={generateTensionData()} 
+                        onClick={(data) => {
+                          if (data && data.activePayload && data.activePayload[0]) {
+                            // Index of the clicked point
+                            const index = data.activeTooltipIndex || 0;
+                            setSelectedPoint(index);
+                            
+                            // Find quote that corresponds to this point if it exists
+                            const quotes = generateQuotes();
+                            const foundQuote = quotes.find(q => q.index === index && q.type === activeTrendLine);
+                            
+                            if (foundQuote) {
+                              setHighlightedQuote({
+                                text: foundQuote.text,
+                                speaker: foundQuote.speaker,
+                                type: foundQuote.type
+                              });
+                            } else {
+                              setHighlightedQuote(null);
+                            }
+                          }
+                        }}
+                      >
+                        <XAxis 
+                          dataKey="name" 
+                          tick={{fontSize: 11}}
+                          tickLine={false}
+                          hide={true}
+                        />
+                        <YAxis 
+                          domain={[0, 100]} 
+                          tick={{fontSize: 11}}
+                          tickLine={false}
+                          tickCount={5}
+                          tickFormatter={(value) => value === 0 ? 'Low' : value === 50 ? 'Medium' : value === 100 ? 'High' : ''}
+                        />
+                        <Tooltip 
+                          formatter={(value: number, name: string) => {
+                            const label = name === 'manipulation' 
+                              ? 'Red Flag Intensity' 
+                              : name === 'positive' 
+                              ? 'Positive Communication' 
+                              : name === 'gaslighting'
+                              ? 'Gaslighting Intensity'
+                              : name;
+                            return [`${value}%`, label];
+                          }}
+                        />
+                        
+                        {/* All Lines */}
+                        {activeTrendLine === 'all' && (
+                          <>
                             <Line 
                               type="monotone" 
-                              dataKey={me} 
-                              stroke="#22d3ee" 
-                              strokeWidth={2.5}
-                              dot={{ stroke: '#22d3ee', strokeWidth: 2, r: 4, fill: 'white' }}
-                              activeDot={{ r: 6, strokeWidth: 2 }}
+                              dataKey="manipulation" 
+                              name="Red Flags"
+                              stroke="#ef4444"
+                              strokeWidth={2} 
+                              dot={false}
+                              activeDot={{ r: 6 }}
                             />
-                          )}
-                          
-                          {(showParticipant === 'both' || showParticipant === 'them') && (
                             <Line 
                               type="monotone" 
-                              dataKey={them} 
-                              stroke="#ec4899" 
-                              strokeWidth={2.5}
-                              dot={{ stroke: '#ec4899', strokeWidth: 2, r: 4, fill: 'white' }}
-                              activeDot={{ r: 6, strokeWidth: 2 }}
+                              dataKey="positive" 
+                              name="Positive Input"
+                              stroke="#22c55e"
+                              strokeWidth={2} 
+                              dot={false}
+                              activeDot={{ r: 6 }}
                             />
-                          )}
-                        </LineChart>
-                      </ResponsiveContainer>
-                    );
-                  })()}
+                            <Line 
+                              type="monotone" 
+                              dataKey="gaslighting" 
+                              name="Gaslighting"
+                              stroke="#f97316"
+                              strokeWidth={2} 
+                              dot={false}
+                              activeDot={{ r: 6 }}
+                            />
+                          </>
+                        )}
+                        
+                        {/* Manipulation/Red Flag Line */}
+                        {activeTrendLine === 'manipulation' && (
+                          <Line 
+                            type="monotone" 
+                            dataKey="manipulation" 
+                            name="Red Flags"
+                            stroke="#ef4444"
+                            strokeWidth={3} 
+                            dot={true}
+                            activeDot={{ r: 8 }}
+                          />
+                        )}
+                        
+                        {/* Positive Line */}
+                        {activeTrendLine === 'positive' && (
+                          <Line 
+                            type="monotone" 
+                            dataKey="positive" 
+                            name="Positive Input"
+                            stroke="#22c55e"
+                            strokeWidth={3} 
+                            dot={true}
+                            activeDot={{ r: 8 }}
+                          />
+                        )}
+                        
+                        {/* Gaslighting Line */}
+                        {activeTrendLine === 'gaslighting' && (
+                          <Line 
+                            type="monotone" 
+                            dataKey="gaslighting" 
+                            name="Gaslighting"
+                            stroke="#f97316"
+                            strokeWidth={3} 
+                            dot={true}
+                            activeDot={{ r: 8 }}
+                          />
+                        )}
+                        
+                        {activeTrendLine === 'manipulation' && (
+                          <ReferenceLine 
+                            y={70} 
+                            stroke="#ef4444" 
+                            strokeDasharray="3 3" 
+                            label={{ 
+                              value: "High Concern", 
+                              fill: "#ef4444", 
+                              fontSize: 11,
+                              position: "insideTopRight" 
+                            }} 
+                          />
+                        )}
+
+                        {activeTrendLine === 'gaslighting' && (
+                          <ReferenceLine 
+                            y={60} 
+                            stroke="#f97316" 
+                            strokeDasharray="3 3" 
+                            label={{ 
+                              value: "Warning Level", 
+                              fill: "#f97316", 
+                              fontSize: 11,
+                              position: "insideTopRight" 
+                            }} 
+                          />
+                        )}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
                 
                 <div className="flex justify-between text-xs text-gray-600 mb-2">
@@ -1201,14 +1218,74 @@ export default function ChatAnalysis() {
                   <div>Conversation End</div>
                 </div>
                 
-                <p className="text-xs text-gray-500 mt-2">
-                  This enhanced visualization shows the simulated emotional tension throughout the conversation based on AI analysis of language patterns, conflict indicators, and communication styles.
-                  {showParticipant !== 'both' && (
-                    <span className="block mt-1">
-                      Currently showing {showParticipant === 'me' ? me : them}'s tension patterns in isolation.
-                    </span>
+                {/* Highlighted Quote Display */}
+                {highlightedQuote && (
+                  <div className={`mt-3 p-3 rounded border ${
+                    highlightedQuote.type === 'manipulation' 
+                      ? 'bg-red-50 border-red-200' 
+                      : highlightedQuote.type === 'positive'
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-orange-50 border-orange-200'
+                  }`}>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className={`font-medium ${
+                        highlightedQuote.speaker === me
+                          ? 'text-cyan-700'
+                          : 'text-pink-700'
+                      }`}>
+                        {highlightedQuote.speaker}:
+                      </div>
+                      <div className={`text-xs px-2 py-1 rounded ${
+                        highlightedQuote.type === 'manipulation' 
+                          ? 'bg-red-100 text-red-700' 
+                          : highlightedQuote.type === 'positive'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-orange-100 text-orange-700'
+                      }`}>
+                        {highlightedQuote.type === 'manipulation' 
+                          ? 'Red Flag' 
+                          : highlightedQuote.type === 'positive'
+                          ? 'Positive Communication'
+                          : 'Gaslighting Pattern'
+                        }
+                      </div>
+                    </div>
+                    <p className="italic text-gray-700">"{highlightedQuote.text}"</p>
+                    <p className="text-xs mt-1 text-gray-500">Click on different points in the chart to see more quotes</p>
+                  </div>
+                )}
+
+                <div className="mt-3 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <div className="text-xs bg-blue-100 text-blue-700 rounded px-2 py-1">PRO TIP</div>
+                    <p className="ml-2">Click on chart points to see actual quotes from the conversation.</p>
+                  </div>
+                  
+                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div className="flex items-center bg-red-50 p-2 rounded border border-red-100">
+                      <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
+                      <span className="font-medium text-red-700">Red Flags:</span>
+                      <span className="ml-1 text-gray-600">Manipulation, blame-shifting</span>
+                    </div>
+                    <div className="flex items-center bg-green-50 p-2 rounded border border-green-100">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                      <span className="font-medium text-green-700">Positive:</span>
+                      <span className="ml-1 text-gray-600">Validation, active listening</span>
+                    </div>
+                    <div className="flex items-center bg-orange-50 p-2 rounded border border-orange-100">
+                      <div className="w-2 h-2 rounded-full bg-orange-500 mr-2"></div>
+                      <span className="font-medium text-orange-700">Gaslighting:</span>
+                      <span className="ml-1 text-gray-600">Reality distortion, denial</span>
+                    </div>
+                  </div>
+                  
+                  {result.highTensionFactors && result.highTensionFactors.length > 0 && (
+                    <div className="mt-3 p-2 bg-gray-50 rounded border border-gray-200">
+                      <span className="font-medium">High tension factors: </span>
+                      {result.highTensionFactors.join(', ')}
+                    </div>
                   )}
-                </p>
+                </div>
               </div>
               
               {/* Individual Communication Styles - Enhanced */}
