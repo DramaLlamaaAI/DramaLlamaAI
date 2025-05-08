@@ -298,86 +298,69 @@ export default function ChatAnalysis() {
     const redFlags = result.redFlags || [];
     const healthScore = result.healthScore?.score || 50;
     const emotionalIntensity = result.toneAnalysis.emotionalState.reduce((sum, item) => sum + item.intensity, 0) / 
-      result.toneAnalysis.emotionalState.length;
+      (result.toneAnalysis.emotionalState.length || 1);
     
-    // Data for the chart
-    const tensionData = [];
-    const baseline = Math.max(20, Math.min(60, 100 - healthScore));
+    // Calculate baseline parameters
+    const redFlagSeverity = redFlags.length > 0 
+      ? redFlags.reduce((sum, flag) => sum + flag.severity, 0) / redFlags.length
+      : 0;
     
-    // Helper function: get conflict score for a participant
-    const getConflictScore = (participant: string) => {
-      if (!result.participantConflictScores) return 50;
-      const score = result.participantConflictScores[participant]?.score || 50;
-      return score;
-    };
+    // Derived parameters for different trend lines
+    const manipulationBaseline = Math.min(100, redFlagSeverity * 15 + (100 - healthScore) * 0.3);
+    const gaslightingBaseline = Math.min(90, redFlags.filter(f => 
+      f.type.toLowerCase().includes('gaslight') || 
+      f.description.toLowerCase().includes('gaslight')
+    ).length * 20 + (100 - healthScore) * 0.4);
+    const positiveBaseline = Math.max(20, healthScore - 20);
     
-    // Generate individual data points with some realistic variation
-    for (let i = 0; i < points; i++) {
-      const progress = i / (points - 1);
+    // Generate the three trend lines with different patterns
+    return Array.from({ length: points }).map((_, i) => {
+      // Position in conversation normalized (0 to 1)
+      const pos = i / (points - 1);
       
-      // Variation amplitude based on position in conversation
-      const variationAmplitude = Math.sin(progress * Math.PI) * 30;
+      // Midpoint tension spike pattern for manipulation
+      const manipulationSpike = Math.sin(pos * Math.PI) * 30;
+      // Early high with gradual decline for gaslighting
+      const gaslightingPattern = Math.max(0, 100 - pos * 120) * Math.sin(pos * 6);
+      // Declining positive communication 
+      const positivePattern = Math.cos(pos * 2) * 15 + (1 - pos) * 30;
       
-      // Use red flags to create peaks in various metrics
-      const redFlagFactor = redFlags.length > 0 
-        ? redFlags.reduce((factor, flag) => {
-            // Create peaks around specific points based on red flag severity
-            const peakPoint = (flag.severity / 5) * (points - 1);
-            const distance = Math.abs(i - peakPoint);
-            const peakEffect = distance < 3 ? (3 - distance) * (flag.severity * 3) : 0;
-            return factor + peakEffect;
-          }, 0) 
-        : 0;
+      // Random variations
+      const manipulationNoise = (Math.sin(i * 1.5) + Math.cos(i * 0.7)) * 8;
+      const gaslightingNoise = (Math.sin(i * 2.3) + Math.cos(i * 1.1)) * 7;
+      const positiveNoise = (Math.sin(i * 3.1) + Math.cos(i * 1.7)) * 6;
       
-      // Base values for the three different metrics
-      const manipulationFactor = redFlags.length > 0 
-        ? redFlags
-            .filter(flag => ['accusatory language', 'blame-shifting', 'manipulation'].some(term => 
-              flag.type.toLowerCase().includes(term.toLowerCase())))
-            .reduce((sum, flag) => sum + flag.severity, 0) / redFlags.length * 15 
-        : 10;
-      
-      const gaslightingFactor = redFlags.length > 0 
-        ? redFlags
-            .filter(flag => ['gaslighting', 'reality distortion', 'denial'].some(term => 
-              flag.type.toLowerCase().includes(term.toLowerCase())))
-            .reduce((sum, flag) => sum + flag.severity, 0) / redFlags.length * 15 
-        : 5;
-      
-      // Generate the three different types of metrics
-      const manipulationValue = Math.min(100, Math.max(10, 
-        baseline - 20 + 
-        variationAmplitude * (Math.sin(i * 0.7) * 0.5 + 0.5) + 
-        redFlagFactor * (i % 3 === 0 ? 1.2 : 0.8) +
-        manipulationFactor
+      // Compute final values with constraints
+      const manipulation = Math.max(5, Math.min(95, 
+        manipulationBaseline + manipulationSpike + manipulationNoise
       ));
       
-      const positiveValue = Math.min(100, Math.max(10, 
-        Math.min(80, 100 - manipulationValue) * (Math.cos(i * 0.8 + 1) * 0.3 + 0.7) - 
-        redFlagFactor * 0.3 +
-        (healthScore > 70 ? 20 : 0)
+      const gaslighting = Math.max(5, Math.min(95, 
+        gaslightingBaseline + gaslightingPattern + gaslightingNoise
       ));
       
-      const gaslightingValue = Math.min(100, Math.max(5, 
-        baseline - 10 + 
-        variationAmplitude * (Math.cos(i * 0.9 + 2) * 0.4 + 0.6) + 
-        gaslightingFactor +
-        (i % 4 === 2 ? redFlagFactor * 0.8 : 0)
+      const positive = Math.max(5, Math.min(95, 
+        positiveBaseline + positivePattern + positiveNoise
       ));
       
-      // Create the data point
-      tensionData.push({
-        name: `Point ${i+1}`,
-        manipulation: Math.round(manipulationValue),
-        positive: Math.round(positiveValue),
-        gaslighting: Math.round(gaslightingValue),
-        // Participant-specific values
-        [me]: Math.round((manipulationValue + 100 - positiveValue + gaslightingValue) / 3),
-        [them]: Math.round((manipulationValue * 0.8 + (100 - positiveValue) * 1.2 + gaslightingValue * 0.9) / 3)
-      });
-    }
-    
-    return tensionData;
+      // Create escalation pattern if health score is low
+      const tensionIncreases = healthScore < 40 && i > points * 0.7;
+      if (tensionIncreases) {
+        return {
+          name: `Point ${i + 1}`,
+          manipulation: manipulation + (i / points) * 25,
+          gaslighting: gaslighting + (i / points) * 20,
+          positive: Math.max(5, positive - (i / points) * 30),
+        };
+      }
+      
+      return {
+        name: `Point ${i + 1}`,
+        manipulation,
+        gaslighting,
+        positive,
+      };
+    });
   };
   
   // Generate quotes for interactive chart points
