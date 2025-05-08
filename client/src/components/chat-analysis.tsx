@@ -866,7 +866,12 @@ export default function ChatAnalysis() {
           
           <Tabs value={tabValue} onValueChange={setTabValue} className="mb-6">
             <TabsList className="mb-4">
-              <TabsTrigger value="paste">Paste Chat</TabsTrigger>
+              <TabsTrigger value="paste" className="relative">
+                Paste Chat
+                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                  Recommended
+                </span>
+              </TabsTrigger>
               <TabsTrigger value="file">Import File</TabsTrigger>
               <TabsTrigger value="image">Upload Screenshot</TabsTrigger>
             </TabsList>
