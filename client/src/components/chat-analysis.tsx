@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation, getParticipantColor, preprocessChatLog, isZipFile } from "@/lib/utils";
 import html2pdf from 'html2pdf.js';
 import { toPng } from 'html-to-image';
+import JSZip from 'jszip';
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import TrialLimiter from "./trial-limiter"; 
@@ -133,52 +134,142 @@ export default function ChatAnalysis() {
     },
   });
 
+  // Handle zip file by extracting WhatsApp chat export or other text files
+  const handleZipFile = async (file: File): Promise<string | null> => {
+    try {
+      // Read the zip file
+      const arrayBuffer = await file.arrayBuffer();
+      const zip = await JSZip.loadAsync(arrayBuffer);
+      
+      // Look for WhatsApp chat export files or any text files
+      let chatContent: string | null = null;
+      let foundFile: string | null = null;
+      
+      // Define patterns to identify chat files
+      const whatsAppPatterns = [
+        /whatsapp.*chat/i,
+        /chat.*\.txt$/i,
+        /^_chat\.txt$/i,
+        /conversation/i,
+      ];
+      
+      // First prioritize files that match WhatsApp chat patterns
+      for (const filename in zip.files) {
+        if (zip.files[filename].dir) continue;  // Skip directories
+        
+        const isLikelyWhatsAppExport = whatsAppPatterns.some(pattern => pattern.test(filename));
+        
+        if (isLikelyWhatsAppExport || filename.endsWith('.txt')) {
+          foundFile = filename;
+          
+          // Prioritize WhatsApp export files
+          if (isLikelyWhatsAppExport) {
+            break;
+          }
+        }
+      }
+      
+      // If no likely WhatsApp file found, try any .txt file
+      if (!foundFile) {
+        for (const filename in zip.files) {
+          if (!zip.files[filename].dir && filename.endsWith('.txt')) {
+            foundFile = filename;
+            break;
+          }
+        }
+      }
+      
+      // If still no file found, try any readable file
+      if (!foundFile) {
+        for (const filename in zip.files) {
+          if (!zip.files[filename].dir) {
+            foundFile = filename;
+            break;
+          }
+        }
+      }
+      
+      // If we found a file, read its content
+      if (foundFile) {
+        chatContent = await zip.files[foundFile].async('text');
+        setFileName(foundFile);
+        
+        toast({
+          title: "Zip File Processed",
+          description: `Extracted ${foundFile} from the zip archive.`,
+        });
+      } else {
+        toast({
+          title: "No Files Found",
+          description: "Could not find any text files in the zip archive.",
+          variant: "destructive",
+        });
+        return null;
+      }
+      
+      return chatContent;
+    } catch (error) {
+      console.error("Error processing zip file:", error);
+      toast({
+        title: "Zip Processing Failed",
+        description: "Could not process the zip file. It may be corrupted or in an unsupported format.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+  
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     try {
+      let rawText = "";
+      
       // Check if the file is a zip archive
       if (isZipFile(file)) {
-        toast({
-          title: "Zip File Detected",
-          description: "Please extract the zip file and upload the .txt file inside it.",
-          variant: "destructive",
-        });
-        return;
+        const extractedText = await handleZipFile(file);
+        if (!extractedText) return;  // Exit if zip processing failed
+        rawText = extractedText;
+      } else {
+        // Normal file handling
+        rawText = await file.text();
       }
-      
-      // Read the raw file content
-      const rawText = await file.text();
       
       // Check if it's a WhatsApp export (has date patterns and standard format)
       const isWhatsAppFormat = /\[\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}(:\d{2})?\s[AP]M\]/i.test(rawText) || 
-                               /\[\d{1,2}\/\d{1,2}\/\d{2,4}\s\d{1,2}:\d{2}(:\d{2})?\]/i.test(rawText);
+                              /\[\d{1,2}\/\d{1,2}\/\d{2,4}\s\d{1,2}:\d{2}(:\d{2})?\]/i.test(rawText);
       
       // Preprocess the chat log to handle different formats
       const processedText = preprocessChatLog(rawText);
       
       // Set the processed conversation text
       setConversation(processedText);
-      setFileName(file.name);
+      if (!isZipFile(file)) {
+        setFileName(file.name);
+      }
       
       // Check if format was automatically detected
       const formatDetected = processedText.startsWith('[This appears to be an') || isWhatsAppFormat;
       
-      toast({
-        title: "File Uploaded",
-        description: isWhatsAppFormat 
-          ? `WhatsApp chat detected. ${file.name} has been loaded.` 
-          : formatDetected 
-            ? `${file.name} has been loaded. Chat format detected.` 
-            : `${file.name} has been loaded.`,
-      });
+      // Show appropriate success message
+      if (!isZipFile(file)) {
+        toast({
+          title: "File Uploaded",
+          description: isWhatsAppFormat 
+            ? `WhatsApp chat detected. ${file.name} has been loaded.` 
+            : formatDetected 
+              ? `${file.name} has been loaded. Chat format detected.` 
+              : `${file.name} has been loaded.`,
+        });
+      }
       
       // Automatically try to detect participants after file upload
       if (processedText.length > 0) {
         handleDetectNames();
       }
     } catch (error) {
+      console.error("File upload error:", error);
       toast({
         title: "Upload Failed",
         description: "Could not read the file. Please check the format and try again.",
