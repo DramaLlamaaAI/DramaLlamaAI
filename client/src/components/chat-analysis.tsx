@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, 
   TrendingUp, TrendingDown, Flame, Activity, Users, Download, FileText, Copy, 
-  ThumbsUp, AlertTriangle, Shield, HeartHandshake, BarChart3
+  ThumbsUp, AlertTriangle, Shield, HeartHandshake, BarChart3, Archive
 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
@@ -811,49 +811,98 @@ export default function ChatAnalysis() {
                 </details>
               </div>
               
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-10 text-center">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept=".txt,.csv,.log,.html,.zip,text/*,application/zip,application/octet-stream"
-                  className="hidden"
-                />
-                <Upload className="h-10 w-10 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="mb-2 font-medium">Upload Chat Log</h3>
-                <p className="text-sm text-muted-foreground mb-4">Drag and drop a WhatsApp export, .txt, .html, .csv, or .zip file, or click to browse</p>
-                
-                {/* First button row for upload */}
-                <div className="flex flex-col sm:flex-row justify-center gap-3 mb-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Regular File Upload */}
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".txt,.csv,.log,.html,.zip,text/*,application/zip,application/octet-stream"
+                    className="hidden"
+                  />
+                  <Upload className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
+                  <h3 className="text-base font-medium mb-2">Upload Chat Log</h3>
+                  <p className="text-xs text-muted-foreground mb-3">Text files (.txt, .csv, .html, etc.)</p>
+                  
                   <Button 
                     variant="outline" 
+                    size="sm"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     Choose File
                   </Button>
                 </div>
                 
-                {/* Show the file name if selected */}
-                {fileName && (
-                  <div className="mt-3 mb-4">
-                    <p className="text-sm mb-1">Selected: <span className="font-medium">{fileName}</span></p>
-                    {fileIsZip && (
-                      <div className="bg-blue-50 border border-blue-100 rounded-md p-3 mt-2 text-blue-800">
-                        <p className="font-medium text-sm mb-1">Zip file detected!</p>
-                        <p className="text-xs mb-2">We've extracted chat content from this archive. Click the button below to view it.</p>
+                {/* ZIP File Upload with visual distinction */}
+                <div className="border-2 border-blue-200 border-dashed rounded-lg p-6 text-center bg-blue-50/50">
+                  <Archive className="h-8 w-8 text-blue-400 mx-auto mb-3" />
+                  <h3 className="text-base font-medium text-blue-800 mb-2">Extract from ZIP</h3>
+                  <p className="text-xs text-blue-600 mb-3">ZIP archives with chat exports</p>
+                  
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-300 bg-white hover:bg-blue-50 text-blue-700"
+                    onClick={() => {
+                      if (fileInputRef.current) {
+                        fileInputRef.current.accept = ".zip,application/zip,application/octet-stream";
+                        fileInputRef.current.click();
+                      }
+                    }}
+                  >
+                    <Archive className="mr-2 h-4 w-4" />
+                    Select ZIP File
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Show file selected interface */}
+              {fileName && (
+                <div className="mt-6 border rounded-md p-4">
+                  <div className="flex items-start gap-3">
+                    {fileIsZip ? (
+                      <Archive className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <FileText className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                    )}
+                    
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <div>
+                          <span className="font-medium">{fileName}</span>
+                          {fileIsZip && <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 border-blue-200">ZIP Archive</Badge>}
+                        </div>
+                        
                         <Button 
-                          variant="secondary"
-                          className="mt-1 bg-blue-100 hover:bg-blue-200 border-blue-300"
-                          onClick={() => setTabValue("paste")}
+                          variant="ghost" 
+                          size="sm"
+                          className="text-xs h-8"
+                          onClick={() => {
+                            setFileName("");
+                            setFileIsZip(false);
+                          }}
                         >
-                          <FileText className="mr-2 h-4 w-4" />
-                          Extract & View Chat
+                          Clear
                         </Button>
                       </div>
-                    )}
+                      
+                      {fileIsZip && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-100">
+                          <p className="text-sm text-blue-800 mb-3">We've extracted chat content from this ZIP archive.</p>
+                          <Button 
+                            className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                            onClick={() => setTabValue("paste")}
+                          >
+                            <FileText className="mr-2 h-4 w-4" />
+                            View Extracted Chat Content
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="image">
