@@ -89,7 +89,8 @@ const prompts = {
       },
       "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
       "communication": {
-        "patterns": ["string describing patterns observed"],
+        "patterns": ["string describing specific communication patterns - use distinct, non-repetitive observations"],
+        "dynamics": ["string describing relationship dynamics - focus on how participants interact with each other"],
         "suggestions": ["string with suggestions for improvement"]
       },
       "healthScore": {
