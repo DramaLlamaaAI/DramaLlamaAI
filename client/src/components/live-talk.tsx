@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useUserTier } from "@/hooks/use-user-tier";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeChatConversation } from "@/lib/openai";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 
 export default function LiveTalk() {
   const [isRecording, setIsRecording] = useState(false);
@@ -16,11 +16,13 @@ export default function LiveTalk() {
   const [transcript, setTranscript] = useState("");
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [participants, setParticipants] = useState<{me: string, them: string}>({me: "", them: ""});
   const [showParticipantsPrompt, setShowParticipantsPrompt] = useState(false);
   
   const { tier, canUseFeature } = useUserTier();
   const { toast } = useToast();
+  const [_, setLocation] = useLocation();
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -313,6 +315,68 @@ export default function LiveTalk() {
     }
   };
   
+  // Function to analyze the transcribed conversation
+  const analyzeConversation = async () => {
+    if (!transcript || transcript.trim() === "") {
+      toast({
+        title: "No Transcript Available",
+        description: "Please record and transcribe a conversation first before analyzing.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Extract participant names or use defaults
+    const me = participants.me || "Speaker 1";
+    const them = participants.them || "Speaker 2";
+    
+    setIsAnalyzing(true);
+    
+    try {
+      toast({
+        title: "Analyzing Conversation",
+        description: "Examining communication patterns and dynamics. This may take a moment.",
+      });
+      
+      // Call the analyzeChatConversation function from openai.ts
+      const result = await analyzeChatConversation({
+        conversation: transcript,
+        me: me,
+        them: them
+      });
+      
+      // Store the analysis in sessionStorage for the chat-analysis component to access
+      sessionStorage.setItem('currentAnalysis', JSON.stringify({
+        conversation: transcript,
+        analysis: result,
+        participants: {
+          me: me,
+          them: them
+        }
+      }));
+      
+      toast({
+        title: "Analysis Complete",
+        description: "Your conversation has been analyzed. Navigating to results.",
+      });
+      
+      // Navigate to the chat analysis component
+      setTimeout(() => {
+        setLocation('/analysis');
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error('Error analyzing conversation:', error);
+      toast({
+        title: "Analysis Error",
+        description: error.message || "We encountered an error analyzing your conversation. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+  
   // Enhanced speaker detection algorithm
   const enhancedSpeakerDetection = (text: string): string => {
     // If transcript already has speaker labels, keep them
@@ -519,8 +583,22 @@ export default function LiveTalk() {
                   {transcript}
                 </div>
                 
-                <Button className="w-full bg-primary hover:bg-primary/90">
-                  Analyze Conversation
+                <Button 
+                  onClick={analyzeConversation}
+                  disabled={isAnalyzing}
+                  className="w-full bg-primary hover:bg-primary/90"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <BrainCircuit className="mr-2 h-4 w-4" />
+                      Analyze Conversation
+                    </>
+                  )}
                 </Button>
               </div>
             )}
