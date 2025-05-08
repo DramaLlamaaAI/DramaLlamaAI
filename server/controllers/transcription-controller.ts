@@ -13,7 +13,17 @@ const openai = new OpenAI({
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit
+  fileFilter: (req, file, cb) => {
+    // Accept common audio formats to ensure compatibility
+    const acceptedTypes = ['audio/webm', 'audio/mp4', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'video/webm'];
+    if (acceptedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(null, false);
+      console.warn(`Rejected file with mime type: ${file.mimetype}`);
+    }
+  }
 });
 
 export const transcriptionUpload = upload.single('audio');
@@ -39,22 +49,53 @@ export const transcribeAudio = async (req: Request, res: Response) => {
     fs.writeFileSync(tempFilePath, req.file.buffer);
     
     try {
+      console.log(`Processing audio file: ${req.file.originalname}, size: ${req.file.size} bytes, mimetype: ${req.file.mimetype}`);
+      
+      // Get context information if provided
+      let contextInfo: {speakerLabels?: string[]} = {};
+      let speakerPrompt = "This is a conversation between two people discussing personal matters or relationships.";
+      
+      if (req.body.context) {
+        try {
+          contextInfo = JSON.parse(req.body.context);
+          if (contextInfo.speakerLabels && contextInfo.speakerLabels.length >= 2) {
+            speakerPrompt = `This is a conversation between ${contextInfo.speakerLabels[0]} and ${contextInfo.speakerLabels[1]}.`;
+          }
+        } catch (e) {
+          console.warn("Could not parse context info:", e);
+        }
+      }
+      
+      // Enhanced prompt for better accuracy
+      const enhancedPrompt = `${speakerPrompt} The conversation might include emotional language, questions and responses, agreements or disagreements. Common words may include: relationship, feeling, communication, upset, understand, listening, sorry, think, believe, want, need.`;
+      
       // Call OpenAI's transcription API with enhanced parameters
       const transcription = await openai.audio.transcriptions.create({
         file: fs.createReadStream(tempFilePath),
         model: "whisper-1", // Using the best available Whisper model
         language: "en",
         response_format: "verbose_json", // Get more detailed results
-        temperature: 0.2,  // Lower temperature for more accurate transcription
-        prompt: "This is a conversation about relationships, communication, or personal interactions. It may include common phrases, names, and emotional language.", // Context hint to improve accuracy
+        temperature: 0.0,  // Lower temperature for more accurate transcription
+        prompt: enhancedPrompt,
       });
+      
+      console.log("Transcription successful, processing result");
 
       // Clean up the temporary file
       fs.unlinkSync(tempFilePath);
-
-      // Return the transcript
+      
+      // Post-process the transcript to improve quality
+      let processedText = transcription.text;
+      
+      // Apply basic noise filtering to remove common transcription artifacts
+      processedText = processedText
+        .replace(/(\s|^)(um|uh|er|ah|like,)(\s|$)/gi, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+      
+      // Return the processed transcript
       return res.status(200).json({ 
-        transcript: transcription.text,
+        transcript: processedText,
         success: true
       });
     } catch (error: any) {

@@ -78,7 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/ocr', analysisController.processOcr);
   
   // Audio transcription route (Pro feature)
-  app.post('/api/transcribe', isAuthenticated, transcriptionUpload, transcribeAudio);
+  // Allow trial users to use this feature without authentication for better user experience
+  app.post('/api/transcribe', transcriptionUpload, transcribeAudio);
   
   // Payment routes
   app.post('/api/create-subscription', isAuthenticated, paymentController.createSubscription);

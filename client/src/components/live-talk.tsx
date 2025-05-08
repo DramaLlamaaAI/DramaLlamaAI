@@ -180,50 +180,62 @@ export default function LiveTalk() {
         description: "Analyzing your recording for transcription. This may take a minute for longer conversations.",
       });
       
+      // Check if audioBlob is valid
+      if (audioBlob.size < 100) {
+        throw new Error("Audio recording is too short or empty. Please record a longer conversation.");
+      }
+      
       // Create a FormData object to send the audio file with the optimal format
       const formData = new FormData();
       
-      // Convert to a file with proper extension for better codec recognition
-      const file = new File([audioBlob], 'recording.webm', { 
-        type: 'audio/webm;codecs=opus' 
-      });
-      formData.append('audio', file);
-      
-      // Add additional metadata to help the transcription
-      const contextInfo = {
-        isConversation: true,
-        speakerCount: 2,
-        speakerLabels: participants.me && participants.them ? [participants.me, participants.them] : undefined
-      };
-      
-      if (contextInfo.speakerLabels) {
-        formData.append('context', JSON.stringify(contextInfo));
+      try {
+        // Log details for debugging
+        console.log(`Audio blob size: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+        
+        // Convert to a file with proper extension for better codec recognition
+        // Make sure to specify the correct MIME type based on browser support
+        const mimeType = audioBlob.type || 'audio/webm;codecs=opus';
+        const fileExtension = mimeType.includes('webm') ? 'webm' : 
+                             mimeType.includes('mp4') ? 'mp4' : 
+                             mimeType.includes('wav') ? 'wav' : 'webm';
+                             
+        const file = new File([audioBlob], `recording.${fileExtension}`, { type: mimeType });
+        
+        formData.append('audio', file);
+        
+        // Add additional metadata to help the transcription
+        const contextInfo = {
+          isConversation: true,
+          speakerCount: 2,
+          speakerLabels: participants.me && participants.them ? [participants.me, participants.them] : undefined
+        };
+        
+        if (contextInfo.speakerLabels) {
+          formData.append('context', JSON.stringify(contextInfo));
+        }
+      } catch (error) {
+        console.error("Error preparing audio file:", error);
+        throw new Error("Failed to prepare audio for transcription. Please try recording again.");
       }
       
-      // Send the audio to our server endpoint that will call the OpenAI Whisper API
+      // Send the audio to our server endpoint with credentials
       const response = await fetch('/api/transcribe', {
         method: 'POST',
         body: formData,
+        credentials: 'include' // Include cookies for authentication if available
       });
       
       if (!response.ok) {
-        throw new Error(`API returned ${response.status}: ${await response.text()}`);
+        // Attempt to get more detailed error information
+        const errorText = await response.text();
+        throw new Error(`API returned ${response.status}: ${errorText}`);
       }
       
       const result = await response.json();
       
       if (result.transcript) {
-        // Process the transcript with improved speaker detection
-        let processedTranscript = result.transcript;
-        
-        // Remove any filler words and clean up the transcript
-        processedTranscript = processedTranscript
-          .replace(/(\s|^)(um|uh|er|ah|like,)(\s|$)/gi, ' ')
-          .replace(/\s{2,}/g, ' ')
-          .trim();
-        
         // Apply speaker labeling with our improved algorithm
-        processedTranscript = enhancedSpeakerDetection(processedTranscript);
+        const processedTranscript = enhancedSpeakerDetection(result.transcript);
         
         setTranscript(processedTranscript);
         
@@ -234,16 +246,16 @@ export default function LiveTalk() {
       } else {
         throw new Error("No transcript returned from API");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error transcribing audio:', error);
       toast({
         title: "Transcription Error",
-        description: "We encountered an error processing your audio. Please ensure you're speaking clearly and try again.",
+        description: error.message || "We encountered an error processing your audio. Please ensure you're speaking clearly and try again.",
         variant: "destructive"
       });
       
       // Contact support instead of using fallback
-      setTranscript("Transcription failed. Please contact support at DramaLlamaConsultancy@gmail.com if this issue persists.");
+      setTranscript("Transcription failed. Please try recording again with clearer audio. If the issue persists, contact support at DramaLlamaConsultancy@gmail.com.");
     } finally {
       setIsTranscribing(false);
     }
