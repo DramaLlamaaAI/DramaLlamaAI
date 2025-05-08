@@ -38,6 +38,7 @@ export default function ChatAnalysis() {
   const [them, setThem] = useState("");
   const [fileName, setFileName] = useState("");
   const [fileIsZip, setFileIsZip] = useState(false);
+  const [showZipUI, setShowZipUI] = useState(true);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
@@ -811,50 +812,87 @@ export default function ChatAnalysis() {
                 </details>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Regular File Upload */}
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept=".txt,.csv,.log,.html,.zip,text/*,application/zip,application/octet-stream"
-                    className="hidden"
-                  />
-                  <Upload className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
-                  <h3 className="text-base font-medium mb-2">Upload Chat Log</h3>
-                  <p className="text-xs text-muted-foreground mb-3">Text files (.txt, .csv, .html, etc.)</p>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
+              <div className="grid grid-cols-1 gap-6">
+                {/* Tab-like navigation for file type selection */}
+                <div className="grid grid-cols-2 gap-0">
+                  <button 
+                    className={`p-3 text-center border-b-2 font-medium text-sm ${!showZipUI ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-muted-foreground text-muted-foreground'}`}
+                    onClick={() => setShowZipUI(false)}
                   >
-                    Choose File
-                  </Button>
+                    Upload Chat Log
+                  </button>
+                  <button 
+                    className={`p-3 text-center border-b-2 font-medium text-sm ${showZipUI ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-muted-foreground text-muted-foreground'}`}
+                    onClick={() => setShowZipUI(true)}
+                  >
+                    Extract from ZIP
+                  </button>
                 </div>
                 
-                {/* ZIP File Upload with visual distinction */}
-                <div className="border-2 border-blue-200 border-dashed rounded-lg p-6 text-center bg-blue-50/50">
-                  <Archive className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-                  <h3 className="text-base font-medium text-blue-800 mb-2">Extract from ZIP</h3>
-                  <p className="text-xs text-blue-600 mb-3">ZIP archives with chat exports</p>
-                  
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    className="border-blue-300 bg-white hover:bg-blue-50 text-blue-700"
-                    onClick={() => {
-                      if (fileInputRef.current) {
-                        fileInputRef.current.accept = ".zip,application/zip,application/octet-stream";
-                        fileInputRef.current.click();
-                      }
-                    }}
-                  >
-                    <Archive className="mr-2 h-4 w-4" />
-                    Select ZIP File
-                  </Button>
-                </div>
+                {showZipUI ? (
+                  /* ZIP File Upload styled like the screenshot */
+                  <div className="border border-blue-200 border-dashed rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept=".zip,application/zip,application/octet-stream"
+                      className="hidden"
+                    />
+                    
+                    <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Archive className="h-8 w-8 text-blue-500" />
+                    </div>
+                    
+                    <h3 className="text-xl font-medium text-blue-800 mb-2">Extract from ZIP</h3>
+                    <p className="text-sm text-blue-600 mb-6">ZIP archives with chat exports</p>
+                    
+                    <Button 
+                      variant="outline"
+                      className="border-blue-300 bg-white hover:bg-blue-50 text-blue-700"
+                      onClick={() => {
+                        if (fileInputRef.current) {
+                          fileInputRef.current.accept = ".zip,application/zip,application/octet-stream";
+                          fileInputRef.current.click();
+                        }
+                      }}
+                    >
+                      <Archive className="mr-2 h-4 w-4" />
+                      Select ZIP File
+                    </Button>
+                  </div>
+                ) : (
+                  /* Regular File Upload */
+                  <div className="border border-muted-foreground/25 border-dashed rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept=".txt,.csv,.log,.html,text/*"
+                      className="hidden"
+                    />
+                    
+                    <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="h-8 w-8 text-gray-500" />
+                    </div>
+                    
+                    <h3 className="text-xl font-medium mb-2">Upload Chat Log</h3>
+                    <p className="text-sm text-muted-foreground mb-6">Text files (.txt, .csv, .html, etc.)</p>
+                    
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        if (fileInputRef.current) {
+                          fileInputRef.current.accept = ".txt,.csv,.log,.html,text/*";
+                          fileInputRef.current.click();
+                        }
+                      }}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Choose File
+                    </Button>
+                  </div>
+                )}
               </div>
               
               {/* Show file selected interface */}
