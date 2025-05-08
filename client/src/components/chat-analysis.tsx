@@ -986,65 +986,93 @@ export default function ChatAnalysis() {
                 </p>
               </div>
               
-              {/* Individual Contributions to Tension */}
+              {/* Individual Communication Styles - Enhanced */}
               {result.participantConflictScores && (
                 <div className="bg-white border border-gray-200 p-4 rounded-lg mb-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-gray-800 flex items-center">
                       <Users className="h-4 w-4 mr-2 text-gray-600" />
-                      Individual Contributions to Tension
+                      Individual Communication Styles
                     </h4>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    {Object.entries(result.participantConflictScores).map(([name, data]) => (
-                      <div 
-                        key={name}
-                        className={`p-3 rounded-lg ${
-                          name === me 
-                            ? 'bg-cyan-50 border border-cyan-100' 
-                            : 'bg-pink-50 border border-pink-100'
-                        }`}
-                      >
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="font-medium">{name}</div>
-                          <div className={`px-2 py-1 rounded text-xs ${
-                            data.score < 30 
-                              ? 'bg-green-100 text-green-700' 
-                              : data.score < 60 
-                              ? 'bg-yellow-100 text-yellow-700' 
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            {data.label}
-                          </div>
-                        </div>
-                        
-                        <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
-                          <div 
-                            className={`absolute top-0 left-0 h-full rounded-r-full ${
+                    {Object.entries(result.participantConflictScores).map(([name, data]) => {
+                      // Determine communication style based on conflict score
+                      const communicationStyle = 
+                        data.score < 30 ? 'Constructive and solution-focused' :
+                        data.score < 50 ? 'Balanced with occasional defensive moments' :
+                        data.score < 70 ? 'Reactive with emotional intensity' :
+                        'Confrontational with persistent hostility';
+                      
+                      return (
+                        <div 
+                          key={name}
+                          className={`p-3 rounded-lg ${
+                            name === me 
+                              ? 'bg-cyan-50 border border-cyan-100' 
+                              : 'bg-pink-50 border border-pink-100'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="font-medium">{name}</div>
+                            <div className={`px-2 py-1 rounded text-xs ${
                               data.score < 30 
-                                ? 'bg-green-400' 
+                                ? 'bg-green-100 text-green-700' 
                                 : data.score < 60 
-                                ? 'bg-yellow-400' 
-                                : 'bg-red-400'
-                            }`}
-                            style={{ width: `${data.score}%` }}
-                          />
-                        </div>
-                        
-                        <div className="flex justify-between text-xs text-gray-600">
-                          <span>Low Tension</span>
-                          <span>High Tension</span>
-                        </div>
-                        
-                        {data.isEscalating && (
-                          <div className="flex items-center mt-2 text-orange-600 text-xs">
-                            <Flame className="h-3 w-3 mr-1" />
-                            Showing escalation patterns
+                                ? 'bg-yellow-100 text-yellow-700' 
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {data.label}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    ))}
+                          
+                          <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                            <div 
+                              className={`absolute top-0 left-0 h-full rounded-r-full ${
+                                data.score < 30 
+                                  ? 'bg-green-400' 
+                                  : data.score < 60 
+                                  ? 'bg-yellow-400' 
+                                  : 'bg-red-400'
+                              }`}
+                              style={{ width: `${data.score}%` }}
+                            />
+                          </div>
+                          
+                          <div className="flex justify-between text-xs text-gray-600 mb-2">
+                            <span>Low Tension</span>
+                            <span>High Tension</span>
+                          </div>
+                          
+                          {/* Communication Style Description */}
+                          <div className="text-xs text-gray-700 mb-2">
+                            <span className="font-medium">Communication style:</span> {communicationStyle}
+                          </div>
+                          
+                          {/* Participant Tone Analysis */}
+                          {result.toneAnalysis.participantTones && result.toneAnalysis.participantTones[name] && (
+                            <div className="text-xs text-gray-700 mb-2">
+                              <span className="font-medium">Tone analysis:</span> {result.toneAnalysis.participantTones[name]}
+                            </div>
+                          )}
+                          
+                          {/* Escalation Pattern Indicator */}
+                          {data.isEscalating && (
+                            <div className="flex items-center mt-2 text-orange-600 text-xs">
+                              <Flame className="h-3 w-3 mr-1" />
+                              Shows escalation patterns throughout conversation
+                            </div>
+                          )}
+                          {!data.isEscalating && (
+                            <div className="flex items-center mt-2 text-green-600 text-xs">
+                              <Activity className="h-3 w-3 mr-1" />
+                              Maintains consistent communication style
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1108,6 +1136,22 @@ export default function ChatAnalysis() {
                           "Some tension detected with moments of accusatory language." : 
                           "Mixed communication patterns with neutral emotional tone."}
                       </p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Communication Dynamics Section */}
+                {result.communication.dynamics && result.communication.dynamics.length > 0 && (
+                  <div className="mb-4">
+                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Conversation Flow & Dynamics</h5>
+                    <div className="space-y-3">
+                      {result.communication.dynamics.map((dynamic, idx) => (
+                        <div key={idx} className="p-3 rounded bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100 shadow-sm">
+                          <p className="text-gray-700">
+                            {dynamic}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
