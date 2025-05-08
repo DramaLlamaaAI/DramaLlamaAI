@@ -190,8 +190,13 @@ export default function SubscriptionPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={() => handleUpgrade('personal')} className="w-full bg-primary">
-              Upgrade to Personal
+            <Button 
+              onClick={() => handleUpgrade('personal')} 
+              className="w-full bg-primary"
+              variant={user && user.tier === 'personal' ? "outline" : "default"}
+              disabled={user && user.tier === 'personal'}
+            >
+              {user && user.tier === 'personal' ? 'Current Plan' : 'Upgrade to Personal'}
             </Button>
             
             <ul className="space-y-3 mt-6">
@@ -262,8 +267,13 @@ export default function SubscriptionPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={() => handleUpgrade('pro')} variant="secondary" className="w-full">
-              Upgrade to Pro
+            <Button 
+              onClick={() => handleUpgrade('pro')} 
+              variant={user && user.tier === 'pro' ? "outline" : "secondary"}
+              className="w-full"
+              disabled={user && user.tier === 'pro'}
+            >
+              {user && user.tier === 'pro' ? 'Current Plan' : 'Upgrade to Pro'}
             </Button>
             
             <ul className="space-y-3 mt-6">

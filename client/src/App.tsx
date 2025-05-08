@@ -10,6 +10,7 @@ import { DevModeToggle } from "./components/dev-mode-toggle";
 import Home from "./pages/home";
 import NotFound from "@/pages/not-found";
 import SubscriptionPage from "@/pages/subscription";
+import CheckoutPage from "@/pages/checkout";
 import AuthPage from "@/pages/auth-page";
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/vent-mode" component={VentMode} />
       <Route path="/live-talk" component={LiveTalk} />
       <Route path="/subscription" component={SubscriptionPage} />
+      <Route path="/checkout" component={CheckoutPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
