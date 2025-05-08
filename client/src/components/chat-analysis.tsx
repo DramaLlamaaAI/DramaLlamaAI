@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { 
   Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, 
-  TrendingUp, Flame, Activity, Users, Download, FileText, Copy, 
-  ThumbsUp, AlertTriangle, Shield, HeartHandshake
+  TrendingUp, TrendingDown, Flame, Activity, Users, Download, FileText, Copy, 
+  ThumbsUp, AlertTriangle, Shield, HeartHandshake, BarChart3
 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
@@ -987,331 +989,198 @@ export default function ChatAnalysis() {
                 </div>
               )}
               
-              {/* Advanced Multi-Layer Tension Analysis - NEW VERSION */}
+              {/* Emotional Balance Meters */}
               <div className="bg-white border border-gray-200 p-4 rounded-lg mb-4">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <h4 className="font-medium text-gray-800 flex items-center">
-                    <TrendingUp className="h-4 w-4 mr-2 text-gray-600" />
-                    Advanced Communication Patterns
+                    <BarChart3 className="h-4 w-4 mr-2 text-gray-600" />
+                    Participant Communication Balance
                   </h4>
                   
-                  {/* Layer Selector */}
+                  {/* Participant Selector */}
                   <div className="flex flex-wrap gap-1">
                     <Button
-                      variant={activeTrendLine === 'all' ? 'default' : 'outline'} 
-                      onClick={() => {
-                        setActiveTrendLine('all');
-                        setHighlightedQuote(null);
-                      }}
-                      className="text-xs h-7 px-2 py-0 flex items-center gap-1"
-                    >
-                      <Activity className="h-3 w-3" />
-                      All Patterns
-                    </Button>
-                    <Button
-                      variant={activeTrendLine === 'manipulation' ? 'default' : 'outline'} 
-                      onClick={() => {
-                        setActiveTrendLine('manipulation');
-                        setHighlightedQuote(null);
-                      }}
-                      className={`text-xs h-7 px-2 py-0 flex items-center gap-1 ${
-                        activeTrendLine === 'manipulation' 
-                          ? 'bg-red-600 hover:bg-red-700 text-white' 
-                          : 'text-red-600 hover:text-red-700'
-                      }`}
-                    >
-                      <AlertTriangle className="h-3 w-3" />
-                      Red Flags
-                    </Button>
-                    <Button
-                      variant={activeTrendLine === 'positive' ? 'default' : 'outline'} 
-                      onClick={() => {
-                        setActiveTrendLine('positive');
-                        setHighlightedQuote(null);
-                      }}
-                      className={`text-xs h-7 px-2 py-0 flex items-center gap-1 ${
-                        activeTrendLine === 'positive' 
-                          ? 'bg-green-600 hover:bg-green-700 text-white' 
-                          : 'text-green-600 hover:text-green-700'
-                      }`}
-                    >
-                      <ThumbsUp className="h-3 w-3" />
-                      Positive
-                    </Button>
-                    <Button
-                      variant={activeTrendLine === 'gaslighting' ? 'default' : 'outline'} 
-                      onClick={() => {
-                        setActiveTrendLine('gaslighting');
-                        setHighlightedQuote(null);
-                      }}
-                      className={`text-xs h-7 px-2 py-0 flex items-center gap-1 ${
-                        activeTrendLine === 'gaslighting' 
-                          ? 'bg-orange-600 hover:bg-orange-700 text-white' 
-                          : 'text-orange-600 hover:text-orange-700'
-                      }`}
-                    >
-                      <Shield className="h-3 w-3" />
-                      Gaslighting
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Participant Selector */}
-                <div className="flex justify-end mt-1">
-                  <div className="flex items-center border rounded-md p-1 bg-gray-50">
-                    <button 
-                      className={`text-xs px-2 py-1 rounded ${showParticipant === 'both' ? 'bg-gray-200' : ''}`}
+                      size="sm"
+                      variant={showParticipant === 'both' ? 'default' : 'outline'}
                       onClick={() => setShowParticipant('both')}
+                      className={`text-xs py-1 h-7`}
                     >
                       Both
-                    </button>
-                    <button 
-                      className={`text-xs px-2 py-1 rounded flex items-center ${showParticipant === 'me' ? 'bg-cyan-100 text-cyan-700' : ''}`}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={showParticipant === 'me' ? 'default' : 'outline'}
                       onClick={() => setShowParticipant('me')}
+                      className={`text-xs py-1 h-7 ${showParticipant === 'me' ? 'bg-primary hover:bg-primary/90' : 'text-primary hover:text-primary/90'}`}
+                      style={{
+                        backgroundColor: showParticipant === 'me' ? getParticipantColor('me') : undefined,
+                        color: showParticipant !== 'me' ? getParticipantColor('me') : undefined,
+                        borderColor: getParticipantColor('me')
+                      }}
                     >
-                      <span className="h-2 w-2 rounded-full bg-cyan-400 inline-block mr-1"></span>
                       {me}
-                    </button>
-                    <button 
-                      className={`text-xs px-2 py-1 rounded flex items-center ${showParticipant === 'them' ? 'bg-pink-100 text-pink-700' : ''}`}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={showParticipant === 'them' ? 'default' : 'outline'}
                       onClick={() => setShowParticipant('them')}
+                      className={`text-xs py-1 h-7 ${showParticipant === 'them' ? 'bg-secondary hover:bg-secondary/90' : 'text-secondary hover:text-secondary/90'}`}
+                      style={{
+                        backgroundColor: showParticipant === 'them' ? getParticipantColor('them') : undefined,
+                        color: showParticipant !== 'them' ? getParticipantColor('them') : undefined,
+                        borderColor: getParticipantColor('them')
+                      }}
                     >
-                      <span className="h-2 w-2 rounded-full bg-pink-400 inline-block mr-1"></span>
                       {them}
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 
-                <div className="mt-2">
-                  <div className="h-[250px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart 
-                        data={generateTensionData()} 
-                        onClick={(data) => {
-                          if (data && data.activePayload && data.activePayload[0]) {
-                            // Index of the clicked point
-                            const index = data.activeTooltipIndex || 0;
-                            setSelectedPoint(index);
+                {/* Balance Meters */}
+                <div className="mt-4 space-y-6">
+                  {/* Get participant balance data */}
+                  {(() => {
+                    const balances = calculateParticipantBalances();
+                    if (!balances) return null;
+                    
+                    return (
+                      <>
+                        {/* Show Me participant if 'both' or 'me' is selected */}
+                        {(showParticipant === 'both' || showParticipant === 'me') && (
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex justify-between items-center mb-2">
+                              <div className="flex items-center">
+                                <Avatar className="h-6 w-6 mr-2" style={{ backgroundColor: getParticipantColor('me') }}>
+                                  <AvatarFallback>{me[0]}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium">{me}</span>
+                              </div>
+                              
+                              {balances.me.isEscalating ? (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+                                  <TrendingUp className="h-3 w-3 mr-1" /> Escalating
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300">
+                                  <TrendingDown className="h-3 w-3 mr-1" /> De-escalating
+                                </Badge>
+                              )}
+                            </div>
                             
-                            // Find quote that corresponds to this point if it exists
-                            const quotes = generateQuotes();
-                            const foundQuote = quotes.find(q => q.index === index && q.type === activeTrendLine);
+                            <div className="space-y-3">
+                              {/* Positive Communication */}
+                              <div>
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-emerald-600">Positive Communication</span>
+                                  <span className="font-medium">{balances.me.positive}%</span>
+                                </div>
+                                <Progress value={balances.me.positive} max={100} className="h-2 bg-gray-200">
+                                  <div 
+                                    className="h-full bg-emerald-500 rounded-full transition-all" 
+                                    style={{ width: `${balances.me.positive}%` }}
+                                  />
+                                </Progress>
+                              </div>
+                              
+                              {/* Negative Communication */}
+                              <div>
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-red-600">Negative Communication</span>
+                                  <span className="font-medium">{balances.me.negative}%</span>
+                                </div>
+                                <Progress value={balances.me.negative} max={100} className="h-2 bg-gray-200">
+                                  <div 
+                                    className="h-full bg-red-500 rounded-full transition-all" 
+                                    style={{ width: `${balances.me.negative}%` }}
+                                  />
+                                </Progress>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show Them participant if 'both' or 'them' is selected */}
+                        {(showParticipant === 'both' || showParticipant === 'them') && (
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex justify-between items-center mb-2">
+                              <div className="flex items-center">
+                                <Avatar className="h-6 w-6 mr-2" style={{ backgroundColor: getParticipantColor('them') }}>
+                                  <AvatarFallback>{them[0]}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium">{them}</span>
+                              </div>
+                              
+                              {balances.them.isEscalating ? (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+                                  <TrendingUp className="h-3 w-3 mr-1" /> Escalating
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300">
+                                  <TrendingDown className="h-3 w-3 mr-1" /> De-escalating
+                                </Badge>
+                              )}
+                            </div>
                             
-                            if (foundQuote) {
-                              setHighlightedQuote({
-                                text: foundQuote.text,
-                                speaker: foundQuote.speaker,
-                                type: foundQuote.type
-                              });
-                            } else {
-                              setHighlightedQuote(null);
-                            }
-                          }
-                        }}
-                      >
-                        <XAxis 
-                          dataKey="name" 
-                          tick={{fontSize: 11}}
-                          tickLine={false}
-                          hide={true}
-                        />
-                        <YAxis 
-                          domain={[0, 100]} 
-                          tick={{fontSize: 11}}
-                          tickLine={false}
-                          tickCount={5}
-                          tickFormatter={(value) => value === 0 ? 'Low' : value === 50 ? 'Medium' : value === 100 ? 'High' : ''}
-                        />
-                        <Tooltip 
-                          formatter={(value: number, name: string) => {
-                            const label = name === 'manipulation' 
-                              ? 'Red Flag Intensity' 
-                              : name === 'positive' 
-                              ? 'Positive Communication' 
-                              : name === 'gaslighting'
-                              ? 'Gaslighting Intensity'
-                              : name;
-                            return [`${value}%`, label];
-                          }}
-                        />
-                        
-                        {/* All Lines */}
-                        {activeTrendLine === 'all' && (
-                          <>
-                            <Line 
-                              type="monotone" 
-                              dataKey="manipulation" 
-                              name="Red Flags"
-                              stroke="#ef4444"
-                              strokeWidth={2} 
-                              dot={false}
-                              activeDot={{ r: 6 }}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="positive" 
-                              name="Positive Input"
-                              stroke="#22c55e"
-                              strokeWidth={2} 
-                              dot={false}
-                              activeDot={{ r: 6 }}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="gaslighting" 
-                              name="Gaslighting"
-                              stroke="#f97316"
-                              strokeWidth={2} 
-                              dot={false}
-                              activeDot={{ r: 6 }}
-                            />
-                          </>
+                            <div className="space-y-3">
+                              {/* Positive Communication */}
+                              <div>
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-emerald-600">Positive Communication</span>
+                                  <span className="font-medium">{balances.them.positive}%</span>
+                                </div>
+                                <Progress value={balances.them.positive} max={100} className="h-2 bg-gray-200">
+                                  <div 
+                                    className="h-full bg-emerald-500 rounded-full transition-all" 
+                                    style={{ width: `${balances.them.positive}%` }}
+                                  />
+                                </Progress>
+                              </div>
+                              
+                              {/* Negative Communication */}
+                              <div>
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-red-600">Negative Communication</span>
+                                  <span className="font-medium">{balances.them.negative}%</span>
+                                </div>
+                                <Progress value={balances.them.negative} max={100} className="h-2 bg-gray-200">
+                                  <div 
+                                    className="h-full bg-red-500 rounded-full transition-all" 
+                                    style={{ width: `${balances.them.negative}%` }}
+                                  />
+                                </Progress>
+                              </div>
+                            </div>
+                          </div>
                         )}
                         
-                        {/* Manipulation/Red Flag Line */}
-                        {activeTrendLine === 'manipulation' && (
-                          <Line 
-                            type="monotone" 
-                            dataKey="manipulation" 
-                            name="Red Flags"
-                            stroke="#ef4444"
-                            strokeWidth={3} 
-                            dot={true}
-                            activeDot={{ r: 8 }}
-                          />
-                        )}
-                        
-                        {/* Positive Line */}
-                        {activeTrendLine === 'positive' && (
-                          <Line 
-                            type="monotone" 
-                            dataKey="positive" 
-                            name="Positive Input"
-                            stroke="#22c55e"
-                            strokeWidth={3} 
-                            dot={true}
-                            activeDot={{ r: 8 }}
-                          />
-                        )}
-                        
-                        {/* Gaslighting Line */}
-                        {activeTrendLine === 'gaslighting' && (
-                          <Line 
-                            type="monotone" 
-                            dataKey="gaslighting" 
-                            name="Gaslighting"
-                            stroke="#f97316"
-                            strokeWidth={3} 
-                            dot={true}
-                            activeDot={{ r: 8 }}
-                          />
-                        )}
-                        
-                        {activeTrendLine === 'manipulation' && (
-                          <ReferenceLine 
-                            y={70} 
-                            stroke="#ef4444" 
-                            strokeDasharray="3 3" 
-                            label={{ 
-                              value: "High Concern", 
-                              fill: "#ef4444", 
-                              fontSize: 11,
-                              position: "insideTopRight" 
-                            }} 
-                          />
-                        )}
-
-                        {activeTrendLine === 'gaslighting' && (
-                          <ReferenceLine 
-                            y={60} 
-                            stroke="#f97316" 
-                            strokeDasharray="3 3" 
-                            label={{ 
-                              value: "Warning Level", 
-                              fill: "#f97316", 
-                              fontSize: 11,
-                              position: "insideTopRight" 
-                            }} 
-                          />
-                        )}
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                        {/* Legend and Insights */}
+                        <div className="text-sm text-gray-600 mt-2 pt-2 border-t border-gray-200">
+                          <h5 className="font-medium text-gray-700 mb-1">What does this mean?</h5>
+                          <p className="mb-1">
+                            These meters show the communication style balance for each participant:
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 mb-2">
+                            <li><span className="text-emerald-600 font-medium">Positive:</span> Respectful, understanding, supportive, collaborative</li>
+                            <li><span className="text-red-600 font-medium">Negative:</span> Defensive, dismissive, accusatory, manipulative</li>
+                          </ul>
+                          <p>
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 mr-1">
+                              <TrendingUp className="h-3 w-3 mr-1" /> Escalating
+                            </Badge> 
+                            indicates someone who is intensifying the conflict.
+                          </p>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
                 
-                <div className="flex justify-between text-xs text-gray-600 mb-2">
-                  <div>Conversation Start</div>
-                  <div>Conversation End</div>
-                </div>
-                
-                {/* Highlighted Quote Display */}
-                {highlightedQuote && (
-                  <div className={`mt-3 p-3 rounded border ${
-                    highlightedQuote.type === 'manipulation' 
-                      ? 'bg-red-50 border-red-200' 
-                      : highlightedQuote.type === 'positive'
-                      ? 'bg-green-50 border-green-200'
-                      : 'bg-orange-50 border-orange-200'
-                  }`}>
-                    <div className="flex justify-between items-center mb-1">
-                      <div className={`font-medium ${
-                        highlightedQuote.speaker === me
-                          ? 'text-cyan-700'
-                          : 'text-pink-700'
-                      }`}>
-                        {highlightedQuote.speaker}:
-                      </div>
-                      <div className={`text-xs px-2 py-1 rounded ${
-                        highlightedQuote.type === 'manipulation' 
-                          ? 'bg-red-100 text-red-700' 
-                          : highlightedQuote.type === 'positive'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-orange-100 text-orange-700'
-                      }`}>
-                        {highlightedQuote.type === 'manipulation' 
-                          ? 'Red Flag' 
-                          : highlightedQuote.type === 'positive'
-                          ? 'Positive Communication'
-                          : 'Gaslighting Pattern'
-                        }
-                      </div>
-                    </div>
-                    <p className="italic text-gray-700">"{highlightedQuote.text}"</p>
-                    <p className="text-xs mt-1 text-gray-500">Click on different points in the chart to see more quotes</p>
+                {result.highTensionFactors && result.highTensionFactors.length > 0 && (
+                  <div className="mt-3 p-2 bg-gray-50 rounded border border-gray-200">
+                    <span className="font-medium">High tension factors: </span>
+                    {result.highTensionFactors.join(', ')}
                   </div>
                 )}
-
-                <div className="mt-3 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <div className="text-xs bg-blue-100 text-blue-700 rounded px-2 py-1">PRO TIP</div>
-                    <p className="ml-2">Click on chart points to see actual quotes from the conversation.</p>
-                  </div>
-                  
-                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                    <div className="flex items-center bg-red-50 p-2 rounded border border-red-100">
-                      <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
-                      <span className="font-medium text-red-700">Red Flags:</span>
-                      <span className="ml-1 text-gray-600">Manipulation, blame-shifting</span>
-                    </div>
-                    <div className="flex items-center bg-green-50 p-2 rounded border border-green-100">
-                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                      <span className="font-medium text-green-700">Positive:</span>
-                      <span className="ml-1 text-gray-600">Validation, active listening</span>
-                    </div>
-                    <div className="flex items-center bg-orange-50 p-2 rounded border border-orange-100">
-                      <div className="w-2 h-2 rounded-full bg-orange-500 mr-2"></div>
-                      <span className="font-medium text-orange-700">Gaslighting:</span>
-                      <span className="ml-1 text-gray-600">Reality distortion, denial</span>
-                    </div>
-                  </div>
-                  
-                  {result.highTensionFactors && result.highTensionFactors.length > 0 && (
-                    <div className="mt-3 p-2 bg-gray-50 rounded border border-gray-200">
-                      <span className="font-medium">High tension factors: </span>
-                      {result.highTensionFactors.join(', ')}
-                    </div>
-                  )}
-                </div>
               </div>
               
               {/* Individual Communication Styles - Enhanced */}
