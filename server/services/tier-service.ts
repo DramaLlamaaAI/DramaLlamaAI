@@ -13,6 +13,7 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
     toneAnalysis: {
       overallTone: analysis.toneAnalysis.overallTone,
       emotionalState: analysis.toneAnalysis.emotionalState,
+      // Only include participant tones for tiers that have this feature
       ...(analysis.toneAnalysis.participantTones && tierFeatures.includes('participantTones') ? 
         { participantTones: analysis.toneAnalysis.participantTones } : {})
     },
@@ -22,49 +23,79 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
     }
   };
   
-  // Add health score if available for tier
-  if (tierFeatures.includes('healthScore') && analysis.healthScore) {
+  // Add health score if available (all tiers have this)
+  if (analysis.healthScore) {
     filteredAnalysis.healthScore = analysis.healthScore;
   }
   
-  // Add key quotes if available for tier
+  // FREE TIER FEATURES:
+  // - Overall Emotional Tone Summary (toneAnalysis.overallTone) - included above
+  // - Conversation Health Meter (healthScore) - added above
+  // - Basic Communication Insights (communication.patterns) - added above
+  // - Key Summary Quotes (keyQuotes) - limited version
+  
   if (tierFeatures.includes('keyQuotes') && analysis.keyQuotes) {
-    filteredAnalysis.keyQuotes = analysis.keyQuotes;
+    // For free tier, limit to just 2 quotes without improvement suggestions
+    if (tier === 'free') {
+      filteredAnalysis.keyQuotes = analysis.keyQuotes
+        .slice(0, 2)
+        .map(quote => ({
+          speaker: quote.speaker,
+          quote: quote.quote,
+          analysis: quote.analysis,
+          // Free tier doesn't get improvement suggestions
+        }));
+    } else {
+      // Other tiers get full quotes with improvements
+      filteredAnalysis.keyQuotes = analysis.keyQuotes;
+    }
   }
   
-  // Add red flags if available for tier
-  if (tierFeatures.includes('redFlags') && analysis.redFlags) {
-    filteredAnalysis.redFlags = analysis.redFlags;
+  // PERSONAL TIER FEATURES:
+  if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
+    // Add red flags if available 
+    if (tierFeatures.includes('redFlags') && analysis.redFlags) {
+      filteredAnalysis.redFlags = analysis.redFlags;
+    }
+    
+    // Add high tension factors (part of advancedToneAnalysis)
+    if (tierFeatures.includes('advancedToneAnalysis') && analysis.highTensionFactors) {
+      filteredAnalysis.highTensionFactors = analysis.highTensionFactors;
+    }
+    
+    // Add participant conflict scores (part of communicationStyles)
+    if (tierFeatures.includes('communicationStyles') && analysis.participantConflictScores) {
+      filteredAnalysis.participantConflictScores = analysis.participantConflictScores;
+    }
+    
+    // Add tension contributions (Individual Contributions to Tension)
+    if (tierFeatures.includes('tensionContributions') && analysis.tensionContributions) {
+      filteredAnalysis.tensionContributions = analysis.tensionContributions;
+    }
+    
+    // Add tension meaning (What This Means section)
+    if (tierFeatures.includes('tensionContributions') && analysis.tensionMeaning) {
+      filteredAnalysis.tensionMeaning = analysis.tensionMeaning;
+    }
+    
+    // Add personalized suggestions
+    if (analysis.communication.suggestions) {
+      filteredAnalysis.communication.suggestions = analysis.communication.suggestions;
+    }
   }
   
-  // Add high tension factors if available for tier
-  if ((tierFeatures.includes('advancedToneAnalysis') || tierFeatures.includes('emotionTracking')) && analysis.highTensionFactors) {
-    filteredAnalysis.highTensionFactors = analysis.highTensionFactors;
-  }
-  
-  // Add participant conflict scores if available for tier
-  if ((tierFeatures.includes('emotionTracking') || tierFeatures.includes('communicationStyles')) && analysis.participantConflictScores) {
-    filteredAnalysis.participantConflictScores = analysis.participantConflictScores;
-  }
-  
-  // Add tension contributions if available for tier
-  if (tierFeatures.includes('tensionContributions') && analysis.tensionContributions) {
-    filteredAnalysis.tensionContributions = analysis.tensionContributions;
-  }
-  
-  // Add tension meaning if available for tier
-  if (tierFeatures.includes('tensionContributions') && analysis.tensionMeaning) {
-    filteredAnalysis.tensionMeaning = analysis.tensionMeaning;
-  }
-  
-  // Add communication dynamics if available
-  if ((tierFeatures.includes('conversationDynamics') || tierFeatures.includes('communicationStyles')) && analysis.communication.dynamics) {
-    filteredAnalysis.communication.dynamics = analysis.communication.dynamics;
-  }
-  
-  // Add suggestions if available
-  if (analysis.communication.suggestions) {
-    filteredAnalysis.communication.suggestions = analysis.communication.suggestions;
+  // PRO TIER & INSTANT DEEP DIVE ADDITIONAL FEATURES:
+  if (tier === 'pro' || tier === 'instant') {
+    // Add conversation dynamics (Conversation Dynamics & Behavioral Patterns)
+    if (tierFeatures.includes('conversationDynamics') && analysis.communication.dynamics) {
+      filteredAnalysis.communication.dynamics = analysis.communication.dynamics;
+    }
+    
+    // Additional Pro/Instant features that would be added here if the API returned them:
+    // - Evasion Identification (evasionIdentification)
+    // - Message Dominance Analysis (messageDominance)
+    // - Power Dynamics Analysis (powerDynamics)
+    // - Historical Pattern Recognition (historicalPatterns)
   }
   
   return filteredAnalysis;
@@ -83,34 +114,44 @@ export function filterMessageAnalysisByTier(analysis: MessageAnalysisResult, tie
     intent: analysis.intent,
   };
   
-  // Add suggested reply if available for tier (personal, pro, instant)
-  if ((tierFeatures.includes('communicationStyles') || tier === 'personal' || tier === 'pro' || tier === 'instant') && analysis.suggestedReply) {
-    filteredAnalysis.suggestedReply = analysis.suggestedReply;
+  // FREE TIER FEATURES:
+  // - Basic Tone (tone)
+  // - Basic Intent Detection (intent)
+  
+  // PERSONAL TIER FEATURES:
+  if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
+    // Add suggested reply (part of communication styles)
+    if (analysis.suggestedReply) {
+      filteredAnalysis.suggestedReply = analysis.suggestedReply;
+    }
+    
+    // Add manipulation score 
+    if (tierFeatures.includes('manipulationScore') && analysis.manipulationScore) {
+      filteredAnalysis.manipulationScore = analysis.manipulationScore;
+    }
+    
+    // Add communication style 
+    if (tierFeatures.includes('communicationStyles') && analysis.communicationStyle) {
+      filteredAnalysis.communicationStyle = analysis.communicationStyle;
+    }
   }
   
-  // Add manipulation score if available (personal tier+)
-  if ((tierFeatures.includes('manipulationScore') || tier === 'personal' || tier === 'pro' || tier === 'instant') && analysis.manipulationScore) {
-    filteredAnalysis.manipulationScore = analysis.manipulationScore;
-  }
-  
-  // Add potential response if available (pro/instant tier only)
-  if ((tierFeatures.includes('advancedToneAnalysis') || tier === 'pro' || tier === 'instant') && analysis.potentialResponse) {
-    filteredAnalysis.potentialResponse = analysis.potentialResponse;
-  }
-  
-  // Add possible reword if available (pro/instant tier only)
-  if ((tierFeatures.includes('advancedToneAnalysis') || tier === 'pro' || tier === 'instant') && analysis.possibleReword) {
-    filteredAnalysis.possibleReword = analysis.possibleReword;
-  }
-  
-  // Add power dynamics if available (pro/instant tier only)
-  if ((tierFeatures.includes('powerDynamics') || tier === 'pro' || tier === 'instant') && analysis.powerDynamics) {
-    filteredAnalysis.powerDynamics = analysis.powerDynamics;
-  }
-  
-  // Add communication style if available (pro/instant tier only)
-  if ((tierFeatures.includes('communicationStyles') || tier === 'pro' || tier === 'instant') && analysis.communicationStyle) {
-    filteredAnalysis.communicationStyle = analysis.communicationStyle;
+  // PRO TIER & INSTANT DEEP DIVE ADDITIONAL FEATURES:
+  if (tier === 'pro' || tier === 'instant') {
+    // Add potential response (advanced analysis)
+    if (analysis.potentialResponse) {
+      filteredAnalysis.potentialResponse = analysis.potentialResponse;
+    }
+    
+    // Add possible reword (advanced analysis)
+    if (analysis.possibleReword) {
+      filteredAnalysis.possibleReword = analysis.possibleReword;
+    }
+    
+    // Add power dynamics
+    if (tierFeatures.includes('powerDynamics') && analysis.powerDynamics) {
+      filteredAnalysis.powerDynamics = analysis.powerDynamics;
+    }
   }
   
   return filteredAnalysis;
@@ -130,19 +171,30 @@ export function filterDeEscalateResultByTier(result: DeEscalateResult, tier: str
     explanation: result.explanation,
   };
   
-  // Add alternative options if available (personal tier+)
-  if ((tier === 'personal' || tier === 'pro' || tier === 'instant') && result.alternativeOptions) {
-    filteredResult.alternativeOptions = result.alternativeOptions;
+  // FREE TIER FEATURES:
+  // - Original message (original)
+  // - Rewritten message (rewritten)
+  // - Basic explanation (explanation)
+  
+  // PERSONAL TIER FEATURES:
+  if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
+    // Add alternative options (additional approaches)
+    if (result.alternativeOptions) {
+      filteredResult.alternativeOptions = result.alternativeOptions;
+    }
   }
   
-  // Add additional context insights if available (pro/instant tier only)
-  if ((tier === 'pro' || tier === 'instant') && result.additionalContextInsights) {
-    filteredResult.additionalContextInsights = result.additionalContextInsights;
-  }
-  
-  // Add long term strategy if available (pro/instant tier only)
-  if ((tier === 'pro' || tier === 'instant') && result.longTermStrategy) {
-    filteredResult.longTermStrategy = result.longTermStrategy;
+  // PRO TIER & INSTANT DEEP DIVE ADDITIONAL FEATURES:
+  if (tier === 'pro' || tier === 'instant') {
+    // Add additional context insights (deeper analysis)
+    if (result.additionalContextInsights) {
+      filteredResult.additionalContextInsights = result.additionalContextInsights;
+    }
+    
+    // Add long term strategy (behavioral pattern recommendations)
+    if (result.longTermStrategy) {
+      filteredResult.longTermStrategy = result.longTermStrategy;
+    }
   }
   
   return filteredResult;
