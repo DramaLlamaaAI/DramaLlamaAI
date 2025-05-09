@@ -714,8 +714,8 @@ export default function ChatAnalysis() {
                     )}
                   </div>
                   
-                  {/* Key Quotes Section */}
-                  {result.keyQuotes && result.keyQuotes.length > 0 && (
+                  {/* Key Quotes Section - Pro Tier Only */}
+                  {result.keyQuotes && result.keyQuotes.length > 0 && (tier === 'pro' || tier === 'instant') && (
                     <div className="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
                       <h4 className="font-medium mb-2 text-blue-700">Key Quotes Analysis</h4>
                       <div className="space-y-3">
@@ -839,13 +839,15 @@ export default function ChatAnalysis() {
                     tensionContributions={result.tensionContributions}
                   />
                   
-                  {/* Personalized Suggestions (Personal+ Tier) */}
-                  <PersonalizedSuggestions
-                    me={me}
-                    them={them}
-                    tier={tier}
-                    suggestions={result.communication?.suggestions}
-                  />
+                  {/* Personalized Suggestions (Pro Tier Only) */}
+                  {(tier === 'pro' || tier === 'instant') && (
+                    <PersonalizedSuggestions
+                      me={me}
+                      them={them}
+                      tier={tier}
+                      suggestions={result.communication?.suggestions}
+                    />
+                  )}
                   
                   {/* Behavioral Patterns Detection (Pro+ Tier) */}
                   <BehavioralPatterns 
