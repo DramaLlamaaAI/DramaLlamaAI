@@ -169,8 +169,21 @@ export async function detectParticipants(conversation: string): Promise<{me: str
 }
 
 export async function getUserUsage(): Promise<{used: number, limit: number, tier: string}> {
+  // Read developer mode settings from localStorage if available
+  let headers: HeadersInit = {};
+  
+  if (typeof window !== 'undefined') {
+    const isDevMode = localStorage.getItem('drama_llama_dev_mode') === 'true';
+    if (isDevMode) {
+      const devTier = localStorage.getItem('drama_llama_dev_tier') || 'free';
+      headers['x-dev-mode'] = 'true';
+      headers['x-dev-tier'] = devTier;
+    }
+  }
+  
   const response = await fetch('/api/user/usage', {
-    credentials: 'include'
+    credentials: 'include',
+    headers
   });
   
   if (!response.ok) {
