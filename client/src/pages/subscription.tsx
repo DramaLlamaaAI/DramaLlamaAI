@@ -258,7 +258,7 @@ export default function SubscriptionPage() {
             </CardTitle>
             <CardDescription>Complete communication analysis system</CardDescription>
             <div className="mt-2 flex items-baseline justify-center">
-              <span className="text-3xl font-bold">£9.99</span>
+              <span className="text-3xl font-bold">£7.99</span>
               <span className="text-muted-foreground ml-1">/month</span>
             </div>
           </CardHeader>
