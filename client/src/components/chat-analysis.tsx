@@ -410,6 +410,52 @@ export default function ChatAnalysis() {
                     </div>
                   )}
                   
+                  {/* Tension Contributions Section - only show if present */}
+                  {result.tensionContributions && Object.keys(result.tensionContributions).length > 0 && (
+                    <div className="bg-muted p-4 rounded-lg mb-4">
+                      <h4 className="font-medium mb-2">Individual Contributions to Tension</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.keys(result.tensionContributions).map((participant) => (
+                          <div 
+                            key={participant}
+                            className={`p-3 rounded-md ${
+                              participant === me 
+                                ? "bg-cyan-50 border border-cyan-100" 
+                                : "bg-pink-50 border border-pink-100"
+                            }`}
+                          >
+                            <span className={`font-medium ${
+                              participant === me ? "text-cyan-700" : "text-pink-700"
+                            }`}>
+                              {participant}
+                            </span>
+                            <ul className="mt-2 space-y-1">
+                              {result.tensionContributions[participant].map((item, idx) => (
+                                <li 
+                                  key={idx}
+                                  className={`text-sm flex items-start ${
+                                    participant === me ? "text-cyan-800" : "text-pink-800"
+                                  }`}
+                                >
+                                  <span className="mr-2 mt-1">•</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* What This Means section */}
+                      {result.tensionMeaning && (
+                        <div className="bg-blue-50 p-3 rounded-md mt-4 text-sm border border-blue-100">
+                          <h5 className="font-medium text-blue-700 mb-1">What This Means</h5>
+                          <p className="text-blue-800">{result.tensionMeaning}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {/* Communication Insights Section */}
                   <div className="bg-muted p-4 rounded-lg mb-4">
                     <h4 className="font-medium mb-2">Communication Insights</h4>

@@ -51,6 +51,10 @@ export interface ChatAnalysisResponse {
       isEscalating: boolean; // Whether this participant tends to escalate conflict
     }
   };
+  tensionContributions?: {   // Individual contributions to tension
+    [participant: string]: string[]; // List of specific tension-causing behaviors by participant
+  };
+  tensionMeaning?: string;   // Explanation of what the tension analysis means
 }
 
 // Message analysis interfaces
