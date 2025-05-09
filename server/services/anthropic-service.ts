@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { TIER_LIMITS } from "@shared/schema";
+import { getTextFromContentBlock, parseAnthropicJson } from "./anthropic-helpers";
 
 // Define response types (keeping the same structure as before)
 interface ChatAnalysisResponse {
@@ -263,16 +264,8 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       messages: [{ role: "user", content: prompt }],
     });
     
-    // Get the response content
-    if (!response.content[0] || response.content[0].type !== 'text') {
-      throw new Error('Unexpected response format from Anthropic API');
-    }
-    
-    const content = response.content[0].text;
-    if (!content) {
-      throw new Error('Empty response from Anthropic API');
-    }
-    
+    // Get the response content using helper function
+    const content = getTextFromContentBlock(response.content);
     console.log('Successfully received Anthropic response for chat analysis');
     
     // Parse the JSON response
@@ -319,16 +312,8 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
       messages: [{ role: "user", content: prompt }],
     });
     
-    // Get the response content
-    if (!response.content[0] || response.content[0].type !== 'text') {
-      throw new Error('Unexpected response format from Anthropic API');
-    }
-    
-    const content = response.content[0].text;
-    if (!content) {
-      throw new Error('Empty response from Anthropic API');
-    }
-    
+    // Get the response content using helper function
+    const content = getTextFromContentBlock(response.content);
     console.log('Successfully received Anthropic response for message analysis');
     
     // Parse the JSON response
@@ -368,12 +353,8 @@ export async function ventMessage(message: string) {
       messages: [{ role: "user", content: prompt }],
     });
     
-    // Get the response content
-    const content = response.content[0].text;
-    if (!content) {
-      throw new Error('Empty response from Anthropic API');
-    }
-    
+    // Get the response content using helper function
+    const content = getTextFromContentBlock(response.content);
     console.log('Successfully received Anthropic response for vent mode');
     
     // Parse the JSON response
@@ -413,12 +394,8 @@ export async function detectParticipants(conversation: string) {
       messages: [{ role: "user", content: prompt }],
     });
     
-    // Get the response content
-    const content = response.content[0].text;
-    if (!content) {
-      throw new Error('Empty response from Anthropic API');
-    }
-    
+    // Get the response content using helper function
+    const content = getTextFromContentBlock(response.content);
     console.log('Successfully received Anthropic response for participant detection');
     
     // Parse the JSON response
@@ -470,7 +447,7 @@ export async function processImageOcr(image: string): Promise<string> {
       ]
     });
     
-    return response.content[0].text;
+    return getTextFromContentBlock(response.content);
   } catch (error: any) {
     console.error('OCR Error:', error);
     throw new Error('We encountered an issue processing your image. Please contact support at DramaLlamaConsultancy@gmail.com');
