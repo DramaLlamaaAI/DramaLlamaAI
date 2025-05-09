@@ -30,19 +30,19 @@ export default function PricingSection() {
             <ul className="mb-3 space-y-3">
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>1 chat analysis per month<span className="text-primary">*</span></span>
+                <span>1 chat analysis per month</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Overall Tone with Participant Analysis<span className="text-primary">*</span></span>
+                <span>Overall Emotional Tone Summary</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Conversation Health Meter<span className="text-primary">*</span></span>
+                <span>Conversation Health Meter</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Individual contributions to tension & 'What This Means'<span className="text-primary">*</span></span>
+                <span>Key Summary Quotes</span>
               </li>
             </ul>
             
@@ -50,23 +50,23 @@ export default function PricingSection() {
               <ul className="mb-3 space-y-3 animate-in fade-in duration-300">
                 <li className="flex items-start">
                   <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Communication Insights</span>
+                  <span>Basic Communication Insights</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Personalized suggestions</span>
+                  <span>Participant Analysis</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Key Phrases, with quotes</span>
+                  <span>PDF Export Function</span>
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Simple PDF export</span>
+                  <X className="w-5 h-5 mr-2 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground">Advanced Communication Advice</span>
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Vent mode access</span>
+                  <X className="w-5 h-5 mr-2 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground">Red Flag Detection</span>
                 </li>
               </ul>
             )}
@@ -111,10 +111,6 @@ export default function PricingSection() {
             <ul className="mb-6 space-y-3">
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Advanced tone analysis</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
                 <span>10 analyses per month</span>
               </li>
               <li className="flex items-start">
@@ -123,11 +119,15 @@ export default function PricingSection() {
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Communication advice</span>
+                <span>Detailed communication insights</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Pattern tracking</span>
+                <span>Personalized relationship advice</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
+                <span>Pattern tracking & analysis</span>
               </li>
             </ul>
             
@@ -170,6 +170,10 @@ export default function PricingSection() {
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
                 <span>Historical analysis</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                <span>Conflict pattern analysis</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
