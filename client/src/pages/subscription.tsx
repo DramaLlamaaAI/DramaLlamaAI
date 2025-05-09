@@ -174,10 +174,10 @@ export default function SubscriptionPage() {
             </div>
           </div>
           <CardHeader className="pb-8">
-            <CardTitle className="text-2xl">Personal Plan</CardTitle>
+            <CardTitle className="text-2xl">🦙 Personal Plan</CardTitle>
             <CardDescription>For regular communication insights</CardDescription>
             <div className="mt-2 flex items-baseline justify-center">
-              <span className="text-3xl font-bold">£4.99</span>
+              <span className="text-3xl font-bold">£3.99</span>
               <span className="text-muted-foreground ml-1">/month</span>
             </div>
           </CardHeader>
@@ -194,47 +194,51 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 mt-6">
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span><strong>10 Chat Analyses per Month</strong></span>
+                <span><strong>Everything in Free plan, plus:</strong></span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Full Summary - Topic & Emotional Insights</span>
+                <span>10 chat analyses per month</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Key Phrases with Quotes/Examples</span>
+                <span>Advanced Emotional Tone Analysis</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Conversation Dynamics</span>
+                <span>Individual Contributions to Tension</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Emotion Tracking per Participant</span>
+                <span>Key Conversation Quotes + Manipulation Score</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Conversation Initiator vs. Responder</span>
+                <span>🚩 Red Flags Detection & Red Flag Meters</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Tone Balance (Positive vs. Negative %)</span>
+                <span>Communication Styles Breakdown</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-primary ml-6 mr-2" />
+                <span className="text-muted-foreground">Your Style vs Their Style</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>🚩 Advanced Red Flags Detection</span>
+                <span>Accountability Indicators</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Behavioural Patterns Detection</span>
+                <span>Emotion Tracking Per Participant</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>📊 Basic Emotional Trends</span>
+                <span>Mood Trends Over Time</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>🎤 Live Talk Transcription (5/month)</span>
+                <span>Simple PDF Export</span>
               </li>
             </ul>
           </CardContent>

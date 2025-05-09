@@ -104,30 +104,30 @@ export default function PricingSection() {
           
           <div className="bg-secondary/10 p-4">
             <h3 className="text-xl font-semibold text-secondary">Personal</h3>
-            <p className="text-3xl font-bold mb-0">£4.99<span className="text-base font-normal text-secondary/70">/month</span></p>
+            <p className="text-3xl font-bold mb-0">£3.99<span className="text-base font-normal text-secondary/70">/month</span></p>
           </div>
           
           <CardContent className="p-6">
             <ul className="mb-6 space-y-3">
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>10 analyses per month</span>
+                <span>Everything in Free plan</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Red flag detection</span>
+                <span>10 chat analyses per month</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Detailed communication insights</span>
+                <span>Advanced Emotional Tone Analysis</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Personalized relationship advice</span>
+                <span>Individual Contributions to Tension</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Pattern tracking & analysis</span>
+                <span>🚩 Red Flags Detection & Meters</span>
               </li>
             </ul>
             

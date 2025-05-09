@@ -80,32 +80,58 @@ export const TIER_LIMITS = {
   personal: {
     monthlyLimit: 10,
     features: [
-      "overallTone",          // Overall Emotional Tone Summary
-      "participantTones",     // Participant Analysis 
-      "healthScore",          // Conversation Health Meter
-      "keyQuotes",            // More detailed quotes analysis
-      "communicationInsights", // Detailed Communication Insights
-      "redFlags",             // Red flag detection
-      "advice",               // Personalized advice
-      "patterns",             // Pattern identification
-      "pdfExport"             // PDF Export function
+      // Free tier features
+      "overallTone",            // Overall Emotional Tone Summary
+      "participantTones",       // Participant Analysis 
+      "healthScore",            // Conversation Health Meter
+      "keyQuotes",              // Key Summary Quotes
+      "communicationInsights",  // Basic Communication Insights
+      "pdfExport",              // PDF Export function
+      
+      // Personal tier specific features
+      "advancedToneAnalysis",   // Advanced Emotional Tone Analysis
+      "tensionContributions",   // Individual Contributions to Tension
+      "manipulationScore",      // Manipulation scoring in quotes
+      "redFlags",               // Red flag detection with meters
+      "communicationStyles",    // Communication Styles Breakdown
+      "accountabilityMeters",   // Accountability Indicators
+      "emotionTracking",        // Emotion Tracking Per Participant
+      "moodTrends"              // Mood Trends Over Time
     ],
   },
   pro: {
     monthlyLimit: Infinity,
     features: [
-      "overallTone",          // Overall Emotional Tone Summary
-      "participantTones",     // Participant Analysis
-      "healthScore",          // Conversation Health Meter
-      "keyQuotes",            // Comprehensive quotes analysis
-      "communicationInsights", // Advanced Communication Insights
-      "redFlags",             // Red flag detection
-      "advice",               // Personalized advice
-      "patterns",             // Pattern identification
-      "conflictPatterns",     // Conflict pattern analysis
-      "historical",           // Historical trend analysis
-      "dramaScore",           // Drama Score™ benchmarking
-      "advancedExport"        // Advanced export options
+      // Include all Personal tier features
+      "overallTone",              // Overall Emotional Tone Summary
+      "participantTones",         // Participant Analysis 
+      "healthScore",              // Conversation Health Meter
+      "keyQuotes",                // Key Summary Quotes
+      "communicationInsights",    // Basic Communication Insights
+      "pdfExport",                // PDF Export function
+      "advancedToneAnalysis",     // Advanced Emotional Tone Analysis
+      "tensionContributions",     // Individual Contributions to Tension
+      "manipulationScore",        // Manipulation scoring in quotes
+      "redFlags",                 // Red flag detection with meters
+      "communicationStyles",      // Communication Styles Breakdown
+      "accountabilityMeters",     // Accountability Indicators
+      "emotionTracking",          // Emotion Tracking Per Participant
+      "moodTrends",               // Mood Trends Over Time
+      
+      // Pro tier specific features
+      "advancedAccountability",   // Advanced Accountability Indicators
+      "emotionalShiftsTimeline",  // Emotional Shifts Timeline
+      "manipulationIdentifiers",  // Manipulation Identifiers
+      "gaslightingDetection",     // Gaslighting Detection
+      "comprehensiveRedFlags",    // Comprehensive Red Flags System
+      "powerImbalanceDetection",  // Power Imbalance Detection
+      "visualDashboard",          // Visual Dashboard with Charts
+      "advancedExport",           // PDF & CSV Data Exports
+      "advancedEmotionalTrends",  // Advanced Emotional Trends Tracking
+      "unlimitedLiveTalk",        // Unlimited Live Talk Recordings
+      "conflictPatterns",         // Conflict pattern analysis
+      "historical",               // Historical trend analysis
+      "dramaScore"                // Drama Score™ benchmarking
     ],
   },
 };
