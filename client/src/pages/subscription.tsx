@@ -135,31 +135,23 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 mt-6">
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>1 chat analysis per month*</span>
+                <span>1 chat analysis per month</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Overall Tone with Participant Analysis*</span>
+                <span>Overall Emotional Tone Summary</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Conversation Health Meter*</span>
+                <span>Conversation Health Meter</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Individual Contributions to Tension</span>
+                <span>Key Summary Quotes (brief highlights only)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Communication Insights</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Personalized Suggestions</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Key Phrases, with Quotes</span>
+                <span>Basic Communication Insights</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
