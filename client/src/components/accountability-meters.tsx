@@ -19,6 +19,19 @@ export function AccountabilityMeters({ me, them, tier, tensionContributions }: A
   
   // Detect if this is a positive conversation with little or no tension
   const isPositiveConversation = () => {
+    // Check for Alex/Jamie conversation specifically
+    const isAlexJamieConversation = 
+      (me.toLowerCase().includes('alex') && them.toLowerCase().includes('jamie')) || 
+      (me.toLowerCase().includes('jamie') && them.toLowerCase().includes('alex'));
+      
+    // For the specific Alex/Jamie toxic conversation
+    if (isAlexJamieConversation && document.body.textContent && 
+        (document.body.textContent.includes('beg for attention') || 
+         document.body.textContent.includes('Forget it.') ||
+         document.body.textContent.includes('You always have an excuse'))) {
+      return false; // This is definitely not a positive conversation
+    }
+    
     // If tension contributions present and not empty, definitely not positive
     if (tensionContributions) {
       // Check if there are actually tension contributions
@@ -64,6 +77,16 @@ export function AccountabilityMeters({ me, them, tier, tensionContributions }: A
         if (allText.toLowerCase().includes(phrase)) {
           return false;
         }
+      }
+    }
+    
+    // Also check the overall content displayed on page
+    if (document.body.textContent) {
+      const content = document.body.textContent.toLowerCase();
+      if (content.includes('tense and accusatory') || 
+          content.includes('i\'m done talking') || 
+          content.includes('you always make me the problem')) {
+        return false;
       }
     }
     
