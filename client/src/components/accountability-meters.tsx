@@ -6,7 +6,8 @@ interface AccountabilityMetersProps {
   them: string;
   tier: string;
   tensionContributions?: {
-    [participant: string]: string[];
+    tensionMeaning?: string;
+    [participant: string]: string[] | string | undefined;
   };
 }
 
@@ -18,17 +19,56 @@ export function AccountabilityMeters({ me, them, tier, tensionContributions }: A
   
   // Detect if this is a positive conversation with little or no tension
   const isPositiveConversation = () => {
-    // If no contributions data, assume positive conversation
-    if (!tensionContributions) return true;
+    // If tension contributions present and not empty, definitely not positive
+    if (tensionContributions) {
+      // Check if there are actually tension contributions
+      const meContributions = Array.isArray(tensionContributions[me]) ? 
+                             (tensionContributions[me] as string[]).length : 0;
+      const themContributions = Array.isArray(tensionContributions[them]) ? 
+                                (tensionContributions[them] as string[]).length : 0;
+      
+      // If any contributions found, it's not a positive conversation
+      if (meContributions > 0 || themContributions > 0) {
+        return false;
+      }
+      
+      // Look for specific tension meaning that indicates negative conversation
+      if ('tensionMeaning' in tensionContributions && 
+          tensionContributions.tensionMeaning && 
+          typeof tensionContributions.tensionMeaning === 'string') {
+        const tensionMeaningText = tensionContributions.tensionMeaning;
+        
+        const negativePhrases = [
+          'conflict', 'tension', 'disagreement', 'argument', 'hostile', 
+          'accusatory', 'blame', 'defensive', 'criticism'
+        ];
+        
+        for (const phrase of negativePhrases) {
+          if (tensionMeaningText.toLowerCase().includes(phrase)) {
+            return false;
+          }
+        }
+      }
+    }
     
-    // Check if there are actually tension contributions
-    const meContributions = Array.isArray(tensionContributions[me]) ? 
-                           (tensionContributions[me] as string[]).length : 0;
-    const themContributions = Array.isArray(tensionContributions[them]) ? 
-                              (tensionContributions[them] as string[]).length : 0;
+    // Check the overall data for common toxic patterns
+    // This is a fallback detection for when tension data is missing
+    if (tensionContributions) {
+      const allText = JSON.stringify(tensionContributions);
+      const toxicPhrases = [
+        'blame', 'accus', 'defensive', 'criticism', 'dismissive', 
+        'contempt', 'stonewalling', 'withdraw', 'aggressive', 'manipulat'
+      ];
+      
+      for (const phrase of toxicPhrases) {
+        if (allText.toLowerCase().includes(phrase)) {
+          return false;
+        }
+      }
+    }
     
-    // If no contributions found, it's a positive conversation
-    return (meContributions === 0 && themContributions === 0);
+    // If no negative indicators found, assume positive conversation
+    return true;
   };
   
   // For positive conversations with no tension
@@ -143,7 +183,7 @@ export function AccountabilityMeters({ me, them, tier, tensionContributions }: A
           <div className="mt-4 bg-gray-50 p-3 rounded border border-gray-200">
             <p className="text-sm text-gray-600">
               <span className="font-medium">What this means:</span> {' '}
-              {tensionContributions && tensionContributions.tensionMeaning ? 
+              {tensionContributions && 'tensionMeaning' in tensionContributions && typeof tensionContributions.tensionMeaning === 'string' ? 
                 tensionContributions.tensionMeaning :
                 "This is an estimate of how each participant appears to be contributing to any tension in the conversation, based on language patterns and communication dynamics."}
             </p>

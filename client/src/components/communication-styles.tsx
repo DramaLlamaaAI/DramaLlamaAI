@@ -32,8 +32,32 @@ export function CommunicationStyles({ me, them, participantConflictScores }: Com
   const meColor = '#22C9C9';
   const themColor = '#FF69B4';
   
-  // If no data available, or positive conversation, use positive styles
-  if (!participantConflictScores || Object.keys(participantConflictScores).length === 0) {
+  // Detect toxic conversations even without participantConflictScores
+  const isToxicConversation = () => {
+    // Check tone in property names
+    if (me && them && (me.includes('accus') || them.includes('accus'))) {
+      return true;
+    }
+
+    // Look for toxic phrases in all props
+    const allText = JSON.stringify({me, them, participantConflictScores});
+    const toxicPhrases = [
+      'blame', 'accus', 'tense', 'defensive', 'criticism', 'dismissive', 
+      'contempt', 'stonewalling', 'withdraw', 'aggressive', 'manipulat'
+    ];
+    
+    for (const phrase of toxicPhrases) {
+      if (allText.toLowerCase().includes(phrase)) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+  
+  // If no conflict scores data available and not detected as toxic, use positive styles
+  if ((!participantConflictScores || Object.keys(participantConflictScores).length === 0) && 
+      !isToxicConversation()) {
     const mePositiveScores = generatePositiveScores(me, meColor);
     const themPositiveScores = generatePositiveScores(them, themColor);
     
@@ -156,8 +180,8 @@ export function CommunicationStyles({ me, them, participantConflictScores }: Com
   }
   
   // Extract scores for negative/conflictual conversations
-  const meScores = participantConflictScores[me];
-  const themScores = participantConflictScores[them];
+  const meScores = participantConflictScores ? participantConflictScores[me] : undefined;
+  const themScores = participantConflictScores ? participantConflictScores[them] : undefined;
   
   // Show conflict style breakdown for conversations with tension
   return (

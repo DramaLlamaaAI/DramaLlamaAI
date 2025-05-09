@@ -16,10 +16,29 @@ export function BehavioralPatterns({ tier, conversation, dynamics }: BehavioralP
   
   // Detect if this is a positive conversation
   const isPositiveConversation = () => {
-    // Check conversation tone by looking for positive keywords
+    // Check conversation tone by looking for positive keywords and toxic patterns
     const positiveKeywords = ['thanks', 'glad', 'appreciate', 'kind', 'support', 'understanding', 'care', 'love', 'happy'];
     const negativeKeywords = ['criticism', 'blame', 'fault', 'angry', 'upset', 'frustrated', 'annoyed', 'hate', 'stupid'];
+    const toxicPhrases = [
+      'forget it', 'beg for attention', 'always have an excuse', 
+      'blame me', 'make me the problem', 'nothing ever changes', 
+      'i\'m done', 'shouldn\'t have to', 'you always', 'you never'
+    ];
     
+    // Check for obviously toxic phrases first
+    let hasToxicPhrase = false;
+    toxicPhrases.forEach(phrase => {
+      if (conversation.toLowerCase().includes(phrase.toLowerCase())) {
+        hasToxicPhrase = true;
+      }
+    });
+    
+    // If toxic phrases found, definitely not a positive conversation
+    if (hasToxicPhrase) {
+      return false;
+    }
+    
+    // Count positive/negative words as backup check
     let positiveCount = 0;
     let negativeCount = 0;
     
@@ -35,8 +54,9 @@ export function BehavioralPatterns({ tier, conversation, dynamics }: BehavioralP
       if (matches) negativeCount += matches.length;
     });
     
-    // If there are no dynamics and the conversation has more positive than negative words
-    return !dynamics && positiveCount > negativeCount;
+    // Check if there's significantly more positive than negative sentiment
+    // More strict criteria - must have at least 3x more positive than negative words
+    return !dynamics && positiveCount > negativeCount * 2;
   };
   
   // For positive conversations, show positive patterns
