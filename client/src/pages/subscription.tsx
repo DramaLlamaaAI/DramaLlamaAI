@@ -111,7 +111,7 @@ export default function SubscriptionPage() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Free Plan */}
         <Card className="border-2 border-gray-200 relative">
           <CardHeader className="pb-8">
@@ -162,6 +162,80 @@ export default function SubscriptionPage() {
           <CardFooter className="pt-4 text-center flex flex-col">
             <p className="text-sm text-muted-foreground">
               Perfect for casual users wanting to try our communication analysis.
+            </p>
+          </CardFooter>
+        </Card>
+        
+        {/* Instant Deep Dive - One-Time Payment */}
+        <Card className="border-2 border-purple-400 relative overflow-hidden">
+          <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/3">
+            <div className="bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+              ONE-OFF
+            </div>
+          </div>
+          <CardHeader className="pb-8">
+            <CardTitle className="text-2xl">🦙 Instant Deep Dive</CardTitle>
+            <CardDescription>Pro features for a single analysis</CardDescription>
+            <div className="mt-2 flex items-baseline justify-center">
+              <span className="text-3xl font-bold">£1.99</span>
+              <span className="text-muted-foreground ml-1">one-time</span>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              onClick={() => handleUpgrade('instant')} 
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              variant="default"
+            >
+              Buy Single Analysis
+            </Button>
+            
+            <ul className="space-y-3 mt-6">
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 mr-2" />
+                <span><strong>1 Chat Upload (Single Use Only)</strong></span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 mr-2" />
+                <span>Instant access to Pro features:</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Evasion Identification</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Message Dominance Analysis</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Emotional Shifts Timeline</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Power Dynamics Analysis</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Red Flags Timeline</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Historical Pattern Recognition</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Anonymized Peer Benchmarks</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 mr-2" />
+                <span><strong>No subscription required</strong></span>
+              </li>
+            </ul>
+          </CardContent>
+          <CardFooter className="pt-4 text-center flex flex-col">
+            <p className="text-sm text-muted-foreground">
+              Perfect for when you need a one-time deep analysis without committing to a subscription.
             </p>
           </CardFooter>
         </Card>

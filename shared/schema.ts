@@ -77,6 +77,30 @@ export const TIER_LIMITS = {
       "pdfExport"             // PDF Export function
     ],
   },
+  instant: {
+    monthlyLimit: 0, // One-time use
+    features: [
+      // Pro tier features for one-time use
+      "overallTone",              // Overall Emotional Tone Summary
+      "participantTones",         // Participant Analysis 
+      "healthScore",              // Conversation Health Meter
+      "keyQuotes",                // Key Summary Quotes
+      "communicationInsights",    // Basic Communication Insights
+      "pdfExport",                // PDF Export function
+      "advancedToneAnalysis",     // Advanced Emotional Tone Analysis
+      "tensionContributions",     // Individual Contributions to Tension
+      "manipulationScore",        // Manipulation scoring in quotes
+      "redFlags",                 // Red flag detection with meters
+      "evasionIdentification",    // Evasion Identification
+      "messageDominance",         // Message Dominance Analysis
+      "emotionalShiftsTimeline",  // Emotional Shifts Timeline
+      "powerDynamics",            // Power Dynamics Analysis
+      "redFlagsTimeline",         // Red Flags Timeline
+      "historicalPatterns",       // Historical Pattern Recognition
+      "peerComparison"            // Anonymized Peer Benchmarks
+    ],
+    oneTime: true                 // Indicates this is a one-time payment, not a subscription
+  },
   personal: {
     monthlyLimit: 10,
     features: [

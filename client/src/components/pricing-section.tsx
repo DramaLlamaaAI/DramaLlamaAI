@@ -19,7 +19,7 @@ export default function PricingSection() {
     <section id="pricing" className="mb-12 py-6 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl px-6">
       <h2 className="text-3xl font-bold mb-6 text-center text-primary">Choose Your Plan</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Free Tier */}
         <Card className={`overflow-hidden border-2 ${currentTier === 'free' ? 'border-primary shadow-md' : 'border-transparent'} transition-all duration-300 hover:shadow-lg bg-white`}>
           <div className="bg-primary/10 p-4">
@@ -143,6 +143,46 @@ export default function PricingSection() {
                 {currentTier === 'pro' ? 'Downgrade' : 'Upgrade Now'}
               </Button>
             )}
+          </CardContent>
+        </Card>
+        
+        {/* Instant Deep Dive - One-Time Payment */}
+        <Card className={`overflow-hidden border-2 ${currentTier === 'instant' ? 'border-purple-500 shadow-md' : 'border-transparent'} transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 bg-white`}>
+          <div className="bg-purple-100 p-4">
+            <h3 className="text-xl font-semibold text-purple-700">🦙 Instant Deep Dive</h3>
+            <p className="text-3xl font-bold mb-0 text-purple-700">£1.99<span className="text-base font-normal text-purple-500/70">one-off</span></p>
+          </div>
+          
+          <CardContent className="p-6">
+            <ul className="mb-6 space-y-3">
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
+                <span><strong>1 Chat Upload (Single Use Only)</strong></span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
+                <span>Instant access to Pro features:</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 ml-6 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
+                <span className="text-muted-foreground">Evasion Identification</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 ml-6 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
+                <span className="text-muted-foreground">Power Dynamics Analysis</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
+                <span>No subscription required</span>
+              </li>
+            </ul>
+            
+            <Button 
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              onClick={() => window.location.href = '/checkout?plan=instant'}
+            >
+              Buy Single Analysis
+            </Button>
           </CardContent>
         </Card>
         
