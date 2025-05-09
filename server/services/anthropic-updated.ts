@@ -287,8 +287,14 @@ export async function analyzeChatConversation(conversation: string, me: string, 
         "tensionContributions": {
           "participant name": ["specific actions/phrases that contribute to tension"]
         },
-        "tensionMeaning": "detailed explanation of what the tension patterns indicate about the relationship dynamic"
+        "tensionMeaning": "brief explanation of what tension means for the relationship (50 words max)"
       }
+      
+      IMPORTANT GUIDELINES:
+      1. Keep each field CONCISE - especially participantTones and tensionMeaning should be short
+      2. Avoid lengthy explanations or analysis that exceeds 100 words in any field
+      3. Keep your output format strictly compatible with JSON (no trailing commas, proper quotes)
+      4. For tensionMeaning, limit to 50 words max
       
       Include ADVANCED FEATURES such as:
       - Conversation dynamics with behavioral pattern detection
@@ -380,12 +386,19 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 2000,
+      temperature: 0.1, // Lower temperature for more consistent responses
       system: `You are a communication expert who analyzes tone, patterns, and dynamics in conversations.
       
       IMPORTANT: You are currently operating at the ${tier.toUpperCase()} tier level. 
       ${tier === 'free' ? 'Provide basic analysis with fundamental insights only.' : 
       tier === 'personal' ? 'Provide moderate-depth analysis with personalized insights.' : 
       'Provide comprehensive professional-level analysis with advanced insights.'}
+      
+      Strict Output Format Rules:
+      1. Respond ONLY with valid JSON
+      2. Keep all text fields concise - max 100 words per field
+      3. Format your response as a code block with json code block markers
+      4. Double-check that your JSON is well-formed with no trailing commas
       
       When analyzing conversations:
       1. Identify different chat formats (WhatsApp, iMessage, Facebook, etc.) and adapt your analysis accordingly
@@ -441,12 +454,19 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 800,
+      temperature: 0.1,
       system: `You are a communication expert who analyzes messages to determine tone, intent, and subtext.
       
       IMPORTANT: You are currently operating at the ${tier.toUpperCase()} tier level. 
       ${tier === 'free' ? 'Provide basic analysis with fundamental insights only.' : 
       tier === 'personal' ? 'Provide moderate-depth analysis with personalized insights.' : 
-      'Provide comprehensive professional-level analysis with advanced insights.'}`,
+      'Provide comprehensive professional-level analysis with advanced insights.'}
+      
+      Strict Output Format Rules:
+      1. Respond ONLY with valid JSON
+      2. Keep all text fields concise
+      3. Format your response as a code block with json code block markers
+      4. Double-check that your JSON is well-formed with no trailing commas`,
       messages: [{ role: "user", content: prompt }],
     });
     
@@ -518,12 +538,19 @@ export async function deEscalateMessage(message: string, tier: string = 'free') 
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 800,
+      temperature: 0.1,
       system: `You are a communication expert who helps transform emotional messages into grounded, constructive ones that de-escalate conflict.
       
       IMPORTANT: You are currently operating at the ${tier.toUpperCase()} tier level. 
       ${tier === 'free' ? 'Provide basic message improvement with fundamental guidance only.' : 
       tier === 'personal' ? 'Provide moderate-depth message improvement with personalized options.' : 
-      'Provide comprehensive professional-level message improvement with strategic insights and long-term guidance.'}`,
+      'Provide comprehensive professional-level message improvement with strategic insights and long-term guidance.'}
+      
+      Strict Output Format Rules:
+      1. Respond ONLY with valid JSON
+      2. Keep all text fields concise
+      3. Format your response as a code block with json code block markers
+      4. Double-check that your JSON is well-formed with no trailing commas`,
       messages: [{ role: "user", content: prompt }],
     });
     
