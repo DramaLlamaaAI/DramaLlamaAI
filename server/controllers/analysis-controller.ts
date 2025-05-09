@@ -159,11 +159,37 @@ export const analysisController = {
       // Filter conversation by date if date filter is provided
       const filteredConversation = filterConversationByDate(conversation, dateFilter);
       
-      // Process analysis
-      const analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
-      
-      // Filter results based on user's tier
-      const filteredResults = filterChatAnalysisByTier(analysis, tier);
+      try {
+        console.log(`Using tier ${tier} for chat analysis request`);
+        // Process analysis
+        const analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
+        
+        console.log(`Chat analysis complete, applying tier filter: ${tier}`);
+        // Filter results based on user's tier
+        const filteredResults = filterChatAnalysisByTier(analysis, tier);
+        
+        // Log some info about what we're returning
+        console.log(`Returning chat analysis with overall tone: "${filteredResults.toneAnalysis.overallTone.substring(0, 30)}..."`);
+      } catch (analysisError) {
+        console.error('Error in analysis controller layer:', analysisError);
+        
+        // Create a fallback response that maintains basic functionality
+        return res.status(200).json({
+          toneAnalysis: {
+            overallTone: "We encountered an issue analyzing this conversation. Our team has been notified.",
+            emotionalState: [{ emotion: "unknown", intensity: 0.5 }],
+            participantTones: { [me]: "Not available", [them]: "Not available" }
+          },
+          communication: {
+            patterns: ["Service temporarily unavailable. Please try again later."]
+          },
+          healthScore: {
+            score: 50,
+            label: "Analysis Error",
+            color: "yellow"
+          }
+        });
+      }
       
       res.json(filteredResults);
     } catch (error: any) {

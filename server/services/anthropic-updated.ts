@@ -248,6 +248,145 @@ const prompts = {
 
 // Helper functions are imported from anthropic-helpers.ts
 
+/**
+ * Special raw response parser to handle malformed responses from Anthropic API
+ * This parser extracts key data using regex patterns directly from the raw response
+ */
+function extractRawChatAnalysis(rawContent: string, me: string, them: string): any {
+  console.log("Using raw response extraction as fallback");
+  
+  try {
+    // Store all extracted information
+    const result: any = {
+      toneAnalysis: { 
+        overallTone: "", 
+        emotionalState: [],
+        participantTones: {}
+      },
+      communication: { 
+        patterns: [] 
+      },
+      healthScore: { 
+        score: 50, 
+        label: "Analysis pending", 
+        color: "yellow"
+      }
+    };
+    
+    // Extract overall tone
+    const overallToneMatch = rawContent.match(/overallTone["'\s:]+([^"',}]+)/);
+    if (overallToneMatch && overallToneMatch[1]) {
+      result.toneAnalysis.overallTone = overallToneMatch[1].trim();
+    } else {
+      result.toneAnalysis.overallTone = "Analysis incomplete";
+    }
+    
+    // Extract emotional state
+    const emotionMatches = rawContent.match(/emotion["'\s:]+([^"',}]+).*?intensity["'\s:]+([0-9.]+)/g);
+    if (emotionMatches) {
+      emotionMatches.forEach(match => {
+        const emotion = match.match(/emotion["'\s:]+([^"',}]+)/)?.[1].trim();
+        const intensity = parseFloat(match.match(/intensity["'\s:]+([0-9.]+)/)?.[1] || "0.5");
+        if (emotion) {
+          result.toneAnalysis.emotionalState.push({ emotion, intensity });
+        }
+      });
+    }
+    
+    // If no emotions found, add a default one
+    if (result.toneAnalysis.emotionalState.length === 0) {
+      result.toneAnalysis.emotionalState.push({ emotion: "mixed", intensity: 0.5 });
+    }
+    
+    // Extract participant tones
+    const participantTonesSection = rawContent.match(/participantTones["'\s:]+\{([^}]+)\}/)?.[1];
+    if (participantTonesSection) {
+      // Look for me's tone
+      const meToneMatch = participantTonesSection.match(new RegExp(`${me}["'\\s:]+([^"',}]+)`));
+      if (meToneMatch && meToneMatch[1]) {
+        result.toneAnalysis.participantTones[me] = meToneMatch[1].trim();
+      } else {
+        result.toneAnalysis.participantTones[me] = "Unclear";
+      }
+      
+      // Look for them's tone
+      const themToneMatch = participantTonesSection.match(new RegExp(`${them}["'\\s:]+([^"',}]+)`));
+      if (themToneMatch && themToneMatch[1]) {
+        result.toneAnalysis.participantTones[them] = themToneMatch[1].trim();
+      } else {
+        result.toneAnalysis.participantTones[them] = "Unclear";
+      }
+    } else {
+      // Default participant tones if not found
+      result.toneAnalysis.participantTones[me] = "Not analyzed";
+      result.toneAnalysis.participantTones[them] = "Not analyzed";
+    }
+    
+    // Extract health score
+    const scoreMatch = rawContent.match(/score["'\s:]+([0-9]+)/);
+    if (scoreMatch && scoreMatch[1]) {
+      const score = parseInt(scoreMatch[1]);
+      result.healthScore.score = score;
+      
+      // Determine label and color based on score
+      if (score < 30) {
+        result.healthScore.label = "Conflict";
+        result.healthScore.color = "red";
+      } else if (score < 50) {
+        result.healthScore.label = "Tension";
+        result.healthScore.color = "yellow";
+      } else if (score < 70) {
+        result.healthScore.label = "Stable";
+        result.healthScore.color = "light-green";
+      } else {
+        result.healthScore.label = "Healthy";
+        result.healthScore.color = "green";
+      }
+    }
+    
+    // Extract communication patterns - using a non-s flag regex for compatibility
+    const patternsMatch = rawContent.match(/patterns["'\s:]+\[([\s\S]*?)\]/);
+    if (patternsMatch && patternsMatch[1]) {
+      // Split by commas and clean up each pattern
+      const patternList = patternsMatch[1]
+        .split(/,/)
+        .map(p => {
+          // Remove quotes and extra whitespace
+          return p.replace(/["']/g, '').trim();
+        })
+        .filter(p => p.length > 0);
+      
+      if (patternList.length > 0) {
+        result.communication.patterns = patternList;
+      }
+    }
+    
+    // If no patterns found, add a default one
+    if (result.communication.patterns.length === 0) {
+      result.communication.patterns = ["Analysis incomplete - communication patterns unclear"];
+    }
+    
+    return result;
+  } catch (error) {
+    console.error("Error in raw extraction fallback:", error);
+    return {
+      toneAnalysis: {
+        overallTone: "Analysis error - please try again",
+        emotionalState: [{ emotion: "unknown", intensity: 0.5 }],
+        participantTones: { [me]: "unavailable", [them]: "unavailable" }
+      },
+      communication: {
+        patterns: ["Analysis failed - please try again"]
+      },
+      healthScore: {
+        score: 50,
+        label: "Analysis Error",
+        color: "yellow"
+      }
+    };
+  }
+}
+
 export async function analyzeChatConversation(conversation: string, me: string, them: string, tier: string = 'free'): Promise<ChatAnalysisResponse> {
   try {
     console.log('Attempting to use Anthropic for chat analysis');
@@ -430,78 +569,10 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     try {
       return parseAnthropicJson(content);
     } catch (error) {
-      console.error('JSON parsing failed in chat analysis, attempting fallback', error);
+      console.error('JSON parsing failed in chat analysis, attempting direct extraction fallback', error);
       
-      // Extract as much information from the response as possible using regex
-      let partialData: any = {};
-      
-      try {
-        // Attempt to extract key pieces of information using regex
-        const overallToneMatch = content.match(/overallTone['":\s]+([^"',}]+)/);
-        const overallTone = overallToneMatch ? overallToneMatch[1].trim() : 
-          "We couldn't complete the full analysis due to a technical issue.";
-        
-        const patternMatch = content.match(/patterns['":\s]+\[([^\]]+)\]/);
-        const patterns = patternMatch ? 
-          patternMatch[1].split(',').map(p => p.replace(/["']/g, '').trim()).filter(p => p) : 
-          ["Analysis error - please try again."];
-          
-        const scoreMatch = content.match(/score['":\s]+(\d+)/);
-        const score = scoreMatch ? parseInt(scoreMatch[1]) : 50;
-        
-        const labelMatch = content.match(/label['":\s]+([^"',}]+)/);
-        const label = labelMatch ? labelMatch[1].trim() : "Analysis Error";
-        
-        // Create a more detailed fallback response
-        partialData = {
-          toneAnalysis: {
-            overallTone: overallTone,
-            emotionalState: [{ emotion: "mixed", intensity: 0.5 }],
-            participantTones: { [me]: "Undetermined", [them]: "Undetermined" }
-          },
-          communication: {
-            patterns: patterns,
-            suggestions: ["We were able to extract partial analysis. Try again for complete results."]
-          },
-          healthScore: {
-            score: score, 
-            label: label, 
-            color: "yellow"
-          }
-        };
-        
-        // Add tier-specific fields for a better user experience
-        if (tier === 'pro' || tier === 'instant') {
-          partialData.redFlags = [{
-            type: "Technical Issue",
-            description: "The advanced analysis engine encountered an error. Some features may be limited.",
-            severity: 1
-          }];
-        }
-        
-        console.log('Created partial response from available data');
-        return partialData;
-      } catch (extractError) {
-        console.error('Failed to extract partial data:', extractError);
-        
-        // Last resort basic fallback
-        return {
-          toneAnalysis: {
-            overallTone: "We couldn't complete the full analysis due to a technical issue. Please try again later or contact support.",
-            emotionalState: [{ emotion: "unknown", intensity: 0.5 }],
-            participantTones: { [me]: "unknown", [them]: "unknown" }
-          },
-          communication: {
-            patterns: ["Analysis error - please try again."],
-            suggestions: ["We apologize for the inconvenience."]
-          },
-          healthScore: {
-            score: 50, 
-            label: "Analysis Error", 
-            color: "yellow"
-          }
-        };
-      }
+      // Use the specialized raw extraction function that works directly on the raw text
+      return extractRawChatAnalysis(content, me, them);
     }
   } catch (error: any) {
     // Log the specific error for debugging
