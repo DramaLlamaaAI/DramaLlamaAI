@@ -83,10 +83,69 @@ export function filterMessageAnalysisByTier(analysis: MessageAnalysisResult, tie
     intent: analysis.intent,
   };
   
-  // Add suggested reply if available for tier
+  // Add suggested reply if available for tier (personal, pro, instant)
   if ((tierFeatures.includes('communicationStyles') || tier === 'personal' || tier === 'pro' || tier === 'instant') && analysis.suggestedReply) {
     filteredAnalysis.suggestedReply = analysis.suggestedReply;
   }
   
+  // Add manipulation score if available (personal tier+)
+  if ((tierFeatures.includes('manipulationScore') || tier === 'personal' || tier === 'pro' || tier === 'instant') && analysis.manipulationScore) {
+    filteredAnalysis.manipulationScore = analysis.manipulationScore;
+  }
+  
+  // Add potential response if available (pro/instant tier only)
+  if ((tierFeatures.includes('advancedToneAnalysis') || tier === 'pro' || tier === 'instant') && analysis.potentialResponse) {
+    filteredAnalysis.potentialResponse = analysis.potentialResponse;
+  }
+  
+  // Add possible reword if available (pro/instant tier only)
+  if ((tierFeatures.includes('advancedToneAnalysis') || tier === 'pro' || tier === 'instant') && analysis.possibleReword) {
+    filteredAnalysis.possibleReword = analysis.possibleReword;
+  }
+  
+  // Add power dynamics if available (pro/instant tier only)
+  if ((tierFeatures.includes('powerDynamics') || tier === 'pro' || tier === 'instant') && analysis.powerDynamics) {
+    filteredAnalysis.powerDynamics = analysis.powerDynamics;
+  }
+  
+  // Add communication style if available (pro/instant tier only)
+  if ((tierFeatures.includes('communicationStyles') || tier === 'pro' || tier === 'instant') && analysis.communicationStyle) {
+    filteredAnalysis.communicationStyle = analysis.communicationStyle;
+  }
+  
   return filteredAnalysis;
+}
+
+/**
+ * Filter de-escalate message results based on user's tier
+ */
+import { DeEscalateResult } from '@shared/schema';
+
+export function filterDeEscalateResultByTier(result: DeEscalateResult, tier: string): DeEscalateResult {
+  // If tier doesn't exist, default to free
+  const tierFeatures = TIER_LIMITS[tier as keyof typeof TIER_LIMITS]?.features || TIER_LIMITS.free.features;
+  
+  // Create a filtered copy of the analysis
+  const filteredResult: DeEscalateResult = {
+    original: result.original,
+    rewritten: result.rewritten,
+    explanation: result.explanation,
+  };
+  
+  // Add alternative options if available (personal tier+)
+  if ((tier === 'personal' || tier === 'pro' || tier === 'instant') && result.alternativeOptions) {
+    filteredResult.alternativeOptions = result.alternativeOptions;
+  }
+  
+  // Add additional context insights if available (pro/instant tier only)
+  if ((tier === 'pro' || tier === 'instant') && result.additionalContextInsights) {
+    filteredResult.additionalContextInsights = result.additionalContextInsights;
+  }
+  
+  // Add long term strategy if available (pro/instant tier only)
+  if ((tier === 'pro' || tier === 'instant') && result.longTermStrategy) {
+    filteredResult.longTermStrategy = result.longTermStrategy;
+  }
+  
+  return filteredResult;
 }

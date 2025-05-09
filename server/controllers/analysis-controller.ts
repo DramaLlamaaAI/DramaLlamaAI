@@ -209,12 +209,18 @@ export const analysisController = {
         return res.status(403).json({ message: 'Usage limit reached' });
       }
       
+      // Get user tier
+      const tier = getUserTier(req);
+      
       // Track usage
       await trackUsage(req);
       
-      // Process de-escalation
-      const result = await deEscalateMessage(message);
-      res.json(result);
+      // Process de-escalation with tier-specific features
+      const result = await deEscalateMessage(message, tier);
+      
+      // Filter results based on user tier
+      const filteredResult = filterDeEscalateResultByTier(result, tier);
+      res.json(filteredResult);
     } catch (error: any) {
       console.error(error);
       res.status(500).json({ message: error.message || 'Internal server error' });

@@ -461,12 +461,47 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
   }
 }
 
-export async function deEscalateMessage(message: string) {
+export async function deEscalateMessage(message: string, tier: string = 'free') {
   try {
     console.log('Attempting to use Anthropic for de-escalate mode analysis');
     
-    // Construct a proper prompt from our de-escalate mode template
-    const prompt = prompts.deEscalate.free.replace('{message}', message);
+    let prompt = '';
+    
+    if (tier === 'pro' || tier === 'instant') {
+      // Enhanced de-escalation with professional-level guidance
+      prompt = `Provide a comprehensive professional-level transformation of this emotional message into a more effective communication.
+      Return a JSON object with the following structure:
+      {
+        "original": "the original message",
+        "rewritten": "professionally rewritten message that's strategic, constructive, and effective",
+        "explanation": "detailed explanation of the communication issues and the psychological reasoning behind the changes",
+        "additionalContextInsights": "analysis of potential underlying issues that may need addressing",
+        "longTermStrategy": "suggestions for addressing the deeper pattern beyond this single message"
+      }
+      
+      Focus on creating a message that maintains the author's core concerns while significantly improving tone, delivery, and likelihood of a positive outcome.
+      
+      Here's the message:
+      ${message}`;
+    } else if (tier === 'personal') {
+      // Mid-level de-escalation with personalized guidance
+      prompt = `Transform this emotional message into a more effective communication with personalized guidance.
+      Return a JSON object with the following structure:
+      {
+        "original": "the original message",
+        "rewritten": "thoughtfully rewritten message that's calmer and more constructive",
+        "explanation": "clear explanation of the communication issues and improvements made",
+        "alternativeOptions": "1-2 alternative approaches that could also work"
+      }
+      
+      Focus on creating a message that addresses the author's concerns while improving tone and constructiveness.
+      
+      Here's the message:
+      ${message}`;
+    } else {
+      // Basic de-escalation (free tier)
+      prompt = prompts.deEscalate.free.replace('{message}', message);
+    }
     
     // Make the API call with enhanced error handling
     const response = await anthropic.messages.create({

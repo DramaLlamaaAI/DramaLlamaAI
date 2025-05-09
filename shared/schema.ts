@@ -215,6 +215,9 @@ export const deEscalateResultSchema = z.object({
   original: z.string(),
   rewritten: z.string(),
   explanation: z.string(),
+  alternativeOptions: z.string().optional(),
+  additionalContextInsights: z.string().optional(),
+  longTermStrategy: z.string().optional(),
 });
 
 export type ChatAnalysisResult = z.infer<typeof chatAnalysisResultSchema>;
