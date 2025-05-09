@@ -13,6 +13,7 @@ import SubscriptionPage from "@/pages/subscription";
 import CheckoutPage from "@/pages/checkout";
 import AuthPage from "@/pages/auth-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
+import PrivacyPolicy from "@/pages/privacy-policy";
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
 import DeEscalate from "./components/de-escalate";
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/checkout" component={CheckoutPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route component={NotFound} />
     </Switch>
   );
