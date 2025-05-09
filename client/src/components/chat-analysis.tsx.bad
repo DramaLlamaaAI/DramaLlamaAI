@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Archive, FileText, Copy } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -330,6 +330,10 @@ export default function ChatAnalysis() {
               
               <div className="grid grid-cols-1 gap-6">
                 {/* WhatsApp Export UI with blue styling */}
+                <div className="bg-blue-50 p-3 rounded border border-blue-200 mb-4">
+                  <p className="text-xs text-blue-800 font-medium">✨ New Feature:</p>
+                  <p className="text-xs text-blue-700">You can now directly upload WhatsApp chat export files (.txt) without needing to use ZIP files!</p>
+                </div>
                 <div className="border border-blue-200 border-dashed rounded-lg p-6 text-center">
                   <input
                     type="file"
@@ -340,7 +344,7 @@ export default function ChatAnalysis() {
                   />
                   
                   <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Upload className="h-8 w-8 text-blue-500" />
+                    <Archive className="h-8 w-8 text-blue-500" />
                   </div>
                   
                   <h3 className="text-xl font-medium text-blue-800 mb-2">WhatsApp Chat Exports</h3>
