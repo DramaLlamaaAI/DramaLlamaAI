@@ -77,12 +77,12 @@ export interface MessageAnalysisResponse {
   possibleReword?: string;
 }
 
-// Vent mode interfaces
-export interface VentModeRequest {
+// De-escalate mode interfaces
+export interface DeEscalateRequest {
   message: string;
 }
 
-export interface VentModeResponse {
+export interface DeEscalateResponse {
   original: string;
   rewritten: string;
   explanation: string;
@@ -126,7 +126,7 @@ export async function analyzeMessage(request: MessageAnalysisRequest): Promise<M
   }
 }
 
-export async function ventMessage(request: VentModeRequest): Promise<VentModeResponse> {
+export async function deEscalateMessage(request: DeEscalateRequest): Promise<DeEscalateResponse> {
   try {
     const response = await apiRequest('POST', '/api/analyze/de-escalate', request);
     if (!response.ok) {

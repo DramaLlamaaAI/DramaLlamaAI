@@ -194,8 +194,8 @@ export const analysisController = {
     }
   },
   
-  // Vent mode - rewrite emotional message
-  ventMessage: async (req: Request, res: Response) => {
+  // De-escalate mode - rewrite emotional message
+  deEscalateMessage: async (req: Request, res: Response) => {
     try {
       const { message } = req.body;
       
@@ -212,7 +212,7 @@ export const analysisController = {
       // Track usage
       await trackUsage(req);
       
-      // Process vent
+      // Process de-escalation
       const result = await ventMessage(message);
       res.json(result);
     } catch (error: any) {

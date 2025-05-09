@@ -5,12 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Heart, Copy } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ventMessage, VentModeResponse, getUserUsage } from "@/lib/openai";
+import { deEscalateMessage, DeEscalateResponse, getUserUsage } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 
 export default function DeEscalate() {
   const [message, setMessage] = useState("");
-  const [result, setResult] = useState<VentModeResponse | null>(null);
+  const [result, setResult] = useState<DeEscalateResponse | null>(null);
   
   const { toast } = useToast();
 
@@ -23,8 +23,8 @@ export default function DeEscalate() {
   const limit = usage?.limit || 1;
   const canUseFeature = usedAnalyses < limit;
 
-  const ventMutation = useMutation({
-    mutationFn: ventMessage,
+  const deEscalateMutation = useMutation({
+    mutationFn: deEscalateMessage,
     onSuccess: (data) => {
       setResult(data);
     },
@@ -37,7 +37,7 @@ export default function DeEscalate() {
     },
   });
 
-  const handleVent = () => {
+  const handleDeEscalate = () => {
     if (!canUseFeature) {
       toast({
         title: "Usage Limit Reached",
@@ -56,7 +56,7 @@ export default function DeEscalate() {
       return;
     }
     
-    ventMutation.mutate({ message });
+    deEscalateMutation.mutate({ message });
   };
 
   return (
@@ -81,13 +81,13 @@ export default function DeEscalate() {
           <div className="mb-6">
             <div className="relative inline-block">
               <Button
-                onClick={handleVent}
-                disabled={ventMutation.isPending || message.length === 0 || !canUseFeature}
+                onClick={handleDeEscalate}
+                disabled={deEscalateMutation.isPending || message.length === 0 || !canUseFeature}
                 variant="default"
                 className="flex items-center pr-12 shadow-md rounded-lg"
                 style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white' }}
               >
-                {ventMutation.isPending ? "De-escalating..." : "De-escalate Message"}
+                {deEscalateMutation.isPending ? "De-escalating..." : "De-escalate Message"}
                 <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-lg border border-white">
                   FREE
                 </span>

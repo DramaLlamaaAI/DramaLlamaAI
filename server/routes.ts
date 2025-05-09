@@ -75,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analysis routes with trial eligibility check
   app.post('/api/analyze/chat', checkTrialEligibility, analysisController.analyzeChat);
   app.post('/api/analyze/message', checkTrialEligibility, analysisController.analyzeMessage);
-  app.post('/api/analyze/de-escalate', checkTrialEligibility, analysisController.ventMessage);
+  app.post('/api/analyze/de-escalate', checkTrialEligibility, analysisController.deEscalateMessage);
   
   // These routes don't count against usage limits
   app.post('/api/analyze/detect-names', analysisController.detectNames);
