@@ -169,6 +169,18 @@ export default function ChatAnalysis() {
     
     detectNamesMutation.mutate(conversation);
   };
+  
+  // Function to switch the detected names if they're incorrect
+  const handleSwitchRoles = () => {
+    const tempMe = me;
+    setMe(them);
+    setThem(tempMe);
+    
+    toast({
+      title: "Names Switched",
+      description: `Switched names: You are now ${them}, they are ${tempMe}`,
+    });
+  };
 
   return (
     <section className="container py-10">
@@ -309,6 +321,14 @@ export default function ChatAnalysis() {
                 >
                   {detectNamesMutation.isPending ? "Detecting..." : "Auto-Detect Names"}
                 </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={handleSwitchRoles}
+                  disabled={!me || !them}
+                >
+                  Switch Names
+                </Button>
               </div>
               
               {/* Date Filtering Section */}
@@ -437,7 +457,17 @@ export default function ChatAnalysis() {
             </>
           ) : (
             <div id="analysisResults" className="mt-8 slide-in">
-              <h3 className="text-xl font-bold mb-4">Analysis Results</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Analysis Results</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSwitchRoles}
+                  disabled={!me || !them}
+                >
+                  Switch Names
+                </Button>
+              </div>
               
               {result && (
                 <>
