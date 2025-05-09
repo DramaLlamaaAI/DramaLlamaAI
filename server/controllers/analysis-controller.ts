@@ -6,6 +6,16 @@ import { storage } from '../storage';
 
 // Get the user's tier from the authenticated session
 const getUserTier = (req: Request): string => {
+  // Check for developer mode tier first
+  const devMode = req.headers['x-dev-mode'] as string;
+  const devTier = req.headers['x-dev-tier'] as string;
+  
+  if (devMode === 'true' && devTier && ['free', 'personal', 'pro', 'instant'].includes(devTier)) {
+    console.log(`Using developer mode tier: ${devTier}`);
+    return devTier;
+  }
+  
+  // Regular authentication flow
   if (req.session && req.session.userId) {
     // For authenticated users, we'll get their tier from storage
     // But we'll return 'free' if we're unable to find it
@@ -140,6 +150,8 @@ export const analysisController = {
       
       // Get user tier
       const tier = getUserTier(req);
+      console.log(`CHAT ANALYSIS USING TIER: ${tier}`);
+      console.log(`DevMode header: ${req.headers['x-dev-mode']}, DevTier header: ${req.headers['x-dev-tier']}`);
       
       // Track usage
       await trackUsage(req);
