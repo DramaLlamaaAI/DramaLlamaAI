@@ -9,6 +9,9 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   tier: text("tier").notNull().default("free"),
   email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  verificationCode: text("verification_code"),
+  verificationCodeExpires: timestamp("verification_code_expires"),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
 });

@@ -12,10 +12,13 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByVerificationCode(code: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserTier(userId: number, tier: string): Promise<User>;
   updateStripeCustomerId(userId: number, customerId: string): Promise<User>;
   updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User>;
+  setVerificationCode(userId: number, code: string, expiresIn: number): Promise<User>;
+  verifyEmail(userId: number): Promise<User>;
   
   // Analysis Management
   saveAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
@@ -84,6 +87,9 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...userWithDefaultTier, 
       id,
+      emailVerified: false,
+      verificationCode: null,
+      verificationCodeExpires: null,
       stripeCustomerId: null,
       stripeSubscriptionId: null 
     };
@@ -99,6 +105,50 @@ export class MemStorage implements IStorage {
     this.usageLimits.set(id, usageLimit);
     
     return user;
+  }
+  
+  async getUserByVerificationCode(code: string): Promise<User | undefined> {
+    const now = new Date();
+    return Array.from(this.users.values()).find(
+      (user) => user.verificationCode === code && 
+                user.verificationCodeExpires && 
+                user.verificationCodeExpires > now
+    );
+  }
+  
+  async setVerificationCode(userId: number, code: string, expiresInMinutes: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+    
+    // Set expiration time (default: 24 hours)
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + expiresInMinutes);
+    
+    const updatedUser = { 
+      ...user, 
+      verificationCode: code,
+      verificationCodeExpires: expiresAt
+    };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async verifyEmail(userId: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+    
+    const updatedUser = { 
+      ...user, 
+      emailVerified: true,
+      verificationCode: null,
+      verificationCodeExpires: null
+    };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
   
   async updateUserTier(userId: number, tier: string): Promise<User> {

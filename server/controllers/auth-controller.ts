@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import { storage } from "../storage";
 import { z } from "zod";
 import 'express-session';
+import { 
+  generateVerificationCode, 
+  sendVerificationEmail 
+} from '../services/email-service';
 
 // Augment express-session with custom properties
 declare module 'express-session' {
@@ -64,10 +68,19 @@ export const authController = {
       
       const user = await storage.createUser({
         username: validatedData.username,
-        email: validatedData.email,
+        email: validatedData.email.toLowerCase(),
         password: hashedPassword,
         tier: "free" // Default tier
       });
+      
+      // Generate verification code
+      const verificationCode = generateVerificationCode();
+      
+      // Set verification code in user record (expires in 24 hours)
+      await storage.setVerificationCode(user.id, verificationCode, 24 * 60);
+      
+      // Try to send verification email
+      const emailSent = await sendVerificationEmail(user, verificationCode);
       
       // Don't return the password
       const { password, ...userWithoutPassword } = user;
@@ -77,7 +90,14 @@ export const authController = {
         req.session.userId = user.id;
       }
       
-      res.status(201).json(userWithoutPassword);
+      // If email couldn't be sent, include the verification code in the response
+      // so user can verify manually
+      res.status(201).json({ 
+        ...userWithoutPassword,
+        verificationNeeded: true,
+        verificationCode: !emailSent ? verificationCode : undefined,
+        emailSent
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: error.errors[0].message });
@@ -101,6 +121,33 @@ export const authController = {
       const isPasswordValid = verifyPassword(user.password, validatedData.password);
       if (!isPasswordValid) {
         return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
+      // Check if email is verified (skip this check if no verification system is in place)
+      if (user.emailVerified !== undefined && !user.emailVerified) {
+        // If email is not verified, but there's an active verification code
+        if (user.verificationCode && user.verificationCodeExpires && user.verificationCodeExpires > new Date()) {
+          return res.status(403).json({ 
+            error: "Email not verified", 
+            message: "Please verify your email address before logging in.",
+            needsVerification: true
+          });
+        } else {
+          // Generate a new verification code
+          const verificationCode = generateVerificationCode();
+          await storage.setVerificationCode(user.id, verificationCode, 24 * 60);
+          
+          // Try to send verification email
+          const emailSent = await sendVerificationEmail(user, verificationCode);
+          
+          return res.status(403).json({ 
+            error: "Email not verified", 
+            message: "A new verification email has been sent to your email address.",
+            verificationCode: !emailSent ? verificationCode : undefined,
+            emailSent,
+            needsVerification: true
+          });
+        }
       }
       
       // Don't return the password
