@@ -63,7 +63,7 @@ export default function VentMode() {
     <section id="ventMode" className="mb-12">
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Vent Mode</h2>
+          <h2 className="text-2xl font-bold mb-4">De-escalate Mode</h2>
           
           <p className="mb-6 text-muted-foreground">
             Type the emotional message you want to send, and we'll help you rewrite it in a calmer, more effective way while preserving your intent.
@@ -133,7 +133,7 @@ export default function VentMode() {
                 <Heart className="h-4 w-4 fill-red-500 text-white" />
               </div>
               <AlertDescription className="text-gray-700 font-medium">
-                Vent Mode helps transform emotional reactions into constructive communication.
+                De-escalate Mode helps transform emotional reactions into constructive communication.
               </AlertDescription>
             </div>
           </Alert>

@@ -286,7 +286,7 @@ export default function AuthPage() {
             </div>
             
             <div className="bg-white/30 p-4 rounded-lg shadow">
-              <h3 className="font-semibold mb-2">Vent Mode</h3>
+              <h3 className="font-semibold mb-2">De-escalate Mode</h3>
               <p className="text-sm">Reframe heated messages into calmer, more constructive versions.</p>
             </div>
             
