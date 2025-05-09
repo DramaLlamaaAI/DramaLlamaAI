@@ -167,6 +167,7 @@ export const chatAnalysisResultSchema = z.object({
       emotion: z.string(),
       intensity: z.number(),
     })),
+    participantTones: z.record(z.string()).optional(),
   }),
   redFlags: z.array(z.object({
     type: z.string(),
@@ -203,6 +204,11 @@ export const messageAnalysisResultSchema = z.object({
   tone: z.string(),
   intent: z.array(z.string()),
   suggestedReply: z.string().optional(),
+  potentialResponse: z.string().optional(),
+  possibleReword: z.string().optional(),
+  manipulationScore: z.string().optional(),
+  powerDynamics: z.string().optional(),
+  communicationStyle: z.string().optional(),
 });
 
 export const deEscalateResultSchema = z.object({

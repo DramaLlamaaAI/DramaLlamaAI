@@ -169,36 +169,57 @@ const prompts = {
     {conversation}`
   },
   message: {
-    free: `Analyze this message sent by {author}. Focus on the tone and intent of the message.
+    free: `Provide a basic analysis of this message sent by {author}. Focus only on the tone and intent of the message.
     Return a JSON object with the following structure:
     {
-      "tone": "string describing the tone",
-      "intent": ["string array with likely intentions"]
+      "tone": "brief description of the tone",
+      "intent": ["brief array with basic likely intentions"]
     }
+    
+    FOCUS ONLY ON BASIC FREE TIER FEATURES:
+    - Simple tone identification
+    - Basic intent recognition
     
     Here's the message:
     {message}`,
     
-    personal: `Analyze this message sent by {author}. Focus on the tone, intent, and suggest a possible reply.
+    personal: `Analyze this message sent by {author} with personal-level depth. Focus on the tone, intent, and suggest a possible reply.
     Return a JSON object with the following structure:
     {
-      "tone": "string describing the tone",
-      "intent": ["string array with likely intentions"],
-      "suggestedReply": "string with a suggested response"
+      "tone": "detailed description of the tone with emotion recognition",
+      "intent": ["comprehensive array of likely intentions with subtlety analysis"],
+      "suggestedReply": "personalized suggested response",
+      "manipulationScore": "description of any manipulation techniques used (if any)"
     }
+    
+    INCLUDE PERSONAL TIER FEATURES:
+    - Advanced tone analysis
+    - Personalized response suggestions
+    - Basic manipulation detection
+    - Communication style insights
     
     Here's the message:
     {message}`,
     
-    pro: `Perform an in-depth analysis of this message sent by {author}. Examine tone, intent, and provide guidance.
+    pro: `Perform a comprehensive professional-level analysis of this message sent by {author}. Examine tone, intent, and provide detailed guidance.
     Return a JSON object with the following structure:
     {
-      "tone": "string describing the tone",
-      "intent": ["string array with likely intentions"],
-      "suggestedReply": "string with a suggested response",
-      "potentialResponse": "string describing how the other person might respond",
-      "possibleReword": "string with a suggestion on how to reword the message if it could be improved"
+      "tone": "comprehensive description of the tone with emotional nuance and subtext",
+      "intent": ["detailed array with primary and secondary intentions, including possible hidden motives"],
+      "suggestedReply": "tailored professional response recommendation",
+      "potentialResponse": "projection of how the other person might respond",
+      "possibleReword": "reframed version of the message optimized for positive communication",
+      "powerDynamics": "analysis of control and influence patterns in the message",
+      "communicationStyle": "detailed breakdown of the communication approach and its effectiveness"
     }
+    
+    INCLUDE PRO/RELATIONSHIP TIER FEATURES:
+    - Deep message analysis with emotional subtext
+    - Power dynamic insights
+    - Response projections
+    - Relationship pattern recognition
+    - Detailed communication style assessment
+    - Advanced reframing guidance
     
     Here's the message:
     {message}`
