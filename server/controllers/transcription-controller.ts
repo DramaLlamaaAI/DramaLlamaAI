@@ -105,153 +105,31 @@ export const transcribeAudio = async (req: Request, res: Response) => {
       throw new Error("Failed to save temporary audio file for processing");
     }
     
-    // Use Anthropic Claude for audio processing
+    // Try using OpenAI Whisper API for audio transcription
     try {
-      // Convert audio to an image format that Claude can process
-      // We'll use a data URL approach for the audio
-      const audioBuffer = fs.readFileSync(tempFilePath);
-      const base64Audio = audioBuffer.toString('base64');
+      console.log("Using OpenAI Whisper for audio transcription");
       
-      // For certain large audio files, we might need to chunk the processing
-      const maxChunkSize = 1024 * 1024; // 1MB chunks
-      
-      // Determine if we need to chunk the audio (if it's very large)
-      if (base64Audio.length > maxChunkSize * 2) {
-        console.log("Audio file too large for direct processing, chunking not implemented yet");
-        // This would be a good place to implement chunking for very large files
-        // But for most voice recordings, this shouldn't be an issue
+      // Check if OpenAI API key is available
+      if (!process.env.OPENAI_API_KEY) {
+        throw new Error("OpenAI API key is not available");
       }
       
-      // First, we'll try the image conversion approach
-      console.log("Using Anthropic Claude for audio transcription");
+      // Create a readable stream from the temp file
+      const audioReadStream = fs.createReadStream(tempFilePath);
       
-      // Create a PNG representation of the audio waveform
-      // This is a workaround since Claude can only process images, not audio directly
-      const systemPrompt = `You are an expert audio transcription assistant. Your task is to accurately transcribe the audio visualization that will be provided. Focus solely on converting the speech represented in the visualization to text. 
-
-DO NOT include any explanations, descriptions, or commentary about the process or the audio itself. ONLY output the transcript of the spoken content. Be as accurate as possible in interpreting the audio visualization.
-
-Approach this as if you are analyzing a waveform or spectrogram to extract spoken words.`;
-      
-      // When using audio files directly with Claude, we need to adapt our approach
-      // The data will be encoded as an image-like representation
-      const response = await anthropic.messages.create({
-        model: "claude-3-7-sonnet-20250219", // The newest Anthropic model
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Please transcribe the audio visualization below. This is a representation of audio data. ${enhancedPrompt}
-
-The audio is of a conversation with spoken words. Please extract the text of what is being said based on the visualization. 
-
-Only return the spoken text - do not add any descriptions, do not add timestamps, and do not add speaker labels unless you can clearly identify them.`
-              },
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: "image/jpeg",
-                  data: base64Audio
-                }
-              }
-            ]
-          }
-        ]
+      // Use OpenAI's transcription API (Whisper)
+      const transcription = await openai.audio.transcriptions.create({
+        file: audioReadStream,
+        model: "whisper-1",
+        language: "en", // Assuming English is the primary language
+        prompt: enhancedPrompt
       });
       
-      // Extract transcript from Claude's response
-      let transcript = "";
-      
-      // Claude will return its interpretation of the audio/image
-      for (const content of response.content) {
-        if (content.type === 'text') {
-          transcript += content.text;
-        }
-      }
-      
-      // Post-process the transcript to improve quality
-      const processedText = transcript
-        .replace(/^[\s\n]*I cannot transcribe this audio/i, "")
-        .replace(/^[\s\n]*I'm unable to transcribe/i, "")
-        .replace(/^[\s\n]*I cannot properly transcribe/i, "")
-        .replace(/^[\s\n]*This appears to be/i, "")
-        .replace(/^[\s\n]*This image/i, "")
-        .replace(/^[\s\n]*The image/i, "")
-        .replace(/^[\s\n]*I see an audio/i, "")
-        .replace(/^[\s\n]*What I can see is/i, "")
+      // Process the transcription result
+      const processedText = transcription.text
         .replace(/(\s|^)(um|uh|er|ah|like,)(\s|$)/gi, ' ')
         .replace(/\s{2,}/g, ' ')
         .trim();
-      
-      // If Claude couldn't process the audio, try a different approach
-      if (!processedText || 
-          processedText.includes("I don't see any audio") || 
-          processedText.includes("cannot transcribe") ||
-          processedText.includes("not an audio file") ||
-          processedText.includes("unable to process")) {
-        
-        // We need a different approach - let's try a simpler prompt
-        const fallbackResponse = await anthropic.messages.create({
-          model: "claude-3-7-sonnet-20250219",
-          max_tokens: 1024,
-          system: "You are a helpful assistant that can extract any text information from images, including audio visualizations.",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "This is a visualization of an audio recording. Please try to extract any information or patterns you can see in this image that might represent speech or sounds. Be creative in interpreting what might be a human voice recording."
-                },
-                {
-                  type: "image",
-                  source: {
-                    type: "base64",
-                    media_type: "image/jpeg",
-                    data: base64Audio
-                  }
-                }
-              ]
-            }
-          ]
-        });
-        
-        // Extract any useful text from fallback response
-        let fallbackText = "";
-        for (const content of fallbackResponse.content) {
-          if (content.type === 'text') {
-            fallbackText += content.text;
-          }
-        }
-        
-        // If we still don't have a good transcription, provide a more helpful response
-        if (!fallbackText || 
-            fallbackText.includes("cannot interpret") || 
-            fallbackText.includes("not able to extract")) {
-          
-          // Clean up temporary file
-          if (fs.existsSync(tempFilePath)) {
-            fs.unlinkSync(tempFilePath);
-          }
-          
-          return res.status(200).json({
-            transcript: "I can see you're speaking, but I'm unable to transcribe the audio. Would you like to try recording again with clearer speech?",
-            success: true,
-            provider: "claude-fallback"
-          });
-        }
-        
-        // Use fallback text if it seems more useful
-        let finalTranscript = processedText;
-        if (fallbackText.length > processedText.length) {
-          finalTranscript = fallbackText;
-        }
-      }
       
       // Clean up the temporary file
       if (fs.existsSync(tempFilePath)) {
@@ -260,24 +138,66 @@ Only return the spoken text - do not add any descriptions, do not add timestamps
       
       // Return the processed transcript
       return res.status(200).json({ 
-        transcript: finalTranscript || "I heard what you said but I'm having trouble creating an exact transcript. Could you try speaking more clearly?",
+        transcript: processedText,
         success: true,
-        provider: "claude"
+        provider: "openai-whisper"
       });
       
-    } catch (claudeError) {
-      console.error("Claude transcription error:", claudeError);
+    } catch (openaiError) {
+      console.error("OpenAI Whisper transcription error:", openaiError);
       
-      // Clean up the temporary file
-      if (fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
+      // Fall back to a simple Claude text response if OpenAI fails
+      try {
+        console.log("Falling back to Claude for text-only response");
+        
+        const claudeResponse = await anthropic.messages.create({
+          model: "claude-3-7-sonnet-20250219",
+          max_tokens: 1024,
+          messages: [
+            {
+              role: "user",
+              content: "I attempted to record audio for transcription, but the service encountered an error. Please provide a friendly, helpful message explaining that there was an issue with the audio transcription service and suggesting I try again."
+            }
+          ]
+        });
+        
+        // Extract the message from Claude
+        let claudeMessage = "There was an issue transcribing your audio. Please try again with a clearer recording.";
+        for (const content of claudeResponse.content) {
+          if (content.type === 'text') {
+            claudeMessage = content.text
+              .replace(/^I'm sorry to hear that/i, "")
+              .replace(/^I apologize/i, "")
+              .replace(/Claude/g, "Drama Llama")
+              .trim();
+            break;
+          }
+        }
+        
+        // Clean up the temporary file
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+        
+        return res.status(200).json({
+          transcript: claudeMessage,
+          success: false,
+          provider: "claude-text"
+        });
+      } catch (claudeError) {
+        console.error("Claude fallback error:", claudeError);
+        
+        // Clean up the temporary file
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+        
+        // If all else fails, return a generic error message
+        return res.status(500).json({ 
+          error: 'Transcription service error', 
+          details: "We're having trouble with our transcription service. Please try again later."
+        });
       }
-      
-      // Provide a helpful error message
-      return res.status(500).json({ 
-        error: 'Transcription service error', 
-        details: "The audio transcription service encountered an issue. Please try again with a clearer recording."
-      });
     }
   } catch (error: any) {
     // Clean up any temporary files
