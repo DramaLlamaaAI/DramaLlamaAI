@@ -394,11 +394,18 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       tier === 'personal' ? 'Provide moderate-depth analysis with personalized insights.' : 
       'Provide comprehensive professional-level analysis with advanced insights.'}
       
-      Strict Output Format Rules:
+      CRITICAL OUTPUT FORMAT REQUIREMENTS:
       1. Respond ONLY with valid JSON
       2. Keep all text fields concise - max 100 words per field
-      3. Format your response as a code block with json code block markers
-      4. Double-check that your JSON is well-formed with no trailing commas
+      3. ALWAYS wrap your output in \`\`\`json and \`\`\` code block markers
+      4. Every string must be properly escaped - use \\" for quotes inside strings
+      5. All property names must be in double quotes
+      6. Never use trailing commas
+      7. Keep nested objects properly balanced with matching braces {}
+      8. All text values must be in double quotes, not single quotes
+      9. Never use special characters or line breaks inside property names
+      10. Never use line returns inside string values - escape them with \\n
+      11. Before submitting your response, check that it's valid JSON
       
       When analyzing conversations:
       1. Identify different chat formats (WhatsApp, iMessage, Facebook, etc.) and adapt your analysis accordingly
@@ -410,7 +417,7 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       7. When describing communication patterns, be specific and varied - avoid repetitive descriptions
       8. The level of detail in your analysis should match the ${tier.toUpperCase()} tier requirements
       
-      Always provide insightful, specific feedback that's helpful but honest.`,
+      This is a technical integration. Strict JSON formatting is critical.`,
       messages: [{ role: "user", content: enhancedPrompt }],
     });
     
@@ -537,11 +544,18 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
       tier === 'personal' ? 'Provide moderate-depth analysis with personalized insights.' : 
       'Provide comprehensive professional-level analysis with advanced insights.'}
       
-      Strict Output Format Rules:
+      CRITICAL OUTPUT FORMAT REQUIREMENTS:
       1. Respond ONLY with valid JSON
-      2. Keep all text fields concise
-      3. Format your response as a code block with json code block markers
-      4. Double-check that your JSON is well-formed with no trailing commas`,
+      2. Keep all text fields concise - max 100 words per field
+      3. ALWAYS wrap your output in \`\`\`json and \`\`\` code block markers
+      4. Every string must be properly escaped - use \\" for quotes inside strings
+      5. All property names must be in double quotes
+      6. Never use trailing commas
+      7. Keep nested objects properly balanced with matching braces {}
+      8. All text values must be in double quotes, not single quotes
+      9. Never use special characters or line breaks inside property names
+      10. Never use line returns inside string values - escape them with \\n
+      11. Before submitting your response, check that it's valid JSON`,
       messages: [{ role: "user", content: prompt }],
     });
     
@@ -632,11 +646,18 @@ export async function deEscalateMessage(message: string, tier: string = 'free') 
       tier === 'personal' ? 'Provide moderate-depth message improvement with personalized options.' : 
       'Provide comprehensive professional-level message improvement with strategic insights and long-term guidance.'}
       
-      Strict Output Format Rules:
+      CRITICAL OUTPUT FORMAT REQUIREMENTS:
       1. Respond ONLY with valid JSON
-      2. Keep all text fields concise
-      3. Format your response as a code block with json code block markers
-      4. Double-check that your JSON is well-formed with no trailing commas`,
+      2. Keep all text fields concise - max 100 words per field
+      3. ALWAYS wrap your output in \`\`\`json and \`\`\` code block markers
+      4. Every string must be properly escaped - use \\" for quotes inside strings
+      5. All property names must be in double quotes
+      6. Never use trailing commas
+      7. Keep nested objects properly balanced with matching braces {}
+      8. All text values must be in double quotes, not single quotes
+      9. Never use special characters or line breaks inside property names
+      10. Never use line returns inside string values - escape them with \\n
+      11. Before submitting your response, check that it's valid JSON`,
       messages: [{ role: "user", content: prompt }],
     });
     
@@ -694,7 +715,21 @@ export async function detectParticipants(conversation: string) {
       5. Always identify at most two primary participants, even if there are more names mentioned
       6. Return only the names, not titles or other text
       
-      Return a simple JSON with just "me" and "them" keys.`,
+      CRITICAL OUTPUT FORMAT:
+      1. Return ONLY a JSON with exactly two keys: "me" and "them" 
+      2. Format your response as a code block with \`\`\`json and \`\`\` markers
+      3. Make sure your JSON is well-formed with proper quotes
+      4. Do not add any text outside the JSON object
+      5. Your response should look like:
+      
+      \`\`\`json
+      {
+        "me": "Jane",
+        "them": "John"
+      }
+      \`\`\`
+      
+      Do not include any explanation or additional text.`,
       messages: [{ role: "user", content: prompt }],
     });
     
