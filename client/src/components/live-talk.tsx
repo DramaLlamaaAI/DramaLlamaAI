@@ -288,6 +288,10 @@ export default function LiveTalk() {
       const result = await response.json();
       
       if (result.transcript) {
+        // Show which provider was used for transparency
+        const provider = result.provider || 'default';
+        console.log(`Transcription completed using ${provider} service`);
+        
         // Apply speaker labeling with our improved algorithm
         const processedTranscript = enhancedSpeakerDetection(result.transcript);
         
@@ -295,7 +299,7 @@ export default function LiveTalk() {
         
         toast({
           title: "Transcription Complete",
-          description: "Your conversation has been successfully transcribed and processed.",
+          description: `Your conversation has been successfully transcribed using ${provider === 'claude' ? 'Claude AI' : 'our speech recognition system'}.`,
         });
       } else {
         throw new Error("No transcript returned from API");
