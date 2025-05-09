@@ -14,32 +14,82 @@ interface CommunicationStylesProps {
 }
 
 export function CommunicationStyles({ me, them, participantConflictScores }: CommunicationStylesProps) {
-  // If no data is available, show visual placeholder for Personal/Pro tiers
-  if (!participantConflictScores) {
+  // Get healthy communication scores for positive conversations
+  const generatePositiveScores = (name: string, color: string) => {
+    return {
+      score: 25, // low conflict score
+      label: "Supportive and engaged communication style",
+      isEscalating: false,
+      traits: {
+        listening: 0.85,
+        openness: 0.8,
+        responsiveness: 0.75
+      }
+    };
+  };
+  
+  // Default styling colors
+  const meColor = '#22C9C9';
+  const themColor = '#FF69B4';
+  
+  // If no data available, or positive conversation, use positive styles
+  if (!participantConflictScores || Object.keys(participantConflictScores).length === 0) {
+    const mePositiveScores = generatePositiveScores(me, meColor);
+    const themPositiveScores = generatePositiveScores(them, themColor);
+    
     return (
-      <div className="mt-4">
+      <div className="mt-6">
         <h3 className="text-lg font-semibold mb-3">Communication Styles Breakdown</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardContent className="p-4">
-              <h4 className="text-base font-medium" style={{ color: '#22C9C9' }}>{me}</h4>
-              <div className="mt-2 space-y-2">
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-sm">Assertiveness</span>
-                  <div className="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
-                    <div className="h-full bg-teal-400" style={{ width: '65%' }}></div>
+              <h4 className="text-base font-medium" style={{ color: meColor }}>{me}</h4>
+              <div className="flex items-center mt-2">
+                <div 
+                  className="h-4 w-4 rounded-full mr-2" 
+                  style={{ backgroundColor: '#10B981' }}
+                ></div>
+                <span className="text-sm font-medium">Supportive</span>
+              </div>
+              <p className="mt-2 text-sm">{mePositiveScores.label}</p>
+              
+              <div className="mt-4 space-y-3">
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Active Listening</span>
+                    <span>{Math.round(mePositiveScores.traits.listening * 100)}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-emerald-400" 
+                      style={{ width: `${mePositiveScores.traits.listening * 100}%` }}
+                    ></div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-sm">Defensiveness</span>
-                  <div className="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
-                    <div className="h-full bg-teal-400" style={{ width: '40%' }}></div>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Openness</span>
+                    <span>{Math.round(mePositiveScores.traits.openness * 100)}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-emerald-400" 
+                      style={{ width: `${mePositiveScores.traits.openness * 100}%` }}
+                    ></div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-sm">Listening</span>
-                  <div className="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
-                    <div className="h-full bg-teal-400" style={{ width: '70%' }}></div>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Responsiveness</span>
+                    <span>{Math.round(mePositiveScores.traits.responsiveness * 100)}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-emerald-400" 
+                      style={{ width: `${mePositiveScores.traits.responsiveness * 100}%` }}
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -48,24 +98,53 @@ export function CommunicationStyles({ me, them, participantConflictScores }: Com
           
           <Card>
             <CardContent className="p-4">
-              <h4 className="text-base font-medium" style={{ color: '#FF69B4' }}>{them}</h4>
-              <div className="mt-2 space-y-2">
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-sm">Assertiveness</span>
-                  <div className="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
-                    <div className="h-full bg-pink-400" style={{ width: '75%' }}></div>
+              <h4 className="text-base font-medium" style={{ color: themColor }}>{them}</h4>
+              <div className="flex items-center mt-2">
+                <div 
+                  className="h-4 w-4 rounded-full mr-2" 
+                  style={{ backgroundColor: '#10B981' }}
+                ></div>
+                <span className="text-sm font-medium">Receptive</span>
+              </div>
+              <p className="mt-2 text-sm">{themPositiveScores.label}</p>
+              
+              <div className="mt-4 space-y-3">
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Active Listening</span>
+                    <span>{Math.round(themPositiveScores.traits.listening * 100)}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full" 
+                      style={{ width: `${themPositiveScores.traits.listening * 100}%`, backgroundColor: '#F472B6' }}
+                    ></div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-sm">Defensiveness</span>
-                  <div className="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
-                    <div className="h-full bg-pink-400" style={{ width: '60%' }}></div>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Openness</span>
+                    <span>{Math.round(themPositiveScores.traits.openness * 100)}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full" 
+                      style={{ width: `${themPositiveScores.traits.openness * 100}%`, backgroundColor: '#F472B6' }}
+                    ></div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-sm">Listening</span>
-                  <div className="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
-                    <div className="h-full bg-pink-400" style={{ width: '50%' }}></div>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Responsiveness</span>
+                    <span>{Math.round(themPositiveScores.traits.responsiveness * 100)}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full" 
+                      style={{ width: `${themPositiveScores.traits.responsiveness * 100}%`, backgroundColor: '#F472B6' }}
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -76,16 +155,13 @@ export function CommunicationStyles({ me, them, participantConflictScores }: Com
     );
   }
   
-  // Default styling colors
-  const meColor = '#22C9C9';
-  const themColor = '#FF69B4';
-  
-  // Extract scores if available
+  // Extract scores for negative/conflictual conversations
   const meScores = participantConflictScores[me];
   const themScores = participantConflictScores[them];
   
+  // Show conflict style breakdown for conversations with tension
   return (
-    <div className="mt-4">
+    <div className="mt-6">
       <h3 className="text-lg font-semibold mb-3">Communication Styles Breakdown</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {meScores && (
