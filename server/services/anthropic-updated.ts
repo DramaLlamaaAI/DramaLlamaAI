@@ -490,35 +490,36 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       Here's the conversation:
       ${conversation}`;
     } else {
-      enhancedPrompt = `Provide a basic analysis of this conversation between ${me} and ${them}. 
-      Return a JSON object with the following structure:
-      {
-        "toneAnalysis": {
-          "overallTone": "brief description of the conversation's overall tone",
-          "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-          "participantTones": {"participant name": "brief tone description"}
-        },
-        "communication": {
-          "patterns": ["basic interaction patterns observed"],
-          "suggestions": ["simple suggestions for improvement"]
-        },
-        "healthScore": {
-          "score": number between 0-100,
-          "label": "Troubled/Needs Work/Good/Excellent",
-          "color": "red/yellow/light-green/green"
-        },
-        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "brief interpretation", "improvement": "simple suggestion"}]
-      }
+      enhancedPrompt = `Analyze this conversation between ${me} and ${them} and provide a simple assessment.
       
-      ONLY INCLUDE BASIC FREE TIER FEATURES:
-      - Overall emotional tone summary
-      - Simple participant analysis
-      - Conversation health meter
-      - Brief highlight quotes
-      - Basic communication insights
-      
-      Here's the conversation:
-      ${conversation}`;
+Return a JSON object with EXACTLY this structure:
+
+{
+  "toneAnalysis": {
+    "overallTone": "brief description of conversation tone",
+    "emotionalState": [{"emotion": "word", "intensity": 0.5}],
+    "participantTones": {"${me}": "brief description", "${them}": "brief description"}
+  },
+  "communication": {
+    "patterns": ["short pattern 1", "short pattern 2"]
+  },
+  "healthScore": {
+    "score": 50,
+    "label": "Category",
+    "color": "yellow"
+  }
+}
+
+EXTREMELY IMPORTANT:
+- Keep ALL descriptions under 10 words
+- Use only 2-3 emotions max
+- Avoid any character that might break JSON
+- Never use quotation marks inside descriptions
+- Make sure score is a number between 0-100
+- Color must be one of: red, yellow, light-green, green
+
+Here's the conversation:
+${conversation}`;
     }
     
     // Make the API call with enhanced error handling
@@ -526,37 +527,33 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 2000,
       temperature: 0.1, // Lower temperature for more consistent responses
-      system: `You are a communication expert who analyzes tone, patterns, and dynamics in conversations.
-      
-      IMPORTANT: You are currently operating at the ${tier.toUpperCase()} tier level. 
-      ${tier === 'free' ? 'Provide basic analysis with fundamental insights only.' : 
-      tier === 'personal' ? 'Provide moderate-depth analysis with personalized insights.' : 
-      'Provide comprehensive professional-level analysis with advanced insights.'}
-      
-      CRITICAL OUTPUT FORMAT REQUIREMENTS:
-      1. Respond ONLY with valid JSON
-      2. Keep all text fields concise - max 100 words per field
-      3. ALWAYS wrap your output in \`\`\`json and \`\`\` code block markers
-      4. Every string must be properly escaped - use \\" for quotes inside strings
-      5. All property names must be in double quotes
-      6. Never use trailing commas
-      7. Keep nested objects properly balanced with matching braces {}
-      8. All text values must be in double quotes, not single quotes
-      9. Never use special characters or line breaks inside property names
-      10. Never use line returns inside string values - escape them with \\n
-      11. Before submitting your response, check that it's valid JSON
-      
-      When analyzing conversations:
-      1. Identify different chat formats (WhatsApp, iMessage, Facebook, etc.) and adapt your analysis accordingly
-      2. Look for timestamp patterns to properly segment messages between participants
-      3. Focus on emotional tone and interaction patterns rather than repetitive descriptions
-      4. When analyzing uploaded chat logs, be aware they may contain formatting artifacts or timestamps
-      5. For each participant, identify their unique communication styles, varied emotional states, and notable quotes
-      6. Provide specific and actionable recommendations for healthier communication
-      7. When describing communication patterns, be specific and varied - avoid repetitive descriptions
-      8. The level of detail in your analysis should match the ${tier.toUpperCase()} tier requirements
-      
-      This is a technical integration. Strict JSON formatting is critical.`,
+      system: `You are a communication expert who analyzes tone and patterns in conversations.
+
+EXTREMELY CRITICAL: You MUST follow these output format requirements EXACTLY:
+1. You MUST ONLY return clean, syntactically perfect JSON with NO explanations outside the JSON
+2. You MUST wrap your output in code block markers: \`\`\`json at start and \`\`\` at end 
+3. DO NOT use special characters inside the JSON values - ONLY use ASCII characters
+4. NEVER use single quotes ' anywhere in the JSON - ONLY use double quotes "
+5. AVOID using quotes within text values - rephrase to not need quotation marks
+6. ALL property names MUST be in "double quotes"
+7. DO NOT use trailing commas at the end of arrays or objects
+8. KEEP all text extremely concise - 25 words maximum for any field
+9. NEVER use line returns inside string values - use spaces instead
+10. ALL text values MUST be in "double quotes"
+11. DO NOT include any text outside the JSON code block
+
+This is a TECHNICAL INTEGRATION - your JSON MUST be machine-parseable. The app will break if you don't follow these rules exactly.
+
+REPEAT: This is not a general conversation. You are generating structured data that will be directly consumed by a program. Any text not formatted as perfect JSON will cause errors.
+
+For the ${tier.toUpperCase()} tier, include only the fields specified in the prompt. Keep all analysis brief and concise.
+
+When analyzing conversations:
+- Keep descriptions SHORT and SPECIFIC (max 25 words)
+- Avoid repetitive descriptions
+- Use simple, direct language
+- NEVER use quotation marks inside text values
+- Double-check that your JSON is valid before submitting`,
       messages: [{ role: "user", content: enhancedPrompt }],
     });
     
@@ -608,25 +605,24 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 800,
       temperature: 0.1,
-      system: `You are a communication expert who analyzes messages to determine tone, intent, and subtext.
-      
-      IMPORTANT: You are currently operating at the ${tier.toUpperCase()} tier level. 
-      ${tier === 'free' ? 'Provide basic analysis with fundamental insights only.' : 
-      tier === 'personal' ? 'Provide moderate-depth analysis with personalized insights.' : 
-      'Provide comprehensive professional-level analysis with advanced insights.'}
-      
-      CRITICAL OUTPUT FORMAT REQUIREMENTS:
-      1. Respond ONLY with valid JSON
-      2. Keep all text fields concise - max 100 words per field
-      3. ALWAYS wrap your output in \`\`\`json and \`\`\` code block markers
-      4. Every string must be properly escaped - use \\" for quotes inside strings
-      5. All property names must be in double quotes
-      6. Never use trailing commas
-      7. Keep nested objects properly balanced with matching braces {}
-      8. All text values must be in double quotes, not single quotes
-      9. Never use special characters or line breaks inside property names
-      10. Never use line returns inside string values - escape them with \\n
-      11. Before submitting your response, check that it's valid JSON`,
+      system: `You are a communication expert who analyzes messages to determine tone and intent.
+
+EXTREMELY CRITICAL: You MUST follow these output format requirements EXACTLY:
+1. You MUST ONLY return clean, syntactically perfect JSON with NO explanations outside the JSON
+2. You MUST wrap your output in code block markers: \`\`\`json at start and \`\`\` at end 
+3. DO NOT use special characters inside the JSON values - ONLY use ASCII characters
+4. NEVER use single quotes ' anywhere in the JSON - ONLY use double quotes "
+5. AVOID using quotes within text values - rephrase to not need quotation marks
+6. ALL property names MUST be in "double quotes"
+7. DO NOT use trailing commas at the end of arrays or objects
+8. KEEP all text extremely concise - 25 words maximum for any field
+9. NEVER use line returns inside string values - use spaces instead
+10. ALL text values MUST be in "double quotes"
+11. DO NOT include any text outside the JSON code block
+
+This is a TECHNICAL INTEGRATION - your JSON MUST be machine-parseable. The app will break if you don't follow these rules exactly.
+
+REPEAT: This is not a general conversation. You are generating structured data that will be directly consumed by a program. Any text not formatted as perfect JSON will cause errors.`,
       messages: [{ role: "user", content: prompt }],
     });
     
@@ -710,25 +706,24 @@ export async function deEscalateMessage(message: string, tier: string = 'free') 
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 800,
       temperature: 0.1,
-      system: `You are a communication expert who helps transform emotional messages into grounded, constructive ones that de-escalate conflict.
-      
-      IMPORTANT: You are currently operating at the ${tier.toUpperCase()} tier level. 
-      ${tier === 'free' ? 'Provide basic message improvement with fundamental guidance only.' : 
-      tier === 'personal' ? 'Provide moderate-depth message improvement with personalized options.' : 
-      'Provide comprehensive professional-level message improvement with strategic insights and long-term guidance.'}
-      
-      CRITICAL OUTPUT FORMAT REQUIREMENTS:
-      1. Respond ONLY with valid JSON
-      2. Keep all text fields concise - max 100 words per field
-      3. ALWAYS wrap your output in \`\`\`json and \`\`\` code block markers
-      4. Every string must be properly escaped - use \\" for quotes inside strings
-      5. All property names must be in double quotes
-      6. Never use trailing commas
-      7. Keep nested objects properly balanced with matching braces {}
-      8. All text values must be in double quotes, not single quotes
-      9. Never use special characters or line breaks inside property names
-      10. Never use line returns inside string values - escape them with \\n
-      11. Before submitting your response, check that it's valid JSON`,
+      system: `You are a communication expert who transforms emotional messages into constructive ones.
+
+EXTREMELY CRITICAL: You MUST follow these output format requirements EXACTLY:
+1. You MUST ONLY return clean, syntactically perfect JSON with NO explanations outside the JSON
+2. You MUST wrap your output in code block markers: \`\`\`json at start and \`\`\` at end 
+3. DO NOT use special characters inside the JSON values - ONLY use ASCII characters
+4. NEVER use single quotes ' anywhere in the JSON - ONLY use double quotes "
+5. AVOID using quotes within text values - rephrase to not need quotation marks
+6. ALL property names MUST be in "double quotes"
+7. DO NOT use trailing commas at the end of arrays or objects
+8. KEEP all text extremely concise - 25 words maximum for any field
+9. NEVER use line returns inside string values - use spaces instead
+10. ALL text values MUST be in "double quotes"
+11. DO NOT include any text outside the JSON code block
+
+This is a TECHNICAL INTEGRATION - your JSON MUST be machine-parseable. The app will break if you don't follow these rules exactly.
+
+REPEAT: This is not a general conversation. You are generating structured data that will be directly consumed by a program. Any text not formatted as perfect JSON will cause errors.`,
       messages: [{ role: "user", content: prompt }],
     });
     
@@ -776,31 +771,34 @@ export async function detectParticipants(conversation: string) {
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 500,
-      system: `You are a communication expert who identifies participants in conversations.
-      
-      When analyzing message logs from various platforms:
-      1. Look for message patterns like "Name: message" or timestamp formats like "[time] Name:"
-      2. For WhatsApp logs, extract names from patterns like "[MM/DD/YY, HH:MM:SS] Name:"
-      3. For iMessage/SMS, look for patterns like "YYYY-MM-DD HH:MM:SS Name:"
-      4. For Facebook Messenger, look for "Name at HH:MM MM" or "MM/DD/YYYY, HH:MM AM/PM - Name:"
-      5. Always identify at most two primary participants, even if there are more names mentioned
-      6. Return only the names, not titles or other text
-      
-      CRITICAL OUTPUT FORMAT:
-      1. Return ONLY a JSON with exactly two keys: "me" and "them" 
-      2. Format your response as a code block with \`\`\`json and \`\`\` markers
-      3. Make sure your JSON is well-formed with proper quotes
-      4. Do not add any text outside the JSON object
-      5. Your response should look like:
-      
-      \`\`\`json
-      {
-        "me": "Jane",
-        "them": "John"
-      }
-      \`\`\`
-      
-      Do not include any explanation or additional text.`,
+      system: `You are a program that identifies exactly two participant names in conversations.
+
+EXTREMELY CRITICAL: Your output MUST be EXACTLY like this:
+
+\`\`\`json
+{
+  "me": "FirstPersonName",
+  "them": "SecondPersonName"
+}
+\`\`\`
+
+CRITICAL RULES TO FOLLOW:
+1. ONLY output valid JSON with EXACTLY the format shown above
+2. NEVER include any explanations before or after the JSON block
+3. ONLY use ASCII characters for names - no special characters
+4. NEVER use single quotes anywhere - only double quotes
+5. DO NOT use any characters besides letters in the names
+6. LIMITED to exactly two participants - "me" and "them"
+7. NAMES must be single words without spaces
+
+When analyzing conversations:
+- Look for patterns like "Name: message" 
+- For WhatsApp, find "[MM/DD/YY, HH:MM:SS] Name:"
+- For SMS, find "YYYY-MM-DD HH:MM:SS Name:"
+- For Facebook, find "Name at HH:MM" patterns
+- Find exactly two most frequent speakers
+
+THIS IS A PROGRAMMING INTERFACE. The app will break if you don't follow these rules exactly.`,
       messages: [{ role: "user", content: prompt }],
     });
     
