@@ -1,7 +1,7 @@
 import { apiRequest } from './queryClient';
 
 // Analysis types
-export type AnalysisType = 'chat' | 'message' | 'vent';
+export type AnalysisType = 'chat' | 'message' | 'de-escalate';
 
 // Chat analysis interfaces
 export interface DateFilter {
@@ -128,14 +128,14 @@ export async function analyzeMessage(request: MessageAnalysisRequest): Promise<M
 
 export async function ventMessage(request: VentModeRequest): Promise<VentModeResponse> {
   try {
-    const response = await apiRequest('POST', '/api/analyze/vent', request);
+    const response = await apiRequest('POST', '/api/analyze/de-escalate', request);
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(errorText || 'Failed to rewrite message');
     }
     return await response.json();
   } catch (error: any) {
-    console.error('Vent mode error:', error);
+    console.error('De-escalate mode error:', error);
     throw new Error(error.message || 'Failed to rewrite message. Please try again.');
   }
 }

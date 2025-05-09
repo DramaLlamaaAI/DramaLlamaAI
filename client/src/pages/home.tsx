@@ -59,13 +59,13 @@ export default function Home() {
                 </Button>
               </Link>
               
-              <Link href="/vent-mode">
+              <Link href="/de-escalate">
                 <div className="relative">
                   <Button 
                     size="lg" 
                     className="bg-[#2CCFCF] hover:bg-[#2CCFCF]/90 text-white"
                   >
-                    <Zap className="h-5 w-5 mr-2" /> Vent Mode
+                    <Zap className="h-5 w-5 mr-2" /> De-escalate
                   </Button>
                   <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px]">FREE</Badge>
                 </div>
