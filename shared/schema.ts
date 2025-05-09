@@ -27,7 +27,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const analyses = pgTable("analyses", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  type: text("type").notNull(), // chat, message, vent
+  type: text("type").notNull(), // chat, message, de-escalate
   content: text("content").notNull(),
   result: json("result").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -205,7 +205,7 @@ export const messageAnalysisResultSchema = z.object({
   suggestedReply: z.string().optional(),
 });
 
-export const ventModeResultSchema = z.object({
+export const deEscalateResultSchema = z.object({
   original: z.string(),
   rewritten: z.string(),
   explanation: z.string(),
@@ -213,4 +213,4 @@ export const ventModeResultSchema = z.object({
 
 export type ChatAnalysisResult = z.infer<typeof chatAnalysisResultSchema>;
 export type MessageAnalysisResult = z.infer<typeof messageAnalysisResultSchema>;
-export type VentModeResult = z.infer<typeof ventModeResultSchema>;
+export type DeEscalateResult = z.infer<typeof deEscalateResultSchema>;
