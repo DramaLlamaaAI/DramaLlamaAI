@@ -820,7 +820,8 @@ export default function ChatAnalysis() {
                   {/* Red Flags Detection (Personal+ Tier) */}
                   <RedFlags 
                     redFlags={result.redFlags} 
-                    tier={tier} 
+                    tier={tier}
+                    conversation={conversation} 
                   />
                   
                   {/* Communication Styles Breakdown (Personal+ Tier) */}
