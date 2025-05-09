@@ -20,6 +20,9 @@ import { CommunicationStyles } from "@/components/communication-styles";
 import { RedFlags } from "@/components/red-flags";
 import { AccountabilityMeters } from "@/components/accountability-meters";
 import { BehavioralPatterns } from "@/components/behavioral-patterns";
+import { EmotionTracking } from "@/components/emotion-tracking";
+import { PersonalizedSuggestions } from "@/components/personalized-suggestions";
+import { TensionContributions } from "@/components/tension-contributions";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -864,17 +867,27 @@ export default function ChatAnalysis() {
                     </div>
                   )}
                   
+                  {/* Emotion Tracking Per Participant (Personal+ Tier) */}
+                  <EmotionTracking
+                    me={me}
+                    them={them}
+                    tier={tier}
+                    emotionalState={result.toneAnalysis.emotionalState}
+                    participantTones={result.toneAnalysis.participantTones}
+                  />
+                  
                   {/* Red Flags Detection (Personal+ Tier) */}
-                  <RedFlags redFlags={result.redFlags} tier={tier} />
+                  <RedFlags 
+                    redFlags={result.redFlags} 
+                    tier={tier} 
+                  />
                   
                   {/* Communication Styles Breakdown (Personal+ Tier) */}
-                  {(tier === 'personal' || tier === 'pro' || tier === 'instant') && (
-                    <CommunicationStyles 
-                      me={me} 
-                      them={them} 
-                      participantConflictScores={result.participantConflictScores} 
-                    />
-                  )}
+                  <CommunicationStyles 
+                    me={me} 
+                    them={them} 
+                    participantConflictScores={result.participantConflictScores} 
+                  />
                   
                   {/* Accountability Meters (Personal+ Tier) */}
                   <AccountabilityMeters 
@@ -882,6 +895,14 @@ export default function ChatAnalysis() {
                     them={them} 
                     tier={tier} 
                     tensionContributions={result.tensionContributions}
+                  />
+                  
+                  {/* Personalized Suggestions (Personal+ Tier) */}
+                  <PersonalizedSuggestions
+                    me={me}
+                    them={them}
+                    tier={tier}
+                    suggestions={result.communication?.suggestions}
                   />
                   
                   {/* Behavioral Patterns Detection (Pro+ Tier) */}
