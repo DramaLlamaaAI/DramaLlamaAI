@@ -103,7 +103,9 @@ export function parseAnthropicJson(content: string): any {
           // Fix the common pattern where a quote is incorrectly escaped inside a string value
           .replace(/"([^"]+)\\"([^"]+)"/g, '"$1\\\\"$2"')
           // Fix specifically for participant detection
-          .replace(/"me"\s*:\s*"([^"]*)\\",\s*\\"them"\s*:\s*"([^"]*)"/g, '"me":"$1","them":"$2"');
+          .replace(/"me"\s*:\s*"([^"]*)\\",\s*\\"them"\s*:\s*"([^"]*)"/g, '"me":"$1","them":"$2"')
+          // Fix the specific issue seen in current testing
+          .replace(/"overallTone"\s*:\s*"([^"]*?)\\"/g, '"overallTone":"$1 "');
         
         return JSON.parse(jsonContent);
       }

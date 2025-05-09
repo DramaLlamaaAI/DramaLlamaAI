@@ -159,6 +159,8 @@ export const analysisController = {
       // Filter conversation by date if date filter is provided
       const filteredConversation = filterConversationByDate(conversation, dateFilter);
       
+      let filteredResults: any;
+      
       try {
         console.log(`Using tier ${tier} for chat analysis request`);
         // Process analysis
@@ -166,7 +168,7 @@ export const analysisController = {
         
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
         // Filter results based on user's tier
-        const filteredResults = filterChatAnalysisByTier(analysis, tier);
+        filteredResults = filterChatAnalysisByTier(analysis, tier);
         
         // Log some info about what we're returning
         console.log(`Returning chat analysis with overall tone: "${filteredResults.toneAnalysis.overallTone.substring(0, 30)}..."`);
