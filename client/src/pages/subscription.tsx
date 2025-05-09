@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Removed Tabs imports
 import { Check, CheckCircle2, Loader2, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -18,7 +18,7 @@ interface User {
 }
 
 export default function SubscriptionPage() {
-  const [billingPeriod, setBillingPeriod] = useState('monthly');
+  // Removed billing period state
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
@@ -96,19 +96,7 @@ export default function SubscriptionPage() {
           </div>
         )}
         
-        <div className="flex justify-center mt-8">
-          <Tabs
-            defaultValue="monthly"
-            value={billingPeriod}
-            onValueChange={setBillingPeriod}
-            className="w-fit"
-          >
-            <TabsList className="grid w-64 grid-cols-2">
-              <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              <TabsTrigger value="annual">Annual (20% off)</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        {/* Removed billing period tabs */}
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
