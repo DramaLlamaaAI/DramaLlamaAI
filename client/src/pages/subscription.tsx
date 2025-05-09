@@ -254,7 +254,7 @@ export default function SubscriptionPage() {
           <div className="absolute -top-14 -right-14 bg-gradient-to-bl from-secondary/40 to-secondary/0 w-48 h-48 transform rotate-45"></div>
           <CardHeader className="pb-8">
             <CardTitle className="text-2xl flex items-center">
-              Pro Plan <Star className="h-4 w-4 ml-2 text-yellow-400" />
+              🦙 🦙 Pro/Relationship Plan
             </CardTitle>
             <CardDescription>Complete communication analysis system</CardDescription>
             <div className="mt-2 flex items-baseline justify-center">
@@ -275,51 +275,59 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 mt-6">
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span><strong>Unlimited Chat Analyses</strong></span>
+                <span><strong>Everything in Personal, plus:</strong></span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>All Personal Plan Features</span>
+                <span>Unlimited chat uploads</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Advanced Accountability Indicators</span>
+                <span>Conversation Dynamics</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Emotional Shifts Timeline</span>
+                <span>Behavioural Patterns Detection</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Manipulation Identifiers</span>
+                <span>Advanced Communication Trend Lines</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
+                <span className="text-muted-foreground">Red Flags, Gaslighting</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Gaslighting Detection</span>
+                <span>Evasion Identification – Avoidance Detection</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>🚩 Comprehensive Red Flags System</span>
+                <span>Message Dominance Analysis</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
+                <span className="text-muted-foreground">Conversational Control Insights</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Power Imbalance Detection</span>
+                <span>Emotional Shifts Timeline (interactive view)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Visual Dashboard with Charts</span>
+                <span>Power Dynamics Analysis</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>PDF & CSV Data Exports</span>
+                <span>Red Flags Timeline – Progressive Tracking</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>📊 Advanced Emotional Trends Tracking</span>
+                <span>Historical Pattern Recognition</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>🎤 Unlimited Live Talk Recordings</span>
+                <span>Anonymized Peer Comparison Benchmarks</span>
               </li>
             </ul>
           </CardContent>

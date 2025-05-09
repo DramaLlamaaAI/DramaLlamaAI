@@ -119,19 +119,18 @@ export const TIER_LIMITS = {
       "moodTrends",               // Mood Trends Over Time
       
       // Pro tier specific features
-      "advancedAccountability",   // Advanced Accountability Indicators
-      "emotionalShiftsTimeline",  // Emotional Shifts Timeline
-      "manipulationIdentifiers",  // Manipulation Identifiers
-      "gaslightingDetection",     // Gaslighting Detection
-      "comprehensiveRedFlags",    // Comprehensive Red Flags System
-      "powerImbalanceDetection",  // Power Imbalance Detection
-      "visualDashboard",          // Visual Dashboard with Charts
-      "advancedExport",           // PDF & CSV Data Exports
-      "advancedEmotionalTrends",  // Advanced Emotional Trends Tracking
-      "unlimitedLiveTalk",        // Unlimited Live Talk Recordings
-      "conflictPatterns",         // Conflict pattern analysis
-      "historical",               // Historical trend analysis
-      "dramaScore"                // Drama Score™ benchmarking
+      "unlimitedUploads",         // Unlimited chat uploads
+      "conversationDynamics",     // Conversation Dynamics 
+      "behaviouralPatterns",      // Behavioural Patterns Detection
+      "advancedTrendLines",       // Advanced Communication Trend Lines
+      "evasionIdentification",    // Evasion Identification – Avoidance Detection
+      "messageDominance",         // Message Dominance Analysis
+      "emotionalShiftsTimeline",  // Emotional Shifts Timeline (interactive)
+      "powerDynamics",            // Power Dynamics Analysis
+      "redFlagsTimeline",         // Red Flags Timeline – Progressive Tracking
+      "historicalPatterns",       // Historical Pattern Recognition
+      "peerComparison",           // Anonymized Peer Comparison Benchmarks
+      "gaslightingDetection"      // Gaslighting Detection (part of trend lines)
     ],
   },
 };

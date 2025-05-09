@@ -149,7 +149,7 @@ export default function PricingSection() {
         {/* Pro Tier */}
         <Card className={`overflow-hidden border-2 ${currentTier === 'pro' ? 'border-primary shadow-md' : 'border-transparent'} transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 bg-white`}>
           <div style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)' }} className="p-4">
-            <h3 className="text-xl font-semibold text-white">Pro</h3>
+            <h3 className="text-xl font-semibold text-white">🦙 🦙 Pro/Relationship</h3>
             <p className="text-3xl font-bold mb-0 text-white">£9.99<span className="text-base font-normal text-white/80">/month</span></p>
           </div>
           
@@ -161,23 +161,19 @@ export default function PricingSection() {
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Unlimited analyses</span>
+                <span>Unlimited chat uploads</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Drama Score™ benchmarking</span>
+                <span>Conversation Dynamics</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Historical analysis</span>
+                <span>Behavioural Patterns Detection</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Conflict pattern analysis</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Advanced export options</span>
+                <span>Advanced Communication Trend Lines</span>
               </li>
             </ul>
             
