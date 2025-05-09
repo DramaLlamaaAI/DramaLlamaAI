@@ -449,13 +449,13 @@ export default function ChatAnalysis() {
                       <div className="mt-4 pt-4 border-t border-gray-200">
                         <h5 className="font-medium mb-2 text-sm uppercase tracking-wide text-muted-foreground">Participant Analysis</h5>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="p-3 rounded-md bg-cyan-50 border border-cyan-100">
-                            <span className="text-cyan-700 font-medium">{me}</span>
-                            <p className="text-cyan-800 mt-1">{result.toneAnalysis.participantTones[me]}</p>
+                          <div className="p-3 rounded-md" style={{ backgroundColor: 'rgba(34, 201, 201, 0.1)', border: '1px solid rgba(34, 201, 201, 0.3)' }}>
+                            <span style={{ color: '#22C9C9' }} className="font-medium">{me}</span>
+                            <p style={{ color: 'rgba(34, 201, 201, 0.9)' }} className="mt-1">{result.toneAnalysis.participantTones[me]}</p>
                           </div>
-                          <div className="p-3 rounded-md bg-pink-50 border border-pink-100">
-                            <span className="text-pink-700 font-medium">{them}</span>
-                            <p className="text-pink-800 mt-1">{result.toneAnalysis.participantTones[them]}</p>
+                          <div className="p-3 rounded-md" style={{ backgroundColor: 'rgba(255, 105, 180, 0.1)', border: '1px solid rgba(255, 105, 180, 0.3)' }}>
+                            <span style={{ color: '#FF69B4' }} className="font-medium">{them}</span>
+                            <p style={{ color: 'rgba(255, 105, 180, 0.9)' }} className="mt-1">{result.toneAnalysis.participantTones[them]}</p>
                           </div>
                         </div>
                       </div>
@@ -541,28 +541,39 @@ export default function ChatAnalysis() {
                         {Object.keys(result.tensionContributions).map((participant) => (
                           <div 
                             key={participant}
-                            className={`p-3 rounded-md ${
-                              participant === me 
-                                ? "bg-cyan-50 border border-cyan-100" 
-                                : "bg-pink-50 border border-pink-100"
-                            }`}
+                            className="p-3 rounded-md"
+                            style={{ 
+                              backgroundColor: participant === me 
+                                ? 'rgba(34, 201, 201, 0.1)' 
+                                : 'rgba(255, 105, 180, 0.1)',
+                              border: participant === me 
+                                ? '1px solid rgba(34, 201, 201, 0.3)' 
+                                : '1px solid rgba(255, 105, 180, 0.3)'
+                            }}
                           >
-                            <span className={`font-medium ${
-                              participant === me ? "text-cyan-700" : "text-pink-700"
-                            }`}>
+                            <span 
+                              className="font-medium"
+                              style={{ 
+                                color: participant === me ? '#22C9C9' : '#FF69B4'
+                              }}
+                            >
                               {participant}
                             </span>
                             <ul className="mt-2 space-y-1">
-                              {result.tensionContributions[participant].map((item, idx) => (
-                                <li 
-                                  key={idx}
-                                  className={`text-sm flex items-start ${
-                                    participant === me ? "text-cyan-800" : "text-pink-800"
-                                  }`}
-                                >
-                                  <span className="mr-2 mt-1">•</span>
-                                  <span>{item}</span>
-                                </li>
+                              {result.tensionContributions && result.tensionContributions[participant] && 
+                                result.tensionContributions[participant].map((item, idx) => (
+                                  <li 
+                                    key={idx}
+                                    className="text-sm flex items-start"
+                                    style={{ 
+                                      color: participant === me 
+                                        ? 'rgba(34, 201, 201, 0.9)' 
+                                        : 'rgba(255, 105, 180, 0.9)'
+                                    }}
+                                  >
+                                    <span className="mr-2 mt-1">•</span>
+                                    <span>{item}</span>
+                                  </li>
                               ))}
                             </ul>
                           </div>
@@ -604,8 +615,15 @@ export default function ChatAnalysis() {
                             }
                             
                             // Detect which participant is mentioned
-                            const meColor = pattern.includes(me) ? "text-cyan-700 bg-cyan-50" : "";
-                            const themColor = pattern.includes(them) ? "text-pink-700 bg-pink-50" : "";
+                            const isMeQuote = pattern.includes(me);
+                            const isThemQuote = pattern.includes(them);
+                            
+                            // Custom style objects for quotes
+                            const quoteStyle = isMeQuote 
+                              ? { color: '#22C9C9', backgroundColor: 'rgba(34, 201, 201, 0.1)' }
+                              : isThemQuote 
+                                ? { color: '#FF69B4', backgroundColor: 'rgba(255, 105, 180, 0.1)' }
+                                : { color: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)' };
                             
                             return (
                               <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
@@ -613,7 +631,10 @@ export default function ChatAnalysis() {
                                   <span className="text-gray-700">{beforeQuote}</span>
                                   {hasQuote && (
                                     <>
-                                      <span className={`italic px-2 py-1 rounded my-1 inline-block ${meColor || themColor || "bg-blue-50 text-blue-600"}`}>
+                                      <span 
+                                        className="italic px-2 py-1 rounded my-1 inline-block"
+                                        style={quoteStyle}
+                                      >
                                         "{quote}"
                                       </span>
                                       <span className="text-gray-700">{afterQuote}</span>
@@ -655,43 +676,49 @@ export default function ChatAnalysis() {
                             return (
                               <div 
                                 key={idx} 
-                                className={`p-3 rounded border ${
-                                  forMe 
-                                    ? "border-cyan-200 bg-cyan-50" 
+                                className="p-3 rounded border"
+                                style={{
+                                  backgroundColor: forMe 
+                                    ? 'rgba(34, 201, 201, 0.1)'
                                     : forThem 
-                                    ? "border-pink-200 bg-pink-50" 
-                                    : "border-purple-200 bg-purple-50"
-                                }`}
+                                      ? 'rgba(255, 105, 180, 0.1)'
+                                      : 'rgba(147, 51, 234, 0.1)',
+                                  borderColor: forMe 
+                                    ? 'rgba(34, 201, 201, 0.3)'
+                                    : forThem 
+                                      ? 'rgba(255, 105, 180, 0.3)'
+                                      : 'rgba(147, 51, 234, 0.3)'
+                                }}
                               >
                                 <div className="flex items-start">
-                                  <div className={`mt-1 mr-2 ${
-                                    forMe 
-                                      ? "text-cyan-600" 
+                                  <div className="mt-1 mr-2" style={{
+                                    color: forMe 
+                                      ? '#22C9C9'
                                       : forThem 
-                                      ? "text-pink-600" 
-                                      : "text-purple-600"
-                                  }`}>
+                                        ? '#FF69B4'
+                                        : '#9333EA'
+                                  }}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
                                     </svg>
                                   </div>
                                   <div>
                                     {forMe && (
-                                      <div className="text-xs font-medium text-cyan-600 mb-1">For {me}</div>
+                                      <div className="text-xs font-medium mb-1" style={{ color: '#22C9C9' }}>For {me}</div>
                                     )}
                                     {forThem && (
-                                      <div className="text-xs font-medium text-pink-600 mb-1">For {them}</div>
+                                      <div className="text-xs font-medium mb-1" style={{ color: '#FF69B4' }}>For {them}</div>
                                     )}
                                     {!forMe && !forThem && (
-                                      <div className="text-xs font-medium text-purple-600 mb-1">For both participants</div>
+                                      <div className="text-xs font-medium mb-1" style={{ color: '#9333EA' }}>For both participants</div>
                                     )}
-                                    <p className={`text-sm ${
-                                      forMe 
-                                        ? "text-cyan-700" 
+                                    <p className="text-sm" style={{
+                                      color: forMe 
+                                        ? 'rgba(34, 201, 201, 0.9)'
                                         : forThem 
-                                        ? "text-pink-700" 
-                                        : "text-purple-700"
-                                    }`}>
+                                          ? 'rgba(255, 105, 180, 0.9)'
+                                          : 'rgba(147, 51, 234, 0.9)'
+                                    }}>
                                       {suggestion}
                                     </p>
                                   </div>
@@ -709,25 +736,91 @@ export default function ChatAnalysis() {
                     <div className="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
                       <h4 className="font-medium mb-2 text-blue-700">Key Quotes Analysis</h4>
                       <div className="space-y-3">
-                        {result.keyQuotes.map((quote, idx) => (
-                          <div key={idx} className="bg-white p-3 rounded border border-blue-100">
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="font-semibold text-blue-800">{quote.speaker}</span>
-                              <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">Quote #{idx + 1}</span>
-                            </div>
-                            <p className="text-gray-700 italic mb-2">"{quote.quote}"</p>
-                            <div className="space-y-2">
-                              <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
-                                <span className="font-medium text-blue-700">Analysis:</span> {quote.analysis}
+                        {result.keyQuotes.map((quote, idx) => {
+                          // Determine which participant's quote
+                          const isMeQuote = quote.speaker === me;
+                          const isThemQuote = quote.speaker === them;
+                          
+                          // Set color based on speaker
+                          const speakerColor = isMeQuote 
+                            ? '#22C9C9' 
+                            : isThemQuote 
+                              ? '#FF69B4' 
+                              : '#3B82F6';
+                          
+                          // Set background color based on speaker
+                          const bgColor = isMeQuote 
+                            ? 'rgba(34, 201, 201, 0.1)' 
+                            : isThemQuote 
+                              ? 'rgba(255, 105, 180, 0.1)' 
+                              : 'rgba(59, 130, 246, 0.1)';
+                          
+                          // Set border color based on speaker
+                          const borderColor = isMeQuote 
+                            ? 'rgba(34, 201, 201, 0.3)' 
+                            : isThemQuote 
+                              ? 'rgba(255, 105, 180, 0.3)' 
+                              : 'rgba(59, 130, 246, 0.3)';
+                              
+                          return (
+                            <div 
+                              key={idx} 
+                              className="bg-white p-3 rounded border" 
+                              style={{ borderColor }}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <span 
+                                  className="font-semibold" 
+                                  style={{ color: speakerColor }}
+                                >
+                                  {quote.speaker}
+                                </span>
+                                <span 
+                                  className="text-xs px-2 py-1 rounded"
+                                  style={{ backgroundColor: bgColor, color: speakerColor }}
+                                >
+                                  Quote #{idx + 1}
+                                </span>
+                              </div>
+                              <p 
+                                className="italic mb-2"
+                                style={{ color: 'rgba(75, 85, 99, 0.9)' }}
+                              >
+                                "{quote.quote}"
                               </p>
-                              {quote.improvement && (
-                                <div className="text-sm text-gray-600 bg-green-50 p-2 rounded border border-green-100">
-                                  <span className="font-medium text-green-700">Possible Reframe:</span> {quote.improvement}
-                                </div>
-                              )}
+                              <div className="space-y-2">
+                                <p 
+                                  className="text-sm p-2 rounded"
+                                  style={{ backgroundColor: bgColor, color: 'rgba(75, 85, 99, 0.9)' }}
+                                >
+                                  <span 
+                                    className="font-medium"
+                                    style={{ color: speakerColor }}
+                                  >
+                                    Analysis:
+                                  </span> {quote.analysis}
+                                </p>
+                                {quote.improvement && (
+                                  <div 
+                                    className="text-sm p-2 rounded border"
+                                    style={{ 
+                                      backgroundColor: 'rgba(34, 197, 94, 0.1)', 
+                                      borderColor: 'rgba(34, 197, 94, 0.3)',
+                                      color: 'rgba(75, 85, 99, 0.9)'
+                                    }}
+                                  >
+                                    <span 
+                                      className="font-medium"
+                                      style={{ color: 'rgba(34, 197, 94, 0.9)' }}
+                                    >
+                                      Possible Reframe:
+                                    </span> {quote.improvement}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
