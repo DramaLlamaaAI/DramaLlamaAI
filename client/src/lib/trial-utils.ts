@@ -1,10 +1,11 @@
 /**
- * Utilities for managing free trial usage
+ * Utilities for managing free trial usage and developer testing
  */
 
 // localStorage keys
 const TRIAL_USED_KEY = 'drama_llama_trial_used';
 const ANALYSIS_COUNT_KEY = 'drama_llama_analysis_count';
+const DEV_TIER_KEY = 'drama_llama_dev_tier';
 
 /**
  * Check if developer mode is enabled
@@ -91,4 +92,35 @@ export function incrementAnalysisCount(): void {
   if (newCount === 1) {
     markFreeTrialAsUsed();
   }
+}
+
+/**
+ * Valid subscription tiers for testing
+ */
+export type DevTier = 'free' | 'personal' | 'pro' | 'instant';
+
+/**
+ * Set the current tier for developer testing
+ */
+export function setDevTier(tier: DevTier): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(DEV_TIER_KEY, tier);
+    
+    // Refresh API data
+    import('@/lib/queryClient').then(({ queryClient }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/usage'] });
+    });
+  }
+}
+
+/**
+ * Get the current developer test tier
+ */
+export function getDevTier(): DevTier {
+  if (typeof window === 'undefined') {
+    return 'free';
+  }
+  
+  const tier = localStorage.getItem(DEV_TIER_KEY) as DevTier;
+  return tier || 'free';
 }
