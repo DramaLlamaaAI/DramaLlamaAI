@@ -15,6 +15,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { cleanPatternForDisplay, cleanCommunicationPatterns } from "@/lib/analysis-utils";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -627,26 +628,30 @@ export default function ChatAnalysis() {
                       <div className="mb-4">
                         <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
                         <div className="space-y-3">
-                          {result.communication.patterns.map((pattern, idx) => {
+                          {/* Apply pattern cleanup to remove duplications before mapping */}
+                          {(result.communication.patterns ? cleanCommunicationPatterns(result.communication.patterns) : []).map((pattern, idx) => {
+                            // Clean the pattern for display purposes
+                            const cleanedPattern = cleanPatternForDisplay(pattern);
+                            
                             // Check if the pattern contains a quote (text inside quotes)
-                            const quoteMatch = pattern.match(/"([^"]+)"/);
+                            const quoteMatch = cleanedPattern.match(/"([^"]+)"/);
                             const hasQuote = quoteMatch && quoteMatch[1];
                             
                             // Split pattern into parts before and after the quote
-                            let beforeQuote = pattern;
+                            let beforeQuote = cleanedPattern;
                             let quote = '';
                             let afterQuote = '';
                             
                             if (hasQuote) {
-                              const parts = pattern.split(quoteMatch[0]);
+                              const parts = cleanedPattern.split(quoteMatch[0]);
                               beforeQuote = parts[0];
                               quote = quoteMatch[1];
                               afterQuote = parts[1] || '';
                             }
                             
                             // Detect which participant is mentioned
-                            const isMeQuote = pattern.includes(me);
-                            const isThemQuote = pattern.includes(them);
+                            const isMeQuote = cleanedPattern.includes(me);
+                            const isThemQuote = cleanedPattern.includes(them);
                             
                             // Custom style objects for quotes
                             const quoteStyle = isMeQuote 
@@ -671,7 +676,7 @@ export default function ChatAnalysis() {
                                     </>
                                   )}
                                   {!hasQuote && (
-                                    <span className="text-gray-700">{pattern}</span>
+                                    <span className="text-gray-700">{cleanedPattern}</span>
                                   )}
                                 </p>
                               </div>
