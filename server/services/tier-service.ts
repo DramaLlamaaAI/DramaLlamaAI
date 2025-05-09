@@ -1,4 +1,4 @@
-import { TIER_LIMITS, ChatAnalysisResult, MessageAnalysisResult } from '@shared/schema';
+import { TIER_LIMITS, ChatAnalysisResult, MessageAnalysisResult, DeEscalateResult } from '@shared/schema';
 
 /**
  * Filter chat analysis results based on user's tier
@@ -119,8 +119,6 @@ export function filterMessageAnalysisByTier(analysis: MessageAnalysisResult, tie
 /**
  * Filter de-escalate message results based on user's tier
  */
-import { DeEscalateResult } from '@shared/schema';
-
 export function filterDeEscalateResultByTier(result: DeEscalateResult, tier: string): DeEscalateResult {
   // If tier doesn't exist, default to free
   const tierFeatures = TIER_LIMITS[tier as keyof typeof TIER_LIMITS]?.features || TIER_LIMITS.free.features;

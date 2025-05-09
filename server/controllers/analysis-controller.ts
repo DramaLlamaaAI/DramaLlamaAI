@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { analyzeChatConversation, analyzeMessage, deEscalateMessage, detectParticipants, processImageOcr } from '../services/anthropic-updated';
 import { TIER_LIMITS } from '@shared/schema';
-import { filterChatAnalysisByTier, filterMessageAnalysisByTier } from '../services/tier-service';
+import { filterChatAnalysisByTier, filterMessageAnalysisByTier, filterDeEscalateResultByTier } from '../services/tier-service';
 import { storage } from '../storage';
 
 // Get the user's tier from the authenticated session
