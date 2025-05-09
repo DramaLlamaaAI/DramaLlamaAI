@@ -68,15 +68,45 @@ export type InsertUsageLimit = z.infer<typeof insertUsageLimitSchema>;
 export const TIER_LIMITS = {
   free: {
     monthlyLimit: 1,
-    features: ["basicTone"],
+    features: [
+      "overallTone",          // Overall Emotional Tone Summary
+      "participantTones",     // Participant Analysis
+      "healthScore",          // Conversation Health Meter
+      "keyQuotes",            // Brief highlight quotes
+      "communicationInsights", // Basic Communication Insights
+      "pdfExport"             // PDF Export function
+    ],
   },
   personal: {
     monthlyLimit: 10,
-    features: ["basicTone", "redFlags", "advice", "patterns"],
+    features: [
+      "overallTone",          // Overall Emotional Tone Summary
+      "participantTones",     // Participant Analysis 
+      "healthScore",          // Conversation Health Meter
+      "keyQuotes",            // More detailed quotes analysis
+      "communicationInsights", // Detailed Communication Insights
+      "redFlags",             // Red flag detection
+      "advice",               // Personalized advice
+      "patterns",             // Pattern identification
+      "pdfExport"             // PDF Export function
+    ],
   },
   pro: {
     monthlyLimit: Infinity,
-    features: ["basicTone", "redFlags", "advice", "patterns", "conflictPatterns", "historical"],
+    features: [
+      "overallTone",          // Overall Emotional Tone Summary
+      "participantTones",     // Participant Analysis
+      "healthScore",          // Conversation Health Meter
+      "keyQuotes",            // Comprehensive quotes analysis
+      "communicationInsights", // Advanced Communication Insights
+      "redFlags",             // Red flag detection
+      "advice",               // Personalized advice
+      "patterns",             // Pattern identification
+      "conflictPatterns",     // Conflict pattern analysis
+      "historical",           // Historical trend analysis
+      "dramaScore",           // Drama Score™ benchmarking
+      "advancedExport"        // Advanced export options
+    ],
   },
 };
 

@@ -82,26 +82,33 @@ const anthropic = new Anthropic({
 // Prompts (similar structure to OpenAI but adapted for Anthropic)
 const prompts = {
   chat: {
-    free: `Analyze this conversation between {me} and {them}. 
-    Return a JSON object with the following structure:
+    free: `Analyze this conversation between {me} and {them}. You're providing a basic free tier analysis.
+    Return a JSON object with ONLY the following structure (do not include any fields not listed here):
     {
       "toneAnalysis": {
-        "overallTone": "string describing the conversation's overall tone",
+        "overallTone": "string describing the conversation's overall emotional tone",
         "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-        "participantTones": {"participant name": "tone description"}
+        "participantTones": {"participant name": "brief tone description"}
       },
-      "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
       "communication": {
-        "patterns": ["string describing patterns observed"],
-        "suggestions": ["string with suggestions for improvement"]
+        "patterns": ["string describing basic patterns observed (limit to 2-3 key patterns)"]
       },
-      "dramaScore": number between 0-100,
       "healthScore": {
         "score": number between 0-100,
-        "label": "Troubled/Needs Work/Good/Excellent",
-        "color": "red/yellow/light-green/green"
-      }
+        "label": "Conflict/Tense/Neutral/Healthy/Very Healthy (choose one)",
+        "color": "red/yellow/light-green/green (choose one)"
+      },
+      "keyQuotes": [
+        {"speaker": "name", "quote": "brief message text", "analysis": "brief interpretation"}
+      ]
     }
+    
+    FREE TIER GUIDELINES:
+    1. Keep analysis concise and focused only on the most essential elements
+    2. Limit keyQuotes to only 1-2 most important quotes
+    3. Do NOT include redFlags, dramaScore, tensionContributions, or other advanced analysis
+    4. Do NOT include personalized suggestions - only objective observations
+    5. Keep all analysis brief and high-level
     
     Here's the conversation:
     {conversation}`,
