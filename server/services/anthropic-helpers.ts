@@ -44,7 +44,39 @@ export function parseAnthropicJson(content: string): any {
     // Fix any other common JSON issues
     jsonContent = fixCommonJsonIssues(jsonContent);
     
-    return JSON.parse(jsonContent);
+    // Log the JSON content before parsing for debugging
+    console.log('Preprocessed JSON content (first 100 chars):', jsonContent.substring(0, 100));
+    
+    try {
+      return JSON.parse(jsonContent);
+    } catch (error) {
+      const initialParseError = error as Error;
+      console.log('Initial parse failed:', initialParseError.message);
+      // Try with a more aggressive cleaning approach
+      console.log('Attempting more aggressive JSON cleaning');
+      
+      // Replace problematic patterns that often cause issues
+      jsonContent = jsonContent
+        // Fix incorrectly escaped quotes
+        .replace(/\\"/g, '"').replace(/"{2,}/g, '"')
+        // Fix possible line breaks in strings
+        .replace(/"\s+"/g, ' ')
+        // Remove potential comments
+        .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*/g, '')
+        // Fix potential trailing commas in objects and arrays
+        .replace(/,(\s*[\]}])/g, '$1')
+        // Handle quotes inside strings by escaping them
+        .replace(/"([^"]*)"|'([^']*)'|`([^`]*)`/g, (match) => {
+          return match.replace(/"/g, '\\"');
+        })
+        // Re-wrap the content in braces if stripped somehow
+        .trim();
+      
+      if (!jsonContent.startsWith('{')) jsonContent = '{' + jsonContent;
+      if (!jsonContent.endsWith('}')) jsonContent += '}';
+      
+      return JSON.parse(jsonContent);
+    }
   } catch (parseError) {
     console.error('Failed to parse response as JSON:', parseError);
     
@@ -127,10 +159,22 @@ function balanceJson(str: string): string {
  */
 function fixCommonJsonIssues(str: string): string {
   return str
+    // Fix quotes inside quotes issues
+    .replace(/"([^"]*)"(?:\s*:\s*)"([^"]*)"([^,}]*)/g, (match, key, value, rest) => {
+      // Properly escape quotes inside string values
+      const fixedValue = value.replace(/"/g, '\\"');
+      return `"${key}": "${fixedValue}"${rest}`;
+    })
+    // Fix unescaped quotes within JSON strings
+    .replace(/:\s*"([^"]*?)\\?"([^"]*?)\\?"([^"]*?)"/g, (match, before, middle, after) => {
+      return `: "${before}\\\"${middle}\\\"${after}"`;
+    })
     .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
     .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":') // Ensure property names are quoted
     .replace(/\n/g, ' ') // Remove newlines
     .replace(/\t/g, ' ') // Remove tabs
     .replace(/\s+/g, ' ') // Normalize whitespace
+    .replace(/"""/g, '"\\"') // Fix triple quotes
+    .replace(/(['"])([^'"]*)(["'])(?!\s*[,}\]:])(\s*[,}\]:])/g, '$1$2$3$4') // Fix missing commas
     .trim();
 }

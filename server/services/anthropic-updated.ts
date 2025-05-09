@@ -420,7 +420,29 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     console.log('Successfully received Anthropic response for chat analysis');
     
     // Parse the JSON response with markdown code block handling
-    return parseAnthropicJson(content);
+    try {
+      return parseAnthropicJson(content);
+    } catch (error) {
+      console.error('JSON parsing failed in chat analysis, attempting fallback', error);
+      
+      // Fallback to a simplified response that maintains basic functionality
+      return {
+        toneAnalysis: {
+          overallTone: "We couldn't complete the full analysis due to a technical issue. Please try again later or contact support.",
+          emotionalState: [{ emotion: "unknown", intensity: 0.5 }],
+          participantTones: { [me]: "unknown", [them]: "unknown" }
+        },
+        communication: {
+          patterns: ["Analysis error - please try again."],
+          suggestions: ["We apologize for the inconvenience."]
+        },
+        healthScore: {
+          score: 50, 
+          label: "Analysis Error", 
+          color: "yellow"
+        }
+      };
+    }
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for chat analysis:', error);
@@ -476,7 +498,18 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     console.log('Successfully received Anthropic response for message analysis');
     
     // Parse the JSON response with markdown code block handling
-    return parseAnthropicJson(content);
+    try {
+      return parseAnthropicJson(content);
+    } catch (error) {
+      console.error('JSON parsing failed in message analysis, attempting fallback', error);
+      
+      // Fallback to a simplified response that maintains basic functionality
+      return {
+        tone: "We couldn't complete the analysis due to a technical issue.",
+        intent: ["Please try again later or contact support."],
+        suggestedReply: "We apologize for the inconvenience."
+      };
+    }
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for message analysis:', error);
@@ -560,7 +593,18 @@ export async function deEscalateMessage(message: string, tier: string = 'free') 
     console.log('Successfully received Anthropic response for de-escalate mode');
     
     // Parse the JSON response with markdown code block handling
-    return parseAnthropicJson(content);
+    try {
+      return parseAnthropicJson(content);
+    } catch (error) {
+      console.error('JSON parsing failed in de-escalate mode, attempting fallback', error);
+      
+      // Fallback to a simplified response that maintains basic functionality
+      return {
+        original: message,
+        rewritten: "We're sorry, we couldn't complete the rewriting of this message due to a technical issue. Please try again.",
+        explanation: "There was an error processing your request. Please contact support if this issue persists."
+      };
+    }
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for de-escalate mode:', error);
