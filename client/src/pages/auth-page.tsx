@@ -65,7 +65,7 @@ export default function AuthPage() {
     setErrorMsg("");
     
     try {
-      const response = await apiRequest("POST", "/api/login", values);
+      const response = await apiRequest("POST", "/api/auth/login", values);
       const data = await response.json();
       
       if (!response.ok) {
@@ -94,7 +94,7 @@ export default function AuthPage() {
       // Remove confirmPassword before sending to API
       const { confirmPassword, ...registerData } = values;
       
-      const response = await apiRequest("POST", "/api/register", registerData);
+      const response = await apiRequest("POST", "/api/auth/register", registerData);
       const data = await response.json();
       
       if (!response.ok) {
