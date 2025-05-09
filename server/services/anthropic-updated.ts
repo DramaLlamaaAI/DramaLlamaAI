@@ -395,56 +395,75 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     let enhancedPrompt = '';
     
     if (tier === 'pro' || tier === 'instant') {
-      enhancedPrompt = `Perform a comprehensive professional-level analysis of this conversation between ${me} and ${them}.
-      Return a JSON object with the following structure:
-      {
-        "toneAnalysis": {
-          "overallTone": "detailed description of the conversation's overall tone",
-          "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-          "participantTones": {"participant name": "comprehensive tone description"}
-        },
-        "redFlags": [{"type": "string", "description": "detailed description", "severity": number between 1-5}],
-        "communication": {
-          "patterns": ["specific and varied interaction patterns with behavioral pattern detection"],
-          "dynamics": ["detailed analysis of conversation flow, dominance patterns, and power dynamics"],
-          "suggestions": ["specific tailored professional suggestions for improvement"]
-        },
-        "healthScore": {
-          "score": number between 0-100,
-          "label": "Troubled/Needs Work/Good/Excellent",
-          "color": "red/yellow/light-green/green"
-        },
-        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "deep interpretation including manipulation score if relevant", "improvement": "professional suggestion for improvement"}],
-        "highTensionFactors": ["detailed reasons for tension with historical pattern recognition"],
-        "participantConflictScores": {
-          "participant name": {
-            "score": number between 0-100,
-            "label": "detailed description of communication style",
-            "isEscalating": boolean
-          }
-        },
-        "tensionContributions": {
-          "participant name": ["specific actions/phrases that contribute to tension"]
-        },
-        "tensionMeaning": "brief explanation of what tension means for the relationship (50 words max)"
-      }
-      
-      IMPORTANT GUIDELINES:
-      1. Keep each field CONCISE - especially participantTones and tensionMeaning should be short
-      2. Avoid lengthy explanations or analysis that exceeds 100 words in any field
-      3. Keep your output format strictly compatible with JSON (no trailing commas, proper quotes)
-      4. For tensionMeaning, limit to 50 words max
-      
-      Include ADVANCED FEATURES such as:
-      - Conversation dynamics with behavioral pattern detection
-      - Evasion identification and avoidance detection
-      - Message dominance analysis (who controls the conversation)
-      - Power dynamics analysis
-      - Historical pattern recognition (recurring themes)
-      - Deep red flags analysis with timeline implications
-      
-      Here's the conversation:
-      ${conversation}`;
+      enhancedPrompt = `Provide a professional analysis of conversation between ${me} and ${them}.
+
+Return ONLY a JSON object with this EXACT structure:
+
+{
+  "toneAnalysis": {
+    "overallTone": "brief professional assessment",
+    "emotionalState": [
+      {"emotion": "primary", "intensity": 0.8},
+      {"emotion": "secondary", "intensity": 0.6}
+    ],
+    "participantTones": {
+      "${me}": "concise tone description",
+      "${them}": "concise tone description"
+    }
+  },
+  "redFlags": [
+    {"type": "issue", "description": "brief description", "severity": 3}
+  ],
+  "communication": {
+    "patterns": ["key pattern one", "key pattern two"],
+    "dynamics": ["relationship dynamic one", "relationship dynamic two"],
+    "suggestions": ["improvement suggestion one", "improvement suggestion two"]
+  },
+  "healthScore": {
+    "score": 65,
+    "label": "Category",
+    "color": "yellow"
+  },
+  "keyQuotes": [
+    {
+      "speaker": "${me}",
+      "quote": "example quote text",
+      "analysis": "brief interpretation",
+      "improvement": "constructive reframe suggestion"
+    }
+  ],
+  "participantConflictScores": {
+    "${me}": {
+      "score": 45,
+      "label": "Brief description",
+      "isEscalating": false
+    },
+    "${them}": {
+      "score": 65,
+      "label": "Brief description",
+      "isEscalating": true
+    }
+  },
+  "tensionContributions": {
+    "${me}": ["specific action one", "specific action two"],
+    "${them}": ["specific action one", "specific action two"]
+  },
+  "tensionMeaning": "brief explanation of what the tension means"
+}
+
+STRICT RULES:
+- ALL descriptions must be 10 words or less
+- ALL text values must use only ASCII characters
+- NEVER use single quotes or escaped quotes
+- NEVER use characters that would break JSON
+- Keep pattern descriptions under 10 words each
+- Label must be one of: Conflict, Tension, Stable, Healthy
+- Color must be one of: red, yellow, light-green, green
+- Severity must be number 1-5
+- All scores must be 0-100
+
+Here's the conversation:
+${conversation}`;
     } else if (tier === 'personal') {
       enhancedPrompt = `Analyze this conversation between ${me} and ${them} with a personal-level depth. 
       Return a JSON object with the following structure:
@@ -507,7 +526,7 @@ Return ONLY a JSON object with this EXACT structure:
     }
   },
   "communication": {
-    "patterns": ["pattern one", "pattern two"]
+    "patterns": ["pattern one", "pattern two", "pattern three"]
   },
   "healthScore": {
     "score": 50,
@@ -522,6 +541,8 @@ STRICT RULES:
 - Intensity values between 0.1 and 1.0
 - NO quotation marks in any text value
 - NO special characters
+- NO duplicated content in patterns
+- Each pattern must be unique and distinct
 - Score must be a number between 0-100
 - Label must be one of: Conflict, Tension, Stable, Healthy
 - Color must be one of: red, yellow, light-green, green
