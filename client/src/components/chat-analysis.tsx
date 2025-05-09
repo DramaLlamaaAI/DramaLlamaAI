@@ -4,12 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Archive, FileText, AlertCircle } from "lucide-react";
+import { Info, Archive, FileText, AlertCircle, Calendar } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/utils";
 import { getUserUsage } from "@/lib/openai";
+import { format } from "date-fns";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -21,6 +26,9 @@ export default function ChatAnalysis() {
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [enableDateFilter, setEnableDateFilter] = useState<boolean>(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -137,7 +145,20 @@ export default function ChatAnalysis() {
       return;
     }
     
-    analysisMutation.mutate({ conversation, me, them, tier });
+    // Create request with date filtering if enabled
+    const request = { 
+      conversation, 
+      me, 
+      them, 
+      tier,
+      // Include date filtering options if enabled
+      dateFilter: enableDateFilter ? {
+        startDate: startDate ? startDate.toISOString() : undefined,
+        endDate: endDate ? endDate.toISOString() : undefined
+      } : undefined
+    };
+    
+    analysisMutation.mutate(request);
   };
 
   const handleDetectNames = () => {
@@ -288,6 +309,108 @@ export default function ChatAnalysis() {
                 >
                   {detectNamesMutation.isPending ? "Detecting..." : "Auto-Detect Names"}
                 </Button>
+              </div>
+              
+              {/* Date Filtering Section */}
+              <div className="mb-6 border border-blue-100 bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="date-filter"
+                      checked={enableDateFilter}
+                      onCheckedChange={setEnableDateFilter}
+                    />
+                    <Label htmlFor="date-filter" className="text-blue-800 font-medium">
+                      Focus on Recent Messages
+                    </Label>
+                  </div>
+                  <div className="ml-auto">
+                    <span className="text-xs text-blue-700 bg-blue-100 py-1 px-2 rounded-full">✨ New</span>
+                  </div>
+                </div>
+                
+                {enableDateFilter && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="from-date" className="block text-sm mb-2 text-blue-800">
+                        From Date (Include messages after this date)
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="from-date"
+                            variant="outline"
+                            className={`w-full justify-start text-left font-normal ${!startDate ? "text-muted-foreground" : ""}`}
+                          >
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {startDate ? format(startDate, "PPP") : "Select start date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={startDate}
+                            onSelect={setStartDate}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {startDate && (
+                        <Button 
+                          variant="ghost" 
+                          onClick={() => setStartDate(undefined)}
+                          className="mt-1 h-auto p-0 text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Clear date
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="to-date" className="block text-sm mb-2 text-blue-800">
+                        To Date (Optional - limit to messages before this date)
+                      </Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="to-date"
+                            variant="outline"
+                            className={`w-full justify-start text-left font-normal ${!endDate ? "text-muted-foreground" : ""}`}
+                          >
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {endDate ? format(endDate, "PPP") : "Select end date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={endDate}
+                            onSelect={setEndDate}
+                            initialFocus
+                            disabled={(date) => startDate ? date < startDate : false}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {endDate && (
+                        <Button 
+                          variant="ghost" 
+                          onClick={() => setEndDate(undefined)}
+                          className="mt-1 h-auto p-0 text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Clear date
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {enableDateFilter && (
+                  <div className="mt-3 text-sm text-blue-800">
+                    <p>The AI will focus on analyzing messages {startDate ? `from ${format(startDate, "PPP")}` : ""} 
+                    {endDate ? ` through ${format(endDate, "PPP")}` : startDate ? " to the present" : ""}.
+                    This helps focus on recent and relevant conversations, especially in long chat histories.</p>
+                  </div>
+                )}
               </div>
               
               <div className="flex justify-end">

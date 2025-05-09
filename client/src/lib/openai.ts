@@ -4,11 +4,17 @@ import { apiRequest } from './queryClient';
 export type AnalysisType = 'chat' | 'message' | 'vent';
 
 // Chat analysis interfaces
+export interface DateFilter {
+  startDate?: string;  // ISO string format
+  endDate?: string;    // ISO string format
+}
+
 export interface ChatAnalysisRequest {
   conversation: string;
   me: string;
   them: string;
   tier?: string;
+  dateFilter?: DateFilter;
 }
 
 export interface ChatAnalysisResponse {
