@@ -1,24 +1,57 @@
 import { Request, Response } from 'express';
 import { analyzeChatConversation, analyzeMessage, ventMessage, detectParticipants, processImageOcr } from '../services/anthropic-updated';
 import { TIER_LIMITS } from '@shared/schema';
+import { filterChatAnalysisByTier, filterMessageAnalysisByTier } from '../services/tier-service';
+import { storage } from '../storage';
 
-// For mock demo purposes - in real app this would use auth and database
+// Get the user's tier from the authenticated session
 const getUserTier = (req: Request): string => {
-  // This would typically use session/token to get user info
-  return 'free';
+  if (req.session && req.session.userId) {
+    // For authenticated users, we'll get their tier from storage
+    // But we'll return 'free' if we're unable to find it
+    return req.session.userTier || 'free';
+  } else {
+    // For anonymous users
+    return 'free';
+  }
 };
 
-// Track a user's analysis usage - in real app this would update database
+// Track a user's analysis usage
 const trackUsage = async (req: Request): Promise<void> => {
-  // This would increment usage count in database
-  console.log('Usage tracked');
+  try {
+    if (req.session && req.session.userId) {
+      // Track usage for authenticated users
+      await storage.incrementUserUsage(req.session.userId);
+    } else if (req.body.deviceId) {
+      // Track usage for anonymous users
+      await storage.incrementAnonymousUsage(req.body.deviceId);
+    }
+    console.log('Usage tracked successfully');
+  } catch (error) {
+    console.error('Error tracking usage:', error);
+  }
 };
 
 // Check if user has reached their usage limit
 const checkUsageLimit = async (req: Request): Promise<boolean> => {
-  // This would check against database
-  // For demo, we'll assume they haven't reached limit
-  return true;
+  try {
+    if (req.session && req.session.userId) {
+      // Check usage limits for authenticated users
+      const usage = await storage.getUserUsage(req.session.userId);
+      return usage.used < usage.limit;
+    } else if (req.body.deviceId) {
+      // Check usage limits for anonymous users
+      const anonUsage = await storage.getAnonymousUsage(req.body.deviceId);
+      if (!anonUsage) return true; // First time user
+      
+      // Anonymous users get 1 free analysis per month
+      return anonUsage.count < 1;
+    }
+    return true; // Allow access if we can't determine usage
+  } catch (error) {
+    console.error('Error checking usage limit:', error);
+    return false; // Fail closed - if we can't check, don't allow
+  }
 };
 
 // Filter conversation by date if date filter is provided
@@ -115,8 +148,12 @@ export const analysisController = {
       const filteredConversation = filterConversationByDate(conversation, dateFilter);
       
       // Process analysis
-      const result = await analyzeChatConversation(filteredConversation, me, them, tier);
-      res.json(result);
+      const analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
+      
+      // Filter results based on user's tier
+      const filteredResults = filterChatAnalysisByTier(analysis, tier);
+      
+      res.json(filteredResults);
     } catch (error: any) {
       console.error(error);
       res.status(500).json({ message: error.message || 'Internal server error' });
@@ -145,8 +182,12 @@ export const analysisController = {
       await trackUsage(req);
       
       // Process analysis
-      const result = await analyzeMessage(message, author, tier);
-      res.json(result);
+      const analysis = await analyzeMessage(message, author, tier);
+      
+      // Filter results based on user's tier
+      const filteredResults = filterMessageAnalysisByTier(analysis, tier);
+      
+      res.json(filteredResults);
     } catch (error: any) {
       console.error(error);
       res.status(500).json({ message: error.message || 'Internal server error' });
