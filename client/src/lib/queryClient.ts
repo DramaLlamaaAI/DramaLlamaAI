@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { getDeviceId } from "./device-id";
+import { isDevModeEnabled, getDevTier } from "./trial-utils";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -17,10 +18,16 @@ export async function apiRequest(
   // Get device ID for anonymous user tracking
   const deviceId = getDeviceId();
   
+  // Add dev mode headers if enabled
+  const devMode = isDevModeEnabled();
+  const devTier = devMode ? getDevTier() : undefined;
+  
   // Combine default headers with device ID and custom headers if provided
   const defaultHeaders: HeadersInit = {
     ...(data ? { "Content-Type": "application/json" } : {}),
-    "X-Device-ID": deviceId
+    "X-Device-ID": deviceId,
+    ...(devMode ? { "X-Dev-Mode": "true" } : {}),
+    ...(devTier ? { "X-Dev-Tier": devTier } : {})
   };
   
   const headers = options?.headers 
@@ -52,10 +59,16 @@ export const getQueryFn: <T>(options: {
     // Get device ID for anonymous user tracking
     const deviceId = getDeviceId();
     
+    // Add dev mode headers if enabled
+    const devMode = isDevModeEnabled();
+    const devTier = devMode ? getDevTier() : undefined;
+    
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
       headers: {
-        "X-Device-ID": deviceId
+        "X-Device-ID": deviceId,
+        ...(devMode ? { "X-Dev-Mode": "true" } : {}),
+        ...(devTier ? { "X-Dev-Tier": devTier } : {})
       }
     });
 
