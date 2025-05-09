@@ -8,22 +8,19 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   // If tier doesn't exist, default to free
   const tierFeatures = TIER_LIMITS[tier as keyof typeof TIER_LIMITS]?.features || TIER_LIMITS.free.features;
   
-  // Create a filtered copy of the analysis
+  // Create a filtered copy of the analysis with required fields
   const filteredAnalysis: ChatAnalysisResult = {
     toneAnalysis: {
       overallTone: analysis.toneAnalysis.overallTone,
       emotionalState: analysis.toneAnalysis.emotionalState,
+      ...(analysis.toneAnalysis.participantTones && tierFeatures.includes('participantTones') ? 
+        { participantTones: analysis.toneAnalysis.participantTones } : {})
     },
     communication: {
       // Basic patterns are available to all tiers
       patterns: analysis.communication.patterns || [],
     }
   };
-
-  // Add participant tones if available for tier
-  if (tierFeatures.includes('participantTones') && analysis.toneAnalysis.participantTones) {
-    (filteredAnalysis.toneAnalysis as any).participantTones = analysis.toneAnalysis.participantTones;
-  }
   
   // Add health score if available for tier
   if (tierFeatures.includes('healthScore') && analysis.healthScore) {

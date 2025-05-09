@@ -99,6 +99,7 @@ export const authController = {
       // Set user in session
       if (req.session) {
         req.session.userId = user.id;
+        req.session.userTier = user.tier || 'free';
       }
       
       // If email couldn't be sent, include the verification code in the response
@@ -167,6 +168,7 @@ export const authController = {
       // Set user in session
       if (req.session) {
         req.session.userId = user.id;
+        req.session.userTier = user.tier || 'free';
       }
       
       res.status(200).json(userWithoutPassword);
@@ -292,6 +294,7 @@ export const authController = {
       // If user is not already logged in, log them in
       if (req.session && !req.session.userId) {
         req.session.userId = user.id;
+        req.session.userTier = user.tier || 'free';
       }
       
       // Return updated user info (without password)
