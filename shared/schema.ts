@@ -116,6 +116,8 @@ export const chatAnalysisResultSchema = z.object({
     label: z.string(),
     isEscalating: z.boolean()
   })).optional(),
+  tensionContributions: z.record(z.array(z.string())).optional(),
+  tensionMeaning: z.string().optional(),
 });
 
 export const messageAnalysisResultSchema = z.object({

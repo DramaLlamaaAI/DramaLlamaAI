@@ -42,6 +42,10 @@ interface ChatAnalysisResponse {
       isEscalating: boolean;
     }
   };
+  tensionContributions?: {
+    [participant: string]: string[];
+  };
+  tensionMeaning?: string;
 }
 
 interface MessageAnalysisResponse {
@@ -128,8 +132,14 @@ const prompts = {
           "label": "string describing style",
           "isEscalating": boolean
         }
-      }
+      },
+      "tensionContributions": {
+        "participant name": ["specific ways this person contributes to tension"]
+      },
+      "tensionMeaning": "explanation of what the tension means for the relationship"
     }
+    
+    IMPORTANT: Only include the "tensionContributions" and "tensionMeaning" fields if there is moderate to high tension in the conversation. If the conversation is relatively tension-free, omit these fields entirely from your response.
     
     Here's the conversation:
     {conversation}`,
@@ -161,8 +171,14 @@ const prompts = {
           "label": "string describing style",
           "isEscalating": boolean
         }
-      }
+      },
+      "tensionContributions": {
+        "participant name": ["specific ways this person contributes to tension"]
+      },
+      "tensionMeaning": "detailed explanation of what the tension means for the relationship dynamic and potential long-term implications"
     }
+    
+    IMPORTANT: Only include the "tensionContributions" and "tensionMeaning" fields if there is moderate to high tension in the conversation. If the conversation is relatively tension-free, omit these fields entirely from your response.
     
     Here's the conversation:
     {conversation}`
@@ -248,6 +264,10 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     });
     
     // Get the response content
+    if (!response.content[0] || response.content[0].type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+    
     const content = response.content[0].text;
     if (!content) {
       throw new Error('Empty response from Anthropic API');
@@ -300,6 +320,10 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     });
     
     // Get the response content
+    if (!response.content[0] || response.content[0].type !== 'text') {
+      throw new Error('Unexpected response format from Anthropic API');
+    }
+    
     const content = response.content[0].text;
     if (!content) {
       throw new Error('Empty response from Anthropic API');
