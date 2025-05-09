@@ -24,6 +24,9 @@ import { EmotionTracking } from "@/components/emotion-tracking";
 import { PersonalizedSuggestions } from "@/components/personalized-suggestions";
 import { TensionContributions } from "@/components/tension-contributions";
 import { HealthScoreDisplay } from "@/components/health-score-display";
+import { AdvancedTrendLines } from "@/components/advanced-trend-lines";
+import { EvasionPowerDynamics } from "@/components/evasion-power-dynamics";
+import { EmotionalShiftsTimeline } from "@/components/emotional-shifts-timeline";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -848,6 +851,27 @@ export default function ChatAnalysis() {
                     tier={tier} 
                     conversation={conversation}
                     dynamics={result.communication?.dynamics}
+                  />
+                  
+                  {/* Pro-tier Advanced Features */}
+                  <AdvancedTrendLines 
+                    tier={tier} 
+                    conversation={conversation} 
+                  />
+                  
+                  <EvasionPowerDynamics 
+                    tier={tier} 
+                    me={me} 
+                    them={them} 
+                    conversation={conversation}
+                  />
+                  
+                  <EmotionalShiftsTimeline
+                    tier={tier}
+                    me={me}
+                    them={them}
+                    conversation={conversation}
+                    emotionalState={result.toneAnalysis.emotionalState}
                   />
                   
                   <div className="mt-6 flex justify-end">
