@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { analyzeChatConversation, analyzeMessage, ventMessage, detectParticipants, processImageOcr } from '../services/anthropic-updated';
+import { analyzeChatConversation, analyzeMessage, deEscalateMessage, detectParticipants, processImageOcr } from '../services/anthropic-updated';
 import { TIER_LIMITS } from '@shared/schema';
 import { filterChatAnalysisByTier, filterMessageAnalysisByTier } from '../services/tier-service';
 import { storage } from '../storage';
@@ -213,7 +213,7 @@ export const analysisController = {
       await trackUsage(req);
       
       // Process de-escalation
-      const result = await ventMessage(message);
+      const result = await deEscalateMessage(message);
       res.json(result);
     } catch (error: any) {
       console.error(error);

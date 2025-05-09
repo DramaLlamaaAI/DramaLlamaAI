@@ -203,7 +203,7 @@ const prompts = {
     Here's the message:
     {message}`
   },
-  vent: {
+  deEscalate: {
     free: `Rewrite this emotional message in a calmer, more constructive way.
     Return a JSON object with the following structure:
     {
@@ -412,12 +412,12 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
   }
 }
 
-export async function ventMessage(message: string) {
+export async function deEscalateMessage(message: string) {
   try {
-    console.log('Attempting to use Anthropic for vent mode analysis');
+    console.log('Attempting to use Anthropic for de-escalate mode analysis');
     
-    // Construct a proper prompt from our vent mode template
-    const prompt = prompts.vent.free.replace('{message}', message);
+    // Construct a proper prompt from our de-escalate mode template
+    const prompt = prompts.deEscalate.free.replace('{message}', message);
     
     // Make the API call with enhanced error handling
     const response = await anthropic.messages.create({
@@ -430,13 +430,13 @@ export async function ventMessage(message: string) {
     // Safely get content text
     const content = getTextFromContentBlock(response.content);
     
-    console.log('Successfully received Anthropic response for vent mode');
+    console.log('Successfully received Anthropic response for de-escalate mode');
     
     // Parse the JSON response with markdown code block handling
     return parseAnthropicJson(content);
   } catch (error: any) {
     // Log the specific error for debugging
-    console.error('Error using Anthropic for vent mode:', error);
+    console.error('Error using Anthropic for de-escalate mode:', error);
     
     if (error.response) {
       console.error('Response status:', error.status);
