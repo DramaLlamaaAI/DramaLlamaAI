@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Archive, FileText } from "lucide-react";
+import { Info, Archive, FileText, AlertCircle } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -321,7 +321,212 @@ export default function ChatAnalysis() {
                   <div className="bg-muted p-4 rounded-lg mb-4">
                     <h4 className="font-medium mb-2">Overall Tone</h4>
                     <p className="text-lg mb-4">{result.toneAnalysis.overallTone}</p>
+                    
+                    {result.toneAnalysis.participantTones && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <h5 className="font-medium mb-2 text-sm uppercase tracking-wide text-muted-foreground">Participant Analysis</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="p-3 rounded-md bg-cyan-50 border border-cyan-100">
+                            <span className="text-cyan-700 font-medium">{me}</span>
+                            <p className="text-cyan-800 mt-1">{result.toneAnalysis.participantTones[me]}</p>
+                          </div>
+                          <div className="p-3 rounded-md bg-pink-50 border border-pink-100">
+                            <span className="text-pink-700 font-medium">{them}</span>
+                            <p className="text-pink-800 mt-1">{result.toneAnalysis.participantTones[them]}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
+                  
+                  {/* Health Meter Section */}
+                  {result.healthScore && (
+                    <div className="bg-muted p-4 rounded-lg mb-4">
+                      <h4 className="font-medium mb-2">Conversation Health</h4>
+                      <div className="flex items-center space-x-4 mb-2">
+                        <div className="w-full">
+                          <div className="relative pt-1">
+                            <div className="flex mb-2 items-center justify-between">
+                              <div>
+                                <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
+                                  {result.healthScore.label}
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-xs font-semibold inline-block text-blue-600">
+                                  {result.healthScore.score}/100
+                                </span>
+                              </div>
+                            </div>
+                            <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
+                              <div 
+                                style={{ width: `${result.healthScore.score}%` }} 
+                                className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${
+                                  result.healthScore.color === 'red' ? 'bg-red-500' :
+                                  result.healthScore.color === 'yellow' ? 'bg-yellow-500' :
+                                  result.healthScore.color === 'light-green' ? 'bg-lime-500' :
+                                  'bg-green-500'
+                                }`}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Communication Insights Section */}
+                  <div className="bg-muted p-4 rounded-lg mb-4">
+                    <h4 className="font-medium mb-2">Communication Insights</h4>
+                    {(result.communication && result.communication.patterns && result.communication.patterns.length > 0) ? (
+                      <div className="mb-4">
+                        <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
+                        <div className="space-y-3">
+                          {result.communication.patterns.map((pattern, idx) => {
+                            // Check if the pattern contains a quote (text inside quotes)
+                            const quoteMatch = pattern.match(/"([^"]+)"/);
+                            const hasQuote = quoteMatch && quoteMatch[1];
+                            
+                            // Split pattern into parts before and after the quote
+                            let beforeQuote = pattern;
+                            let quote = '';
+                            let afterQuote = '';
+                            
+                            if (hasQuote) {
+                              const parts = pattern.split(quoteMatch[0]);
+                              beforeQuote = parts[0];
+                              quote = quoteMatch[1];
+                              afterQuote = parts[1] || '';
+                            }
+                            
+                            // Detect which participant is mentioned
+                            const meColor = pattern.includes(me) ? "text-cyan-700 bg-cyan-50" : "";
+                            const themColor = pattern.includes(them) ? "text-pink-700 bg-pink-50" : "";
+                            
+                            return (
+                              <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
+                                <p>
+                                  <span className="text-gray-700">{beforeQuote}</span>
+                                  {hasQuote && (
+                                    <>
+                                      <span className={`italic px-2 py-1 rounded my-1 inline-block ${meColor || themColor || "bg-blue-50 text-blue-600"}`}>
+                                        "{quote}"
+                                      </span>
+                                      <span className="text-gray-700">{afterQuote}</span>
+                                    </>
+                                  )}
+                                  {!hasQuote && (
+                                    <span className="text-gray-700">{pattern}</span>
+                                  )}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mb-4">
+                        <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
+                        <div className="bg-blue-50 p-2 rounded">
+                          <p className="text-blue-500">
+                            {result.healthScore && result.healthScore.score > 85 ? 
+                              "Supportive check-in dialogue with positive emotional tone." :
+                              result.healthScore && result.healthScore.score < 60 ? 
+                              "Some tension detected with moments of accusatory language." : 
+                              "Mixed communication patterns with neutral emotional tone."}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {result.communication.suggestions && (
+                      <div>
+                        <h5 className="text-sm font-medium text-muted-foreground mb-1">Personalized Suggestions</h5>
+                        <div className="space-y-3 mt-2">
+                          {result.communication.suggestions.map((suggestion, idx) => {
+                            // Determine if suggestion is specifically for one participant
+                            const forMe = suggestion.toLowerCase().includes(me.toLowerCase());
+                            const forThem = suggestion.toLowerCase().includes(them.toLowerCase());
+                            
+                            return (
+                              <div 
+                                key={idx} 
+                                className={`p-3 rounded border ${
+                                  forMe 
+                                    ? "border-cyan-200 bg-cyan-50" 
+                                    : forThem 
+                                    ? "border-pink-200 bg-pink-50" 
+                                    : "border-purple-200 bg-purple-50"
+                                }`}
+                              >
+                                <div className="flex items-start">
+                                  <div className={`mt-1 mr-2 ${
+                                    forMe 
+                                      ? "text-cyan-600" 
+                                      : forThem 
+                                      ? "text-pink-600" 
+                                      : "text-purple-600"
+                                  }`}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    {forMe && (
+                                      <div className="text-xs font-medium text-cyan-600 mb-1">For {me}</div>
+                                    )}
+                                    {forThem && (
+                                      <div className="text-xs font-medium text-pink-600 mb-1">For {them}</div>
+                                    )}
+                                    {!forMe && !forThem && (
+                                      <div className="text-xs font-medium text-purple-600 mb-1">For both participants</div>
+                                    )}
+                                    <p className={`text-sm ${
+                                      forMe 
+                                        ? "text-cyan-700" 
+                                        : forThem 
+                                        ? "text-pink-700" 
+                                        : "text-purple-700"
+                                    }`}>
+                                      {suggestion}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Key Quotes Section */}
+                  {result.keyQuotes && result.keyQuotes.length > 0 && (
+                    <div className="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
+                      <h4 className="font-medium mb-2 text-blue-700">Key Quotes Analysis</h4>
+                      <div className="space-y-3">
+                        {result.keyQuotes.map((quote, idx) => (
+                          <div key={idx} className="bg-white p-3 rounded border border-blue-100">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="font-semibold text-blue-800">{quote.speaker}</span>
+                              <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">Quote #{idx + 1}</span>
+                            </div>
+                            <p className="text-gray-700 italic mb-2">"{quote.quote}"</p>
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                                <span className="font-medium text-blue-700">Analysis:</span> {quote.analysis}
+                              </p>
+                              {quote.improvement && (
+                                <div className="text-sm text-gray-600 bg-green-50 p-2 rounded border border-green-100">
+                                  <span className="font-medium text-green-700">Possible Reframe:</span> {quote.improvement}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="mt-6 flex justify-end">
                     <Button

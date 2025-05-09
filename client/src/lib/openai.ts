@@ -8,6 +8,7 @@ export interface ChatAnalysisRequest {
   conversation: string;
   me: string;
   them: string;
+  tier?: string;
 }
 
 export interface ChatAnalysisResponse {
