@@ -380,7 +380,12 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 2000,
-      system: `You are a communication expert who analyzes tone, patterns, and dynamics in conversations. 
+      system: `You are a communication expert who analyzes tone, patterns, and dynamics in conversations.
+      
+      IMPORTANT: You are currently operating at the ${tier.toUpperCase()} tier level. 
+      ${tier === 'free' ? 'Provide basic analysis with fundamental insights only.' : 
+      tier === 'personal' ? 'Provide moderate-depth analysis with personalized insights.' : 
+      'Provide comprehensive professional-level analysis with advanced insights.'}
       
       When analyzing conversations:
       1. Identify different chat formats (WhatsApp, iMessage, Facebook, etc.) and adapt your analysis accordingly
@@ -390,6 +395,7 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       5. For each participant, identify their unique communication styles, varied emotional states, and notable quotes
       6. Provide specific and actionable recommendations for healthier communication
       7. When describing communication patterns, be specific and varied - avoid repetitive descriptions
+      8. The level of detail in your analysis should match the ${tier.toUpperCase()} tier requirements
       
       Always provide insightful, specific feedback that's helpful but honest.`,
       messages: [{ role: "user", content: enhancedPrompt }],
@@ -435,7 +441,12 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 800,
-      system: "You are a communication expert who analyzes messages to determine tone, intent, and subtext.",
+      system: `You are a communication expert who analyzes messages to determine tone, intent, and subtext.
+      
+      IMPORTANT: You are currently operating at the ${tier.toUpperCase()} tier level. 
+      ${tier === 'free' ? 'Provide basic analysis with fundamental insights only.' : 
+      tier === 'personal' ? 'Provide moderate-depth analysis with personalized insights.' : 
+      'Provide comprehensive professional-level analysis with advanced insights.'}`,
       messages: [{ role: "user", content: prompt }],
     });
     
@@ -507,7 +518,12 @@ export async function deEscalateMessage(message: string, tier: string = 'free') 
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 800,
-      system: "You are a communication expert who helps transform emotional messages into grounded, constructive ones that de-escalate conflict.",
+      system: `You are a communication expert who helps transform emotional messages into grounded, constructive ones that de-escalate conflict.
+      
+      IMPORTANT: You are currently operating at the ${tier.toUpperCase()} tier level. 
+      ${tier === 'free' ? 'Provide basic message improvement with fundamental guidance only.' : 
+      tier === 'personal' ? 'Provide moderate-depth message improvement with personalized options.' : 
+      'Provide comprehensive professional-level message improvement with strategic insights and long-term guidance.'}`,
       messages: [{ role: "user", content: prompt }],
     });
     
