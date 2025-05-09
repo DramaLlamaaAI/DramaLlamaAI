@@ -234,94 +234,122 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     // Create a custom enhanced prompt with improved communication pattern analysis
     let enhancedPrompt = '';
     
-    if (tier === 'pro') {
-      enhancedPrompt = `Perform a comprehensive analysis of this conversation between ${me} and ${them}.
+    if (tier === 'pro' || tier === 'instant') {
+      enhancedPrompt = `Perform a comprehensive professional-level analysis of this conversation between ${me} and ${them}.
       Return a JSON object with the following structure:
       {
         "toneAnalysis": {
-          "overallTone": "string describing the conversation's overall tone",
+          "overallTone": "detailed description of the conversation's overall tone",
           "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-          "participantTones": {"participant name": "tone description"}
+          "participantTones": {"participant name": "comprehensive tone description"}
         },
-        "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
+        "redFlags": [{"type": "string", "description": "detailed description", "severity": number between 1-5}],
         "communication": {
-          "patterns": ["specific and varied interaction patterns - avoid repetitive descriptions like 'X attacks, Y defends'"],
-          "dynamics": ["detailed analysis of how the conversation flow evolves and shifts"],
-          "suggestions": ["specific tailored suggestions for improvement"]
+          "patterns": ["specific and varied interaction patterns with behavioral pattern detection"],
+          "dynamics": ["detailed analysis of conversation flow, dominance patterns, and power dynamics"],
+          "suggestions": ["specific tailored professional suggestions for improvement"]
         },
         "healthScore": {
           "score": number between 0-100,
           "label": "Troubled/Needs Work/Good/Excellent",
           "color": "red/yellow/light-green/green"
         },
-        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for improvement"}],
-        "highTensionFactors": ["string with reason"],
+        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "deep interpretation including manipulation score if relevant", "improvement": "professional suggestion for improvement"}],
+        "highTensionFactors": ["detailed reasons for tension with historical pattern recognition"],
         "participantConflictScores": {
           "participant name": {
             "score": number between 0-100,
-            "label": "string describing style",
+            "label": "detailed description of communication style",
             "isEscalating": boolean
           }
-        }
+        },
+        "tensionContributions": {
+          "participant name": ["specific actions/phrases that contribute to tension"]
+        },
+        "tensionMeaning": "detailed explanation of what the tension patterns indicate about the relationship dynamic"
       }
+      
+      Include ADVANCED FEATURES such as:
+      - Conversation dynamics with behavioral pattern detection
+      - Evasion identification and avoidance detection
+      - Message dominance analysis (who controls the conversation)
+      - Power dynamics analysis
+      - Historical pattern recognition (recurring themes)
+      - Deep red flags analysis with timeline implications
       
       Here's the conversation:
       ${conversation}`;
     } else if (tier === 'personal') {
-      enhancedPrompt = `Analyze this conversation between ${me} and ${them}. 
+      enhancedPrompt = `Analyze this conversation between ${me} and ${them} with a personal-level depth. 
       Return a JSON object with the following structure:
       {
         "toneAnalysis": {
-          "overallTone": "string describing the conversation's overall tone",
+          "overallTone": "detailed description of the conversation's overall tone",
           "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-          "participantTones": {"participant name": "tone description"}
+          "participantTones": {"participant name": "personalized tone description"}
         },
-        "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
+        "redFlags": [{"type": "string", "description": "clear description", "severity": number between 1-5}],
         "communication": {
-          "patterns": ["specific and varied interaction patterns - avoid repetitive descriptions"],
-          "dynamics": ["analysis of how the conversation flow changes and evolves"],
-          "suggestions": ["specific tailored suggestions for improvement"]
+          "patterns": ["specific communication patterns observed"],
+          "dynamics": ["analysis of basic relationship dynamics"],
+          "suggestions": ["personalized suggestions for improvement"]
         },
         "healthScore": {
           "score": number between 0-100,
           "label": "Troubled/Needs Work/Good/Excellent",
           "color": "red/yellow/light-green/green"
         },
-        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for how to reword this statement to be more constructive"}],
-        "highTensionFactors": ["string with reason"],
+        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation with basic manipulation score", "improvement": "suggestion for how to reword to be more constructive"}],
+        "highTensionFactors": ["clear reasons for tension"],
         "participantConflictScores": {
           "participant name": {
             "score": number between 0-100,
-            "label": "string describing style",
+            "label": "communication style description",
             "isEscalating": boolean
           }
-        }
+        },
+        "tensionContributions": {
+          "participant name": ["specific actions/phrases that contribute to tension"]
+        },
+        "tensionMeaning": "explanation of what the tension means for the relationship"
       }
+      
+      Include PERSONAL TIER FEATURES such as:
+      - Advanced emotional tone analysis
+      - Individual contributions to tension
+      - Clear communication styles breakdown
+      - Accountability indicators
+      - Emotion tracking per participant
       
       Here's the conversation:
       ${conversation}`;
     } else {
-      enhancedPrompt = `Analyze this conversation between ${me} and ${them}. 
+      enhancedPrompt = `Provide a basic analysis of this conversation between ${me} and ${them}. 
       Return a JSON object with the following structure:
       {
         "toneAnalysis": {
-          "overallTone": "string describing the conversation's overall tone",
+          "overallTone": "brief description of the conversation's overall tone",
           "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-          "participantTones": {"participant name": "tone description"}
+          "participantTones": {"participant name": "brief tone description"}
         },
-        "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
         "communication": {
-          "patterns": ["specific and varied interaction patterns - avoid repetitive descriptions"],
-          "dynamics": ["analysis of how the conversation flow changes and evolves"],
-          "suggestions": ["specific tailored suggestions for improvement"]
+          "patterns": ["basic interaction patterns observed"],
+          "suggestions": ["simple suggestions for improvement"]
         },
         "healthScore": {
           "score": number between 0-100,
           "label": "Troubled/Needs Work/Good/Excellent",
           "color": "red/yellow/light-green/green"
         },
-        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for how to reword this statement to be more constructive"}]
+        "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "brief interpretation", "improvement": "simple suggestion"}]
       }
+      
+      ONLY INCLUDE BASIC FREE TIER FEATURES:
+      - Overall emotional tone summary
+      - Simple participant analysis
+      - Conversation health meter
+      - Brief highlight quotes
+      - Basic communication insights
       
       Here's the conversation:
       ${conversation}`;
