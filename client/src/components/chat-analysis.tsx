@@ -16,6 +16,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cleanPatternForDisplay, cleanCommunicationPatterns } from "@/lib/analysis-utils";
+import { CommunicationStyles } from "@/components/communication-styles";
+import { RedFlags } from "@/components/red-flags";
+import { AccountabilityMeters } from "@/components/accountability-meters";
+import { BehavioralPatterns } from "@/components/behavioral-patterns";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -859,6 +863,33 @@ export default function ChatAnalysis() {
                       </div>
                     </div>
                   )}
+                  
+                  {/* Red Flags Detection (Personal+ Tier) */}
+                  <RedFlags redFlags={result.redFlags} tier={tier} />
+                  
+                  {/* Communication Styles Breakdown (Personal+ Tier) */}
+                  {(tier === 'personal' || tier === 'pro' || tier === 'instant') && (
+                    <CommunicationStyles 
+                      me={me} 
+                      them={them} 
+                      participantConflictScores={result.participantConflictScores} 
+                    />
+                  )}
+                  
+                  {/* Accountability Meters (Personal+ Tier) */}
+                  <AccountabilityMeters 
+                    me={me} 
+                    them={them} 
+                    tier={tier} 
+                    tensionContributions={result.tensionContributions}
+                  />
+                  
+                  {/* Behavioral Patterns Detection (Pro+ Tier) */}
+                  <BehavioralPatterns 
+                    tier={tier} 
+                    conversation={conversation}
+                    dynamics={result.communication?.dynamics}
+                  />
                   
                   <div className="mt-6 flex justify-end">
                     <Button
