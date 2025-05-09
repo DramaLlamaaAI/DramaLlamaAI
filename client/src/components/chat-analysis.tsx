@@ -23,6 +23,7 @@ import { BehavioralPatterns } from "@/components/behavioral-patterns";
 import { EmotionTracking } from "@/components/emotion-tracking";
 import { PersonalizedSuggestions } from "@/components/personalized-suggestions";
 import { TensionContributions } from "@/components/tension-contributions";
+import { HealthScoreDisplay } from "@/components/health-score-display";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -500,76 +501,13 @@ export default function ChatAnalysis() {
                     )}
                   </div>
                   
-                  {/* Enhanced Health Meter Section */}
-                  {result.healthScore && (
-                    <div className="bg-muted p-4 rounded-lg mb-4">
-                      <h4 className="font-medium mb-2">Conversation Health</h4>
-                      <div className="w-full">
-                        <div className="relative pt-1">
-                          <div className="flex mb-2 items-center justify-between">
-                            <div>
-                              <span className={`text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full ${
-                                result.healthScore.score < 30 ? 'bg-red-200 text-red-700' :
-                                result.healthScore.score < 50 ? 'bg-orange-200 text-orange-700' :
-                                result.healthScore.score < 70 ? 'bg-yellow-200 text-yellow-700' :
-                                result.healthScore.score < 90 ? 'bg-lime-200 text-lime-700' :
-                                'bg-green-200 text-green-700'
-                              }`}>
-                                {result.healthScore.label}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-xs font-semibold inline-block text-blue-600">
-                                {result.healthScore.score}/100
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Custom health meter with segments */}
-                          <div className="relative h-4 mb-4 overflow-hidden rounded-full bg-gray-200 flex">
-                            <div className="absolute inset-0 flex w-full">
-                              <div className="w-1/5 bg-red-500"></div>
-                              <div className="w-1/5 bg-orange-500"></div>
-                              <div className="w-1/5 bg-yellow-500"></div>
-                              <div className="w-1/5 bg-lime-500"></div>
-                              <div className="w-1/5 bg-green-500"></div>
-                            </div>
-                            
-                            {/* Indicator */}
-                            <div 
-                              className="absolute h-6 w-3 bg-white border-2 border-gray-600 rounded-full transform -translate-y-1" 
-                              style={{ left: `calc(${result.healthScore.score}% - 6px)` }}
-                            ></div>
-                          </div>
-                          
-                          {/* Labels */}
-                          <div className="flex justify-between text-xs text-gray-600 px-1">
-                            <div>Conflict</div>
-                            <div>Tense</div>
-                            <div>Neutral</div>
-                            <div>Healthy</div>
-                            <div>Very Healthy</div>
-                          </div>
-                          
-                          {/* Health description */}
-                          <div className="mt-3 bg-blue-50 p-3 rounded-md border border-blue-100">
-                            <p className="text-sm text-blue-800">
-                              {result.healthScore.score < 30 ? 
-                                "This conversation shows significant conflict patterns and tension. Consider taking a step back before continuing." :
-                                result.healthScore.score < 50 ?
-                                "There's notable tension in this conversation. Try to address underlying issues before they escalate further." :
-                                result.healthScore.score < 70 ?
-                                "This conversation has a neutral tone with some supportive moments balanced by occasional tension." :
-                                result.healthScore.score < 90 ?
-                                "This is a healthy conversation with good communication patterns and minimal tension." :
-                                "Excellent communication! This conversation shows strong mutual respect and healthy interaction patterns."
-                              }
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* Health Score Display - using our new component */}
+                  <HealthScoreDisplay 
+                    healthScore={result.healthScore}
+                    me={me}
+                    them={them}
+                    tier={tier}
+                  />
                   
                   {/* Tension Contributions Section - only show if present */}
                   {result.tensionContributions && Object.keys(result.tensionContributions).length > 0 && (

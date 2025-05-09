@@ -9,8 +9,8 @@ interface BehavioralPatternsProps {
 }
 
 export function BehavioralPatterns({ tier, conversation, dynamics }: BehavioralPatternsProps) {
-  // Only show for pro/instant tiers
-  if (tier !== 'pro' && tier !== 'instant') {
+  // Check if user has at least personal tier
+  if (tier === 'free') {
     return null;
   }
   
@@ -183,15 +183,23 @@ export function BehavioralPatterns({ tier, conversation, dynamics }: BehavioralP
     const generatedPatterns = generatePatternsForParticipants(participants[0], participants[0] === 'Alex' ? 'Jamie' : 'Alex', conversation);
     
     if (generatedPatterns.length > 0) {
+      // Determine what to show based on tier
+      // Pro tier gets full patterns with detailed insights
+      // Personal tier gets limited patterns (just 1) with upgrade message
+      const isPro = tier === 'pro' || tier === 'instant';
+      const patternsToShow = isPro ? generatedPatterns : generatedPatterns.slice(0, 1);
+      
       return (
         <div className="mt-6">
           <div className="flex items-center mb-3">
             <Repeat className="h-5 w-5 text-purple-500 mr-2" />
-            <h3 className="text-lg font-semibold">Behavioral Pattern Detection</h3>
+            <h3 className="text-lg font-semibold">
+              {isPro ? "Behavioral Pattern Detection" : "Communication Pattern"}
+            </h3>
           </div>
           
           <div className="space-y-4">
-            {generatedPatterns.map((pattern, index) => (
+            {patternsToShow.map((pattern, index) => (
               <Card key={index}>
                 <CardContent className="p-4">
                   <div className="flex items-start">
@@ -200,20 +208,37 @@ export function BehavioralPatterns({ tier, conversation, dynamics }: BehavioralP
                     </div>
                     <div>
                       <p className="text-sm text-gray-700">{pattern}</p>
+                      {isPro && index === 0 && (
+                        <p className="text-xs text-purple-600 mt-2">
+                          <span className="font-medium">Impact:</span> This pattern often creates a cycle that's difficult to break without addressing the underlying emotional needs.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
             
-            <div className="bg-purple-50 p-3 rounded border border-purple-100 mt-3">
-              <div className="flex items-center">
-                <p className="text-sm text-purple-700 flex-1">
-                  <span className="font-medium">Pro tier feature:</span> Comprehensive behavioral pattern analysis helps identify repeating communication cycles.
+            {!isPro && (
+              <div className="bg-purple-50 p-3 rounded border border-purple-200">
+                <p className="text-sm text-purple-700 flex items-center">
+                  <span className="font-medium mr-1">Upgrade to Pro:</span> 
+                  Get {generatedPatterns.length - 1} more patterns with detailed insights on recurring cycles and behavioral dynamics.
+                  <ChevronRight className="h-4 w-4 text-purple-500 ml-auto" />
                 </p>
-                <ChevronRight className="h-4 w-4 text-purple-500" />
               </div>
-            </div>
+            )}
+            
+            {isPro && (
+              <div className="bg-purple-50 p-3 rounded border border-purple-100 mt-3">
+                <div className="flex items-center">
+                  <p className="text-sm text-purple-700 flex-1">
+                    <span className="font-medium">Pro tier feature:</span> Advanced behavioral pattern detection identifies specific communication cycles that may be creating tension in this conversation.
+                  </p>
+                  <ChevronRight className="h-4 w-4 text-purple-500" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       );
