@@ -27,13 +27,16 @@ export const sendEmail = async (params: EmailParams): Promise<boolean> => {
   }
 
   try {
-    await mailService.send({
+    // Create the email with proper typing for SendGrid
+    const msg = {
       to: params.to,
       from: 'noreply@dramallama.ai', // Update this with your validated sender
       subject: params.subject,
-      text: params.text,
-      html: params.html,
-    });
+      text: params.text || '',
+      html: params.html || '',
+    };
+    
+    await mailService.send(msg);
     return true;
   } catch (error) {
     console.error('Failed to send email:', error);

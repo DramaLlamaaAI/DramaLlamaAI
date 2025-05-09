@@ -65,6 +65,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', authController.getCurrentUser);
   app.post('/api/auth/check-trial', authController.trackAnonymousUsage);
   
+  // Email verification routes
+  app.post('/api/auth/verify-email', authController.verifyEmail);
+  app.post('/api/auth/resend-verification', authController.resendVerification);
+  
   // User usage data
   app.get('/api/user/usage', authController.getUserUsage);
   

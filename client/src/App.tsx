@@ -12,6 +12,7 @@ import NotFound from "@/pages/not-found";
 import SubscriptionPage from "@/pages/subscription";
 import CheckoutPage from "@/pages/checkout";
 import AuthPage from "@/pages/auth-page";
+import VerifyEmailPage from "@/pages/verify-email-page";
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
 import VentMode from "./components/vent-mode";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/checkout" component={CheckoutPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/verify-email" component={VerifyEmailPage} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -46,6 +46,16 @@ const trackAnonymousSchema = z.object({
   deviceId: z.string().min(1, "Device ID is required"),
 });
 
+// Schema for email verification
+const verifyEmailSchema = z.object({
+  code: z.string().min(6, "Verification code is required"),
+});
+
+// Schema for resending verification email
+const resendVerificationSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
 export const authController = {
   // User registration
   register: async (req: Request, res: Response) => {
@@ -258,6 +268,96 @@ export const authController = {
     } catch (error) {
       console.error("Get usage error:", error);
       res.status(500).json({ error: "Failed to get usage information" });
+    }
+  },
+  
+  // Verify email with code
+  verifyEmail: async (req: Request, res: Response) => {
+    try {
+      const { code } = verifyEmailSchema.parse(req.body);
+      
+      // Check if the verification code is valid
+      const user = await storage.getUserByVerificationCode(code);
+      if (!user) {
+        return res.status(400).json({ 
+          error: "Invalid verification code",
+          message: "The verification code is invalid or has expired."
+        });
+      }
+      
+      // Mark the email as verified
+      await storage.verifyEmail(user.id);
+      
+      // If user is not already logged in, log them in
+      if (req.session && !req.session.userId) {
+        req.session.userId = user.id;
+      }
+      
+      // Return updated user info (without password)
+      const updatedUser = await storage.getUser(user.id);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.status(200).json({
+        ...userWithoutPassword,
+        message: "Email verified successfully!"
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors[0].message });
+      } else {
+        console.error("Email verification error:", error);
+        res.status(500).json({ error: "Email verification failed" });
+      }
+    }
+  },
+  
+  // Resend verification email
+  resendVerification: async (req: Request, res: Response) => {
+    try {
+      const { email } = resendVerificationSchema.parse(req.body);
+      
+      // Check if the email exists
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // For security, don't reveal that the email doesn't exist
+        return res.status(200).json({ 
+          message: "If your email is registered, a verification link has been sent."
+        });
+      }
+      
+      // Check if the email is already verified
+      if (user.emailVerified) {
+        return res.status(400).json({ 
+          error: "Email already verified",
+          message: "Your email is already verified."
+        });
+      }
+      
+      // Generate new verification code
+      const verificationCode = generateVerificationCode();
+      
+      // Set new verification code in user record (expires in 24 hours)
+      await storage.setVerificationCode(user.id, verificationCode, 24 * 60);
+      
+      // Try to send verification email
+      const emailSent = await sendVerificationEmail(user, verificationCode);
+      
+      res.status(200).json({ 
+        message: "Verification email sent successfully!",
+        verificationCode: !emailSent ? verificationCode : undefined,
+        emailSent
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors[0].message });
+      } else {
+        console.error("Resend verification error:", error);
+        res.status(500).json({ error: "Failed to resend verification email" });
+      }
     }
   }
 };
