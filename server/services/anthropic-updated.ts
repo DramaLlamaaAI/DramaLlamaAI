@@ -425,23 +425,76 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     } catch (error) {
       console.error('JSON parsing failed in chat analysis, attempting fallback', error);
       
-      // Fallback to a simplified response that maintains basic functionality
-      return {
-        toneAnalysis: {
-          overallTone: "We couldn't complete the full analysis due to a technical issue. Please try again later or contact support.",
-          emotionalState: [{ emotion: "unknown", intensity: 0.5 }],
-          participantTones: { [me]: "unknown", [them]: "unknown" }
-        },
-        communication: {
-          patterns: ["Analysis error - please try again."],
-          suggestions: ["We apologize for the inconvenience."]
-        },
-        healthScore: {
-          score: 50, 
-          label: "Analysis Error", 
-          color: "yellow"
+      // Extract as much information from the response as possible using regex
+      let partialData: any = {};
+      
+      try {
+        // Attempt to extract key pieces of information using regex
+        const overallToneMatch = content.match(/overallTone['":\s]+([^"',}]+)/);
+        const overallTone = overallToneMatch ? overallToneMatch[1].trim() : 
+          "We couldn't complete the full analysis due to a technical issue.";
+        
+        const patternMatch = content.match(/patterns['":\s]+\[([^\]]+)\]/);
+        const patterns = patternMatch ? 
+          patternMatch[1].split(',').map(p => p.replace(/["']/g, '').trim()).filter(p => p) : 
+          ["Analysis error - please try again."];
+          
+        const scoreMatch = content.match(/score['":\s]+(\d+)/);
+        const score = scoreMatch ? parseInt(scoreMatch[1]) : 50;
+        
+        const labelMatch = content.match(/label['":\s]+([^"',}]+)/);
+        const label = labelMatch ? labelMatch[1].trim() : "Analysis Error";
+        
+        // Create a more detailed fallback response
+        partialData = {
+          toneAnalysis: {
+            overallTone: overallTone,
+            emotionalState: [{ emotion: "mixed", intensity: 0.5 }],
+            participantTones: { [me]: "Undetermined", [them]: "Undetermined" }
+          },
+          communication: {
+            patterns: patterns,
+            suggestions: ["We were able to extract partial analysis. Try again for complete results."]
+          },
+          healthScore: {
+            score: score, 
+            label: label, 
+            color: "yellow"
+          }
+        };
+        
+        // Add tier-specific fields for a better user experience
+        if (tier === 'pro' || tier === 'instant') {
+          partialData.redFlags = [{
+            type: "Technical Issue",
+            description: "The advanced analysis engine encountered an error. Some features may be limited.",
+            severity: 1
+          }];
         }
-      };
+        
+        console.log('Created partial response from available data');
+        return partialData;
+      } catch (extractError) {
+        console.error('Failed to extract partial data:', extractError);
+        
+        // Last resort basic fallback
+        return {
+          toneAnalysis: {
+            overallTone: "We couldn't complete the full analysis due to a technical issue. Please try again later or contact support.",
+            emotionalState: [{ emotion: "unknown", intensity: 0.5 }],
+            participantTones: { [me]: "unknown", [them]: "unknown" }
+          },
+          communication: {
+            patterns: ["Analysis error - please try again."],
+            suggestions: ["We apologize for the inconvenience."]
+          },
+          healthScore: {
+            score: 50, 
+            label: "Analysis Error", 
+            color: "yellow"
+          }
+        };
+      }
     }
   } catch (error: any) {
     // Log the specific error for debugging
@@ -650,8 +703,57 @@ export async function detectParticipants(conversation: string) {
     
     console.log('Successfully received Anthropic response for participant detection');
     
-    // Parse the JSON response with markdown code block handling
-    return parseAnthropicJson(content);
+    try {
+      // Parse the JSON response with markdown code block handling
+      return parseAnthropicJson(content);
+    } catch (error) {
+      console.error('JSON parsing failed in participant detection, attempting fallback', error);
+      
+      try {
+        // Try to directly extract the names using regex as a fallback
+        const meMatch = content.match(/"me"\s*:\s*"([^"]*)"/);
+        const themMatch = content.match(/"them"\s*:\s*"([^"]*)"/);
+        
+        if (meMatch && themMatch) {
+          return {
+            me: meMatch[1].trim(),
+            them: themMatch[1].trim()
+          };
+        }
+        
+        // Simple name detection as last resort
+        console.log('Performing simple name extraction from conversation');
+        // Extract the first 500 characters to find common name patterns
+        const excerpt = conversation.substring(0, 500);
+        
+        // Look for common patterns like "Name:" or "[timestamp] Name:"
+        const namePatterns = excerpt.match(/(?:^|\n|\[)[^:[\]]*?([A-Z][a-z]+)(?::|:)/g);
+        
+        if (namePatterns && namePatterns.length >= 1) {
+          const names = namePatterns
+            .map(match => {
+              // Extract just the name part
+              const nameMatch = match.match(/([A-Z][a-z]+)(?::|:)/);
+              return nameMatch ? nameMatch[1] : null;
+            })
+            .filter(Boolean)
+            .filter((name, index, self) => self.indexOf(name) === index); // Unique names
+          
+          if (names.length >= 2) {
+            return { me: names[0], them: names[1] };
+          } else if (names.length === 1) {
+            return { me: names[0], them: "Other Person" };
+          }
+        }
+        
+        // If no names found, provide generic names
+        return { me: "User", them: "Contact" };
+      } catch (fallbackError) {
+        console.error('All name detection methods failed:', fallbackError);
+        // Last resort default names
+        return { me: "Me", them: "Them" };
+      }
+    }
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for participant detection:', error);

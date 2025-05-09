@@ -48,34 +48,105 @@ export function parseAnthropicJson(content: string): any {
     console.log('Preprocessed JSON content (first 100 chars):', jsonContent.substring(0, 100));
     
     try {
-      return JSON.parse(jsonContent);
+      // Try a direct parse first
+      try {
+        return JSON.parse(jsonContent);
+      } catch (error) {
+        const initialParseError = error as Error;
+        console.log('Initial parse failed:', initialParseError.message);
+        
+        // Check if this is the special case with the participant detection
+        if (jsonContent.includes('"me":') && jsonContent.includes('"them":')) {
+          const meMatch = jsonContent.match(/"me"\s*:\s*"([^"]*)"/);
+          const themMatch = jsonContent.match(/"them"\s*:\s*"([^"]*)"/);
+          
+          if (meMatch && themMatch) {
+            console.log('Detected participant data, using regex extraction');
+            return {
+              me: meMatch[1].trim(),
+              them: themMatch[1].trim()
+            };
+          }
+        }
+        
+        // Try with a more aggressive cleaning approach
+        console.log('Attempting more aggressive JSON cleaning');
+        
+        // Replace problematic patterns that often cause issues
+        jsonContent = jsonContent
+          // Fix incorrectly escaped quotes
+          .replace(/\\"/g, '"').replace(/"{2,}/g, '"')
+          // Fix backslash escaping issues
+          .replace(/([^\\])\\([^"\\])/g, '$1\\\\$2')
+          // Fix quotes inside property values
+          .replace(/"([^"]*)":\s*"([^"]*)"/g, (match, key, value) => {
+            const fixedValue = value.replace(/"/g, '\\"');
+            return `"${key}":"${fixedValue}"`;
+          })
+          // Fix possible line breaks in strings
+          .replace(/"\s+"/g, ' ')
+          // Remove potential comments
+          .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*/g, '')
+          // Fix potential trailing commas in objects and arrays
+          .replace(/,(\s*[\]}])/g, '$1')
+          // Fix missing commas between properties
+          .replace(/}(\s*){/g, '},{')
+          .replace(/"([^"]*)"(\s*)"/g, '"$1","')
+          // Re-wrap the content in braces if stripped somehow
+          .trim();
+        
+        if (!jsonContent.startsWith('{')) jsonContent = '{' + jsonContent;
+        if (!jsonContent.endsWith('}')) jsonContent += '}';
+        
+        // Handle the specific common errors we're seeing in the logs
+        jsonContent = jsonContent
+          // Fix the common pattern where a quote is incorrectly escaped inside a string value
+          .replace(/"([^"]+)\\"([^"]+)"/g, '"$1\\\\"$2"')
+          // Fix specifically for participant detection
+          .replace(/"me"\s*:\s*"([^"]*)\\",\s*\\"them"\s*:\s*"([^"]*)"/g, '"me":"$1","them":"$2"');
+        
+        return JSON.parse(jsonContent);
+      }
     } catch (error) {
-      const initialParseError = error as Error;
-      console.log('Initial parse failed:', initialParseError.message);
-      // Try with a more aggressive cleaning approach
-      console.log('Attempting more aggressive JSON cleaning');
+      const parseError = error as Error;
+      console.log('Advanced parse failed:', parseError.message);
       
-      // Replace problematic patterns that often cause issues
-      jsonContent = jsonContent
-        // Fix incorrectly escaped quotes
-        .replace(/\\"/g, '"').replace(/"{2,}/g, '"')
-        // Fix possible line breaks in strings
-        .replace(/"\s+"/g, ' ')
-        // Remove potential comments
-        .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*/g, '')
-        // Fix potential trailing commas in objects and arrays
-        .replace(/,(\s*[\]}])/g, '$1')
-        // Handle quotes inside strings by escaping them
-        .replace(/"([^"]*)"|'([^']*)'|`([^`]*)`/g, (match) => {
-          return match.replace(/"/g, '\\"');
-        })
-        // Re-wrap the content in braces if stripped somehow
-        .trim();
-      
-      if (!jsonContent.startsWith('{')) jsonContent = '{' + jsonContent;
-      if (!jsonContent.endsWith('}')) jsonContent += '}';
-      
-      return JSON.parse(jsonContent);
+      // Last resort - try regex extraction for bare minimum chat analysis
+      try {
+        if (jsonContent.includes('"overallTone"')) {
+          const toneMatch = jsonContent.match(/"overallTone"\s*:\s*"([^"]*)"/);
+          const tone = toneMatch ? toneMatch[1] : "Unknown tone";
+          
+          console.log('Extracted tone via regex:', tone.substring(0, 30) + '...');
+          
+          // Create a minimal valid object that matches what the app expects
+          return {
+            toneAnalysis: {
+              overallTone: tone,
+              emotionalState: [{ emotion: "mixed", intensity: 0.5 }]
+            },
+            communication: {
+              patterns: ["Analysis recovered via backup method"]
+            },
+            healthScore: {
+              score: 50,
+              label: "Analysis incomplete",
+              color: "yellow"
+            }
+          };
+        } else if (jsonContent.includes('"tone"')) {
+          // For message analysis
+          const toneMatch = jsonContent.match(/"tone"\s*:\s*"([^"]*)"/);
+          return {
+            tone: toneMatch ? toneMatch[1] : "Unable to analyze tone",
+            intent: ["Analysis partially recovered"]
+          };
+        }
+        
+        throw new Error("Cannot extract meaningful data from response");
+      } catch (finalError) {
+        throw new Error("Invalid JSON format that could not be repaired automatically");
+      }
     }
   } catch (parseError) {
     console.error('Failed to parse response as JSON:', parseError);
