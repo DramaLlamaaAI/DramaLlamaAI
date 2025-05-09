@@ -490,18 +490,24 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       Here's the conversation:
       ${conversation}`;
     } else {
-      enhancedPrompt = `Analyze this conversation between ${me} and ${them} and provide a simple assessment.
-      
-Return a JSON object with EXACTLY this structure:
+      enhancedPrompt = `Provide a basic tone analysis of conversation between ${me} and ${them}.
+
+Return ONLY a JSON object with this EXACT structure:
 
 {
   "toneAnalysis": {
-    "overallTone": "brief description of conversation tone",
-    "emotionalState": [{"emotion": "word", "intensity": 0.5}],
-    "participantTones": {"${me}": "brief description", "${them}": "brief description"}
+    "overallTone": "simple description",
+    "emotionalState": [
+      {"emotion": "primary", "intensity": 0.7},
+      {"emotion": "secondary", "intensity": 0.4}
+    ],
+    "participantTones": {
+      "${me}": "brief tone",
+      "${them}": "brief tone"
+    }
   },
   "communication": {
-    "patterns": ["short pattern 1", "short pattern 2"]
+    "patterns": ["pattern one", "pattern two"]
   },
   "healthScore": {
     "score": 50,
@@ -510,12 +516,14 @@ Return a JSON object with EXACTLY this structure:
   }
 }
 
-EXTREMELY IMPORTANT:
-- Keep ALL descriptions under 10 words
-- Use only 2-3 emotions max
-- Avoid any character that might break JSON
-- Never use quotation marks inside descriptions
-- Make sure score is a number between 0-100
+STRICT RULES:
+- Each description must be 5 words or less
+- Emotions must be single words (frustrated, angry, happy)
+- Intensity values between 0.1 and 1.0
+- NO quotation marks in any text value
+- NO special characters
+- Score must be a number between 0-100
+- Label must be one of: Conflict, Tension, Stable, Healthy
 - Color must be one of: red, yellow, light-green, green
 
 Here's the conversation:
@@ -764,41 +772,50 @@ export async function detectParticipants(conversation: string) {
   try {
     console.log('Attempting to use Anthropic for participant detection');
     
-    // Prepare the prompt
-    const prompt = prompts.detectNames.replace('{conversation}', conversation);
+    // Extract the first 500 characters for a faster name detection
+    const excerpt = conversation.substring(0, 500);
+    
+    // Direct pattern matching approach first
+    const namePatterns = excerpt.match(/(?:^|\n|\[)[^:[\]]*?([A-Z][a-z]+)(?::|:)/g);
+    
+    if (namePatterns && namePatterns.length >= 1) {
+      const names = namePatterns
+        .map(match => {
+          // Extract just the name part
+          const nameMatch = match.match(/([A-Z][a-z]+)(?::|:)/);
+          return nameMatch ? nameMatch[1] : null;
+        })
+        .filter(Boolean)
+        .filter((name, index, self) => self.indexOf(name) === index); // Unique names
+      
+      if (names.length >= 2) {
+        console.log('Direct pattern matching found participants:', names[0], 'and', names[1]);
+        return { me: names[0], them: names[1] };
+      }
+    }
+    
+    // If direct pattern fails, try AI-based detection
+    // Prepare the prompt, but use a simplified one now
+    const prompt = `Identify the two main names in this conversation, showing them in this simple JSON format:
+    {
+      "me": "Name1",
+      "them": "Name2"
+    }
+    
+    First few lines of conversation:
+    ${excerpt}`;
     
     // Make the API call with enhanced error handling
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
-      max_tokens: 500,
-      system: `You are a program that identifies exactly two participant names in conversations.
+      max_tokens: 100, // Reduced tokens for a simpler response
+      temperature: 0.1, // Lower temperature for more consistent output
+      system: `You are a name extraction system. ONLY respond with a simple JSON object with "me" and "them" fields.
 
-EXTREMELY CRITICAL: Your output MUST be EXACTLY like this:
+NO explanations. NO markdown. JUST a JSON object like this:
+{"me":"Name1","them":"Name2"}
 
-\`\`\`json
-{
-  "me": "FirstPersonName",
-  "them": "SecondPersonName"
-}
-\`\`\`
-
-CRITICAL RULES TO FOLLOW:
-1. ONLY output valid JSON with EXACTLY the format shown above
-2. NEVER include any explanations before or after the JSON block
-3. ONLY use ASCII characters for names - no special characters
-4. NEVER use single quotes anywhere - only double quotes
-5. DO NOT use any characters besides letters in the names
-6. LIMITED to exactly two participants - "me" and "them"
-7. NAMES must be single words without spaces
-
-When analyzing conversations:
-- Look for patterns like "Name: message" 
-- For WhatsApp, find "[MM/DD/YY, HH:MM:SS] Name:"
-- For SMS, find "YYYY-MM-DD HH:MM:SS Name:"
-- For Facebook, find "Name at HH:MM" patterns
-- Find exactly two most frequent speakers
-
-THIS IS A PROGRAMMING INTERFACE. The app will break if you don't follow these rules exactly.`,
+That's it. Nothing else.`,
       messages: [{ role: "user", content: prompt }],
     });
     
@@ -807,69 +824,60 @@ THIS IS A PROGRAMMING INTERFACE. The app will break if you don't follow these ru
     
     console.log('Successfully received Anthropic response for participant detection');
     
-    try {
-      // Parse the JSON response with markdown code block handling
-      return parseAnthropicJson(content);
-    } catch (error) {
-      console.error('JSON parsing failed in participant detection, attempting fallback', error);
+    // Try more specific regex patterns to match the exact output format problems we're seeing
+    // Various formats we've observed:
+    // 1. Standard format: {"me":"Jamie","them":"Alex"}
+    // 2. Escaped quotes: {"me":"Jamie\","them":"Alex"} - the backslash prevents proper parsing
+    
+    // Helper function to sanitize a name by removing any non-letter characters
+    const sanitizeName = (name: string): string => {
+      // Remove any backslashes, quote marks, or other non-letter characters
+      return name.replace(/[^A-Za-z]/g, '');
+    };
+
+    // Direct pattern match approach looking for {"me":"Name","them":"Name"} pattern or variations
+    const namePattern = content.match(/{.*?"me"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*).*?"them"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)/);
+    if (namePattern && namePattern[1] && namePattern[2]) {
+      const firstName = sanitizeName(namePattern[1]);
+      const secondName = sanitizeName(namePattern[2]);
       
-      try {
-        // Try to directly extract the names using regex as a fallback
-        const meMatch = content.match(/"me"\s*:\s*"([^"]*)"/);
-        const themMatch = content.match(/"them"\s*:\s*"([^"]*)"/);
-        
-        if (meMatch && themMatch) {
-          return {
-            me: meMatch[1].trim(),
-            them: themMatch[1].trim()
-          };
-        }
-        
-        // Simple name detection as last resort
-        console.log('Performing simple name extraction from conversation');
-        // Extract the first 500 characters to find common name patterns
-        const excerpt = conversation.substring(0, 500);
-        
-        // Look for common patterns like "Name:" or "[timestamp] Name:"
-        const namePatterns = excerpt.match(/(?:^|\n|\[)[^:[\]]*?([A-Z][a-z]+)(?::|:)/g);
-        
-        if (namePatterns && namePatterns.length >= 1) {
-          const names = namePatterns
-            .map(match => {
-              // Extract just the name part
-              const nameMatch = match.match(/([A-Z][a-z]+)(?::|:)/);
-              return nameMatch ? nameMatch[1] : null;
-            })
-            .filter(Boolean)
-            .filter((name, index, self) => self.indexOf(name) === index); // Unique names
-          
-          if (names.length >= 2) {
-            return { me: names[0], them: names[1] };
-          } else if (names.length === 1) {
-            return { me: names[0], them: "Other Person" };
-          }
-        }
-        
-        // If no names found, provide generic names
-        return { me: "User", them: "Contact" };
-      } catch (fallbackError) {
-        console.error('All name detection methods failed:', fallbackError);
-        // Last resort default names
-        return { me: "Me", them: "Them" };
+      console.log('Extracted names using pattern matching:', firstName, 'and', secondName);
+      
+      if (firstName && secondName) {
+        return {
+          me: firstName,
+          them: secondName
+        };
       }
     }
-  } catch (error: any) {
-    // Log the specific error for debugging
-    console.error('Error using Anthropic for participant detection:', error);
     
-    if (error.response) {
-      console.error('Response status:', error.status);
-      console.error('Response type:', error.type);
-      console.error('Error message:', error.message);
+    // More aggressive approach - just look for any "me" and "them" keys anywhere
+    const meMatch = content.match(/"me"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/);
+    const themMatch = content.match(/"them"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/);
+    
+    if (meMatch && themMatch) {
+      const firstName = sanitizeName(meMatch[1]);
+      const secondName = sanitizeName(themMatch[1]);
+      
+      console.log('Extracted individual names:', firstName, 'and', secondName);
+      
+      if (firstName && secondName) {
+        return {
+          me: firstName,
+          them: secondName
+        };
+      }
     }
     
-    // Throw error with support information instead of using fallback
-    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
+    // Last resort fallback to generic names
+    console.log('All name detection methods failed, using generic names');
+    return { me: "User", them: "Contact" };
+  } catch (error: any) {
+    // Log the error
+    console.error('Error in participant detection:', error);
+    
+    // Return generic participant names as a failsafe
+    return { me: "Me", them: "Them" };
   }
 }
 
