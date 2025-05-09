@@ -105,7 +105,7 @@ export default function Home() {
                 <div className="text-[#2CCFCF] mb-3 flex justify-center">
                   <Zap className="h-16 w-16" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Vent Mode</h3>
+                <h3 className="text-lg font-semibold mb-2">De-escalate Mode</h3>
                 <p className="text-sm text-muted-foreground">
                   Rewrite emotional messages into calmer, more effective communication while preserving intent.
                 </p>

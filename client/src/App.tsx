@@ -15,7 +15,7 @@ import AuthPage from "@/pages/auth-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
-import VentMode from "./components/vent-mode";
+import DeEscalate from "./components/de-escalate";
 import LiveTalk from "./components/live-talk";
 
 function Router() {
@@ -24,7 +24,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/chat-analysis" component={ChatAnalysis} />
       <Route path="/message-analysis" component={MessageAnalysis} />
-      <Route path="/vent-mode" component={VentMode} />
+      <Route path="/de-escalate" component={DeEscalate} />
       <Route path="/live-talk" component={LiveTalk} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/checkout" component={CheckoutPage} />
