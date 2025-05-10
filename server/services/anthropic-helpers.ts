@@ -122,20 +122,8 @@ export function parseAnthropicJson(content: string): any {
           console.log('Extracted tone via regex:', tone.substring(0, 30) + '...');
           
           // Create a minimal valid object that matches what the app expects
-          return {
-            toneAnalysis: {
-              overallTone: tone,
-              emotionalState: [{ emotion: "mixed", intensity: 0.5 }]
-            },
-            communication: {
-              patterns: ["Analysis recovered via backup method"]
-            },
-            healthScore: {
-              score: 50,
-              label: "Analysis incomplete",
-              color: "yellow"
-            }
-          };
+          // Instead of providing fallback data, throw an error to be handled by the controller
+          throw new Error("Unable to extract complete analysis data");
         } else if (jsonContent.includes('"tone"')) {
           // For message analysis
           const toneMatch = jsonContent.match(/"tone"\s*:\s*"([^"]*)"/);

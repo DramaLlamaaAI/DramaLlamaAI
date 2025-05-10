@@ -13,6 +13,14 @@ export function cleanCommunicationPatterns(patterns: string[]): string[] {
     return [];
   }
 
+  // Special case: For the recovery message, only show it once
+  if (patterns.length === 1 && patterns[0] === "Analysis recovered via backup method") {
+    return ["Analysis recovered via backup method"];
+  }
+  
+  // Filter out any recovery messages if we have other patterns
+  patterns = patterns.filter(p => p !== "Analysis recovered via backup method");
+
   const cleanedPatterns: string[] = [];
   const seen = new Set<string>();
   

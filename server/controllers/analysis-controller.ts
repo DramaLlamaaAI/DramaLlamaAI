@@ -175,19 +175,10 @@ export const analysisController = {
       } catch (analysisError) {
         console.error('Error in analysis controller layer:', analysisError);
         
-        // Create a fallback response that maintains basic functionality
-        return res.status(200).json({
-          toneAnalysis: {
-            overallTone: "We encountered an issue analyzing this conversation. Our team has been notified.",
-            emotionalState: [{ emotion: "unknown", intensity: 0.5 }],
-            participantTones: { [me]: "Not available", [them]: "Not available" }
-          },
-          communication: {
-            patterns: ["Service temporarily unavailable. Please try again later."]
-          },
-          healthScore: {
-            score: 50,
-            label: "Analysis Error",
+        // Instead of fallback data, return a proper error response
+        return res.status(422).json({
+          error: "We couldn't analyze your conversation. Please try submitting again with a clearer conversation format. If the problem persists, please contact support via Facebook."
+        });
             color: "yellow"
           }
         });

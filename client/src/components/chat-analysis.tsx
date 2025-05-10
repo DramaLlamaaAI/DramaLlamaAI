@@ -584,63 +584,12 @@ export default function ChatAnalysis() {
                       <div className="mb-4">
                         <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
                         <div className="space-y-3">
-                          {/* Apply pattern cleanup to remove duplications before mapping */}
-                          {(result.communication.patterns ? cleanCommunicationPatterns(result.communication.patterns) : []).map((pattern, idx) => {
-                            // First detect and remove any duplications in the pattern
-                            const patternWithoutDups = pattern.replace(/([a-z\s]{10,})\.\1/gi, '$1').trim();
-                            
-                            // Clean the pattern for display purposes (adds periods, capitalization)
-                            const cleanedPattern = cleanPatternForDisplay(patternWithoutDups);
-                            
-                            // Check if the pattern contains a quote (text inside quotes)
-                            const quoteMatch = cleanedPattern.match(/"([^"]+)"/);
-                            const hasQuote = quoteMatch && quoteMatch[1];
-                            
-                            // Split pattern into parts before and after the quote
-                            let beforeQuote = cleanedPattern;
-                            let quote = '';
-                            let afterQuote = '';
-                            
-                            if (hasQuote) {
-                              const parts = cleanedPattern.split(quoteMatch[0]);
-                              beforeQuote = parts[0];
-                              quote = quoteMatch[1];
-                              afterQuote = parts[1] || '';
-                            }
-                            
-                            // Detect which participant is mentioned
-                            const isMeQuote = cleanedPattern.includes(me);
-                            const isThemQuote = cleanedPattern.includes(them);
-                            
-                            // Custom style objects for quotes
-                            const quoteStyle = isMeQuote 
-                              ? { color: '#22C9C9', backgroundColor: 'rgba(34, 201, 201, 0.1)' }
-                              : isThemQuote 
-                                ? { color: '#FF69B4', backgroundColor: 'rgba(255, 105, 180, 0.1)' }
-                                : { color: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)' };
-                            
-                            return (
-                              <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
-                                <p>
-                                  <span className="text-gray-700">{beforeQuote}</span>
-                                  {hasQuote && (
-                                    <>
-                                      <span 
-                                        className="italic px-2 py-1 rounded my-1 inline-block"
-                                        style={quoteStyle}
-                                      >
-                                        "{quote}"
-                                      </span>
-                                      <span className="text-gray-700">{afterQuote}</span>
-                                    </>
-                                  )}
-                                  {!hasQuote && (
-                                    <span className="text-gray-700">{cleanedPattern}</span>
-                                  )}
-                                </p>
-                              </div>
-                            );
-                          })}
+                          {/* Simple solution to show each pattern once */}
+                          {Array.from(new Set(result.communication.patterns)).map((pattern, idx) => (
+                            <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
+                              <p><span className="text-gray-700">{pattern}</span></p>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ) : (
