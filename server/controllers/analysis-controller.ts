@@ -172,6 +172,8 @@ export const analysisController = {
         
         // Log some info about what we're returning
         console.log(`Returning chat analysis with overall tone: "${filteredResults.toneAnalysis.overallTone.substring(0, 30)}..."`);
+        console.log('Has redFlagsCount in results:', 'redFlagsCount' in filteredResults);
+        console.log('Filtered results structure:', Object.keys(filteredResults));
       } catch (analysisError) {
         console.error('Error in analysis controller layer:', analysisError);
         

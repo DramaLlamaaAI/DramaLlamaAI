@@ -60,8 +60,14 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   }
   
   // For free tier, only add the count of red flags (not the details)
+  console.log('Red flags available in analysis:', !!analysis.redFlags);
+  if (analysis.redFlags) {
+    console.log('Number of red flags:', analysis.redFlags.length);
+  }
+  
   if (tier === 'free' && analysis.redFlags && analysis.redFlags.length > 0) {
     // Create a redFlagsCount property to store just the count
+    console.log('Adding redFlagsCount:', analysis.redFlags.length);
     (filteredAnalysis as any).redFlagsCount = analysis.redFlags.length;
   }
   
