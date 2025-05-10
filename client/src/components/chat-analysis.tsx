@@ -27,6 +27,7 @@ import { HealthScoreDisplay } from "@/components/health-score-display";
 import { AdvancedTrendLines } from "@/components/advanced-trend-lines";
 import { EvasionPowerDynamics } from "@/components/evasion-power-dynamics";
 import { EmotionalShiftsTimeline } from "@/components/emotional-shifts-timeline";
+import { SelfReflection } from "@/components/self-reflection";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -856,6 +857,15 @@ export default function ChatAnalysis() {
                       suggestions={result.communication?.suggestions}
                     />
                   )}
+                  
+                  {/* Self-Reflection Section (Personal+ Tier) */}
+                  <SelfReflection
+                    me={me}
+                    them={them}
+                    tier={tier}
+                    conversation={conversation}
+                    keyQuotes={result.keyQuotes}
+                  />
                   
                   {/* Behavioral Patterns Detection (Pro+ Tier) */}
                   <BehavioralPatterns 
