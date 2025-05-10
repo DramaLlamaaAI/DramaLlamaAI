@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Heart, Copy } from "lucide-react";
+import { Heart, Copy, Download } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { deEscalateMessage, DeEscalateResponse, getUserUsage } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
+import html2pdf from 'html2pdf.js';
+import { toJpeg } from 'html-to-image';
 
 export default function DeEscalate() {
   const [message, setMessage] = useState("");

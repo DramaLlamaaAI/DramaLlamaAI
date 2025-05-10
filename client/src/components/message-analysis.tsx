@@ -1,22 +1,26 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Info, Glasses } from "lucide-react";
+import { Info, Glasses, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeMessage, MessageAnalysisResponse, getUserUsage } from "@/lib/openai";
+import html2pdf from 'html2pdf.js';
+import { toJpeg } from 'html-to-image';
 
 export default function MessageAnalysis() {
   const [message, setMessage] = useState("");
   const [author, setAuthor] = useState<"me" | "them">("me");
   const [result, setResult] = useState<MessageAnalysisResponse | null>(null);
   const [charCount, setCharCount] = useState(0);
+  const [isExporting, setIsExporting] = useState(false);
   
   const maxChars = 500;
+  const resultsRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const { data: usage } = useQuery({
@@ -74,6 +78,89 @@ export default function MessageAnalysis() {
       author
     });
   };
+  
+  // Export the analysis results as PDF
+  const exportToPdf = async () => {
+    if (!resultsRef.current || !result) {
+      toast({
+        title: "Export Failed",
+        description: "Could not generate PDF. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsExporting(true);
+      const element = resultsRef.current;
+      
+      // Configure html2pdf options
+      const opt = {
+        margin: 10,
+        filename: `drama-llama-message-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      // Create PDF
+      await html2pdf().from(element).set(opt).save();
+      
+      toast({
+        title: "Export Successful",
+        description: "Your analysis has been exported as a PDF.",
+      });
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Could not generate the PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+  
+  // Export the analysis results as image
+  const exportAsImage = async () => {
+    if (!resultsRef.current || !result) {
+      toast({
+        title: "Export Failed",
+        description: "Could not generate the image. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsExporting(true);
+      const element = resultsRef.current;
+      
+      // Create a JPEG image
+      const dataUrl = await toJpeg(element, { quality: 0.9, backgroundColor: 'white' });
+      
+      // Create a link element to download the image
+      const link = document.createElement('a');
+      link.download = `drama-llama-message-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
+      link.href = dataUrl;
+      link.click();
+      
+      toast({
+        title: "Export Successful",
+        description: "Your analysis has been exported as an image.",
+      });
+    } catch (error) {
+      console.error("Image export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Could not generate the image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <section id="messageAnalysis" className="mb-12">
@@ -124,7 +211,7 @@ export default function MessageAnalysis() {
           </div>
           
           {result && (
-            <div className="bg-muted p-4 rounded-lg mb-6 slide-in">
+            <div className="bg-muted p-4 rounded-lg mb-6 slide-in" ref={resultsRef}>
               <h3 className="font-medium mb-3">Analysis Results</h3>
               
               <div className="mb-4">
@@ -159,7 +246,25 @@ export default function MessageAnalysis() {
                 </div>
               )}
 
-
+              <div className="mt-6 flex justify-end">
+                <Button
+                  onClick={exportToPdf}
+                  disabled={isExporting}
+                  className="mr-2"
+                  variant="outline"
+                  size="sm"
+                >
+                  {isExporting ? 'Exporting...' : 'Export as PDF'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={exportAsImage}
+                  disabled={isExporting}
+                  size="sm"
+                >
+                  {isExporting ? 'Exporting...' : 'Export as Image'}
+                </Button>
+              </div>
             </div>
           )}
           

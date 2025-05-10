@@ -557,7 +557,7 @@ export default function ChatAnalysis() {
               )}
             </>
           ) : (
-            <div id="analysisResults" className="mt-8 slide-in">
+            <div id="analysisResults" ref={resultsRef} className="mt-8 slide-in">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold">Analysis Results</h3>
                 <Button
