@@ -167,15 +167,7 @@ export function RedFlags({ redFlags, tier, conversation }: RedFlagsProps) {
           </Card>
         ))}
         
-        {/* For Personal tier, show what Pro tier offers */}
-        {!isPro && tier === 'personal' && (
-          <div className="bg-purple-50 p-3 rounded border border-purple-100">
-            <p className="text-sm text-purple-700 flex items-center">
-              <span className="font-medium mr-1">Upgrade to Pro:</span> 
-              Get detailed impact analysis for each red flag and priority indicators for urgent relationship issues.
-            </p>
-          </div>
-        )}
+        {/* Removed "Upgrade to Pro" message as requested */}
       </div>
     </div>
   );

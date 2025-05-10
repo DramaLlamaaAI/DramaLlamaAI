@@ -869,14 +869,7 @@ export default function ChatAnalysis() {
                     />
                   )}
                   
-                  {/* Self-Reflection Section (Personal+ Tier) */}
-                  <SelfReflection
-                    me={me}
-                    them={them}
-                    tier={tier}
-                    conversation={conversation}
-                    keyQuotes={result.keyQuotes}
-                  />
+                  {/* Self-Reflection Section removed as requested */}
                   
                   {/* Behavioral Patterns Detection (Pro+ Tier) */}
                   <BehavioralPatterns 
