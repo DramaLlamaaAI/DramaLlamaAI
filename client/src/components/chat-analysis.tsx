@@ -614,61 +614,7 @@ export default function ChatAnalysis() {
                   />
                   
                   {/* Tension Contributions Section - only show if present */}
-                  {result.tensionContributions && Object.keys(result.tensionContributions).length > 0 && (
-                    <div className="bg-muted p-4 rounded-lg mb-4">
-                      <h4 className="font-medium mb-2">Individual Contributions to Tension</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.keys(result.tensionContributions).map((participant) => (
-                          <div 
-                            key={participant}
-                            className="p-3 rounded-md"
-                            style={{ 
-                              backgroundColor: participant === me 
-                                ? 'rgba(34, 201, 201, 0.1)' 
-                                : 'rgba(255, 105, 180, 0.1)',
-                              border: participant === me 
-                                ? '1px solid rgba(34, 201, 201, 0.3)' 
-                                : '1px solid rgba(255, 105, 180, 0.3)'
-                            }}
-                          >
-                            <span 
-                              className="font-medium"
-                              style={{ 
-                                color: participant === me ? '#22C9C9' : '#FF69B4'
-                              }}
-                            >
-                              {participant}
-                            </span>
-                            <ul className="mt-2 space-y-1">
-                              {result.tensionContributions && result.tensionContributions[participant] && 
-                                result.tensionContributions[participant].map((item, idx) => (
-                                  <li 
-                                    key={idx}
-                                    className="text-sm flex items-start"
-                                    style={{ 
-                                      color: participant === me 
-                                        ? 'rgba(34, 201, 201, 0.9)' 
-                                        : 'rgba(255, 105, 180, 0.9)'
-                                    }}
-                                  >
-                                    <span className="mr-2 mt-1">•</span>
-                                    <span>{item}</span>
-                                  </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* What This Means section */}
-                      {result.tensionMeaning && (
-                        <div className="bg-blue-50 p-3 rounded-md mt-4 text-sm border border-blue-100">
-                          <h5 className="font-medium text-blue-700 mb-1">What This Means</h5>
-                          <p className="text-blue-800">{result.tensionMeaning}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* Tension Contributions section is now rendered by the TensionContributions component below */}
                   
                   {/* Communication Insights Section */}
                   <div className="bg-muted p-4 rounded-lg mb-4">
