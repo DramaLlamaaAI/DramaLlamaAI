@@ -808,6 +808,14 @@ export default function ChatAnalysis() {
                     </div>
                   )}
                   
+                  {/* Health Score Display (Personal+ Tier) */}
+                  <HealthScoreDisplay
+                    healthScore={result.healthScore}
+                    me={me}
+                    them={them}
+                    tier={tier}
+                  />
+                  
                   {/* Emotion Tracking Per Participant (Personal+ Tier) */}
                   <EmotionTracking
                     me={me}
@@ -831,12 +839,13 @@ export default function ChatAnalysis() {
                     participantConflictScores={result.participantConflictScores} 
                   />
                   
-                  {/* Accountability Meters (Personal+ Tier) */}
-                  <AccountabilityMeters 
-                    me={me} 
-                    them={them} 
-                    tier={tier} 
+                  {/* Tension Contributions (Personal+ Tier) */}
+                  <TensionContributions
+                    me={me}
+                    them={them}
+                    tier={tier}
                     tensionContributions={result.tensionContributions}
+                    tensionMeaning={result.tensionMeaning}
                   />
                   
                   {/* Personalized Suggestions (Pro Tier Only) */}
