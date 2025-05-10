@@ -485,9 +485,14 @@ export default function ChatAnalysis() {
               
               {result && (
                 <>
-                  <div className="bg-muted p-4 rounded-lg mb-4">
-                    <h4 className="font-medium mb-2">Overall Tone</h4>
-                    <div className="mb-4">
+                  {/* Show different UI based on tier */}
+                  {tier === 'free' ? (
+                    <FreeTierAnalysis result={result} me={me} them={them} />
+                  ) : (
+                    <>
+                      <div className="bg-muted p-4 rounded-lg mb-4">
+                        <h4 className="font-medium mb-2">Overall Tone</h4>
+                        <div className="mb-4">
                       <p className="text-lg font-medium mb-1">{result.toneAnalysis.overallTone.split('.')[0]}</p>
                       <p className="text-base text-gray-700">
                         {result.toneAnalysis.overallTone.includes('.') ? 
@@ -877,6 +882,8 @@ export default function ChatAnalysis() {
                       Export Results
                     </Button>
                   </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
