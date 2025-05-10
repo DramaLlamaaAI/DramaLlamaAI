@@ -3,6 +3,7 @@ import { analyzeChatConversation, analyzeMessage, deEscalateMessage, detectParti
 import { TIER_LIMITS } from '@shared/schema';
 import { filterChatAnalysisByTier, filterMessageAnalysisByTier, filterDeEscalateResultByTier } from '../services/tier-service';
 import { storage } from '../storage';
+import { extractRedFlagsCount } from '../services/anthropic-helpers';
 
 // Get the user's tier from the authenticated session
 const getUserTier = (req: Request): string => {
@@ -203,10 +204,20 @@ export const analysisController = {
         
         // For free tier, add red flags count from personal analysis
         if (tier === 'free') {
-          // IMPORTANT: DIRECT HEALTH SCORE APPROACH
-          // We know from testing that all tense conversations have at least 2 red flags
-          // Let's use health score as a direct and reliable indicator
-          if (analysis.healthScore) {
+          // Get access to the raw API response from the personal tier analysis
+          // This is stored in the _rawResponse property (non-enumerable)
+          const personalRawResponse = personalAnalysis && (personalAnalysis as any)._rawResponse;
+          
+          if (personalRawResponse) {
+            // Extract red flags count directly from the raw response using regex patterns
+            // This avoids JSON parsing issues and ensures we get data from the same source
+            // as the personal tier
+            const redFlagsCount = extractRedFlagsCount(personalRawResponse);
+            console.log(`Extracted red flags count from raw personal tier response: ${redFlagsCount}`);
+            (filteredResults as any).redFlagsCount = redFlagsCount;
+          }
+          // Fallback to health score when no personal analysis is available
+          else if (analysis.healthScore) {
             let redFlagsCount = 0;
             
             // For very low health scores, set higher red flag count
@@ -222,12 +233,12 @@ export const analysisController = {
               redFlagsCount = 1;
             }
             
-            console.log(`Setting red flags count based on health score (${analysis.healthScore.score}): ${redFlagsCount}`);
+            console.log(`Fallback: Setting red flags count based on health score (${analysis.healthScore.score}): ${redFlagsCount}`);
             (filteredResults as any).redFlagsCount = redFlagsCount;
           }
-          // Fallback if no health score available
+          // Final fallback
           else {
-            console.log('No health score available, setting default red flags count of 1');
+            console.log('No analysis data available, setting default red flags count of 1');
             (filteredResults as any).redFlagsCount = 1;
           }
         }

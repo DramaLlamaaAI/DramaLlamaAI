@@ -594,15 +594,29 @@ When analyzing conversations:
     
     console.log('Successfully received Anthropic response for chat analysis');
     
+    // Store result with raw response for later extraction if needed
+    let result;
+    
     // Parse the JSON response with markdown code block handling
     try {
-      return parseAnthropicJson(content);
+      result = parseAnthropicJson(content);
     } catch (error) {
       console.error('JSON parsing failed in chat analysis, attempting direct extraction fallback', error);
       
       // Use the specialized raw extraction function that works directly on the raw text
-      return extractRawChatAnalysis(content, me, them);
+      result = extractRawChatAnalysis(content, me, them);
     }
+    
+    // Add raw response as a non-enumerable property for direct extraction later
+    // This is critical for free tier to extract red flags data from personal tier analysis
+    Object.defineProperty(result, '_rawResponse', {
+      value: content,
+      enumerable: false,
+      writable: false,
+      configurable: true
+    });
+    
+    return result;
   } catch (error: any) {
     // Log the specific error for debugging
     console.error('Error using Anthropic for chat analysis:', error);

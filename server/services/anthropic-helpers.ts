@@ -19,6 +19,38 @@ export function getTextFromContentBlock(content: any): string {
 }
 
 /**
+ * Extract red flags count from raw API response text
+ * This avoids JSON parsing issues by using regex on the raw response
+ */
+export function extractRedFlagsCount(content: string): number {
+  try {
+    // Look for the redFlags array in the raw text
+    const redFlagsSection = content.match(/redFlags["'\s:]+\[([\s\S]*?)\]/);
+    
+    if (redFlagsSection && redFlagsSection[1]) {
+      // Count the number of "type" properties in the red flags section
+      // Each red flag object has a type property
+      const typeMatches = redFlagsSection[1].match(/type["'\s:]+/g);
+      if (typeMatches) {
+        return typeMatches.length;
+      }
+    }
+    
+    // As a backup check, look for severity fields which also indicate red flags
+    const severityMatches = content.match(/severity["'\s:]+\d+/g);
+    if (severityMatches) {
+      return severityMatches.length;
+    }
+    
+    // No red flags found
+    return 0;
+  } catch (error) {
+    console.error('Error extracting red flags count:', error);
+    return 0;
+  }
+}
+
+/**
  * Safely parse JSON from Anthropic response, handling cases where the content
  * might be wrapped in markdown code blocks or have other formatting issues
  */
