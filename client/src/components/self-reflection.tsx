@@ -78,6 +78,7 @@ export function SelfReflection({ tier, me, them, conversation, keyQuotes }: Self
   // Analyze for empathy in messages
   const analyzeEmpathy = (messages: string[], fullText: string): CommunicationMetric => {
     const empathyPatterns = [
+      // Basic empathy patterns
       /understand/i, 
       /see how you feel/i, 
       /that must be/i, 
@@ -85,25 +86,94 @@ export function SelfReflection({ tier, me, them, conversation, keyQuotes }: Self
       /you're feeling/i,
       /sounds like/i,
       /appreciate/i,
-      /thank you for/i
+      /thank you for/i,
+      
+      // Additional gratitude and empathy patterns
+      /thank you/i,
+      /thanks for/i,
+      /grateful/i,
+      /appreciate/i,
+      /here for you/i,
+      /proud of you/i,
+      /I'm sorry/i,
+      /hope you/i,
+      /how are you/i,
+      /checking in/i,
+      /glad to hear/i,
+      /sounds like/i,
+      /makes sense/i,
+      /I understand/i,
+      /wonderful/i,
+      /glad/i,
+      /good job/i
+    ];
+    
+    // Detect expressions of encouragement and support
+    const supportPatterns = [
+      /here for you/i,
+      /thinking of you/i,
+      /proud of you/i,
+      /believe in you/i,
+      /you can do it/i,
+      /congrats/i,
+      /congratulations/i,
+      /amazing/i,
+      /impressive/i,
+      /you're important/i,
+      /cheering you on/i,
+      /support/i,
+      /always here/i,
+      /if you need/i,
+      /let me know if/i
     ];
     
     let count = 0;
+    let supportCount = 0;
+    
     for (const message of messages) {
+      // Check for empathy patterns
+      let foundEmpathy = false;
       for (const pattern of empathyPatterns) {
         if (pattern.test(message)) {
           count++;
+          foundEmpathy = true;
           break; // Only count once per message
+        }
+      }
+      
+      // Check for support patterns (can exist in the same message)
+      for (const pattern of supportPatterns) {
+        if (pattern.test(message)) {
+          supportCount++;
+          break; // Only count once per message
+        }
+      }
+      
+      // Add additional points for messages with emojis and hearts
+      if (message.includes('😊') || message.includes('💖') || 
+          message.includes('💕') || message.includes('❤️') || 
+          message.includes('🥰') || message.includes('😍') || 
+          message.includes('🙏')) {
+        if (!foundEmpathy) { // Don't double-count if already found empathy
+          count += 0.5; // Half point for emojis alone
         }
       }
     }
     
     // Also check if the conversation as a whole demonstrates understanding
-    const overallEmpathyScore = fullText.toLowerCase().includes('understand') ||
-                               fullText.toLowerCase().includes('see your point') ? 10 : 0;
+    const overallEmpathyScore = 
+      (fullText.toLowerCase().includes('understand') ? 5 : 0) +
+      (fullText.toLowerCase().includes('thank you') ? 5 : 0) +
+      (fullText.toLowerCase().includes('appreciate') ? 5 : 0) +
+      (fullText.toLowerCase().includes('proud of you') ? 5 : 0) +
+      (fullText.toLowerCase().includes('here for you') ? 5 : 0);
     
-    // Scale from 0-100
-    const value = Math.min(100, (count / Math.max(messages.length, 1)) * 100 + overallEmpathyScore);
+    // Scale from 0-100, giving some bonus points for supportive messages
+    const value = Math.min(100, 
+      (count / Math.max(messages.length, 1)) * 70 + // Base on empathy expressions
+      (supportCount / Math.max(messages.length, 1)) * 30 + // Add support bonus
+      overallEmpathyScore // Add overall tone bonus
+    );
     
     return {
       trait: 'Empathy',
@@ -210,20 +280,39 @@ export function SelfReflection({ tier, me, them, conversation, keyQuotes }: Self
       /tell me more/i,
       /could you explain/i,
       /I'm curious/i,
-      /I'd like to understand/i
+      /I'd like to understand/i,
+      /how's your/i,
+      /how are you/i,
+      /how was your/i,
+      /what happened/i,
+      /what's going on/i,
+      /would you like to/i,
+      /do you want to/i,
+      /did you/i,
+      /have you/i,
+      /are you/i,
+      /how did you/i,
+      /checked in/i,
+      /checking in/i
     ];
     
-    let count = 0;
+    // Count messages with question marks
+    const questionCount = messages.filter(msg => msg.includes('?')).length;
+    
+    let explicitCuriosityCount = 0;
     for (const message of messages) {
       for (const pattern of curiosityPatterns) {
         if (pattern.test(message)) {
-          count++;
+          explicitCuriosityCount++;
           break; // Only count once per message
         }
       }
     }
     
-    const value = Math.min(100, (count / Math.max(messages.length, 1)) * 100);
+    // Calculate score: give higher weight to explicit curiosity expressions
+    const value = Math.min(100, 
+      (questionCount / Math.max(messages.length, 1)) * 50 + 
+      (explicitCuriosityCount / Math.max(messages.length, 1)) * 50);
     
     return {
       trait: 'Curiosity',
@@ -242,20 +331,63 @@ export function SelfReflection({ tier, me, them, conversation, keyQuotes }: Self
       /your feelings are valid/i,
       /I hear you/i,
       new RegExp(`I get why you(\\s|'re)`, 'i'),
-      /I understand/i
+      /I understand/i,
+      /that's important/i,
+      /you're right/i,
+      /you deserve/i,
+      /makes perfect sense/i,
+      /I'm glad you/i,
+      /I get that/i,
+      /I'm here/i,
+      /I'm listening/i,
+      /sounds difficult/i,
+      /that's tough/i
     ];
     
-    let count = 0;
+    // Expressions of gratitude and appreciation toward the other person
+    const appreciationPatterns = [
+      /thank you/i,
+      /appreciate you/i,
+      /grateful for you/i,
+      /means a lot/i,
+      /you're important/i,
+      /lucky to have you/i,
+      /you make/i,
+      /you're the best/i,
+      /you're amazing/i,
+      /value you/i,
+      /love having you/i
+    ];
+    
+    let validationCount = 0;
+    let appreciationCount = 0;
+    
     for (const message of messages) {
+      // Check for validation patterns
+      let foundValidation = false;
       for (const pattern of validationPatterns) {
         if (pattern.test(message)) {
-          count++;
+          validationCount++;
+          foundValidation = true;
           break; // Only count once per message
+        }
+      }
+      
+      // Check for appreciation patterns
+      if (!foundValidation) { // Don't double-count messages
+        for (const pattern of appreciationPatterns) {
+          if (pattern.test(message)) {
+            appreciationCount++;
+            break; // Only count once per message
+          }
         }
       }
     }
     
-    const value = Math.min(100, (count / Math.max(messages.length, 1)) * 100);
+    // Scale: validation is 70% of score, appreciation is 30%
+    const value = Math.min(100, 
+      (validationCount / Math.max(messages.length, 1)) * 70 +
+      (appreciationCount / Math.max(messages.length, 1)) * 30);
     
     return {
       trait: 'Validation',
@@ -305,6 +437,54 @@ export function SelfReflection({ tier, me, them, conversation, keyQuotes }: Self
           results.empathy.push({
             quote: message,
             context: "Shows empathy by acknowledging feelings or perspective"
+          });
+          break;
+        } else if (/thank you|appreciate|grateful|proud of you|here for you/i.test(message)) {
+          results.empathy.push({
+            quote: message,
+            context: "Shows appreciation and emotional support"
+          });
+          break;
+        } else if (/checking in|how are you|hope you/i.test(message)) {
+          results.empathy.push({
+            quote: message,
+            context: "Shows care by checking on the other person's wellbeing"
+          });
+          break;
+        }
+      }
+      
+      // Find quotes for validation
+      results.validation = [];
+      for (const message of messages) {
+        if (/you're important|I'm here for you|lucky to have you|you make life better|you're the best/i.test(message)) {
+          results.validation.push({
+            quote: message,
+            context: "Shows validation by expressing other person's value"
+          });
+          break;
+        } else if (/I can see why|that makes sense|you have a point|your feelings are valid|I hear you/i.test(message)) {
+          results.validation.push({
+            quote: message,
+            context: "Shows validation by recognizing other person's perspective"
+          });
+          break;
+        }
+      }
+      
+      // Find quotes for curiosity
+      results.curiosity = [];
+      for (const message of messages) {
+        if (message.includes('?')) {
+          results.curiosity.push({
+            quote: message,
+            context: "Shows curiosity by asking a question"
+          });
+          break;
+        } else if (/how are you|checking in|how have you been|what.s new/i.test(message)) {
+          results.curiosity.push({
+            quote: message,
+            context: "Shows curiosity about the other person's experience"
           });
           break;
         }
