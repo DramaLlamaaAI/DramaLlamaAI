@@ -176,9 +176,19 @@ export const analysisController = {
           analysis = await analyzeChatConversation(filteredConversation, me, them, 'free');
           
           // Then get a personal tier analysis to extract red flags count
+          // This is critical for data integrity - we need the actual red flags count
           try {
+            console.log('Running dedicated personal tier analysis to get accurate red flags count');
+            // Make sure we use a clean request for the personal tier analysis
             personalAnalysis = await analyzeChatConversation(filteredConversation, me, them, 'personal');
             console.log('Successfully ran personal tier analysis for red flags detection');
+            
+            // Verify that we got red flags data
+            if (personalAnalysis && personalAnalysis.redFlags) {
+              console.log(`Found ${personalAnalysis.redFlags.length} red flags in personal tier analysis`);
+            } else {
+              console.log('No red flags found in personal tier analysis');
+            }
           } catch (personalError) {
             console.error('Failed to run personal analysis for red flags:', personalError);
           }
@@ -192,10 +202,20 @@ export const analysisController = {
         filteredResults = filterChatAnalysisByTier(analysis, tier);
         
         // For free tier, add red flags count from personal analysis
-        if (tier === 'free' && personalAnalysis && personalAnalysis.redFlags) {
-          const redFlagsCount = personalAnalysis.redFlags.length;
-          console.log(`Adding red flags count from personal analysis: ${redFlagsCount}`);
-          (filteredResults as any).redFlagsCount = redFlagsCount;
+        if (tier === 'free') {
+          if (personalAnalysis && personalAnalysis.redFlags) {
+            // We have red flags data, use the actual count
+            const redFlagsCount = personalAnalysis.redFlags.length;
+            console.log(`Adding red flags count from personal analysis: ${redFlagsCount}`);
+            (filteredResults as any).redFlagsCount = redFlagsCount;
+          } else if (personalAnalysis) {
+            // We have personal analysis but no red flags, explicitly set to zero
+            console.log('No red flags found in personal analysis, setting count to 0');
+            (filteredResults as any).redFlagsCount = 0;
+          } else {
+            // We don't have a valid personal analysis, don't add the count field
+            console.log('No valid personal analysis available, cannot add red flags count');
+          }
         }
         
         // Log some info about what we're returning
