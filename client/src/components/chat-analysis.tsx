@@ -586,8 +586,11 @@ export default function ChatAnalysis() {
                         <div className="space-y-3">
                           {/* Apply pattern cleanup to remove duplications before mapping */}
                           {(result.communication.patterns ? cleanCommunicationPatterns(result.communication.patterns) : []).map((pattern, idx) => {
-                            // Clean the pattern for display purposes
-                            const cleanedPattern = cleanPatternForDisplay(pattern);
+                            // First detect and remove any duplications in the pattern
+                            const patternWithoutDups = pattern.replace(/([a-z\s]{10,})\.\1/gi, '$1').trim();
+                            
+                            // Clean the pattern for display purposes (adds periods, capitalization)
+                            const cleanedPattern = cleanPatternForDisplay(patternWithoutDups);
                             
                             // Check if the pattern contains a quote (text inside quotes)
                             const quoteMatch = cleanedPattern.match(/"([^"]+)"/);

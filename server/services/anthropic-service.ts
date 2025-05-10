@@ -128,7 +128,7 @@ const prompts = {
       },
       "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
       "communication": {
-        "patterns": ["string describing patterns observed"],
+        "patterns": ["string describing unique patterns observed (NO duplicated text or phrases, each pattern should be a COMPLETE SENTENCE)"],
         "suggestions": ["string with suggestions for improvement"]
       },
       "dramaScore": number between 0-100,
@@ -173,7 +173,7 @@ const prompts = {
       },
       "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
       "communication": {
-        "patterns": ["string describing patterns observed"],
+        "patterns": ["string describing unique patterns observed (NO duplicated text or phrases, each pattern should be a COMPLETE SENTENCE)"],
         "suggestions": ["string with suggestions for improvement"]
       },
       "dramaScore": number between 0-100,

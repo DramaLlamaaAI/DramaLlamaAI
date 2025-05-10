@@ -170,30 +170,42 @@ export function cleanCommunicationPatterns(patterns: string[]): string[] {
 export function cleanPatternForDisplay(pattern: string): string {
   if (!pattern) return '';
   
-  // Trim whitespace and remove all periods/punctuation
-  let cleaned = pattern.trim().replace(/[,.;:\s]+$/, '');
+  // First, deal with period-separated duplications (common in API responses)
+  // E.g., "Blame shifting.Blame shifting" becomes "Blame shifting"
+  let cleaned = pattern.trim();
+
+  // Remove multiple periods in a row (e.g., "pattern... pattern" -> "pattern. pattern")
+  cleaned = cleaned.replace(/\.{2,}/g, '.');
   
-  // Check for duplicative phrases (like "blame shifting.blame shifting")
+  // Replace period+space+lowercase with just space+lowercase (keep the period if followed by uppercase)
+  // "Pattern one. pattern two" -> "Pattern one pattern two"
+  cleaned = cleaned.replace(/\.\s*([a-z])/g, ' $1');
+  
+  // Handle period-separated duplications for common phrases
   const commonPhrases = [
     'blame shifting', 'emotional withdrawal', 'defensive responses',
     'criticism', 'stonewalling', 'contempt', 'dismissive', 'validation seeking',
-    'conflict avoidance', 'passive aggressive', 'disrespectful', 'gaslighting'
+    'conflict avoidance', 'passive aggressive', 'disrespectful', 'gaslighting',
+    'accusatory', 'defensive'
   ];
   
   for (const phrase of commonPhrases) {
-    // Check for period-separated duplications (e.g., "phrase.phrase")
-    const periodSeparatedRegex = new RegExp(`${phrase}[.\\s]*${phrase}`, 'gi');
-    cleaned = cleaned.replace(periodSeparatedRegex, phrase);
+    // Case insensitive match for "phrase.phrase" or "phrase. phrase" pattern
+    const periodPattern = new RegExp(`${phrase}\\s*\\.\\s*${phrase}`, 'gi');
+    cleaned = cleaned.replace(periodPattern, phrase);
     
-    // Check for capitalized duplications (e.g., "PhrasePHRASE")
-    const mixedCaseRegex = new RegExp(`${phrase}${phrase}`, 'gi');
-    cleaned = cleaned.replace(mixedCaseRegex, phrase);
+    // Check for direct duplications without separation (e.g., "phrasephrase")
+    const directDuplication = new RegExp(`(${phrase})(\\s*${phrase})`, 'gi');
+    cleaned = cleaned.replace(directDuplication, '$1');
   }
+  
+  // Clean up any trailing punctuation
+  cleaned = cleaned.replace(/[,.;:\s]+$/, '');
   
   // Capitalize first letter
   cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   
-  // Ensure no trailing period and add if needed
+  // Ensure there's a single trailing period
   if (!cleaned.endsWith('.')) {
     cleaned += '.';
   }
