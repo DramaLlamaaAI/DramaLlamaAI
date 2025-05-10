@@ -179,9 +179,6 @@ export const analysisController = {
         return res.status(422).json({
           error: "We couldn't analyze your conversation. Please try submitting again with a clearer conversation format. If the problem persists, please contact support via Facebook."
         });
-            color: "yellow"
-          }
-        });
       }
       
       res.json(filteredResults);

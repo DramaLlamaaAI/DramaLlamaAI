@@ -768,13 +768,7 @@ export default function ChatAnalysis() {
                     </div>
                   )}
                   
-                  {/* Health Score Display (Personal+ Tier) */}
-                  <HealthScoreDisplay
-                    healthScore={result.healthScore}
-                    me={me}
-                    them={them}
-                    tier={tier}
-                  />
+                  {/* Removed duplicate Health Score Display */}
                   
                   {/* Emotion Tracking Per Participant (Personal+ Tier) */}
                   <EmotionTracking
