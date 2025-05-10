@@ -115,9 +115,14 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           </div>
         )}
         
-        {/* Red Flags Teaser - debug with optional chaining */}
-        {console.log('Result structure has:', Object.keys(result))}
-        {console.log('RedFlagsCount value:', result.redFlagsCount)}
+        {/* Red Flags Teaser */}
+        {/* Debug information rendered in an invisible span */}
+        <span className="hidden">
+          {JSON.stringify({
+            keys: Object.keys(result),
+            redFlagsCount: result.redFlagsCount
+          })}
+        </span>
         {result?.redFlagsCount && result.redFlagsCount > 0 && (
           <div className="p-4 bg-red-50 rounded-lg border border-red-100 mb-4">
             <div className="flex justify-between items-center">

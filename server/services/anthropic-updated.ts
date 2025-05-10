@@ -528,6 +528,9 @@ Return ONLY a JSON object with this EXACT structure:
   "communication": {
     "patterns": ["pattern one", "pattern two", "pattern three"]
   },
+  "redFlags": [
+    {"type": "issue type", "description": "brief description", "severity": 3}
+  ],
   "healthScore": {
     "score": 50,
     "label": "Category",
