@@ -486,7 +486,14 @@ export default function ChatAnalysis() {
                 <>
                   <div className="bg-muted p-4 rounded-lg mb-4">
                     <h4 className="font-medium mb-2">Overall Tone</h4>
-                    <p className="text-lg mb-4">{result.toneAnalysis.overallTone}</p>
+                    <div className="mb-4">
+                      <p className="text-lg font-medium mb-1">{result.toneAnalysis.overallTone.split('.')[0]}</p>
+                      <p className="text-base text-gray-700">
+                        {result.toneAnalysis.overallTone.includes('.') ? 
+                          result.toneAnalysis.overallTone.substring(result.toneAnalysis.overallTone.indexOf('.')+1).trim() : 
+                          "This analysis provides insights into the communication dynamics between participants."}
+                      </p>
+                    </div>
                     
                     {result.toneAnalysis.participantTones && (
                       <div className="mt-4 pt-4 border-t border-gray-200">
