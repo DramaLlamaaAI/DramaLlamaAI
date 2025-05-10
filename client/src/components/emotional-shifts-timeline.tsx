@@ -579,11 +579,12 @@ export function EmotionalShiftsTimeline({ tier, me, them, conversation, emotiona
                   'bg-blue-500';
                 
                 // Determine label based on intensity
+                // Adjust thresholds to match 0-1 scale (instead of 0-100)
                 const intensityLabel = 
-                  emotion.intensity > 80 ? 'Very High' :
-                  emotion.intensity > 60 ? 'High' :
-                  emotion.intensity > 40 ? 'Moderate' :
-                  emotion.intensity > 20 ? 'Low' :
+                  emotion.intensity > 0.8 ? 'Very High' :
+                  emotion.intensity > 0.6 ? 'High' :
+                  emotion.intensity > 0.4 ? 'Moderate' :
+                  emotion.intensity > 0.2 ? 'Low' :
                   'Very Low';
                 
                 return (
@@ -597,10 +598,10 @@ export function EmotionalShiftsTimeline({ tier, me, them, conversation, emotiona
                       <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
                         <div 
                           className={`h-full ${emotionColor}`}
-                          style={{ width: `${emotion.intensity}%` }}
+                          style={{ width: `${Math.min(emotion.intensity * 100, 100)}%` }}
                         ></div>
                       </div>
-                      <span className="text-xs ml-2 font-medium">{emotion.intensity}%</span>
+                      <span className="text-xs ml-2 font-medium">{Math.round(emotion.intensity * 100)}%</span>
                     </div>
                     
                     <p className="text-xs text-gray-600 mt-2">
