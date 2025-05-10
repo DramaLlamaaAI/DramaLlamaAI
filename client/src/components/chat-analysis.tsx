@@ -584,24 +584,44 @@ export default function ChatAnalysis() {
                       <div className="mb-4">
                         <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
                         <div className="space-y-3">
-                          {/* Simple solution to show each pattern once */}
-                          {Array.from(new Set(result.communication.patterns)).map((pattern, idx) => (
-                            <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
-                              <p><span className="text-gray-700">{pattern}</span></p>
-                            </div>
-                          ))}
+                          {/* Show patterns with highlighted participant names */}
+                          {Array.from(new Set(result.communication.patterns)).map((pattern, idx) => {
+                            // Highlight participant names in the pattern text
+                            let highlightedPattern = pattern;
+                            
+                            // Check if pattern contains participant names
+                            if (pattern.includes(me)) {
+                              highlightedPattern = pattern.replace(
+                                new RegExp(me, 'g'), 
+                                `<span class="font-semibold text-[#22C9C9]">${me}</span>`
+                              );
+                            }
+                            
+                            if (pattern.includes(them)) {
+                              highlightedPattern = highlightedPattern.replace(
+                                new RegExp(them, 'g'), 
+                                `<span class="font-semibold text-[#FF69B4]">${them}</span>`
+                              );
+                            }
+                            
+                            return (
+                              <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
+                                <p><span className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightedPattern }}></span></p>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     ) : (
                       <div className="mb-4">
                         <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
-                        <div className="bg-blue-50 p-2 rounded">
-                          <p className="text-blue-500">
+                        <div className="bg-blue-50 p-3 rounded">
+                          <p className="text-blue-600">
                             {result.healthScore && result.healthScore.score > 85 ? 
-                              "Supportive check-in dialogue with positive emotional tone." :
+                              <>Both <span className="font-semibold text-[#22C9C9]">{me}</span> and <span className="font-semibold text-[#FF69B4]">{them}</span> engage in supportive dialogue with positive emotional tone.</> :
                               result.healthScore && result.healthScore.score < 60 ? 
-                              "Some tension detected with moments of accusatory language." : 
-                              "Mixed communication patterns with neutral emotional tone."}
+                              <>Some tension detected between <span className="font-semibold text-[#22C9C9]">{me}</span> and <span className="font-semibold text-[#FF69B4]">{them}</span> with moments of accusatory language.</> : 
+                              <>Mixed communication patterns between <span className="font-semibold text-[#22C9C9]">{me}</span> and <span className="font-semibold text-[#FF69B4]">{them}</span> with a generally neutral emotional tone.</>}
                           </p>
                         </div>
                       </div>
