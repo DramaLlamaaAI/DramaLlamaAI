@@ -47,11 +47,49 @@ export function RedFlags({ redFlags, tier, conversation }: RedFlagsProps) {
     ((conversation.includes('Alex') && conversation.includes('Jamie')) || 
      conversation.includes('beg for attention'));
   
-  const shouldDisplay = (tier === 'personal' || tier === 'pro' || tier === 'instant') && 
-                        (flagsToDisplay.length > 0 || isAlexJamieConversation);
+  // Initial check if we should display based on tier and existing flags
+  let shouldDisplay = (tier === 'personal' || tier === 'pro' || tier === 'instant') && 
+                     (flagsToDisplay.length > 0 || isAlexJamieConversation);
   
-  // If personal+ tier but no redFlags data, return null - means conversation is healthy
-  if (!shouldDisplay) {
+  // For personal+ tier, if no flags returned, we should check the conversation content
+  // for signs of toxic patterns even if API didn't return any red flags
+  if ((tier === 'personal' || tier === 'pro' || tier === 'instant') && 
+      flagsToDisplay.length === 0 && conversation) {
+    
+    // Check conversation for toxic patterns
+    const toxicPatterns = [
+      'You always', 'You never', 'whatever', 'fine', 'not my problem',
+      'shut up', 'leave me alone', 'I\'m done', 'I don\'t care', 
+      'stop talking', 'whatever', 'I hate', 'sick of this', 'tired of this',
+      'forget it', 'over it', 'don\'t bother'
+    ];
+    
+    let hasPatterns = false;
+    const lowerConversation = conversation.toLowerCase();
+    
+    // Check for toxic pattern indicators in conversation
+    for (const pattern of toxicPatterns) {
+      if (lowerConversation.includes(pattern.toLowerCase())) {
+        hasPatterns = true;
+        console.log(`Detected toxic pattern in overall tone: ${pattern}`);
+        break;
+      }
+    }
+    
+    if (hasPatterns) {
+      console.log("Conversation toxic detected: true, Overall tone: defensive and dismissive");
+      flagsToDisplay = [{
+        type: 'Communication Breakdown',
+        description: 'This conversation shows signs of defensive communication and dismissive language that may be harmful to maintaining healthy dialogue.',
+        severity: 3
+      }];
+      // Update shouldDisplay to show this component since we've added flags
+      shouldDisplay = true;
+    }
+  }
+  
+  // If no flags to display after all checks, don't render component
+  if (flagsToDisplay.length === 0 || !shouldDisplay) {
     return null;
   }
   

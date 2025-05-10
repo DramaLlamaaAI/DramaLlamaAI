@@ -78,8 +78,10 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   // PERSONAL TIER FEATURES:
   if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
     // Add red flags if available 
-    if (tierFeatures.includes('redFlags') && analysis.redFlags) {
-      filteredAnalysis.redFlags = analysis.redFlags;
+    if (tierFeatures.includes('redFlags')) {
+      // Make sure we always add redFlags to the filtered analysis, even if empty array
+      filteredAnalysis.redFlags = analysis.redFlags || [];
+      console.log(`Added ${filteredAnalysis.redFlags.length} red flags to ${tier} tier analysis`);
     }
     
     // Add high tension factors (part of advancedToneAnalysis)
