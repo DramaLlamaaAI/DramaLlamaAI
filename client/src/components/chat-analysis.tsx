@@ -837,7 +837,8 @@ export default function ChatAnalysis() {
                   <CommunicationStyles 
                     me={me} 
                     them={them} 
-                    participantConflictScores={result.participantConflictScores} 
+                    participantConflictScores={result.participantConflictScores}
+                    overallTone={result.toneAnalysis?.overallTone} 
                   />
                   
                   {/* Tension Contributions (Personal+ Tier) */}

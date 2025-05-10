@@ -40,7 +40,25 @@ export function CommunicationStyles({ me, them, participantConflictScores, overa
       return true;
     }
 
-    // Look for toxic phrases in all props
+    // IMPORTANT: Check the overall tone first - this is the most reliable indicator
+    if (overallTone) {
+      const overallToneLower = overallTone.toLowerCase();
+      const negativeTonePatterns = [
+        'blame', 'accus', 'tense', 'defensive', 'criticism', 'dismissive', 
+        'contempt', 'stonewalling', 'withdraw', 'aggressive', 'manipulat',
+        'conflict', 'negative', 'unfriendly', 'hostile', 'cold', 'distant',
+        'disrespect', 'harsh', 'cruel', 'mean', 'toxic', 'unhealthy', 'gaslighting'
+      ];
+      
+      for (const pattern of negativeTonePatterns) {
+        if (overallToneLower.includes(pattern)) {
+          console.log(`Detected toxic pattern in overall tone: ${pattern}`);
+          return true;
+        }
+      }
+    }
+
+    // Look for toxic phrases in all props as a fallback
     const allText = JSON.stringify({me, them, participantConflictScores});
     const toxicPhrases = [
       'blame', 'accus', 'tense', 'defensive', 'criticism', 'dismissive', 
@@ -49,6 +67,7 @@ export function CommunicationStyles({ me, them, participantConflictScores, overa
     
     for (const phrase of toxicPhrases) {
       if (allText.toLowerCase().includes(phrase)) {
+        console.log(`Detected toxic pattern in props: ${phrase}`);
         return true;
       }
     }
@@ -62,9 +81,97 @@ export function CommunicationStyles({ me, them, participantConflictScores, overa
     return null;
   };
   
+  // Determine if conversation is toxic using our helper function
+  const isToxic = isToxicConversation();
+  console.log(`Conversation toxic detected: ${isToxic}, Overall tone: ${overallTone || 'none'}`);
+  
+  // For toxic conversations with no participant conflict scores (free tier),
+  // generate generic conflict scores
+  if (isToxic && (!participantConflictScores || Object.keys(participantConflictScores).length === 0)) {
+    // Generate basic conflict metrics for free tier
+    const genericNegativeScores = {
+      [me]: {
+        score: 65, // moderate conflict score
+        label: "Shows potential defensive patterns",
+        isEscalating: true
+      },
+      [them]: {
+        score: 65, // moderate conflict score
+        label: "Shows potential conflict indicators",
+        isEscalating: true
+      }
+    };
+    
+    // Return component with generic conflict scores
+    return (
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold mb-3">Communication Styles Breakdown</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <h4 className="text-base font-medium" style={{ color: meColor }}>{me}</h4>
+              <div className="flex items-center mt-2">
+                <div 
+                  className="h-4 w-4 rounded-full mr-2" 
+                  style={{ backgroundColor: '#F87171' }}
+                ></div>
+                <span className="text-sm font-medium">Potential Conflict</span>
+              </div>
+              <p className="mt-2 text-sm">{genericNegativeScores[me].label}</p>
+              <div className="mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Low Conflict</span>
+                  <span className="text-xs text-gray-500">High Conflict</span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                  <div 
+                    className="h-full" 
+                    style={{ 
+                      width: `${genericNegativeScores[me].score}%`,
+                      backgroundColor: meColor
+                    }}
+                  ></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <h4 className="text-base font-medium" style={{ color: themColor }}>{them}</h4>
+              <div className="flex items-center mt-2">
+                <div 
+                  className="h-4 w-4 rounded-full mr-2" 
+                  style={{ backgroundColor: '#F87171' }}
+                ></div>
+                <span className="text-sm font-medium">Potential Conflict</span>
+              </div>
+              <p className="mt-2 text-sm">{genericNegativeScores[them].label}</p>
+              <div className="mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Low Conflict</span>
+                  <span className="text-xs text-gray-500">High Conflict</span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                  <div 
+                    className="h-full" 
+                    style={{ 
+                      width: `${genericNegativeScores[them].score}%`,
+                      backgroundColor: themColor
+                    }}
+                  ></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+  
   // If no conflict scores data available and not detected as toxic, use positive styles
   if ((!participantConflictScores || Object.keys(participantConflictScores).length === 0) && 
-      !isToxicConversation()) {
+      !isToxic) {
     const mePositiveScores = generatePositiveScores(me, meColor);
     const themPositiveScores = generatePositiveScores(them, themColor);
     
