@@ -327,9 +327,36 @@ export function EmotionalShiftsTimeline({ tier, me, them, conversation, emotiona
             {/* Key points - collapsible to avoid overwhelming the UI */}
             <div className="space-y-3">
               {/* Summary point showing first and last entries */}
-              <div className="bg-blue-50 p-3 rounded border border-blue-200 text-blue-800 text-xs">
-                <div className="font-medium mb-1">Emotional Journey Summary</div>
-                <p>The conversation begins with {me} feeling <span className="font-medium">{timelinePoints[0].meEmotion}</span> and {them} feeling <span className="font-medium">{timelinePoints[0].themEmotion}</span>, gradually escalating to a point where {me} becomes <span className="font-medium">{timelinePoints[2].meEmotion}</span> and {them} shifts to being <span className="font-medium">{timelinePoints[2].themEmotion}</span>. By the end, {me} is <span className="font-medium">{timelinePoints[4].meEmotion}</span> while {them} appears <span className="font-medium">{timelinePoints[4].themEmotion}</span>.</p>
+              <div className="bg-blue-50 p-3 rounded border border-blue-200 text-blue-800">
+                <div className="font-medium mb-2">Emotional Journey Summary</div>
+                <p className="text-xs mb-3">The conversation begins with {me} feeling <span className="font-medium">{timelinePoints[0].meEmotion}</span> and {them} feeling <span className="font-medium">{timelinePoints[0].themEmotion}</span>, gradually escalating to a point where {me} becomes <span className="font-medium">{timelinePoints[2].meEmotion}</span> and {them} shifts to being <span className="font-medium">{timelinePoints[2].themEmotion}</span>. By the end, {me} is <span className="font-medium">{timelinePoints[4].meEmotion}</span> while {them} appears <span className="font-medium">{timelinePoints[4].themEmotion}</span>.</p>
+                
+                <div className="font-medium text-xs mb-1">What This Pattern Reveals:</div>
+                <ul className="text-xs list-disc pl-5 space-y-1">
+                  {timelinePoints[4].meIntensity > timelinePoints[0].meIntensity && 
+                  timelinePoints[4].themIntensity > timelinePoints[0].themIntensity ? (
+                    <li>Both participants experienced <span className="font-medium">increasing emotional intensity</span>, suggesting an unresolved conflict escalation</li>
+                  ) : timelinePoints[4].meIntensity < timelinePoints[0].meIntensity && 
+                      timelinePoints[4].themIntensity < timelinePoints[0].themIntensity ? (
+                    <li>Both participants showed <span className="font-medium">decreasing emotional intensity</span>, indicating successful de-escalation</li>
+                  ) : (
+                    <li>The emotional intensity shifted unevenly between participants, which can create communication imbalances</li>
+                  )}
+                  
+                  {timelinePoints.some(point => point.meEmotion === 'Frustrated' || point.meEmotion === 'Angry' || point.themEmotion === 'Frustrated' || point.themEmotion === 'Angry') && (
+                    <li>Moments of frustration or anger appeared, which often indicate that one or both parties felt their needs weren't being met</li>
+                  )}
+                  
+                  {timelinePoints.some(point => point.meEmotion === 'Defensive' || point.themEmotion === 'Defensive') && (
+                    <li>Defensive reactions suggest perceived criticism or attacks that triggered self-protection responses</li>
+                  )}
+                  
+                  {timelinePoints.some(point => point.meEmotion === 'Dismissive' || point.themEmotion === 'Dismissive') && (
+                    <li>Dismissive communication patterns can shut down productive dialogue and create feelings of invalidation</li>
+                  )}
+                  
+                  <li>Understanding these emotional shifts helps identify which conversational moments increased tension</li>
+                </ul>
               </div>
 
               {/* Detailed points */}
@@ -428,8 +455,33 @@ export function EmotionalShiftsTimeline({ tier, me, them, conversation, emotiona
                       </div>
                       
                       {/* Contextual explanation */}
-                      <div className="mt-1 text-gray-500 ml-16">
-                        {explanations[index]}
+                      <div className="mt-1 text-gray-500 ml-16 space-y-1">
+                        <p>{explanations[index]}</p>
+                        
+                        {/* Add more detailed explanation based on emotion patterns */}
+                        {point.meEmotion === 'Frustrated' && point.themEmotion === 'Defensive' && (
+                          <p className="font-medium text-amber-700">This frustration-defense pattern can create a negative cycle where each response increases tension.</p>
+                        )}
+                        
+                        {point.meEmotion === 'Angry' && point.themEmotion === 'Withdrawn' && (
+                          <p className="font-medium text-amber-700">The anger-withdrawal pattern often leads to unresolved issues as one person disengages.</p>
+                        )}
+                        
+                        {point.meEmotion === 'Dismissive' && point.themEmotion === 'Hurt' && (
+                          <p className="font-medium text-amber-700">When dismissiveness meets hurt feelings, the emotional distance between participants grows.</p>
+                        )}
+                        
+                        {(point.meEmotion === 'Accusatory' || point.themEmotion === 'Accusatory') && (
+                          <p className="font-medium text-amber-700">Accusatory language often triggers defensiveness rather than understanding.</p>
+                        )}
+                        
+                        {(point.meIntensity > 75 && point.themIntensity > 75) && (
+                          <p className="font-medium text-amber-700">High emotional intensity from both participants indicates a critical moment in the conversation.</p>
+                        )}
+                        
+                        {index > 0 && (point.meIntensity - timelinePoints[index-1].meIntensity > 20 || point.themIntensity - timelinePoints[index-1].themIntensity > 20) && (
+                          <p className="font-medium text-amber-700">This sharp emotional escalation often indicates a triggering statement or misunderstanding.</p>
+                        )}
                       </div>
                     </div>
                   );
@@ -439,10 +491,60 @@ export function EmotionalShiftsTimeline({ tier, me, them, conversation, emotiona
           </CardContent>
         </Card>
         
-        <div className="bg-blue-50 p-3 rounded border border-blue-100 mt-4">
-          <p className="text-sm text-blue-700">
-            <span className="font-medium">Pro tier feature:</span> Emotional shifts timeline provides an interactive view of how emotions evolve throughout the conversation, revealing key escalation and de-escalation points.
-          </p>
+        <div className="mt-4 space-y-3">
+          <Card>
+            <CardContent className="p-4">
+              <h4 className="text-sm font-semibold mb-2">Understanding Emotional Patterns</h4>
+              <div className="text-xs text-gray-700 space-y-3">
+                <p>
+                  The timeline above charts how emotions evolved throughout your conversation. These patterns reveal important insights about your communication dynamic:
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                    <h5 className="font-medium mb-1 text-red-700">Escalation Triggers</h5>
+                    <p>Points where the emotional intensity increases sharply often indicate statements that triggered a defensive or emotional response. Look for:</p>
+                    <ul className="list-disc pl-4 mt-1 space-y-1">
+                      <li>Accusatory language ("you always/never")</li>
+                      <li>Criticism of character rather than behavior</li>
+                      <li>Dismissing or minimizing concerns</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                    <h5 className="font-medium mb-1 text-emerald-700">De-escalation Strategies</h5>
+                    <p>When emotional intensity decreases, effective communication techniques were likely used:</p>
+                    <ul className="list-disc pl-4 mt-1 space-y-1">
+                      <li>Active listening and validation</li>
+                      <li>Using "I feel" statements instead of accusations</li>
+                      <li>Taking responsibility for your part</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                  <h5 className="font-medium mb-1">Common Emotional Patterns</h5>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium">Pursue-Withdraw:</span> One person pursues with questions or demands while the other withdraws emotionally.
+                    </div>
+                    <div>
+                      <span className="font-medium">Criticism-Defensiveness:</span> Critical comments trigger defensive responses, creating a cycle of increasing tension.
+                    </div>
+                    <div>
+                      <span className="font-medium">Emotional Flooding:</span> Intensity escalates rapidly to overwhelming levels where productive communication becomes impossible.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+                
+          <div className="bg-blue-50 p-3 rounded border border-blue-100">
+            <p className="text-sm text-blue-700">
+              <span className="font-medium">Pro tier feature:</span> Emotional shifts timeline provides an interactive view of how emotions evolve throughout the conversation, revealing key escalation and de-escalation points.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -460,26 +562,138 @@ export function EmotionalShiftsTimeline({ tier, me, them, conversation, emotiona
         
         <Card>
           <CardContent className="p-4">
-            <div className="space-y-3">
-              {emotionalState.map((emotion, index) => (
-                <div key={index} className="flex items-center">
-                  <span className="text-sm font-medium w-24">{emotion.emotion}:</span>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden ml-2">
-                    <div 
-                      className="h-full bg-blue-500" 
-                      style={{ width: `${emotion.intensity}%` }}
-                    ></div>
+            <p className="text-sm text-gray-700 mb-4">
+              This analysis shows how different emotions appeared throughout the conversation. 
+              The intensity value reflects how strongly each emotion was present in the exchange.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6 mb-4">
+              {emotionalState.map((emotion, index) => {
+                // Determine color based on emotion category
+                const emotionColor = 
+                  ['Angry', 'Frustrated', 'Irritated', 'Annoyed', 'Furious'].includes(emotion.emotion) ? 'bg-red-500' :
+                  ['Sad', 'Hurt', 'Disappointed', 'Depressed', 'Melancholic'].includes(emotion.emotion) ? 'bg-indigo-500' :
+                  ['Happy', 'Joyful', 'Excited', 'Pleased', 'Cheerful'].includes(emotion.emotion) ? 'bg-emerald-500' :
+                  ['Anxious', 'Worried', 'Scared', 'Fearful', 'Nervous'].includes(emotion.emotion) ? 'bg-amber-500' :
+                  ['Calm', 'Relaxed', 'Serene', 'Peaceful', 'Tranquil'].includes(emotion.emotion) ? 'bg-teal-500' :
+                  'bg-blue-500';
+                
+                // Determine label based on intensity
+                const intensityLabel = 
+                  emotion.intensity > 80 ? 'Very High' :
+                  emotion.intensity > 60 ? 'High' :
+                  emotion.intensity > 40 ? 'Moderate' :
+                  emotion.intensity > 20 ? 'Low' :
+                  'Very Low';
+                
+                return (
+                  <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">{emotion.emotion}</span>
+                      <span className="text-xs px-2 py-1 rounded-full bg-gray-200">{intensityLabel}</span>
+                    </div>
+                    
+                    <div className="flex items-center mb-1">
+                      <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${emotionColor}`}
+                          style={{ width: `${emotion.intensity}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs ml-2 font-medium">{emotion.intensity}%</span>
+                    </div>
+                    
+                    <p className="text-xs text-gray-600 mt-2">
+                      {emotion.emotion === 'Angry' && 'Signs of frustration and confrontation were present, manifesting as direct challenges or accusations.'}
+                      {emotion.emotion === 'Sad' && 'Expressions of disappointment or hurt feelings were detected, often shown through withdrawing or seeking reassurance.'}
+                      {emotion.emotion === 'Happy' && 'Positive emotional expressions like gratitude, appreciation, or enthusiasm were exchanged.'}
+                      {emotion.emotion === 'Anxious' && 'Worry or concern was evident, often manifesting as seeking reassurance or expressing doubts.'}
+                      {emotion.emotion === 'Frustrated' && 'Feelings of being misunderstood or blocked from achieving a goal were expressed.'}
+                      {emotion.emotion === 'Defensive' && 'Protective responses to perceived criticism or attack, often involving justifications or counter-arguments.'}
+                      {emotion.emotion === 'Supportive' && 'Expressions of understanding, encouragement, and validation were offered.'}
+                      {emotion.emotion === 'Dismissive' && 'Communication that minimized the importance of the other person\'s concerns or feelings.'}
+                      {['Caring', 'Affectionate', 'Loving'].includes(emotion.emotion) && 'Expressions of warmth, tenderness, and genuine concern for the other\'s wellbeing.'}
+                      {!['Angry', 'Sad', 'Happy', 'Anxious', 'Frustrated', 'Defensive', 'Supportive', 'Dismissive', 'Caring', 'Affectionate', 'Loving'].includes(emotion.emotion) && 
+                        `This emotion was present throughout the conversation and may indicate how participants were relating to each other.`}
+                    </p>
                   </div>
-                  <span className="text-xs ml-2">{emotion.intensity}%</span>
+                );
+              })}
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded border border-blue-100 mt-2">
+              <h4 className="text-sm font-medium text-blue-800 mb-1">What This Means</h4>
+              <p className="text-sm text-blue-700">
+                {emotionalState.length > 0 && emotionalState.some(e => ['Angry', 'Frustrated', 'Defensive', 'Dismissive'].includes(e.emotion) && e.intensity > 60) ?
+                  "High levels of negative emotions often indicate unresolved conflicts. Consider addressing these issues directly using 'I' statements rather than accusations." :
+                emotionalState.length > 0 && emotionalState.some(e => ['Happy', 'Caring', 'Supportive', 'Affectionate'].includes(e.emotion) && e.intensity > 60) ?
+                  "The presence of strong positive emotions suggests a healthy emotional connection. Continue nurturing this by expressing appreciation and active listening." :
+                  "This emotional profile shows a mix of different feelings. Being aware of these emotional patterns can help you navigate future conversations more effectively."}
+              </p>
+            </div>
+            
+            <div className="border-t border-gray-200 mt-4 pt-4">
+              <h4 className="text-sm font-medium mb-2">How to Use This Information</h4>
+              <ul className="text-xs text-gray-700 space-y-1 list-disc pl-5">
+                <li>Identify which emotions were most prominent in the conversation</li>
+                <li>Notice patterns in how emotions shifted or intensified during the exchange</li>
+                <li>Consider how your own emotions might have influenced communication</li>
+                <li>Use this awareness to improve future interactions by addressing emotional triggers</li>
+              </ul>
+            </div>
+
+            <div className="border-t border-gray-200 mt-4 pt-4">
+              <h4 className="text-sm font-medium mb-3">Common Emotion Patterns & What They Mean</h4>
+              
+              <div className="space-y-3">
+                <div className="flex space-x-3">
+                  <div className="bg-red-100 text-red-700 p-2 rounded-lg flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="m15 9-6 6"></path>
+                      <path d="m9 9 6 6"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-medium">High Anger + Defensiveness</h5>
+                    <p className="text-xs text-gray-600">When these emotions dominate, conversations often become unproductive as both parties focus on protecting themselves rather than understanding each other.</p>
+                  </div>
                 </div>
-              ))}
+                
+                <div className="flex space-x-3">
+                  <div className="bg-indigo-100 text-indigo-700 p-2 rounded-lg flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-medium">Sadness + Withdrawal</h5>
+                    <p className="text-xs text-gray-600">This pattern often signals that emotional needs aren't being met, leading to disconnection as one person pulls away to protect themselves from further hurt.</p>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <div className="bg-emerald-100 text-emerald-700 p-2 rounded-lg flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                      <line x1="9" x2="9.01" y1="9" y2="9"></line>
+                      <line x1="15" x2="15.01" y1="9" y2="9"></line>
+                    </svg>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-medium">Support + Appreciation</h5>
+                    <p className="text-xs text-gray-600">When these positive emotions are present, they build trust and emotional connection, creating a foundation for resolving difficult issues.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
         
         <div className="bg-blue-50 p-3 rounded border border-blue-100 mt-4">
           <p className="text-sm text-blue-700">
-            <span className="font-medium">Pro tier feature:</span> Emotional mapping shows the distribution and intensity of emotions in this conversation.
+            <span className="font-medium">Pro tier feature:</span> Emotional mapping shows the distribution and intensity of emotions in this conversation, helping you understand the emotional dynamics at play.
           </p>
         </div>
       </div>
