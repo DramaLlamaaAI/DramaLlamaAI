@@ -368,6 +368,110 @@ export function BehavioralPatterns({ tier, conversation, dynamics, me = "Me", th
     }
   }
   
+  // If this is a Pro tier but no patterns have been identified yet, create default patterns
+  if (tier === 'pro' || tier === 'instant') {
+    console.log("No specific behavioral patterns found, generating defaults for Pro tier");
+    
+    // Generate default behavioral patterns based on conversation content
+    const lowerConvo = conversation.toLowerCase();
+    const generatedPatterns = [];
+    
+    // Check for defensive language
+    if (lowerConvo.includes("you always") || 
+        lowerConvo.includes("you never") || 
+        lowerConvo.includes("not my fault") ||
+        lowerConvo.includes("i didn't") ||
+        lowerConvo.includes("that's not what")) {
+      generatedPatterns.push("Defensive communication pattern with frequent justification responses");
+    }
+    
+    // Check for blame shifting
+    if (lowerConvo.includes("your fault") || 
+        lowerConvo.includes("if you hadn't") || 
+        lowerConvo.includes("because you") ||
+        lowerConvo.includes("you made me")) {
+      generatedPatterns.push("Blame shifting pattern where responsibility is redirected");
+    }
+    
+    // Check for withdrawal
+    if (lowerConvo.includes("whatever") || 
+        lowerConvo.includes("forget it") || 
+        lowerConvo.includes("doesn't matter") ||
+        lowerConvo.includes("fine") ||
+        lowerConvo.includes("i'm done")) {
+      generatedPatterns.push("Withdrawal pattern where emotional disengagement is used to end conflict");
+    }
+    
+    // If we found patterns, display them
+    if (generatedPatterns.length > 0) {
+      const filteredPatterns = filterDynamicsByParticipant(generatedPatterns, participantFilter);
+      
+      return (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <Repeat className="h-5 w-5 text-purple-500 mr-2" />
+              <h3 className="text-lg font-semibold">Behavioral Pattern Detection</h3>
+            </div>
+            
+            {/* Participant filter toggle */}
+            <div className="flex items-center space-x-1 bg-gray-100 rounded-md p-1 text-xs">
+              <button 
+                className={`px-2 py-1 rounded-md ${participantFilter === 'all' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                onClick={() => setParticipantFilter('all')}
+              >
+                Both
+              </button>
+              <button 
+                className={`px-2 py-1 rounded-md ${participantFilter === me ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                onClick={() => setParticipantFilter(me)}
+                style={{ color: participantFilter === me ? '#22C9C9' : undefined }}
+              >
+                {me}
+              </button>
+              <button 
+                className={`px-2 py-1 rounded-md ${participantFilter === them ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                onClick={() => setParticipantFilter(them)}
+                style={{ color: participantFilter === them ? '#FF69B4' : undefined }}
+              >
+                {them}
+              </button>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {filteredPatterns.map((pattern, index) => (
+              <Card key={index}>
+                <CardContent className="p-4">
+                  <div className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center mr-3 mt-0.5">
+                      <Activity className="h-4 w-4 text-purple-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-700">{pattern}</p>
+                      <p className="text-xs text-purple-600 mt-2">
+                        <span className="font-medium">Impact:</span> This pattern can create recurring conflicts that escalate over time if not addressed.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            
+            <div className="bg-purple-50 p-3 rounded border border-purple-100 mt-3">
+              <div className="flex items-center">
+                <p className="text-sm text-purple-700 flex-1">
+                  <span className="font-medium">Pro tier feature:</span> Advanced behavioral pattern detection identifies specific communication cycles that may be creating tension in this conversation.
+                </p>
+                <ChevronRight className="h-4 w-4 text-purple-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+  
   // If no determination can be made, don't show any patterns
   return null;
 }

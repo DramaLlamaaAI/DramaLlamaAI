@@ -145,17 +145,32 @@ export function RedFlags({ redFlags, tier, conversation }: RedFlagsProps) {
               {/* Pro tier gets additional insights */}
               {isPro && (
                 <div className="mt-3 bg-gray-50 p-2 rounded border border-gray-200 text-xs">
-                  <span className="font-medium text-gray-700">Impact Analysis: </span>
-                  <span className="text-gray-600">
-                    {flag.type === 'Communication Breakdown' && 
-                      'This pattern usually leads to circular arguments that never resolve the underlying issues, creating a cycle of frustration.'}
-                    {flag.type === 'Emotional Manipulation' && 
-                      'This tactic creates an imbalance where one person feels consistently guilty for not meeting unstated expectations.'}
-                    {flag.type === 'Conversational Stonewalling' && 
-                      'Shutting down communication prevents healthy conflict resolution and builds resentment over time.'}
-                    {flag.type === 'Relationship Strain' && 
-                      'Persistent communication issues often lead to emotional distance and difficulty resolving even minor disagreements.'}
-                  </span>
+                  <div className="mb-2">
+                    <span className="font-medium text-gray-700">Impact Analysis: </span>
+                    <span className="text-gray-600">
+                      {flag.type === 'Communication Breakdown' && 
+                        'This pattern usually leads to circular arguments that never resolve the underlying issues, creating a cycle of frustration.'}
+                      {flag.type === 'Emotional Manipulation' && 
+                        'This tactic creates an imbalance where one person feels consistently guilty for not meeting unstated expectations.'}
+                      {flag.type === 'Conversational Stonewalling' && 
+                        'Shutting down communication prevents healthy conflict resolution and builds resentment over time.'}
+                      {flag.type === 'Relationship Strain' && 
+                        'Persistent communication issues often lead to emotional distance and difficulty resolving even minor disagreements.'}
+                      {!['Communication Breakdown', 'Emotional Manipulation', 'Conversational Stonewalling', 'Relationship Strain'].includes(flag.type) && 
+                        'This pattern can create ongoing tension and prevents healthy resolution of underlying issues.'}
+                    </span>
+                  </div>
+                  
+                  <div>
+                    <span className="font-medium text-gray-700">Suggested Action: </span>
+                    <span className="text-gray-600">
+                      {flag.severity >= 4 ? 
+                        'This requires immediate attention. Try pausing the conversation, acknowledging emotions, and returning when both parties are calmer.' : 
+                      flag.severity >= 3 ? 
+                        'Address this pattern directly but gently. Consider using "I" statements to express how these interactions affect you.' : 
+                        'Be mindful of this pattern in future conversations. Consider discussing it when both parties are calm.'}
+                    </span>
+                  </div>
                 </div>
               )}
             </CardContent>
