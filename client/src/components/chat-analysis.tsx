@@ -96,6 +96,89 @@ export default function ChatAnalysis() {
       });
     },
   });
+  
+  // Export the analysis results as PDF
+  const exportToPdf = async () => {
+    if (!resultsRef.current || !result) {
+      toast({
+        title: "Export Failed",
+        description: "Could not generate PDF. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsExporting(true);
+      const element = resultsRef.current;
+      
+      // Configure html2pdf options
+      const opt = {
+        margin: 10,
+        filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      // Create PDF
+      await html2pdf().from(element).set(opt).save();
+      
+      toast({
+        title: "Export Successful",
+        description: "Your analysis has been exported as a PDF.",
+      });
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Could not generate the PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+  
+  // Export the analysis results as image
+  const exportAsImage = async () => {
+    if (!resultsRef.current || !result) {
+      toast({
+        title: "Export Failed",
+        description: "Could not generate the image. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsExporting(true);
+      const element = resultsRef.current;
+      
+      // Create a JPEG image
+      const dataUrl = await toJpeg(element, { quality: 0.9, backgroundColor: 'white' });
+      
+      // Create a link element to download the image
+      const link = document.createElement('a');
+      link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
+      link.href = dataUrl;
+      link.click();
+      
+      toast({
+        title: "Export Successful",
+        description: "Your analysis has been exported as an image.",
+      });
+    } catch (error) {
+      console.error("Image export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Could not generate the image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -882,8 +965,19 @@ export default function ChatAnalysis() {
                     >
                       Back to Analysis
                     </Button>
-                    <Button>
-                      Export Results
+                    <Button
+                      onClick={exportToPdf}
+                      disabled={isExporting}
+                      className="mr-2"
+                    >
+                      {isExporting ? 'Exporting...' : 'Export as PDF'}
+                    </Button>
+                    <Button 
+                      variant="secondary"
+                      onClick={exportAsImage}
+                      disabled={isExporting}
+                    >
+                      {isExporting ? 'Exporting...' : 'Export as Image'}
                     </Button>
                   </div>
                     </>
