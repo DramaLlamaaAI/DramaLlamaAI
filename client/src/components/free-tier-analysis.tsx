@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChatAnalysisResult } from '@shared/schema';
+import html2pdf from 'html2pdf.js';
+import { toJpeg } from 'html-to-image';
+import { useToast } from "@/hooks/use-toast";
 
 interface FreeTierAnalysisProps {
   result: ChatAnalysisResult;
@@ -10,8 +13,101 @@ interface FreeTierAnalysisProps {
 }
 
 export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
+  const { toast } = useToast();
+  const [isExporting, setIsExporting] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  
+  // Export the analysis results as PDF
+  const exportToPdf = async () => {
+    if (!resultsRef.current || !result) {
+      toast({
+        title: "Export Failed",
+        description: "Could not generate PDF. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsExporting(true);
+      const element = resultsRef.current;
+      
+      // Configure html2pdf options
+      const opt = {
+        margin: 10,
+        filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      // Create PDF
+      await html2pdf().from(element).set(opt).save();
+      
+      toast({
+        title: "Export Successful",
+        description: "Your analysis has been exported as a PDF.",
+      });
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Could not generate the PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+  
+  // Export the analysis results as an image
+  const exportAsImage = async () => {
+    if (!resultsRef.current || !result) {
+      toast({
+        title: "Export Failed",
+        description: "Could not generate image. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsExporting(true);
+      const element = resultsRef.current;
+      
+      // Create a JPEG image
+      const dataUrl = await toJpeg(element, { 
+        cacheBust: true,
+        quality: 0.95,
+        backgroundColor: 'white',
+        canvasWidth: 1200,
+        pixelRatio: 2
+      });
+      
+      // Download the image
+      const link = document.createElement('a');
+      link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
+      link.href = dataUrl;
+      link.click();
+      
+      toast({
+        title: "Export Successful",
+        description: "Your analysis has been exported as an image.",
+      });
+    } catch (error) {
+      console.error("Image export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "Could not generate the image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+  
   return (
-    <div className="mb-4 p-4 bg-white border rounded-lg shadow-sm">
+    <div ref={resultsRef} className="mb-4 p-4 bg-white border rounded-lg shadow-sm">
       <div className="flex flex-col gap-6">
         {/* Free Tier Summary Section */}
         <div>
@@ -135,6 +231,25 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             </p>
           </div>
         )}
+        
+        {/* Export Buttons */}
+        <div className="flex justify-end mb-4">
+          <Button
+            onClick={exportToPdf}
+            disabled={isExporting}
+            className="mr-2"
+            variant="outline"
+          >
+            {isExporting ? 'Exporting...' : 'Export as PDF'}
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={exportAsImage}
+            disabled={isExporting}
+          >
+            {isExporting ? 'Exporting...' : 'Export as Image'}
+          </Button>
+        </div>
         
         {/* Upgrade CTA */}
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-2">
