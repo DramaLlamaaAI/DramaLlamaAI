@@ -221,29 +221,7 @@ export function CommunicationStyles({ me, them, participantConflictScores, overa
             </CardContent>
           </Card>
           
-          {/* Self-reflection section */}
-          <Card className="mt-2">
-            <CardContent className="p-4">
-              <h5 className="text-sm font-medium flex items-center mb-2">
-                <span className="mr-2">🪞</span>
-                Suggested Self-Reflection
-              </h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="p-3 rounded border bg-blue-50 border-blue-100">
-                  <p className="text-sm flex items-start">
-                    <span className="mr-2 font-medium" style={{ color: meColor }}>{me}:</span>
-                    <span className="text-blue-800">{detailedAnalysis[me].reflection}</span>
-                  </p>
-                </div>
-                <div className="p-3 rounded border bg-pink-50 border-pink-100">
-                  <p className="text-sm flex items-start">
-                    <span className="mr-2 font-medium" style={{ color: themColor }}>{them}:</span>
-                    <span className="text-pink-800">{detailedAnalysis[them].reflection}</span>
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Self-reflection section removed as requested */}
           
           {/* Conversation health summary */}
           <Card className="mt-2">

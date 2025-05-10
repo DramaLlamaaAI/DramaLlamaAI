@@ -232,10 +232,9 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
     );
   }
   
-  // Render a single Relationship Health section with the appropriate content
+  // Render a single Health Meter section without the duplicate "Relationship Health" heading
   return (
     <div className="mt-6">
-      <h3 className="text-lg font-semibold mb-3">Relationship Health</h3>
       <Card>
         {cardContent}
       </Card>
