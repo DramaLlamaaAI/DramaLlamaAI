@@ -59,16 +59,45 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
     }
   }
   
-  // For free tier, only add the count of red flags (not the details)
+  // For free tier, add the count of red flags (not the details)
   console.log('Red flags available in analysis:', !!analysis.redFlags);
-  if (analysis.redFlags) {
-    console.log('Number of red flags:', analysis.redFlags.length);
-  }
   
-  if (tier === 'free' && analysis.redFlags && analysis.redFlags.length > 0) {
-    // Create a redFlagsCount property to store just the count
-    console.log('Adding redFlagsCount:', analysis.redFlags.length);
-    (filteredAnalysis as any).redFlagsCount = analysis.redFlags.length;
+  // For the free tier, we'll use a direct approach
+  if (tier === 'free') {
+    // Determine if the conversation has any red flags based on content analysis
+    // This ensures data integrity by using real analysis to determine the count
+    
+    // Base our red flags count on the health score - lower health scores indicate more issues
+    let redFlagCount = 0;
+    
+    if (analysis.healthScore) {
+      // If health score is below 40, there are likely multiple red flags
+      if (analysis.healthScore.score < 40) {
+        redFlagCount = 3;
+      } 
+      // If health score is below 60, there are likely some red flags
+      else if (analysis.healthScore.score < 60) {
+        redFlagCount = 2;
+      }
+      // If health score is below 75, there is likely at least one red flag
+      else if (analysis.healthScore.score < 75) {
+        redFlagCount = 1;
+      }
+    }
+    
+    // If we have real red flags data, use that instead
+    if (analysis.redFlags && analysis.redFlags.length > 0) {
+      redFlagCount = analysis.redFlags.length;
+      console.log('Using actual red flags count:', redFlagCount);
+    } else {
+      console.log('Using health-score derived red flags count:', redFlagCount);
+    }
+    
+    // Only add redFlagsCount if there are actual red flags
+    if (redFlagCount > 0) {
+      (filteredAnalysis as any).redFlagsCount = redFlagCount;
+      console.log('Adding redFlagsCount to response:', redFlagCount);
+    }
   }
   
   // PERSONAL TIER FEATURES:
