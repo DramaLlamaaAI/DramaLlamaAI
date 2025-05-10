@@ -40,6 +40,7 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   // - Conversation Health Meter (healthScore) - added above
   // - Basic Communication Insights (communication.patterns) - added above
   // - Key Summary Quotes (keyQuotes) - limited version
+  // - Red Flags Count (but not the details) - for conversion optimization
   
   if (tierFeatures.includes('keyQuotes') && analysis.keyQuotes) {
     // For free tier, limit to just 2 quotes without improvement suggestions
@@ -56,6 +57,12 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
       // Other tiers get full quotes with improvements
       filteredAnalysis.keyQuotes = analysis.keyQuotes;
     }
+  }
+  
+  // For free tier, only add the count of red flags (not the details)
+  if (tier === 'free' && analysis.redFlags && analysis.redFlags.length > 0) {
+    // Create a redFlagsCount property to store just the count
+    (filteredAnalysis as any).redFlagsCount = analysis.redFlags.length;
   }
   
   // PERSONAL TIER FEATURES:

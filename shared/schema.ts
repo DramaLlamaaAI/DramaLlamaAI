@@ -174,6 +174,8 @@ export const chatAnalysisResultSchema = z.object({
     description: z.string(),
     severity: z.number(),
   })).optional(),
+  // For free tier, only the count is provided, not the details
+  redFlagsCount: z.number().optional(),
   communication: z.object({
     patterns: z.array(z.string()).optional(),
     dynamics: z.array(z.string()).optional(),

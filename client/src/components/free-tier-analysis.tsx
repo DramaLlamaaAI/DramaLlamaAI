@@ -115,6 +115,20 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           </div>
         )}
         
+        {/* Red Flags Teaser */}
+        {result.redFlagsCount && result.redFlagsCount > 0 && (
+          <div className="p-4 bg-red-50 rounded-lg border border-red-100 mb-4">
+            <div className="flex justify-between items-center">
+              <h4 className="text-lg font-medium text-red-700">Red Flags Detected: {result.redFlagsCount}</h4>
+              <div className="px-2 py-1 bg-red-100 text-xs text-red-800 font-medium rounded-full">Upgrade to see details</div>
+            </div>
+            <p className="text-sm text-red-600 mt-2">
+              This conversation contains {result.redFlagsCount} potential concerning {result.redFlagsCount === 1 ? 'pattern' : 'patterns'}.
+              Upgrade to Personal plan to see detailed analysis.
+            </p>
+          </div>
+        )}
+        
         {/* Upgrade CTA */}
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-2">
           <h4 className="font-medium text-blue-800 mb-2">Want deeper insights?</h4>
