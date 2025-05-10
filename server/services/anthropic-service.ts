@@ -88,7 +88,7 @@ const prompts = {
       "toneAnalysis": {
         "overallTone": "string describing the conversation's overall emotional tone",
         "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-        "participantTones": {"participant name": "brief tone description"}
+        "participantTones": {"participant name": "brief tone description focusing on communication style"}
       },
       "communication": {
         "patterns": ["string describing basic patterns observed (limit to 2-3 key patterns)"]
@@ -109,6 +109,11 @@ const prompts = {
     3. Do NOT include redFlags, dramaScore, tensionContributions, or other advanced analysis
     4. Do NOT include personalized suggestions - only objective observations
     5. Keep all analysis brief and high-level
+    6. When describing participant tones:
+       - Distinguish between healthy expressions of appreciation and unhealthy dependency
+       - Expressions of gratitude, thankfulness, and appreciation are generally HEALTHY patterns
+       - Do not characterize these positive expressions as "dependency" or "seeking validation" unless truly excessive
+       - Describe communication styles rather than making psychological assessments
     
     Here's the conversation:
     {conversation}`,
@@ -119,7 +124,7 @@ const prompts = {
       "toneAnalysis": {
         "overallTone": "string describing the conversation's overall tone",
         "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-        "participantTones": {"participant name": "tone description"}
+        "participantTones": {"participant name": "tone description focusing on communication style"}
       },
       "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
       "communication": {
@@ -129,7 +134,7 @@ const prompts = {
       "dramaScore": number between 0-100,
       "healthScore": {
         "score": number between 0-100,
-        "label": "Troubled/Needs Work/Good/Excellent",
+        "label": "Conflict/Tense/Neutral/Healthy/Very Healthy",
         "color": "red/yellow/light-green/green"
       },
       "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation"}],
@@ -147,7 +152,13 @@ const prompts = {
       "tensionMeaning": "explanation of what the tension means for the relationship"
     }
     
-    IMPORTANT: Only include the "tensionContributions" and "tensionMeaning" fields if there is moderate to high tension in the conversation. If the conversation is relatively tension-free, omit these fields entirely from your response.
+    IMPORTANT GUIDELINES:
+    1. Only include the "tensionContributions" and "tensionMeaning" fields if there is moderate to high tension in the conversation. If the conversation is relatively tension-free, omit these fields entirely.
+    2. When describing participant tones, distinguish between healthy expressions of appreciation and unhealthy dependency:
+       - Expressions of gratitude, thankfulness, appreciation for others, and acknowledgment of support are generally HEALTHY communication patterns
+       - Do not characterize these positive expressions as "dependency," "neediness," or "seeking validation" unless they are excessive or manipulative
+       - Reserve terms like "dependency needs" or "relying on external validation" for genuinely problematic patterns, not for normal appreciation
+    3. Focus on describing each participant's communication style rather than making psychological assessments
     
     Here's the conversation:
     {conversation}`,
@@ -158,7 +169,7 @@ const prompts = {
       "toneAnalysis": {
         "overallTone": "string describing the conversation's overall tone",
         "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-        "participantTones": {"participant name": "tone description"}
+        "participantTones": {"participant name": "tone description focusing on communication style"}
       },
       "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
       "communication": {
@@ -186,7 +197,13 @@ const prompts = {
       "tensionMeaning": "detailed explanation of what the tension means for the relationship dynamic and potential long-term implications"
     }
     
-    IMPORTANT: Only include the "tensionContributions" and "tensionMeaning" fields if there is moderate to high tension in the conversation. If the conversation is relatively tension-free, omit these fields entirely from your response.
+    IMPORTANT GUIDELINES:
+    1. Only include the "tensionContributions" and "tensionMeaning" fields if there is moderate to high tension in the conversation. If the conversation is relatively tension-free, omit these fields entirely.
+    2. When describing participant tones, distinguish between healthy expressions of appreciation and unhealthy dependency:
+       - Expressions of gratitude, thankfulness, appreciation for others, and acknowledgment of support are generally HEALTHY communication patterns
+       - Do not characterize these positive expressions as "dependency," "neediness," or "seeking validation" unless they are excessive or manipulative
+       - Reserve terms like "dependency needs" or "relying on external validation" for genuinely problematic patterns, not for normal appreciation
+    3. Focus on describing each participant's communication style rather than making psychological assessments
     
     Here's the conversation:
     {conversation}`
