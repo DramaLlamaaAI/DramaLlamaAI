@@ -1,7 +1,6 @@
-import React from 'react';
-
-// This file is being replaced by behavioral-patterns-filtered.tsx
-// Keeping this as a backup with minimal implementation to avoid conflicts
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Activity, ChevronRight, Repeat } from "lucide-react";
 
 interface BehavioralPatternsProps {
   tier: string;
@@ -11,10 +10,14 @@ interface BehavioralPatternsProps {
   them?: string;
 }
 
-export function BehavioralPatterns(_props: BehavioralPatternsProps) {
-  // Empty implementation - using behavioral-patterns-filtered.tsx instead
-  return null;
-}
+export function BehavioralPatterns({ tier, conversation, dynamics, me = "Me", them = "Other Person" }: BehavioralPatternsProps) {
+  // Initialize state for participant filter
+  const [participantFilter, setParticipantFilter] = useState<'all' | string>('all');
+
+  // Check if user has at least personal tier
+  if (tier === 'free') {
+    return null;
+  }
   
   // Detect if this is a positive conversation
   const isPositiveConversation = () => {
@@ -61,6 +64,20 @@ export function BehavioralPatterns(_props: BehavioralPatternsProps) {
     return !dynamics && positiveCount > negativeCount * 2;
   };
   
+  // Filter dynamics by participant
+  const filterDynamicsByParticipant = (dynamicsArray: string[] = [], participant: string): string[] => {
+    if (participant === 'all') return dynamicsArray;
+    
+    return dynamicsArray.filter(dynamic => {
+      const dynamicLower = dynamic.toLowerCase();
+      const participantLower = participant.toLowerCase();
+      
+      return dynamicLower.includes(participantLower) || 
+             dynamicLower.includes(`when ${participantLower}`) ||
+             dynamicLower.includes(`${participantLower} tends to`);
+    });
+  };
+  
   // For positive conversations, show positive patterns
   if (isPositiveConversation()) {
     const positivePatterns = [
@@ -72,9 +89,35 @@ export function BehavioralPatterns(_props: BehavioralPatternsProps) {
     
     return (
       <div className="mt-6">
-        <div className="flex items-center mb-3">
-          <Repeat className="h-5 w-5 text-emerald-500 mr-2" />
-          <h3 className="text-lg font-semibold">Healthy Communication Patterns</h3>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center">
+            <Repeat className="h-5 w-5 text-emerald-500 mr-2" />
+            <h3 className="text-lg font-semibold">Healthy Communication Patterns</h3>
+          </div>
+          
+          {/* Participant filter toggle */}
+          <div className="flex items-center space-x-1 bg-gray-100 rounded-md p-1 text-xs">
+            <button 
+              className={`px-2 py-1 rounded-md ${participantFilter === 'all' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+              onClick={() => setParticipantFilter('all')}
+            >
+              Both
+            </button>
+            <button 
+              className={`px-2 py-1 rounded-md ${participantFilter === me ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+              onClick={() => setParticipantFilter(me)}
+              style={{ color: participantFilter === me ? '#22C9C9' : undefined }}
+            >
+              {me}
+            </button>
+            <button 
+              className={`px-2 py-1 rounded-md ${participantFilter === them ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+              onClick={() => setParticipantFilter(them)}
+              style={{ color: participantFilter === them ? '#FF69B4' : undefined }}
+            >
+              {them}
+            </button>
+          </div>
         </div>
         
         <div className="space-y-4">
@@ -188,10 +231,6 @@ export function BehavioralPatterns(_props: BehavioralPatternsProps) {
       </div>
     );
   }
-        </div>
-      </div>
-    );
-  }
   
   // Generate patterns based on participant names for known scenarios
   const generatePatternsForParticipants = (me: string, them: string, convo: string) => {
@@ -228,47 +267,86 @@ export function BehavioralPatterns(_props: BehavioralPatternsProps) {
     const generatedPatterns = generatePatternsForParticipants(participants[0], participants[0] === 'Alex' ? 'Jamie' : 'Alex', conversation);
     
     if (generatedPatterns.length > 0) {
+      // Filter patterns based on selected participant
+      const filteredPatterns = filterDynamicsByParticipant(generatedPatterns, participantFilter);
+      
       // Determine what to show based on tier
       // Pro tier gets full patterns with detailed insights
       // Personal tier gets limited patterns (just 1) with upgrade message
       const isPro = tier === 'pro' || tier === 'instant';
-      const patternsToShow = isPro ? generatedPatterns : generatedPatterns.slice(0, 1);
+      const patternsToShow = isPro ? filteredPatterns : filteredPatterns.slice(0, 1);
       
       return (
         <div className="mt-6">
-          <div className="flex items-center mb-3">
-            <Repeat className="h-5 w-5 text-purple-500 mr-2" />
-            <h3 className="text-lg font-semibold">
-              {isPro ? "Behavioral Pattern Detection" : "Communication Pattern"}
-            </h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <Repeat className="h-5 w-5 text-purple-500 mr-2" />
+              <h3 className="text-lg font-semibold">
+                {isPro ? "Behavioral Pattern Detection" : "Communication Pattern"}
+              </h3>
+            </div>
+            
+            {/* Participant filter toggle */}
+            <div className="flex items-center space-x-1 bg-gray-100 rounded-md p-1 text-xs">
+              <button 
+                className={`px-2 py-1 rounded-md ${participantFilter === 'all' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                onClick={() => setParticipantFilter('all')}
+              >
+                Both
+              </button>
+              <button 
+                className={`px-2 py-1 rounded-md ${participantFilter === me ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                onClick={() => setParticipantFilter(me)}
+                style={{ color: participantFilter === me ? '#22C9C9' : undefined }}
+              >
+                {me}
+              </button>
+              <button 
+                className={`px-2 py-1 rounded-md ${participantFilter === them ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                onClick={() => setParticipantFilter(them)}
+                style={{ color: participantFilter === them ? '#FF69B4' : undefined }}
+              >
+                {them}
+              </button>
+            </div>
           </div>
           
           <div className="space-y-4">
-            {patternsToShow.map((pattern, index) => (
-              <Card key={index}>
-                <CardContent className="p-4">
-                  <div className="flex items-start">
-                    <div className="h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center mr-3 mt-0.5">
-                      <Activity className="h-4 w-4 text-purple-500" />
+            {patternsToShow.length > 0 ? (
+              patternsToShow.map((pattern, index) => (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start">
+                      <div className="h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center mr-3 mt-0.5">
+                        <Activity className="h-4 w-4 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-700">{pattern}</p>
+                        {isPro && index === 0 && (
+                          <p className="text-xs text-purple-600 mt-2">
+                            <span className="font-medium">Impact:</span> This pattern often creates a cycle that's difficult to break without addressing the underlying emotional needs.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-700">{pattern}</p>
-                      {isPro && index === 0 && (
-                        <p className="text-xs text-purple-600 mt-2">
-                          <span className="font-medium">Impact:</span> This pattern often creates a cycle that's difficult to break without addressing the underlying emotional needs.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="bg-gray-50 p-4 rounded border border-gray-200 text-center">
+                <p className="text-sm text-gray-500">
+                  {participantFilter !== 'all' ? 
+                    `No specific patterns found for ${participantFilter}. Try selecting "Both" to see all patterns.` : 
+                    "No behavioral patterns detected."}
+                </p>
+              </div>
+            )}
             
-            {!isPro && (
+            {!isPro && filteredPatterns.length > 0 && (
               <div className="bg-purple-50 p-3 rounded border border-purple-200">
                 <p className="text-sm text-purple-700 flex items-center">
                   <span className="font-medium mr-1">Upgrade to Pro:</span> 
-                  Get {generatedPatterns.length - 1} more patterns with detailed insights on recurring cycles and behavioral dynamics.
+                  Get {filteredPatterns.length - 1} more patterns with detailed insights on recurring cycles and behavioral dynamics.
                   <ChevronRight className="h-4 w-4 text-purple-500 ml-auto" />
                 </p>
               </div>

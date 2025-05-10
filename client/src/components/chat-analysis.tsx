@@ -19,7 +19,7 @@ import { cleanPatternForDisplay, cleanCommunicationPatterns } from "@/lib/analys
 import { CommunicationStyles } from "@/components/communication-styles";
 import { RedFlags } from "@/components/red-flags";
 import { AccountabilityMeters } from "@/components/accountability-meters";
-import { BehavioralPatterns } from "@/components/behavioral-patterns";
+import { BehavioralPatterns } from "@/components/behavioral-patterns-filtered";
 import { EmotionTracking } from "@/components/emotion-tracking";
 import { PersonalizedSuggestions } from "@/components/personalized-suggestions";
 import { TensionContributions } from "@/components/tension-contributions";
@@ -873,6 +873,8 @@ export default function ChatAnalysis() {
                     tier={tier} 
                     conversation={conversation}
                     dynamics={result.communication?.dynamics}
+                    me={me}
+                    them={them}
                   />
                   
                   {/* Pro-tier Advanced Features */}
