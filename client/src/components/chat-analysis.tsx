@@ -845,7 +845,6 @@ export default function ChatAnalysis() {
                     them={them}
                     tier={tier}
                     tensionContributions={result.tensionContributions}
-                    tensionMeaning={result.tensionMeaning}
                   />
                   
                   {/* Personalized Suggestions (Pro Tier Only) */}
