@@ -20,10 +20,12 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             <div className="p-4 bg-muted rounded-lg">
               <h5 className="text-sm font-medium text-muted-foreground mb-1">Overall Tone</h5>
               <p className="text-2xl font-semibold">
-                {result.toneAnalysis?.overallTone?.split(" ").slice(0, 2).join(" ") || "Neutral"}
+                {result.toneAnalysis?.overallTone?.split(".")[0] || "Neutral"}
               </p>
               <p className="text-sm text-gray-500 mt-2">
-                This conversation shows signs of emotional strain.
+                {result.toneAnalysis?.overallTone?.includes(".") ? 
+                  result.toneAnalysis.overallTone.substring(result.toneAnalysis.overallTone.indexOf('.')+1).trim() :
+                  "This conversation shows signs of emotional strain."}
               </p>
             </div>
           </div>
