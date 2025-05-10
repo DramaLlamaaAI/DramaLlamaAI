@@ -11,9 +11,10 @@ interface CommunicationStylesProps {
       isEscalating: boolean;
     }
   };
+  overallTone?: string;
 }
 
-export function CommunicationStyles({ me, them, participantConflictScores }: CommunicationStylesProps) {
+export function CommunicationStyles({ me, them, participantConflictScores, overallTone }: CommunicationStylesProps) {
   // Get healthy communication scores for positive conversations
   const generatePositiveScores = (name: string, color: string) => {
     return {
