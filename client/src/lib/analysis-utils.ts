@@ -25,6 +25,52 @@ export function cleanCommunicationPatterns(patterns: string[]): string[] {
     
     // First, clean up any extra whitespace
     const trimmedPattern = pattern.trim().replace(/\s+/g, ' ');
+    
+    // Handle exact pattern duplications (like "blame shiftingblame shifting")
+    // Look for repetitive patterns by checking common phrases that might be duplicated
+    const commonPatterns = [
+      'blame shifting', 'emotional withdrawal', 'defensive responses', 
+      'criticism', 'stonewalling', 'contempt', 'dismissive', 'validation seeking',
+      'conflict avoidance', 'passive aggressive', 'disrespectful', 'gaslighting'
+    ];
+    
+    // General pattern for detecting adjacent word duplications
+    const words = trimmedPattern.split(' ');
+    let hadDuplication = false;
+    
+    // First check for word-level duplications (e.g., word word)
+    for (let i = 0; i < words.length - 1; i++) {
+      if (words[i].length > 4 && words[i] === words[i + 1]) {
+        // Remove the duplication
+        words.splice(i + 1, 1);
+        hadDuplication = true;
+        i--; // Recheck in case of triple duplication
+      }
+    }
+    
+    // Check for common phrases that might be duplicated
+    for (const commonPattern of commonPatterns) {
+      const duplicatedPattern = commonPattern + commonPattern;
+      if (trimmedPattern.toLowerCase().includes(duplicatedPattern)) {
+        // Replace the duplicated pattern with the single version
+        const cleanedPattern = trimmedPattern.replace(new RegExp(duplicatedPattern, 'gi'), commonPattern);
+        if (!seen.has(cleanedPattern.toLowerCase())) {
+          seen.add(cleanedPattern.toLowerCase());
+          cleanedPatterns.push(cleanedPattern);
+        }
+        return;
+      }
+    }
+    
+    // If we had word-level duplications, use the fixed version
+    if (hadDuplication) {
+      const cleanedPattern = words.join(' ');
+      if (!seen.has(cleanedPattern.toLowerCase())) {
+        seen.add(cleanedPattern.toLowerCase());
+        cleanedPatterns.push(cleanedPattern);
+      }
+      return;
+    }
 
     // Check if pattern length is at least 10 characters to avoid false positives
     if (trimmedPattern.length < 10) {
@@ -51,7 +97,7 @@ export function cleanCommunicationPatterns(patterns: string[]): string[] {
     }
     
     // Check for exact repeating phrases (e.g., "X attacks, Y defends cycle" + "X attacks, Y defends cycle")
-    const words = trimmedPattern.split(' ');
+    // Note: Using words array that was already defined above
     if (words.length >= 6) {
       // Check for repeating 3+ word phrases
       for (let i = 3; i <= Math.floor(words.length / 2); i++) {
@@ -107,6 +153,7 @@ export function cleanCommunicationPatterns(patterns: string[]): string[] {
         }
       });
       
+      // Add this pattern
       uniquePatterns.push(pattern);
     }
   });
@@ -115,57 +162,24 @@ export function cleanCommunicationPatterns(patterns: string[]): string[] {
 }
 
 /**
- * Clean a single pattern for display
+ * Clean an individual pattern for display purposes
  * 
- * @param pattern Pattern string to clean
- * @returns Cleaned pattern
+ * @param pattern A communication pattern string
+ * @returns Cleaned pattern with proper capitalization and punctuation
  */
 export function cleanPatternForDisplay(pattern: string): string {
   if (!pattern) return '';
   
-  // Clean up any extra whitespace
-  let result = pattern.trim().replace(/\s+/g, ' ');
+  // Trim whitespace and ensure no trailing punctuation
+  let cleaned = pattern.trim().replace(/[,.;:\s]+$/, '');
   
-  // Handle repeated words (e.g., "defensive defensive" or "accusatory accusatory")
-  const words = result.split(' ');
-  for (let i = 0; i < words.length - 1; i++) {
-    if (words[i] === words[i + 1] && words[i].length > 3) {
-      words.splice(i + 1, 1);
-      i--; // Recheck the same position in case of triple+ duplications
-    }
-  }
-  result = words.join(' ');
+  // Capitalize first letter
+  cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   
-  // Detect exact duplicated sentences or phrases
-  // Example: "Alex attacks, Jamie defends cycleAlex attacks, Jamie defends cycle"
-  const halfLength = Math.floor(result.length / 2);
-  if (halfLength > 10) {
-    const firstHalf = result.substring(0, halfLength);
-    const secondHalf = result.substring(halfLength);
-    
-    if (secondHalf.includes(firstHalf.substring(0, Math.min(15, firstHalf.length)))) {
-      return firstHalf.trim();
-    }
+  // Ensure no trailing period and add if needed
+  if (!cleaned.endsWith('.')) {
+    cleaned += '.';
   }
   
-  // Check for connected sentences without proper spacing
-  // Example: "Person is defensivePerson avoids addressing issues"
-  for (let i = 3; i < result.length - 3; i++) {
-    // Check for a capital letter that might indicate the start of a new sentence
-    // when it's not at the beginning of the string and not after a period
-    if (
-      i > 0 && 
-      result[i].match(/[A-Z]/) && 
-      result[i-1].match(/[a-z]/) && 
-      result[i-1] !== '.' && 
-      result[i-1] !== '!' && 
-      result[i-1] !== '?'
-    ) {
-      // Insert a space before the capital letter to separate the sentences
-      result = result.substring(0, i) + '. ' + result.substring(i);
-      i += 2; // Skip the inserted characters
-    }
-  }
-  
-  return result;
+  return cleaned;
 }
