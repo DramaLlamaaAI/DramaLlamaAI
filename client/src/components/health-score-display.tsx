@@ -14,9 +14,13 @@ interface HealthScoreDisplayProps {
 }
 
 export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreDisplayProps) {
-  if (tier === 'free') {
+  // Only render this component for personal and higher tiers, and only when the tier is actually available
+  // This helps prevent duplicate rendering
+  if (tier === 'free' || !tier) {
     return null;
   }
+  
+  console.log("HealthScoreDisplay component rendering with tier:", tier);
   
   // Check for Alex/Jamie conversation specifically
   const isAlexJamieConversation = 
