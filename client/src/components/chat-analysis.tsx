@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Archive, FileText, AlertCircle, Calendar } from "lucide-react";
+import { Info, Archive, FileText, AlertCircle, Calendar, Download } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,8 @@ import { AdvancedTrendLines } from "@/components/advanced-trend-lines";
 import { EvasionPowerDynamics } from "@/components/evasion-power-dynamics";
 import { EmotionalShiftsTimeline } from "@/components/emotional-shifts-timeline";
 import { SelfReflection } from "@/components/self-reflection";
+import html2pdf from 'html2pdf.js';
+import { toJpeg } from 'html-to-image';
 import { FreeTierAnalysis } from "@/components/free-tier-analysis";
 
 export default function ChatAnalysis() {
@@ -43,8 +45,10 @@ export default function ChatAnalysis() {
   const [enableDateFilter, setEnableDateFilter] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [isExporting, setIsExporting] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const { data: usage } = useQuery({
