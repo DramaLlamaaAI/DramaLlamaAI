@@ -39,20 +39,27 @@ export function SelfReflection({ tier, me, them, conversation, keyQuotes }: Self
   }
   
   const [reflectionNote, setReflectionNote] = useState<string>('');
+  const [metricsFilter, setMetricsFilter] = useState<'all' | string>('all'); // Filter for metrics view
   
-  // Extract self-communication patterns
-  const extractCommunicationPatterns = () => {
-    const selfMessages = extractMessagesForSelf(conversation, me);
+  // Extract communication patterns for a specific speaker
+  const extractCommunicationPatternsForSpeaker = (speaker: string, otherSpeaker: string) => {
+    const speakerMessages = extractMessagesForSelf(conversation, speaker);
     
     const patterns = {
-      empathy: analyzeEmpathy(selfMessages, conversation),
-      defensiveness: analyzeDefensiveness(selfMessages),
-      accountability: analyzeAccountability(selfMessages),
-      curiosity: analyzeCuriosity(selfMessages),
-      validation: analyzeValidation(selfMessages, them)
+      empathy: analyzeEmpathy(speakerMessages, conversation),
+      defensiveness: analyzeDefensiveness(speakerMessages),
+      accountability: analyzeAccountability(speakerMessages),
+      curiosity: analyzeCuriosity(speakerMessages),
+      validation: analyzeValidation(speakerMessages, otherSpeaker)
     };
     
     return patterns;
+  };
+  
+  // Extract self-communication patterns
+  const extractCommunicationPatterns = () => {
+    // By default, return metrics for the primary user (me)
+    return extractCommunicationPatternsForSpeaker(me, them);
   };
   
   // Helper function to extract messages from a user
@@ -752,24 +759,122 @@ export function SelfReflection({ tier, me, them, conversation, keyQuotes }: Self
           {/* Summary of all metrics (only in Pro tier) */}
           {(tier === 'pro' || tier === 'instant') && (
             <div className="border-t border-gray-200 pt-4">
-              <h4 className="text-sm font-medium mb-3">All Communication Metrics:</h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium">All Communication Metrics:</h4>
+                <div className="flex items-center space-x-1 bg-gray-100 rounded-md p-1 text-xs">
+                  <button 
+                    className={`px-2 py-1 rounded-md ${metricsFilter === 'all' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                    onClick={() => setMetricsFilter('all')}
+                  >
+                    Both
+                  </button>
+                  <button 
+                    className={`px-2 py-1 rounded-md ${metricsFilter === me ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                    onClick={() => setMetricsFilter(me)}
+                    style={{ color: metricsFilter === me ? '#22C9C9' : undefined }}
+                  >
+                    {me}
+                  </button>
+                  <button 
+                    className={`px-2 py-1 rounded-md ${metricsFilter === them ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                    onClick={() => setMetricsFilter(them)}
+                    style={{ color: metricsFilter === them ? '#FF69B4' : undefined }}
+                  >
+                    {them}
+                  </button>
+                </div>
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {Object.values(communicationMetrics).map((metric, idx) => (
-                  <div key={idx} className="bg-gray-50 p-2 rounded border border-gray-200">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium">{metric.trait}</span>
-                      <span className="text-xs">{getStatusEmoji(metric.level)}</span>
+                {metricsFilter === 'all' ? (
+                  // Show both participants side by side
+                  (() => {
+                    const myMetrics = communicationMetrics;
+                    const theirMetrics = extractCommunicationPatternsForSpeaker(them, me);
+                    
+                    return Object.keys(myMetrics).map((key, idx) => {
+                      const myMetric = myMetrics[key as keyof typeof myMetrics];
+                      const theirMetric = theirMetrics[key as keyof typeof theirMetrics];
+                      
+                      return (
+                        <div key={idx} className="bg-gray-50 p-2 rounded border border-gray-200">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs font-medium">{myMetric.trait}</span>
+                          </div>
+                          {/* My metrics */}
+                          <div className="mb-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs" style={{ color: '#22C9C9' }}>{me}</span>
+                              <span className="text-xs">{getStatusEmoji(myMetric.level)}</span>
+                            </div>
+                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
+                              <div 
+                                className="h-full"
+                                style={{ 
+                                  width: `${myMetric.trait === 'Defensiveness' ? (100 - myMetric.value) : myMetric.value}%`,
+                                  backgroundColor: '#22C9C9'
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                          {/* Their metrics */}
+                          <div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs" style={{ color: '#FF69B4' }}>{them}</span>
+                              <span className="text-xs">{getStatusEmoji(theirMetric.level)}</span>
+                            </div>
+                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
+                              <div 
+                                className="h-full"
+                                style={{ 
+                                  width: `${theirMetric.trait === 'Defensiveness' ? (100 - theirMetric.value) : theirMetric.value}%`,
+                                  backgroundColor: '#FF69B4'
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()
+                ) : metricsFilter === me ? (
+                  // Show only my metrics
+                  Object.values(communicationMetrics).map((metric, idx) => (
+                    <div key={idx} className="bg-gray-50 p-2 rounded border border-gray-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-medium">{metric.trait}</span>
+                        <span className="text-xs">{getStatusEmoji(metric.level)}</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
+                        <div 
+                          className="h-full"
+                          style={{ 
+                            width: `${metric.trait === 'Defensiveness' ? (100 - metric.value) : metric.value}%`,
+                            backgroundColor: '#22C9C9'
+                          }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
-                      <div 
-                        className={`h-full ${getStatusColor(metric.level)}`}
-                        style={{ 
-                          width: `${metric.trait === 'Defensiveness' ? (100 - metric.value) : metric.value}%` 
-                        }}
-                      ></div>
+                  ))
+                ) : (
+                  // Show only their metrics
+                  Object.values(extractCommunicationPatternsForSpeaker(them, me)).map((metric, idx) => (
+                    <div key={idx} className="bg-gray-50 p-2 rounded border border-gray-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-medium">{metric.trait}</span>
+                        <span className="text-xs">{getStatusEmoji(metric.level)}</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
+                        <div 
+                          className="h-full"
+                          style={{ 
+                            width: `${metric.trait === 'Defensiveness' ? (100 - metric.value) : metric.value}%`,
+                            backgroundColor: '#FF69B4'
+                          }}
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}
