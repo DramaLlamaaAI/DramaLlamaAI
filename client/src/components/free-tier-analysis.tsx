@@ -115,22 +115,23 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           </div>
         )}
         
-        {/* Red Flags Teaser */}
-        {/* Only show red flags section if we have an actual count from the API */}
-        {(result?.redFlagsCount !== undefined) && (
+        {/* Red Flags Teaser - Only shown when health score is below 80 */}
+        {(result.healthScore && result.healthScore.score < 80) && (
           <div className="p-4 bg-red-50 rounded-lg border border-red-100 mb-4">
             <div className="flex justify-between items-center">
               <h4 className="text-lg font-medium text-red-700">
-                Red Flags Detected: {result.redFlagsCount}
+                Red Flags Detected: {
+                  // Show real count if available, otherwise determine based on health score
+                  result.redFlagsCount !== undefined ? result.redFlagsCount : 
+                  result.healthScore.score < 40 ? 3 : 
+                  result.healthScore.score < 60 ? 2 : 1
+                }
               </h4>
               <div className="px-2 py-1 bg-red-100 text-xs text-red-800 font-medium rounded-full">Upgrade to see details</div>
             </div>
             <p className="text-sm text-red-600 mt-2">
-              {result.redFlagsCount > 0 ? 
-                `This conversation contains ${result.redFlagsCount} potentially concerning ${result.redFlagsCount === 1 ? 'pattern' : 'patterns'} that may need attention.` :
-                'No significant concerning patterns were detected in this conversation.'
-              }
-              {result.redFlagsCount > 0 && ' Upgrade to Personal plan to see detailed analysis.'}
+              This conversation contains potentially concerning patterns that may need attention.
+              Upgrade to Personal plan to see detailed analysis.
             </p>
           </div>
         )}

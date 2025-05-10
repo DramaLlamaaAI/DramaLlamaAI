@@ -200,6 +200,9 @@ export const chatAnalysisResultSchema = z.object({
   })).optional(),
   tensionContributions: z.record(z.array(z.string())).optional(),
   tensionMeaning: z.string().optional(),
+  
+  // This field is added for free tier users who only see the count of red flags
+  redFlagsCount: z.number().optional(),
 });
 
 export const messageAnalysisResultSchema = z.object({
