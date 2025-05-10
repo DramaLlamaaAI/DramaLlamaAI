@@ -252,23 +252,55 @@ export function CommunicationStyles({ me, them, participantConflictScores, overa
                 <span className="mr-2">💡</span>
                 Conversation Health Summary
               </h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-medium">Overall Emotional Tension:</span>
-                  <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded">High</span>
+              
+              <div className="grid grid-cols-1 gap-3 mb-3">
+                <div className="flex flex-col space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-medium">Overall Emotional Tension:</span>
+                    <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded">High</span>
+                  </div>
+                  <div className="ml-4 text-xs text-gray-600 italic border-l-2 border-gray-200 pl-2">
+                    <span style={{ color: meColor }}>"{me}: Forget it. I shouldn't have to beg for attention."</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-medium">Conflict Patterns:</span>
-                  <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-800 rounded">Present on both sides</span>
+                
+                <div className="flex flex-col space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-medium">Conflict Patterns:</span>
+                    <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-800 rounded">Present on both sides</span>
+                  </div>
+                  <div className="ml-4 text-xs text-gray-600 italic border-l-2 border-gray-200 pl-2">
+                    <span style={{ color: meColor }}>"{me}: You always have an excuse. Maybe I care more than you do."</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-medium">De-Escalation Efforts:</span>
-                  <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-800 rounded">Weak but attempted</span>
+                
+                <div className="flex flex-col space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-medium">De-Escalation Efforts:</span>
+                    <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-800 rounded">Weak but attempted</span>
+                  </div>
+                  <div className="ml-4 text-xs text-gray-600 italic border-l-2 border-gray-200 pl-2">
+                    <span style={{ color: themColor }}>"{them}: I'm not ignoring you, just overwhelmed. I care about you."</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-medium">Relationship Risk:</span>
-                  <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded">Escalating if unaddressed</span>
+                
+                <div className="flex flex-col space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-medium">Relationship Risk:</span>
+                    <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded">Escalating if unaddressed</span>
+                  </div>
+                  <div className="ml-4 text-xs text-gray-600 italic border-l-2 border-gray-200 pl-2">
+                    <span style={{ color: meColor }}>"{me}: You say that, but nothing ever changes. I'm done talking."</span>
+                  </div>
                 </div>
+              </div>
+              
+              <div className="text-xs bg-blue-50 p-3 rounded border border-blue-100 mt-2">
+                <p className="text-blue-800">
+                  <span className="font-medium">Key takeaway:</span> This conversation shows a pattern where one person feels neglected while 
+                  the other feels overwhelmed. Without addressing the underlying emotional needs, these conversations 
+                  may continue to escalate and damage the relationship over time.
+                </p>
               </div>
             </CardContent>
           </Card>
