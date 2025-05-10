@@ -105,31 +105,68 @@ export const transcribeAudio = async (req: Request, res: Response) => {
       throw new Error("Failed to save temporary audio file for processing");
     }
     
-    // Try using OpenAI Whisper API for audio transcription
+    // Try using Anthropic's Claude for transcription (text-based)
     try {
-      console.log("Using OpenAI Whisper for audio transcription");
+      console.log("Using Anthropic Claude for audio transcription");
       
-      // Check if OpenAI API key is available
-      if (!process.env.OPENAI_API_KEY) {
-        throw new Error("OpenAI API key is not available");
+      // Check if Anthropic API key is available
+      if (!process.env.ANTHROPIC_API_KEY) {
+        throw new Error("Anthropic API key is not available");
       }
       
-      // Create a readable stream from the temp file
-      const audioReadStream = fs.createReadStream(tempFilePath);
+      // For Claude, we'll convert the audio content to base64
+      const audioBuffer = fs.readFileSync(tempFilePath);
+      const base64Audio = audioBuffer.toString('base64');
       
-      // Use OpenAI's transcription API (Whisper)
-      const transcription = await openai.audio.transcriptions.create({
-        file: audioReadStream,
-        model: "whisper-1",
-        language: "en", // Assuming English is the primary language
-        prompt: enhancedPrompt
+      // Get file extension for mime type
+      const fileExtension = path.extname(tempFilePath).substring(1);
+      const mimeType = req.file?.mimetype || `audio/${fileExtension}`;
+      
+      // Create a prompt that describes the audio file
+      const userMessageContent = [
+        {
+          type: "text",
+          text: `I've recorded some audio for transcription. This is a conversation that I'd like you to transcribe accurately. ${enhancedPrompt} Please listen to the audio and type out the exact words spoken. Don't add any commentary - just provide the pure transcription in plain text format. If there are multiple speakers, please prefix each new speaker with their name followed by a colon. For example: "Speaker 1: Hello" and then "Speaker 2: Hi there".`
+        }
+      ];
+      
+      // If we have actual audio, add it to the message
+      if (base64Audio) {
+        userMessageContent.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: mimeType,
+            data: base64Audio
+          }
+        });
+      }
+      
+      // Now create the Claude message with the audio content
+      const claudeResponse = await anthropic.messages.create({
+        model: "claude-3-7-sonnet-20250219",
+        max_tokens: 4096,
+        messages: [
+          {
+            role: "user",
+            content: userMessageContent
+          }
+        ]
       });
       
-      // Process the transcription result
-      const processedText = transcription.text
-        .replace(/(\s|^)(um|uh|er|ah|like,)(\s|$)/gi, ' ')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
+      // Extract the transcription from Claude
+      let transcribedText = "No transcription was provided.";
+      for (const content of claudeResponse.content) {
+        if (content.type === 'text') {
+          transcribedText = content.text
+            .replace(/^(Here is the transcription of the audio:|The transcription of the audio is as follows:|Transcription:|Here's the transcription:)/i, "")
+            .replace(/```.*?```/gs, match => match.replace(/```/g, "").trim())
+            .trim();
+          break;
+        }
+      }
+      
+      console.log("Transcription completed using claude-text service");
       
       // Clean up the temporary file
       if (fs.existsSync(tempFilePath)) {
@@ -138,34 +175,39 @@ export const transcribeAudio = async (req: Request, res: Response) => {
       
       // Return the processed transcript
       return res.status(200).json({ 
-        transcript: processedText,
+        transcript: transcribedText,
         success: true,
-        provider: "openai-whisper"
+        provider: "claude-text"
       });
       
-    } catch (openaiError) {
-      console.error("OpenAI Whisper transcription error:", openaiError);
+    } catch (claudeError) {
+      console.error("Claude transcription error:", claudeError);
       
-      // Fall back to a simple Claude text response if OpenAI fails
+      // Clean up the temporary file
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+      
+      // If Claude fails, try a fallback response
       try {
-        console.log("Falling back to Claude for text-only response");
+        console.log("Generating fallback response with Claude");
         
-        const claudeResponse = await anthropic.messages.create({
+        const fallbackResponse = await anthropic.messages.create({
           model: "claude-3-7-sonnet-20250219",
           max_tokens: 1024,
           messages: [
             {
               role: "user",
-              content: "I attempted to record audio for transcription, but the service encountered an error. Please provide a friendly, helpful message explaining that there was an issue with the audio transcription service and suggesting I try again."
+              content: "I attempted to record audio for transcription in my app called Drama Llama, but the service encountered an error. Please provide a friendly, helpful message explaining that there was an issue with the audio transcription service and suggesting I try again with a clearer recording or by uploading a file instead."
             }
           ]
         });
         
         // Extract the message from Claude
-        let claudeMessage = "There was an issue transcribing your audio. Please try again with a clearer recording.";
-        for (const content of claudeResponse.content) {
+        let fallbackMessage = "There was an issue transcribing your audio. Please try again with a clearer recording or upload an audio file instead.";
+        for (const content of fallbackResponse.content) {
           if (content.type === 'text') {
-            claudeMessage = content.text
+            fallbackMessage = content.text
               .replace(/^I'm sorry to hear that/i, "")
               .replace(/^I apologize/i, "")
               .replace(/Claude/g, "Drama Llama")
@@ -174,28 +216,18 @@ export const transcribeAudio = async (req: Request, res: Response) => {
           }
         }
         
-        // Clean up the temporary file
-        if (fs.existsSync(tempFilePath)) {
-          fs.unlinkSync(tempFilePath);
-        }
-        
         return res.status(200).json({
-          transcript: claudeMessage,
+          transcript: fallbackMessage,
           success: false,
-          provider: "claude-text"
+          provider: "claude-fallback"
         });
-      } catch (claudeError) {
-        console.error("Claude fallback error:", claudeError);
-        
-        // Clean up the temporary file
-        if (fs.existsSync(tempFilePath)) {
-          fs.unlinkSync(tempFilePath);
-        }
+      } catch (fallbackError) {
+        console.error("Fallback response error:", fallbackError);
         
         // If all else fails, return a generic error message
         return res.status(500).json({ 
           error: 'Transcription service error', 
-          details: "We're having trouble with our transcription service. Please try again later."
+          details: "We're having trouble with our transcription service. Please try again later or upload an audio file instead."
         });
       }
     }
