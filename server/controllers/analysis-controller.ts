@@ -163,12 +163,40 @@ export const analysisController = {
       
       try {
         console.log(`Using tier ${tier} for chat analysis request`);
-        // Process analysis
-        const analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
+        
+        // For free tier, we need to detect red flags
+        // To do this properly, we'll run both a free tier analysis AND a personal tier analysis
+        let analysis;
+        let personalAnalysis = null;
+        
+        if (tier === 'free') {
+          console.log('Running additional personal tier analysis to detect red flags for free tier');
+          
+          // First get the free tier analysis
+          analysis = await analyzeChatConversation(filteredConversation, me, them, 'free');
+          
+          // Then get a personal tier analysis to extract red flags count
+          try {
+            personalAnalysis = await analyzeChatConversation(filteredConversation, me, them, 'personal');
+            console.log('Successfully ran personal tier analysis for red flags detection');
+          } catch (personalError) {
+            console.error('Failed to run personal analysis for red flags:', personalError);
+          }
+        } else {
+          // Regular analysis for other tiers
+          analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
+        }
         
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
         // Filter results based on user's tier
         filteredResults = filterChatAnalysisByTier(analysis, tier);
+        
+        // For free tier, add red flags count from personal analysis
+        if (tier === 'free' && personalAnalysis && personalAnalysis.redFlags) {
+          const redFlagsCount = personalAnalysis.redFlags.length;
+          console.log(`Adding red flags count from personal analysis: ${redFlagsCount}`);
+          (filteredResults as any).redFlagsCount = redFlagsCount;
+        }
         
         // Log some info about what we're returning
         console.log(`Returning chat analysis with overall tone: "${filteredResults.toneAnalysis.overallTone.substring(0, 30)}..."`);
