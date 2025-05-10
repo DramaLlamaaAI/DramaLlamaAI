@@ -625,9 +625,9 @@ export function EmotionalShiftsTimeline({ tier, me, them, conversation, emotiona
             <div className="bg-blue-50 p-3 rounded border border-blue-100 mt-2">
               <h4 className="text-sm font-medium text-blue-800 mb-1">What This Means</h4>
               <p className="text-sm text-blue-700">
-                {emotionalState.length > 0 && emotionalState.some(e => ['Angry', 'Frustrated', 'Defensive', 'Dismissive'].includes(e.emotion) && e.intensity > 60) ?
+                {emotionalState.length > 0 && emotionalState.some(e => ['Angry', 'Frustrated', 'Defensive', 'Dismissive'].includes(e.emotion) && e.intensity > 0.6) ?
                   "High levels of negative emotions often indicate unresolved conflicts. Consider addressing these issues directly using 'I' statements rather than accusations." :
-                emotionalState.length > 0 && emotionalState.some(e => ['Happy', 'Caring', 'Supportive', 'Affectionate'].includes(e.emotion) && e.intensity > 60) ?
+                emotionalState.length > 0 && emotionalState.some(e => ['Happy', 'Caring', 'Supportive', 'Affectionate'].includes(e.emotion) && e.intensity > 0.6) ?
                   "The presence of strong positive emotions suggests a healthy emotional connection. Continue nurturing this by expressing appreciation and active listening." :
                   "This emotional profile shows a mix of different feelings. Being aware of these emotional patterns can help you navigate future conversations more effectively."}
               </p>
