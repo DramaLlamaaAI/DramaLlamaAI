@@ -91,7 +91,7 @@ const prompts = {
         "participantTones": {"participant name": "brief tone description focusing on communication style"}
       },
       "communication": {
-        "patterns": ["string describing basic patterns observed (limit to 2-3 key patterns)"]
+        "patterns": ["string describing basic patterns observed (limit to 2-3 key unique patterns, NO duplications)"]
       },
       "healthScore": {
         "score": number between 0-100,

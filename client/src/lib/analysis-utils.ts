@@ -170,8 +170,25 @@ export function cleanCommunicationPatterns(patterns: string[]): string[] {
 export function cleanPatternForDisplay(pattern: string): string {
   if (!pattern) return '';
   
-  // Trim whitespace and ensure no trailing punctuation
+  // Trim whitespace and remove all periods/punctuation
   let cleaned = pattern.trim().replace(/[,.;:\s]+$/, '');
+  
+  // Check for duplicative phrases (like "blame shifting.blame shifting")
+  const commonPhrases = [
+    'blame shifting', 'emotional withdrawal', 'defensive responses',
+    'criticism', 'stonewalling', 'contempt', 'dismissive', 'validation seeking',
+    'conflict avoidance', 'passive aggressive', 'disrespectful', 'gaslighting'
+  ];
+  
+  for (const phrase of commonPhrases) {
+    // Check for period-separated duplications (e.g., "phrase.phrase")
+    const periodSeparatedRegex = new RegExp(`${phrase}[.\\s]*${phrase}`, 'gi');
+    cleaned = cleaned.replace(periodSeparatedRegex, phrase);
+    
+    // Check for capitalized duplications (e.g., "PhrasePHRASE")
+    const mixedCaseRegex = new RegExp(`${phrase}${phrase}`, 'gi');
+    cleaned = cleaned.replace(mixedCaseRegex, phrase);
+  }
   
   // Capitalize first letter
   cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
