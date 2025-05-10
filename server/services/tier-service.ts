@@ -18,8 +18,15 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
         { participantTones: analysis.toneAnalysis.participantTones } : {})
     },
     communication: {
-      // Basic patterns are available to all tiers
-      patterns: analysis.communication.patterns || [],
+      // For free tier, simplify the patterns to just a few core insights
+      patterns: tier === 'free' ? 
+        // Limit to at most 2 patterns for free tier, and simplify them
+        (analysis.communication.patterns || []).slice(0, 2).map(pattern => {
+          // Simplify the pattern text to be more concise
+          return pattern.split('.')[0] + '.'; // Take just the first sentence
+        }) : 
+        // For paid tiers, include all patterns
+        analysis.communication.patterns || [],
     }
   };
   

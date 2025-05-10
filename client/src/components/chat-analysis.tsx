@@ -28,6 +28,7 @@ import { AdvancedTrendLines } from "@/components/advanced-trend-lines";
 import { EvasionPowerDynamics } from "@/components/evasion-power-dynamics";
 import { EmotionalShiftsTimeline } from "@/components/emotional-shifts-timeline";
 import { SelfReflection } from "@/components/self-reflection";
+import { FreeTierAnalysis } from "@/components/free-tier-analysis";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
