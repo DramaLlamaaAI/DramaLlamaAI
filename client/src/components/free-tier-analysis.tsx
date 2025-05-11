@@ -593,14 +593,17 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
                 <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[65%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
                 <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[80%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
                 
-                {/* Dial needle */}
-                <div className="absolute w-1.5 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
-                  style={{ 
-                    transform: `rotate(${
-                      result.healthScore 
-                        ? (5 + ((180 - 10) * (result.healthScore.score / 100))) 
-                        : 90
-                    }deg)` 
+                {/* Progress bar instead of dial needle */}
+                <div className="absolute h-[6px] bg-gray-800 bottom-[10px] rounded-full" 
+                  style={{
+                    width: `${result.healthScore ? Math.min(100, result.healthScore.score) : 50}%`,
+                    left: '0%',
+                    background: `linear-gradient(to right, 
+                      #ef4444 0%, 
+                      #f59e0b 40%, 
+                      #84cc16 70%, 
+                      #22c55e 100%
+                    )`
                   }}
                 ></div>
                 

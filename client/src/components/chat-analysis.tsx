@@ -385,23 +385,20 @@ export default function ChatAnalysis() {
               
               <!-- Health Meter Gauge -->
               <div class="health-meter-container" style="text-align: center; margin-bottom: 20px;">
-                <div style="position: relative; width: 200px; height: 100px; margin: 0 auto;">
-                  <!-- Semicircle background with gradient -->
-                  <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%); border-radius: 100px 100px 0 0;"></div>
-                  <div style="position: absolute; width: 94%; height: 94%; background: white; border-radius: 100px 100px 0 0; top: 3%; left: 3%;"></div>
+                <div style="position: relative; width: 200px; height: 30px; margin: 0 auto; background: white; border: 1px solid #ddd; border-radius: 15px; overflow: hidden;">
+                  <!-- Health meter background with tick marks -->
+                  <div style="position: absolute; top: 50%; width: 100%; height: 1px; background: #eee;"></div>
                   
                   <!-- Tick marks - 20%, 40%, 60%, 80% -->
-                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 20%; bottom: 0;"></div>
-                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 35%; bottom: 0;"></div>
-                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 50%; bottom: 0;"></div>
-                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 65%; bottom: 0;"></div>
-                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 80%; bottom: 0;"></div>
+                  <div style="position: absolute; width: 1px; height: 10px; background: #ddd; left: 20%; top: 10px;"></div>
+                  <div style="position: absolute; width: 1px; height: 10px; background: #ddd; left: 40%; top: 10px;"></div>
+                  <div style="position: absolute; width: 1px; height: 10px; background: #ddd; left: 60%; top: 10px;"></div>
+                  <div style="position: absolute; width: 1px; height: 10px; background: #ddd; left: 80%; top: 10px;"></div>
                   
-                  <!-- Needle -->
-                  <div style="position: absolute; width: 3px; height: 90px; background: #333; transform-origin: bottom center; left: 50%; bottom: 0; transform: rotate(${5 + ((180 - 10) * (result.healthScore.score / 100))}deg);"></div>
-                  
-                  <!-- Center point -->
-                  <div style="position: absolute; width: 8px; height: 8px; background: #333; border-radius: 50%; left: calc(50% - 4px); bottom: 0;"></div>
+                  <!-- Progress bar -->
+                  <div style="position: absolute; height: 10px; top: 10px; left: 0; border-radius: 5px; 
+                       width: ${result.healthScore ? Math.min(100, result.healthScore.score) : 50}%; 
+                       background: linear-gradient(to right, #ef4444 0%, #f59e0b 40%, #84cc16 70%, #22c55e 100%);"></div>
                 </div>
                 
                 <!-- Scale labels -->
