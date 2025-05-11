@@ -390,8 +390,15 @@ export default function ChatAnalysis() {
                   <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%); border-radius: 100px 100px 0 0;"></div>
                   <div style="position: absolute; width: 94%; height: 94%; background: white; border-radius: 100px 100px 0 0; top: 3%; left: 3%;"></div>
                   
+                  <!-- Tick marks - 20%, 40%, 60%, 80% -->
+                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 20%; bottom: 0;"></div>
+                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 35%; bottom: 0;"></div>
+                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 50%; bottom: 0;"></div>
+                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 65%; bottom: 0;"></div>
+                  <div style="position: absolute; width: 2px; height: 8px; background: #999; left: 80%; bottom: 0;"></div>
+                  
                   <!-- Needle -->
-                  <div style="position: absolute; width: 2px; height: 90px; background: #333; transform-origin: bottom center; left: 50%; bottom: 0; transform: rotate(${5 + (result.healthScore.score * 1.7)}deg);"></div>
+                  <div style="position: absolute; width: 3px; height: 90px; background: #333; transform-origin: bottom center; left: 50%; bottom: 0; transform: rotate(${5 + ((180 - 10) * (result.healthScore.score / 100))}deg);"></div>
                   
                   <!-- Center point -->
                   <div style="position: absolute; width: 8px; height: 8px; background: #333; border-radius: 50%; left: calc(50% - 4px); bottom: 0;"></div>

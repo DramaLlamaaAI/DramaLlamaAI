@@ -586,13 +586,19 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
                 <div className="absolute w-full h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-t-full"></div>
                 <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
                 
+                {/* Tick marks - 20%, 40%, 60%, 80% */}
+                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[20%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[35%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[50%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[65%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[80%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+                
                 {/* Dial needle */}
-                {/* Dial needle - maps 0-100 score to 5-175 degrees (low score = left/red, high score = right/green) */}
-                <div className="absolute w-1 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
+                <div className="absolute w-1.5 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
                   style={{ 
                     transform: `rotate(${
                       result.healthScore 
-                        ? (5 + (result.healthScore.score * 1.7)) 
+                        ? (5 + ((180 - 10) * (result.healthScore.score / 100))) 
                         : 90
                     }deg)` 
                   }}

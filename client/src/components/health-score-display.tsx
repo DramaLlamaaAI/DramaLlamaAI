@@ -56,9 +56,16 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
               <div className="absolute w-full h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-t-full"></div>
               <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
               
+              {/* Tick marks - 20%, 40%, 60%, 80% */}
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[20%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[35%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[50%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[65%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[80%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              
               {/* Dial needle - pointing to 15% (very low) */}
-              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
-                style={{ transform: `rotate(30deg)` }}
+              <div className="absolute w-1.5 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
+                style={{ transform: `rotate(25deg)` }}
               ></div>
               
               {/* Dial center point */}
@@ -140,9 +147,16 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
               <div className="absolute w-full h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-t-full"></div>
               <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
               
+              {/* Tick marks - 20%, 40%, 60%, 80% */}
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[20%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[35%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[50%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[65%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[80%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              
               {/* Dial needle - pointing to 75% (good) */}
-              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
-                style={{ transform: `rotate(132deg)` }}
+              <div className="absolute w-1.5 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
+                style={{ transform: `rotate(140deg)` }}
               ></div>
               
               {/* Dial center point */}
@@ -242,11 +256,20 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
               <div className="absolute w-full h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-t-full"></div>
               <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
               
+              {/* Tick marks - 20%, 40%, 60%, 80% */}
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[20%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[35%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[50%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[65%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[80%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+              
               {/* Dial needle */}
-              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
+              <div className="absolute w-1.5 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
                 style={{ 
                   transform: `rotate(${
-                    healthScore ? (5 + (healthScore.score * 1.7)) : 90
+                    healthScore 
+                      ? (5 + ((180 - 10) * (healthScore.score / 100))) 
+                      : 90
                   }deg)` 
                 }}
               ></div>
