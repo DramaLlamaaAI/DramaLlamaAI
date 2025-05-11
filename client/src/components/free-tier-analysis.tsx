@@ -17,12 +17,12 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
   const [isExporting, setIsExporting] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
   
-  // Copy to clipboard approach for text export
+  // Export as formal branded document with text copying
   const exportToPdf = async () => {
-    if (!resultsRef.current || !result) {
+    if (!result) {
       toast({
-        title: "Copy Failed",
-        description: "Could not copy text. Please try again.",
+        title: "Export Failed",
+        description: "Could not create document. Please try again.",
         variant: "destructive",
       });
       return;
@@ -31,39 +31,332 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
     try {
       setIsExporting(true);
       
-      // Get formatted text content
-      const textContent = resultsRef.current.innerText;
+      // Create a temporary container for the formal document
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      document.body.appendChild(tempContainer);
       
-      // Show text copy dialog directly - skip PDF generation entirely
+      // Render our formal document component to string
+      const formalDocumentContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Drama Llama Analysis</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              margin: 0;
+              padding: 0;
+              background: white;
+            }
+            
+            .drama-llama-document {
+              font-family: system-ui, -apple-system, sans-serif;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 20px;
+              background-color: white;
+              color: #333;
+            }
+            
+            .document-header {
+              display: flex;
+              align-items: center;
+              margin-bottom: 30px;
+              padding-bottom: 20px;
+              border-bottom: 2px solid #22C9C9;
+            }
+            
+            .logo-container {
+              width: 80px;
+              margin-right: 20px;
+            }
+            
+            .logo-container img {
+              width: 100%;
+              height: auto;
+            }
+            
+            .header-text {
+              flex: 1;
+            }
+            
+            .header-text h1 {
+              margin: 0;
+              font-size: 28px;
+              font-weight: 700;
+              color: #22C9C9;
+            }
+            
+            .header-text p {
+              margin: 5px 0 0;
+              font-size: 16px;
+              color: #666;
+            }
+            
+            .document-title {
+              font-size: 24px;
+              font-weight: 600;
+              margin-bottom: 20px;
+              color: #333;
+            }
+            
+            .document-section {
+              margin-bottom: 25px;
+            }
+            
+            .section-title {
+              font-size: 20px;
+              font-weight: 600;
+              margin-bottom: 15px;
+              color: #22C9C9;
+            }
+            
+            .section-content {
+              font-size: 16px;
+              line-height: 1.6;
+            }
+            
+            .emotion-item {
+              display: flex;
+              align-items: center;
+              margin-bottom: 10px;
+            }
+            
+            .emotion-label {
+              min-width: 120px;
+              font-weight: 500;
+            }
+            
+            .emotion-bar-container {
+              flex: 1;
+              height: 12px;
+              background-color: #eee;
+              border-radius: 6px;
+              overflow: hidden;
+            }
+            
+            .emotion-bar {
+              height: 100%;
+              background-color: #22C9C9;
+            }
+            
+            .health-score {
+              display: flex;
+              align-items: center;
+              margin: 15px 0;
+              padding: 15px;
+              background-color: #f9f9f9;
+              border-radius: 8px;
+            }
+            
+            .health-score-label {
+              font-weight: 600;
+              margin-right: 15px;
+            }
+            
+            .health-score-value {
+              font-size: 18px;
+              font-weight: 700;
+            }
+            
+            .health-score-red {
+              color: #e53e3e;
+            }
+            
+            .health-score-yellow {
+              color: #d69e2e;
+            }
+            
+            .health-score-light-green {
+              color: #38a169;
+            }
+            
+            .health-score-green {
+              color: #2f855a;
+            }
+            
+            .red-flags-count {
+              font-weight: 600;
+              color: #e53e3e;
+            }
+            
+            .pattern-list {
+              margin: 0;
+              padding-left: 20px;
+            }
+            
+            .pattern-item {
+              margin-bottom: 8px;
+            }
+            
+            .document-footer {
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 1px solid #ddd;
+              font-size: 14px;
+              color: #666;
+              text-align: center;
+            }
+            
+            /* Mobile styles */
+            @media (max-width: 640px) {
+              .document-header {
+                flex-direction: column;
+                text-align: center;
+              }
+              
+              .logo-container {
+                margin: 0 auto 15px;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="drama-llama-document">
+            <div class="document-header">
+              <div class="logo-container">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDI1IiBoZWlnaHQ9IjQyNSIgdmlld0JveD0iMCAwIDQyNSA0MjUiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0yNDguNSA0MDAuNUMyMjEuNTAzIDQwMC41IDEzNyA0MDAuNSA5MCA0MDAuNUM0MyA0MDAuNSA0MyAzNDIgNDMgMzAwQzQzIDI1OCA0MyAyMTYgNDMgMTgwQzQzIDE0NCA0MyAxMDggOTAgMTAwQzEzNyA5MiAyMTAuNzU2IDk2LjI2NTEgMjQ4LjUgMTE0LjVDMjg2LjI0NCAxMzIuNzM1IDM1MS45MDIgMTkyLjYyOSAzODIgMjIwQzQxMi4wOTggMjQ3LjM3MSAzODIgMzAwIDM1MSAzMjBDMzIwIDM0MCAyNzUuNDk3IDQwMC41IDI0OC41IDQwMC41WiIgZmlsbD0iIzIyQzlDOSIvPgo8cGF0aCBkPSJNMjc0IDI0MFYyNzNMMTk3IDI0MGwtMS41IC0zM0wyNzQgMjQwWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTEyNyAyNzAuNVYzMDBMMTk3IDI3M2wtMiAtMzNMMTI3IDI3MC41WiIgZmlsbD0id2hpdGUiLz4KPGNpcmNsZSBjeD0iMTk3LjUiIGN5PSIxOTAuNSIgcj0iNzYuNSIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTIyMiAyMjRDMjIyIDIxNSAyMTkgMjAxLjUgMjExLjUgMTk1QzIwNiAxOTAuMiAyMDEuMzMzIDE4OS4zMzMgMTk5LjUgMTg5LjVMMTk4IDIxN0wxODEuNSAyMTdMMTgwIDIxNC41TDE4MC41IDE4OS41QzE3NyAxOTAuMzMzIDE3MCAxOTQgMTcwIDIwMkMxNzAgMjEwIDE2NyAyMjMuNSAxNzIuNSAyMzBDMTc4IDIzNi41IDE5MS41IDI0MCAxOTggMjM5LjVDMjA0LjUgMjM5IDIxOSAyMzUuNSAyMjIgMjI0WiIgZmlsbD0iIzIyQzlDOSIvPgo8Y2lyY2xlIGN4PSIxOTAuNSIgY3k9IjE3NiIgcj0iMTUuNSIgZmlsbD0iYmxhY2siLz4KPGNpcmNsZSBjeD0iMTkwLjUiIGN5PSIxNzMiIHI9IjQuNSIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==" alt="Drama Llama Logo" />
+              </div>
+              <div class="header-text">
+                <h1>Drama Llama AI</h1>
+                <p>Conversation Analysis Report</p>
+                <p>Generated on: ${new Date().toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}</p>
+              </div>
+            </div>
+            
+            <div class="document-title">
+              Chat Analysis Results
+            </div>
+            
+            <div class="document-section">
+              <div class="section-title">Overall Tone</div>
+              <div class="section-content">
+                ${result.toneAnalysis.overallTone}
+              </div>
+            </div>
+            
+            ${result.healthScore ? `
+            <div class="document-section">
+              <div class="section-title">Conversation Health</div>
+              <div class="health-score">
+                <div class="health-score-label">Health Score:</div>
+                <div class="health-score-value health-score-${result.healthScore.color}">
+                  ${result.healthScore.label} (${result.healthScore.score}/10)
+                </div>
+              </div>
+            </div>
+            ` : ''}
+            
+            ${result.toneAnalysis.emotionalState && result.toneAnalysis.emotionalState.length > 0 ? `
+            <div class="document-section">
+              <div class="section-title">Emotional States</div>
+              <div class="section-content">
+                ${result.toneAnalysis.emotionalState.map(emotion => `
+                <div class="emotion-item">
+                  <div class="emotion-label">${emotion.emotion}</div>
+                  <div class="emotion-bar-container">
+                    <div 
+                      class="emotion-bar" 
+                      style="width: ${emotion.intensity * 100}%"
+                    ></div>
+                  </div>
+                </div>
+                `).join('')}
+              </div>
+            </div>
+            ` : ''}
+            
+            ${result.redFlagsCount !== undefined ? `
+            <div class="document-section">
+              <div class="section-title">Red Flags</div>
+              <div class="section-content">
+                <p>
+                  <span class="red-flags-count">
+                    ${result.redFlagsCount} potential red flag${result.redFlagsCount !== 1 ? 's' : ''}
+                  </span> ${result.redFlagsCount === 0 ? 'were' : 'was'} identified in this conversation.
+                  ${result.redFlagsCount > 0 ? ' Upgrade to see detailed analysis of each red flag.' : ''}
+                </p>
+              </div>
+            </div>
+            ` : ''}
+            
+            ${result.communication && result.communication.patterns ? `
+            <div class="document-section">
+              <div class="section-title">Communication Patterns</div>
+              <div class="section-content">
+                <ul class="pattern-list">
+                  ${result.communication.patterns.map(pattern => `
+                  <li class="pattern-item">${pattern}</li>
+                  `).join('')}
+                </ul>
+              </div>
+            </div>
+            ` : ''}
+            
+            <div class="document-footer">
+              <p>This analysis was generated by Drama Llama AI.</p>
+              <p>Results should be interpreted as general guidance only.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // Show the formal document in a modal
       const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
+      modal.className = 'fixed inset-0 bg-black/80 flex flex-col z-50 p-0 md:p-4';
       
       modal.innerHTML = `
-        <div class="bg-white rounded-lg w-full max-w-md p-5 flex flex-col">
-          <h3 class="text-lg font-bold mb-2 text-center">Copy Analysis Text</h3>
-          <p class="text-sm mb-4 text-center">You can copy the analysis below to save or share it:</p>
-          <div class="mb-4 p-3 bg-gray-100 rounded-md text-sm overflow-y-auto" style="max-height: 60vh;">
-            ${textContent.replace(/\n/g, '<br>')}
+        <div class="bg-white rounded-lg w-full h-full md:h-auto md:max-h-[90vh] flex flex-col overflow-hidden">
+          <div class="p-3 flex justify-between items-center bg-primary text-white">
+            <h3 class="text-lg font-bold">Drama Llama Analysis</h3>
+            <div class="flex items-center">
+              <button id="copy-document" class="px-3 py-1 bg-white/20 text-sm rounded mr-2">
+                Copy Document
+              </button>
+              <button id="close-document-preview" class="px-3 py-1 bg-white/20 text-sm rounded">
+                Close
+              </button>
+            </div>
           </div>
-          <div class="flex justify-between">
-            <button id="copy-text-content" class="px-4 py-2 bg-primary text-white rounded">
-              Copy Text
-            </button>
-            <button id="close-text-dialog" class="px-4 py-2 bg-gray-200 rounded">
-              Close
-            </button>
-          </div>
+          <div class="flex-1 overflow-auto p-0 bg-white" id="document-preview-container"></div>
         </div>
       `;
       
       document.body.appendChild(modal);
+      document.body.style.overflow = 'hidden'; // Prevent scrolling
+      
+      // Set the document preview
+      const previewContainer = document.getElementById('document-preview-container');
+      if (previewContainer) {
+        const iframe = document.createElement('iframe');
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        previewContainer.appendChild(iframe);
+        
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (iframeDoc) {
+          iframeDoc.open();
+          iframeDoc.write(formalDocumentContent);
+          iframeDoc.close();
+        }
+      }
       
       // Add copy handler
-      document.getElementById('copy-text-content')?.addEventListener('click', () => {
+      document.getElementById('copy-document')?.addEventListener('click', () => {
         try {
           // Create temporary textarea for reliable copying
           const textarea = document.createElement('textarea');
-          textarea.value = textContent;
+          textarea.value = formalDocumentContent;
           textarea.style.position = 'fixed';  // Make the textarea out of viewport
           document.body.appendChild(textarea);
           textarea.select();
@@ -74,7 +367,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           if (successful) {
             toast({
               title: "Copied to Clipboard",
-              description: "Text copied! You can paste it in any app.",
+              description: "Document HTML copied! You can paste it in a text editor and save as .html",
               duration: 3000,
             });
           } else {
@@ -84,11 +377,11 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           console.error("Old-style clipboard copy failed:", err);
           
           // Try modern clipboard API as fallback
-          navigator.clipboard.writeText(textContent)
+          navigator.clipboard.writeText(formalDocumentContent)
             .then(() => {
               toast({
                 title: "Copied to Clipboard",
-                description: "Text copied! You can paste it in any app.",
+                description: "Document HTML copied! You can paste it in a text editor and save as .html",
                 duration: 3000,
               });
             })
@@ -96,7 +389,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
               console.error("Modern clipboard API also failed:", clipboardErr);
               toast({
                 title: "Copy Failed",
-                description: "Please select and copy the text manually.",
+                description: "Please try again or take screenshots instead.",
                 variant: "destructive",
               });
             });
@@ -104,14 +397,18 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       });
       
       // Add close handler
-      document.getElementById('close-text-dialog')?.addEventListener('click', () => {
+      document.getElementById('close-document-preview')?.addEventListener('click', () => {
         document.body.removeChild(modal);
+        document.body.style.overflow = ''; // Restore scrolling
       });
       
+      // Remove the temporary container
+      document.body.removeChild(tempContainer);
+      
     } catch (error) {
-      console.error("Text copy failed:", error);
+      console.error("Document export failed:", error);
       toast({
-        title: "Copy Failed",
+        title: "Export Failed",
         description: "Please try taking screenshots instead.",
         variant: "destructive",
       });
