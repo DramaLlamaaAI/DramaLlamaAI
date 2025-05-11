@@ -17,7 +17,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
   const [isExporting, setIsExporting] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
   
-  // Export the analysis results as PDF
+  // Export the analysis results as PDF with direct download
   const exportToPdf = async () => {
     if (!resultsRef.current || !result) {
       toast({
@@ -32,13 +32,13 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       setIsExporting(true);
       const element = resultsRef.current;
       
-      // First show a toast to confirm the process has started
+      // Show a toast to confirm the process has started
       toast({
         title: "Creating PDF",
         description: "Please wait while we generate your PDF.",
       });
       
-      // Configure html2pdf options - optimize for mobile
+      // Configure html2pdf options for direct download
       const opt = {
         margin: 10,
         filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
@@ -46,49 +46,19 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
         html2canvas: { 
           scale: 2, 
           useCORS: true,
-          logging: true, // Enable logging for debugging
           letterRendering: true,
-          allowTaint: true // Allow tainted canvas (helps on some mobile browsers)
+          allowTaint: true
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
-      // Create PDF with custom output method for better mobile compatibility
-      const pdf = await html2pdf().from(element).set(opt).outputPdf();
+      // Use the save method for direct download across all devices
+      await html2pdf().from(element).set(opt).save();
       
-      // Create a blob from the PDF
-      const blob = new Blob([pdf], { type: 'application/pdf' });
-      
-      // Create object URL
-      const url = URL.createObjectURL(blob);
-      
-      // For mobile: open the PDF in a new tab instead of direct download
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        // Open in new window/tab which works better on mobile
-        window.open(url, '_blank');
-        
-        toast({
-          title: "PDF Ready",
-          description: "Your PDF has opened in a new tab. You can save it from there.",
-        });
-      } else {
-        // For desktop, create a direct download link
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`;
-        link.click();
-        
-        toast({
-          title: "Export Successful",
-          description: "Your analysis has been exported as a PDF.",
-        });
-      }
-      
-      // Clean up the URL object after a delay
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-      
+      toast({
+        title: "Export Successful",
+        description: "Your analysis PDF is downloading now.",
+      });
     } catch (error) {
       console.error("PDF export error:", error);
       toast({
@@ -101,7 +71,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
     }
   };
   
-  // Export the analysis results as an image
+  // Export the analysis results as an image with direct download
   const exportAsImage = async () => {
     if (!resultsRef.current || !result) {
       toast({
@@ -116,45 +86,35 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       setIsExporting(true);
       const element = resultsRef.current;
       
-      // First show a toast to confirm the process has started
+      // Show a toast to confirm the process has started
       toast({
         title: "Creating Image",
         description: "Please wait while we generate your image.",
       });
       
-      // Create a JPEG image with mobile-optimized settings
+      // Create a JPEG image with optimized settings
       const dataUrl = await toJpeg(element, { 
         cacheBust: true,
-        quality: 0.92, // Good balance between quality and size
+        quality: 0.92,
         backgroundColor: 'white',
-        canvasWidth: 1000, // Reduced for better mobile performance
-        pixelRatio: 1.5, // Good for mobile screens
-        style: { overflow: 'hidden' } // Ensure no overflow
+        canvasWidth: 1080,
+        pixelRatio: 2
       });
       
-      // For mobile: open the image in a new tab instead of direct download
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      // Create direct download link for all devices
+      const link = document.createElement('a');
+      link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
+      link.href = dataUrl;
       
-      if (isMobile) {
-        // Open in new window/tab which works better on mobile
-        window.open(dataUrl, '_blank');
-        
-        toast({
-          title: "Image Ready",
-          description: "Your image has opened in a new tab. You can save it from there by long-pressing on it.",
-        });
-      } else {
-        // For desktop, create a direct download link
-        const link = document.createElement('a');
-        link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
-        link.href = dataUrl;
-        link.click();
-        
-        toast({
-          title: "Export Successful",
-          description: "Your analysis has been exported as an image.",
-        });
-      }
+      // Force the download for mobile and desktop
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Export Successful",
+        description: "Your analysis image is downloading now.",
+      });
       
     } catch (error) {
       console.error("Image export error:", error);
