@@ -351,48 +351,78 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
         }
       }
       
-      // Add copy handler
-      document.getElementById('copy-document')?.addEventListener('click', () => {
+      // Add download handler
+      document.getElementById('download-document')?.addEventListener('click', () => {
         try {
-          // Create temporary textarea for reliable copying
-          const textarea = document.createElement('textarea');
-          textarea.value = formalDocumentContent;
-          textarea.style.position = 'fixed';  // Make the textarea out of viewport
-          document.body.appendChild(textarea);
-          textarea.select();
+          // Create a blob from the HTML content - this is what makes it downloadable
+          const blob = new Blob([formalDocumentContent], { type: 'text/html' });
           
-          const successful = document.execCommand('copy');
-          document.body.removeChild(textarea);
+          // Create a downloadable URL
+          const url = URL.createObjectURL(blob);
           
-          if (successful) {
-            toast({
-              title: "Copied to Clipboard",
-              description: "Document HTML copied! You can paste it in a text editor and save as .html",
-              duration: 3000,
+          // Create a mobile-friendly download approach
+          toast({
+            title: "Downloading Report",
+            description: "Preparing your Drama Llama analysis report...",
+            duration: 2000,
+          });
+          
+          // First try direct download with link click
+          const downloadLink = document.createElement('a');
+          downloadLink.href = url;
+          downloadLink.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.html`;
+          downloadLink.style.display = 'none';
+          document.body.appendChild(downloadLink);
+          
+          // This triggers the download in most browsers including mobile
+          downloadLink.click();
+          
+          // Clean up
+          setTimeout(() => {
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(url);
+          }, 100);
+          
+          // Show additional instructions for mobile users
+          const mobileInstructions = document.createElement('div');
+          mobileInstructions.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-[60] p-4';
+          
+          mobileInstructions.innerHTML = `
+            <div class="bg-white rounded-lg w-full max-w-md p-5 flex flex-col">
+              <h3 class="text-lg font-bold mb-2 text-center">Download Instructions</h3>
+              <p class="text-sm mb-4 text-center">For mobile devices:</p>
+              <ol class="text-sm mb-4 ml-5 list-decimal">
+                <li class="mb-2">If a download prompt appears, tap "Download"</li>
+                <li class="mb-2">If the report opens in a new tab, tap and hold on the page and select "Save" or "Download"</li>
+                <li class="mb-2">On some devices, you may need to tap the "..." menu and select "Download"</li>
+              </ol>
+              <div class="text-sm mb-4 p-3 bg-blue-50 rounded">
+                <p class="font-bold">Trouble downloading?</p>
+                <p>You can also view the report in the preview window and take screenshots</p>
+              </div>
+              <button id="close-mobile-instructions" class="px-4 py-2 bg-primary text-white rounded self-center">
+                Got it
+              </button>
+            </div>
+          `;
+          
+          // Add to DOM after a short delay to ensure the download starts first
+          setTimeout(() => {
+            document.body.appendChild(mobileInstructions);
+            
+            // Add close handler
+            document.getElementById('close-mobile-instructions')?.addEventListener('click', () => {
+              document.body.removeChild(mobileInstructions);
             });
-          } else {
-            throw new Error("Copy command failed");
-          }
+          }, 1000);
+          
         } catch (err) {
-          console.error("Old-style clipboard copy failed:", err);
-          
-          // Try modern clipboard API as fallback
-          navigator.clipboard.writeText(formalDocumentContent)
-            .then(() => {
-              toast({
-                title: "Copied to Clipboard",
-                description: "Document HTML copied! You can paste it in a text editor and save as .html",
-                duration: 3000,
-              });
-            })
-            .catch(clipboardErr => {
-              console.error("Modern clipboard API also failed:", clipboardErr);
-              toast({
-                title: "Copy Failed",
-                description: "Please try again or take screenshots instead.",
-                variant: "destructive",
-              });
-            });
+          console.error("Download failed:", err);
+          toast({
+            title: "Download Failed",
+            description: "Please try viewing the document in a browser and saving it manually",
+            variant: "destructive",
+          });
         }
       });
       
