@@ -385,7 +385,7 @@ export default function ChatAnalysis() {
               <div class="health-score">
                 <div class="health-score-label">Health Score:</div>
                 <div class="health-score-value health-score-${result.healthScore.color}">
-                  ${result.healthScore.label} (${result.healthScore.score}/10)
+                  ${result.healthScore.label} (${Math.min(10, result.healthScore.score)}/10)
                 </div>
               </div>
             </div>
