@@ -97,7 +97,7 @@ export default function ChatAnalysis() {
     },
   });
   
-  // Export the analysis results as PDF with direct download
+  // Create and show download dialog for PDF file 
   const exportToPdf = async () => {
     if (!resultsRef.current || !result) {
       toast({
@@ -115,10 +115,10 @@ export default function ChatAnalysis() {
       // Show a toast to confirm the process has started
       toast({
         title: "Creating PDF",
-        description: "Please wait while we generate your PDF.",
+        description: "Please wait while we generate your PDF...",
       });
       
-      // Configure html2pdf options for direct download
+      // Configure html2pdf options
       const opt = {
         margin: 10,
         filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
@@ -126,18 +126,49 @@ export default function ChatAnalysis() {
         html2canvas: { 
           scale: 2, 
           useCORS: true,
-          letterRendering: true,
           allowTaint: true
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
-      // Use the save method for direct download across all devices
-      await html2pdf().from(element).set(opt).save();
+      // Create a download dialog container
+      let downloadDialog = document.createElement('div');
+      downloadDialog.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+      
+      // Get PDF as blob for direct download link
+      const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      
+      // Create the dialog content
+      downloadDialog.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
+          <h3 class="text-lg font-bold mb-4">Your PDF is Ready!</h3>
+          <p class="mb-4">Tap the button below to download your analysis as a PDF file.</p>
+          <div class="flex justify-center">
+            <a 
+              href="${blobUrl}" 
+              download="drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf"
+              class="bg-primary text-white font-medium py-2 px-4 rounded hover:bg-primary/90"
+            >
+              Download PDF
+            </a>
+          </div>
+          <button id="close-dialog" class="mt-4 w-full text-gray-500">Close</button>
+        </div>
+      `;
+      
+      // Add to document
+      document.body.appendChild(downloadDialog);
+      
+      // Add close functionality
+      document.getElementById('close-dialog')?.addEventListener('click', () => {
+        document.body.removeChild(downloadDialog);
+        URL.revokeObjectURL(blobUrl);
+      });
       
       toast({
-        title: "Export Successful",
-        description: "Your analysis PDF is downloading now.",
+        title: "PDF Ready",
+        description: "Tap the download button in the popup.",
       });
     } catch (error) {
       console.error("PDF export error:", error);
@@ -151,7 +182,7 @@ export default function ChatAnalysis() {
     }
   };
   
-  // Export the analysis results as an image with direct download
+  // Create and show download dialog for image file
   const exportAsImage = async () => {
     if (!resultsRef.current || !result) {
       toast({
@@ -169,7 +200,7 @@ export default function ChatAnalysis() {
       // Show a toast to confirm the process has started
       toast({
         title: "Creating Image",
-        description: "Please wait while we generate your image.",
+        description: "Please wait while we generate your image...",
       });
       
       // Create a JPEG image with optimized settings
@@ -181,19 +212,39 @@ export default function ChatAnalysis() {
         pixelRatio: 2
       });
       
-      // Create direct download link for all devices
-      const link = document.createElement('a');
-      link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
-      link.href = dataUrl;
+      // Create a download dialog container
+      let downloadDialog = document.createElement('div');
+      downloadDialog.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
       
-      // Force the download for mobile and desktop
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Create the dialog content
+      downloadDialog.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
+          <h3 class="text-lg font-bold mb-4">Your Image is Ready!</h3>
+          <p class="mb-4">Tap the button below to download your analysis as an image.</p>
+          <div class="flex justify-center">
+            <a 
+              href="${dataUrl}" 
+              download="drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg"
+              class="bg-primary text-white font-medium py-2 px-4 rounded hover:bg-primary/90"
+            >
+              Download Image
+            </a>
+          </div>
+          <button id="close-dialog" class="mt-4 w-full text-gray-500">Close</button>
+        </div>
+      `;
+      
+      // Add to document
+      document.body.appendChild(downloadDialog);
+      
+      // Add close functionality
+      document.getElementById('close-dialog')?.addEventListener('click', () => {
+        document.body.removeChild(downloadDialog);
+      });
       
       toast({
-        title: "Export Successful",
-        description: "Your analysis image is downloading now.",
+        title: "Image Ready",
+        description: "Tap the download button in the popup.",
       });
       
     } catch (error) {
