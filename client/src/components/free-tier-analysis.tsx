@@ -587,11 +587,14 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
                 <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
                 
                 {/* Dial needle */}
-                <div className="absolute w-1 h-20 bg-gray-800 origin-bottom rotate-[5deg] left-[50%] bottom-0"
+                {/* Dial needle - maps 0-100 score to 5-175 degrees (low score = left/red, high score = right/green) */}
+                <div className="absolute w-1 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
                   style={{ 
-                    transform: `rotate(${Math.max(5, Math.min(175, 
-                      result.healthScore ? (result.healthScore.score * 1.7) : 90
-                    ))}deg)` 
+                    transform: `rotate(${
+                      result.healthScore 
+                        ? (5 + (result.healthScore.score * 1.7)) 
+                        : 90
+                    }deg)` 
                   }}
                 ></div>
                 

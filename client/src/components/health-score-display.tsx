@@ -57,8 +57,8 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
               <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
               
               {/* Dial needle - pointing to 15% (very low) */}
-              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom rotate-[5deg] left-[50%] bottom-0"
-                style={{ transform: `rotate(25deg)` }}
+              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
+                style={{ transform: `rotate(30deg)` }}
               ></div>
               
               {/* Dial center point */}
@@ -141,8 +141,8 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
               <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
               
               {/* Dial needle - pointing to 75% (good) */}
-              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom rotate-[5deg] left-[50%] bottom-0"
-                style={{ transform: `rotate(127deg)` }}
+              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
+                style={{ transform: `rotate(132deg)` }}
               ></div>
               
               {/* Dial center point */}
@@ -243,11 +243,11 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
               <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
               
               {/* Dial needle */}
-              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom rotate-[5deg] left-[50%] bottom-0"
+              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom left-[50%] bottom-0"
                 style={{ 
-                  transform: `rotate(${Math.max(5, Math.min(175, 
-                    healthScore ? (healthScore.score * 1.7) : 90
-                  ))}deg)` 
+                  transform: `rotate(${
+                    healthScore ? (5 + (healthScore.score * 1.7)) : 90
+                  }deg)` 
                 }}
               ></div>
               

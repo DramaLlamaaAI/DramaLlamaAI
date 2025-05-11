@@ -391,7 +391,7 @@ export default function ChatAnalysis() {
                   <div style="position: absolute; width: 94%; height: 94%; background: white; border-radius: 100px 100px 0 0; top: 3%; left: 3%;"></div>
                   
                   <!-- Needle -->
-                  <div style="position: absolute; width: 2px; height: 90px; background: #333; transform-origin: bottom center; left: 50%; bottom: 0; transform: rotate(${Math.max(5, Math.min(175, result.healthScore.score * 1.7))}deg);"></div>
+                  <div style="position: absolute; width: 2px; height: 90px; background: #333; transform-origin: bottom center; left: 50%; bottom: 0; transform: rotate(${5 + (result.healthScore.score * 1.7)}deg);"></div>
                   
                   <!-- Center point -->
                   <div style="position: absolute; width: 8px; height: 8px; background: #333; border-radius: 50%; left: calc(50% - 4px); bottom: 0;"></div>
