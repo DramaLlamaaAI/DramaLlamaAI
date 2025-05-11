@@ -97,11 +97,11 @@ export default function ChatAnalysis() {
     },
   });
   
-  // Mobile-compatible PDF download
+  // Mobile View-and-Save PDF approach
   const exportToPdf = async () => {
     if (!resultsRef.current || !result) {
       toast({
-        title: "Download Failed",
+        title: "PDF Export Failed",
         description: "Could not generate PDF. Please try again.",
         variant: "destructive",
       });
@@ -112,9 +112,8 @@ export default function ChatAnalysis() {
       setIsExporting(true);
       const element = resultsRef.current;
       
-      // Show a toast to confirm the process has started
       toast({
-        title: "Preparing Download",
+        title: "Preparing PDF",
         description: "Please wait while we generate your PDF...",
       });
       
@@ -122,55 +121,75 @@ export default function ChatAnalysis() {
       const opt = {
         margin: 10,
         filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.85 }, // Reduced quality for better performance
+        image: { type: 'jpeg', quality: 0.9 },
         html2canvas: { 
-          scale: 1.5,  // Lower scale for faster generation
-          logging: false,
+          scale: 1.5,
           useCORS: true
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
       try {
-        // Create mobile-compatible web download  
+        // Generate PDF blob
         const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
         
-        // Create URL for download
-        const url = URL.createObjectURL(pdfBlob);
+        // Create a URL for the Blob
+        const blobUrl = URL.createObjectURL(pdfBlob);
         
-        // More reliable cross-platform technique
-        // Create temporary download link and trigger
-        const tempLink = document.createElement('a');
-        tempLink.href = url;
-        tempLink.setAttribute('download', `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`);
-        tempLink.setAttribute('target', '_blank');
-        tempLink.style.display = 'none';
-        document.body.appendChild(tempLink);
+        // Create a modal with an iframe to display the PDF
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
+        modal.style.overflowY = 'auto';
         
-        // Click twice - some mobile browsers require two trigger events
-        tempLink.click();
-        setTimeout(() => {
-          tempLink.click();
-          document.body.removeChild(tempLink);
-          URL.revokeObjectURL(url); // Clean up
-        }, 100);
+        const currentDate = new Date().toISOString().split('T')[0];
+        const filename = `drama-llama-analysis-${currentDate}.pdf`;
+        
+        modal.innerHTML = `
+          <div class="bg-white rounded-lg w-full max-w-lg p-4 flex flex-col items-center">
+            <h3 class="text-lg font-bold mb-2">Your PDF is Ready</h3>
+            <p class="text-sm text-center mb-3">
+              Please click the button below to open the PDF. 
+              Then use your browser's share or download feature to save the file.
+            </p>
+            <div class="mb-3 w-full flex justify-center">
+              <a href="${blobUrl}" target="_blank" class="px-4 py-2 bg-primary text-white rounded mb-3">
+                Open PDF in New Tab
+              </a>
+            </div>
+            <p class="text-xs text-center mb-2">
+              On iPhone: After opening, tap the Share icon (square with arrow) and select "Save to Files"<br>
+              On Android: After opening, tap the Download icon or use the browser menu
+            </p>
+            <div class="flex w-full justify-center mt-2">
+              <button id="close-pdf-modal" class="px-4 py-2 bg-gray-200 rounded">Close</button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add event listener to close button
+        document.getElementById('close-pdf-modal')?.addEventListener('click', () => {
+          document.body.removeChild(modal);
+          URL.revokeObjectURL(blobUrl); // Clean up when modal is closed
+        });
         
         toast({
-          title: "Download Started",
-          description: "If you don't see the download, check your download folder or notifications",
-          duration: 5000,
+          title: "PDF Ready",
+          description: "Open and save your PDF using your browser's features",
+          duration: 10000,
         });
         
       } catch (err) {
         console.error("PDF generation error", err);
-        // Fallback to traditional save method
+        // Fallback to traditional save method if needed
         await html2pdf().from(element).set(opt).save();
       }
       
     } catch (error) {
       console.error("PDF export error:", error);
       toast({
-        title: "Download Failed",
+        title: "PDF Export Failed",
         description: "Could not generate the PDF. Please try again.",
         variant: "destructive",
       });
@@ -179,11 +198,11 @@ export default function ChatAnalysis() {
     }
   };
   
-  // Mobile-compatible Image download
+  // Mobile View-and-Save Image approach
   const exportAsImage = async () => {
     if (!resultsRef.current || !result) {
       toast({
-        title: "Download Failed",
+        title: "Image Export Failed",
         description: "Could not generate image. Please try again.",
         variant: "destructive",
       });
@@ -194,48 +213,58 @@ export default function ChatAnalysis() {
       setIsExporting(true);
       const element = resultsRef.current;
       
-      // Show a toast to confirm the process has started
       toast({
-        title: "Preparing Download",
+        title: "Preparing Image",
         description: "Please wait while we generate your image...",
       });
       
-      // Create a JPEG image with optimized settings
+      // Create a JPEG image with mobile-optimized settings
       const dataUrl = await toJpeg(element, { 
         cacheBust: true,
-        quality: 0.9,
+        quality: 0.95,
         backgroundColor: 'white',
-        canvasWidth: 1000,
-        pixelRatio: 1.5
+        canvasWidth: 1200,
+        pixelRatio: 2
       });
       
-      // More reliable cross-platform technique
-      // Create temporary download link and trigger
-      const tempLink = document.createElement('a');
-      tempLink.href = dataUrl;
-      tempLink.setAttribute('download', `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`);
-      tempLink.setAttribute('target', '_blank');
-      tempLink.style.display = 'none';
-      document.body.appendChild(tempLink);
+      // Create a modal that displays the image with instructions
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
+      modal.style.overflowY = 'auto';
       
-      // Click twice - some mobile browsers require two trigger events
-      tempLink.click();
-      setTimeout(() => {
-        tempLink.click();
-        document.body.removeChild(tempLink);
-      }, 100);
+      const currentDate = new Date().toISOString().split('T')[0];
+      const filename = `drama-llama-analysis-${currentDate}.jpg`;
       
-      // Show a more helpful toast
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg w-full max-w-md p-4 flex flex-col items-center">
+          <h3 class="text-lg font-bold mb-2">Your Image is Ready</h3>
+          <p class="text-sm text-center mb-3">On most phones, press and hold the image below, then choose "Save image" or "Download image" from the menu</p>
+          <div class="mb-3 w-full bg-gray-100 p-2 rounded">
+            <img src="${dataUrl}" alt="Analysis Result" class="w-full border border-gray-300 rounded" />
+          </div>
+          <div class="flex w-full justify-center">
+            <button id="close-image-modal" class="px-4 py-2 bg-gray-200 rounded">Close</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Add event listener to close button
+      document.getElementById('close-image-modal')?.addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
+      
       toast({
-        title: "Download Started",
-        description: "If you don't see the download, check your download folder or notifications",
-        duration: 5000,
+        title: "Image Ready",
+        description: "Press and hold on the image to save it to your device",
+        duration: 10000,
       });
       
     } catch (error) {
       console.error("Image export error:", error);
       toast({
-        title: "Download Failed",
+        title: "Image Export Failed",
         description: "Could not generate the image. Please try again.",
         variant: "destructive",
       });
@@ -980,14 +1009,14 @@ export default function ChatAnalysis() {
                       disabled={isExporting}
                       className="mr-2"
                     >
-                      {isExporting ? 'Downloading...' : 'Download as PDF'}
+                      {isExporting ? 'Preparing...' : 'Save as PDF'}
                     </Button>
                     <Button 
                       variant="secondary"
                       onClick={exportAsImage}
                       disabled={isExporting}
                     >
-                      {isExporting ? 'Downloading...' : 'Download as Image'}
+                      {isExporting ? 'Preparing...' : 'Save as Image'}
                     </Button>
                   </div>
                     </>
