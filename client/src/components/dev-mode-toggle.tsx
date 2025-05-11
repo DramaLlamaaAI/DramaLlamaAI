@@ -33,7 +33,7 @@ export function DevModeToggle() {
   };
   
   return (
-    <div className="fixed bottom-4 right-4 z-50 bg-background p-3 border rounded-lg shadow-md">
+    <div className="fixed bottom-4 left-4 z-50 bg-background p-3 border rounded-lg shadow-md">
       <button 
         onClick={handleToggleDevMode}
         className={`px-3 py-1 rounded text-sm font-medium ${isDevMode ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}

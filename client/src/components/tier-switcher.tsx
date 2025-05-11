@@ -34,7 +34,7 @@ export function TierSwitcher() {
   }
   
   return (
-    <div className="fixed bottom-16 right-4 z-50 bg-background p-3 border rounded-lg shadow-md flex flex-col">
+    <div className="fixed bottom-16 left-4 z-50 bg-background p-3 border rounded-lg shadow-md flex flex-col">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold">Test Tier</h3>
         <TooltipProvider>
@@ -42,7 +42,7 @@ export function TierSwitcher() {
             <TooltipTrigger asChild>
               <Info className="h-4 w-4 text-muted-foreground" />
             </TooltipTrigger>
-            <TooltipContent side="left">
+            <TooltipContent side="right">
               <p className="text-xs max-w-[200px]">
                 Switch between tiers to test different feature sets.
                 Changes take effect immediately.
