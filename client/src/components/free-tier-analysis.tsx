@@ -319,8 +319,8 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           <div class="p-3 flex justify-between items-center bg-primary text-white">
             <h3 class="text-lg font-bold">Drama Llama Analysis</h3>
             <div class="flex items-center">
-              <button id="copy-document" class="px-3 py-1 bg-white/20 text-sm rounded mr-2">
-                Copy Document
+              <button id="download-document" class="px-3 py-1 bg-white/20 text-sm rounded mr-2">
+                Download
               </button>
               <button id="close-document-preview" class="px-3 py-1 bg-white/20 text-sm rounded">
                 Close
@@ -633,14 +633,14 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             className="mr-2"
             variant="outline"
           >
-            {isExporting ? 'Downloading...' : 'Download as PDF'}
+            {isExporting ? 'Creating...' : 'Create Formal Report'}
           </Button>
           <Button 
             variant="outline"
             onClick={exportAsImage}
             disabled={isExporting}
           >
-            {isExporting ? 'Downloading...' : 'Download as Image'}
+            {isExporting ? 'Creating...' : 'View as Image'}
           </Button>
         </div>
         
