@@ -97,11 +97,11 @@ export default function ChatAnalysis() {
     },
   });
   
-  // Simplified Direct PDF export
+  // Mobile-compatible PDF download
   const exportToPdf = async () => {
     if (!resultsRef.current || !result) {
       toast({
-        title: "Export Failed",
+        title: "Download Failed",
         description: "Could not generate PDF. Please try again.",
         variant: "destructive",
       });
@@ -114,39 +114,63 @@ export default function ChatAnalysis() {
       
       // Show a toast to confirm the process has started
       toast({
-        title: "Creating PDF",
+        title: "Preparing Download",
         description: "Please wait while we generate your PDF...",
       });
       
-      // Configure html2pdf options with direct save
+      // Configure html2pdf options
       const opt = {
         margin: 10,
         filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
+        image: { type: 'jpeg', quality: 0.85 }, // Reduced quality for better performance
         html2canvas: { 
-          scale: 2, 
-          useCORS: true,
-          allowTaint: true
+          scale: 1.5,  // Lower scale for faster generation
+          logging: false,
+          useCORS: true
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
-      // Using direct save method with more explicit user instruction
-      toast({
-        title: "PDF Download",
-        description: "Look for the download prompt at the top or bottom of your screen",
-        duration: 5000,
-      });
-      
-      await html2pdf()
-        .from(element)
-        .set(opt)
-        .save();
+      try {
+        // Create mobile-compatible web download  
+        const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
         
+        // Create URL for download
+        const url = URL.createObjectURL(pdfBlob);
+        
+        // More reliable cross-platform technique
+        // Create temporary download link and trigger
+        const tempLink = document.createElement('a');
+        tempLink.href = url;
+        tempLink.setAttribute('download', `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`);
+        tempLink.setAttribute('target', '_blank');
+        tempLink.style.display = 'none';
+        document.body.appendChild(tempLink);
+        
+        // Click twice - some mobile browsers require two trigger events
+        tempLink.click();
+        setTimeout(() => {
+          tempLink.click();
+          document.body.removeChild(tempLink);
+          URL.revokeObjectURL(url); // Clean up
+        }, 100);
+        
+        toast({
+          title: "Download Started",
+          description: "If you don't see the download, check your download folder or notifications",
+          duration: 5000,
+        });
+        
+      } catch (err) {
+        console.error("PDF generation error", err);
+        // Fallback to traditional save method
+        await html2pdf().from(element).set(opt).save();
+      }
+      
     } catch (error) {
       console.error("PDF export error:", error);
       toast({
-        title: "Export Failed",
+        title: "Download Failed",
         description: "Could not generate the PDF. Please try again.",
         variant: "destructive",
       });
@@ -155,11 +179,11 @@ export default function ChatAnalysis() {
     }
   };
   
-  // Simplified Direct Image export
+  // Mobile-compatible Image download
   const exportAsImage = async () => {
     if (!resultsRef.current || !result) {
       toast({
-        title: "Export Failed",
+        title: "Download Failed",
         description: "Could not generate image. Please try again.",
         variant: "destructive",
       });
@@ -172,40 +196,46 @@ export default function ChatAnalysis() {
       
       // Show a toast to confirm the process has started
       toast({
-        title: "Creating Image",
+        title: "Preparing Download",
         description: "Please wait while we generate your image...",
       });
       
       // Create a JPEG image with optimized settings
       const dataUrl = await toJpeg(element, { 
         cacheBust: true,
-        quality: 0.92,
+        quality: 0.9,
         backgroundColor: 'white',
-        canvasWidth: 1080,
-        pixelRatio: 2
+        canvasWidth: 1000,
+        pixelRatio: 1.5
       });
       
-      // Create direct download link for the image
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
+      // More reliable cross-platform technique
+      // Create temporary download link and trigger
+      const tempLink = document.createElement('a');
+      tempLink.href = dataUrl;
+      tempLink.setAttribute('download', `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`);
+      tempLink.setAttribute('target', '_blank');
+      tempLink.style.display = 'none';
+      document.body.appendChild(tempLink);
       
-      // Prompt user about where to look for the download
+      // Click twice - some mobile browsers require two trigger events
+      tempLink.click();
+      setTimeout(() => {
+        tempLink.click();
+        document.body.removeChild(tempLink);
+      }, 100);
+      
+      // Show a more helpful toast
       toast({
-        title: "Image Download",
-        description: "Look for the download prompt at the top or bottom of your screen",
+        title: "Download Started",
+        description: "If you don't see the download, check your download folder or notifications",
         duration: 5000,
       });
-      
-      // Trigger download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
       
     } catch (error) {
       console.error("Image export error:", error);
       toast({
-        title: "Export Failed",
+        title: "Download Failed",
         description: "Could not generate the image. Please try again.",
         variant: "destructive",
       });
