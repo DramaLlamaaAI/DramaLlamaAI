@@ -97,12 +97,12 @@ export default function ChatAnalysis() {
     },
   });
   
-  // Extremely simplified PDF export for maximum mobile compatibility
+  // Copy to clipboard approach for text export
   const exportToPdf = async () => {
     if (!resultsRef.current || !result) {
       toast({
-        title: "Export Failed",
-        description: "Could not create PDF. Please try again.",
+        title: "Copy Failed",
+        description: "Could not copy text. Please try again.",
         variant: "destructive",
       });
       return;
@@ -111,98 +111,87 @@ export default function ChatAnalysis() {
     try {
       setIsExporting(true);
       
-      toast({
-        title: "Creating PDF",
-        description: "Please wait...",
-        duration: 3000,
-      });
+      // Get formatted text content
+      const textContent = resultsRef.current.innerText;
       
-      // Ultra-simplified direct save approach
-      try {
-        // Force direct save with simplified options - minimal processing
-        const element = resultsRef.current;
-        const opt = {
-          margin: 10,
-          filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
-          image: { type: 'jpeg', quality: 0.7 },
-          html2canvas: { scale: 1, logging: false },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        
-        await html2pdf().from(element).set(opt).save();
-        
-        toast({
-          title: "PDF Download Started",
-          description: "Your PDF should download automatically. Check your downloads folder.",
-          duration: 5000,
-        });
-        
-      } catch (directSaveError) {
-        console.error("Direct PDF save failed:", directSaveError);
-        
-        toast({
-          title: "PDF Creation Failed",
-          description: "We'll try an alternative method...",
-          duration: 2000,
-        });
-        
-        // Fallback to text copy method (last resort)
-        const textContent = resultsRef.current.innerText;
-        
-        // Create a copy/paste dialog with content
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
-        
-        modal.innerHTML = `
-          <div class="bg-white rounded-lg w-full max-w-md p-5 flex flex-col">
-            <h3 class="text-lg font-bold mb-2 text-center">Copy Your Analysis</h3>
-            <p class="text-sm mb-4 text-center">PDF download did not work. You can copy the text below:</p>
-            <div class="mb-4 p-3 bg-gray-100 rounded-md text-sm overflow-y-auto" style="max-height: 60vh;">
-              ${textContent.replace(/\n/g, '<br>')}
-            </div>
-            <div class="flex justify-between">
-              <button id="copy-text-content" class="px-4 py-2 bg-primary text-white rounded">
-                Copy Text
-              </button>
-              <button id="close-text-dialog" class="px-4 py-2 bg-gray-200 rounded">
-                Close
-              </button>
-            </div>
+      // Show text copy dialog directly - skip PDF generation entirely
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
+      
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg w-full max-w-md p-5 flex flex-col">
+          <h3 class="text-lg font-bold mb-2 text-center">Copy Analysis Text</h3>
+          <p class="text-sm mb-4 text-center">You can copy the analysis below to save or share it:</p>
+          <div class="mb-4 p-3 bg-gray-100 rounded-md text-sm overflow-y-auto" style="max-height: 60vh;">
+            ${textContent.replace(/\n/g, '<br>')}
           </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Add copy handler
-        document.getElementById('copy-text-content')?.addEventListener('click', () => {
+          <div class="flex justify-between">
+            <button id="copy-text-content" class="px-4 py-2 bg-primary text-white rounded">
+              Copy Text
+            </button>
+            <button id="close-text-dialog" class="px-4 py-2 bg-gray-200 rounded">
+              Close
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Add copy handler
+      document.getElementById('copy-text-content')?.addEventListener('click', () => {
+        try {
+          // Create temporary textarea for reliable copying
+          const textarea = document.createElement('textarea');
+          textarea.value = textContent;
+          textarea.style.position = 'fixed';  // Make the textarea out of viewport
+          document.body.appendChild(textarea);
+          textarea.select();
+          
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textarea);
+          
+          if (successful) {
+            toast({
+              title: "Copied to Clipboard",
+              description: "Text copied! You can paste it in any app.",
+              duration: 3000,
+            });
+          } else {
+            throw new Error("Copy command failed");
+          }
+        } catch (err) {
+          console.error("Old-style clipboard copy failed:", err);
+          
+          // Try modern clipboard API as fallback
           navigator.clipboard.writeText(textContent)
             .then(() => {
               toast({
                 title: "Copied to Clipboard",
-                description: "Analysis text has been copied. You can paste it anywhere.",
+                description: "Text copied! You can paste it in any app.",
                 duration: 3000,
               });
             })
-            .catch(err => {
-              console.error("Clipboard write failed:", err);
+            .catch(clipboardErr => {
+              console.error("Modern clipboard API also failed:", clipboardErr);
               toast({
                 title: "Copy Failed",
                 description: "Please select and copy the text manually.",
                 variant: "destructive",
               });
             });
-        });
-        
-        // Add close handler
-        document.getElementById('close-text-dialog')?.addEventListener('click', () => {
-          document.body.removeChild(modal);
-        });
-      }
+        }
+      });
+      
+      // Add close handler
+      document.getElementById('close-text-dialog')?.addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
       
     } catch (error) {
-      console.error("All PDF export methods failed:", error);
+      console.error("Text copy failed:", error);
       toast({
-        title: "Export Failed",
+        title: "Copy Failed",
         description: "Please try taking screenshots instead.",
         variant: "destructive",
       });
