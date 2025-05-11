@@ -950,14 +950,14 @@ export default function ChatAnalysis() {
                       disabled={isExporting}
                       className="mr-2"
                     >
-                      {isExporting ? 'Exporting...' : 'Export as PDF'}
+                      {isExporting ? 'Downloading...' : 'Download as PDF'}
                     </Button>
                     <Button 
                       variant="secondary"
                       onClick={exportAsImage}
                       disabled={isExporting}
                     >
-                      {isExporting ? 'Exporting...' : 'Export as Image'}
+                      {isExporting ? 'Downloading...' : 'Download as Image'}
                     </Button>
                   </div>
                     </>
