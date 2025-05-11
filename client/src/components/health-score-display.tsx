@@ -49,15 +49,35 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
         </div>
         
         <div className="mt-2 mb-4">
-          <div className="flex justify-between items-center mb-1 text-xs text-gray-500">
-            <span>Severe Conflict</span>
-            <span>Very Healthy</span>
+          {/* Semicircle gauge meter */}
+          <div className="flex flex-col items-center mb-4">
+            <div className="relative w-44 h-24">
+              {/* Semicircle gauge background */}
+              <div className="absolute w-full h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-t-full"></div>
+              <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
+              
+              {/* Dial needle - pointing to 15% (very low) */}
+              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom rotate-[5deg] left-[50%] bottom-0"
+                style={{ transform: `rotate(25deg)` }}
+              ></div>
+              
+              {/* Dial center point */}
+              <div className="absolute w-3 h-3 bg-gray-800 rounded-full left-[calc(50%-6px)] bottom-0"></div>
+            </div>
+            
+            {/* Meter scale */}
+            <div className="flex justify-between items-center w-full text-xs text-gray-500 mt-2 px-2">
+              <span>Conflict</span>
+              <span>Moderate</span>
+              <span>Very Healthy</span>
+            </div>
           </div>
-          <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-red-500"
-              style={{ width: '15%' }}
-            ></div>
+          
+          {/* Score display */}
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-1">
+              15<span className="text-sm font-normal text-gray-500">/100</span>
+            </div>
           </div>
         </div>
         
@@ -113,15 +133,35 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
         </div>
         
         <div className="mt-2 mb-4">
-          <div className="flex justify-between items-center mb-1 text-xs text-gray-500">
-            <span>Severe Conflict</span>
-            <span>Very Healthy</span>
+          {/* Semicircle gauge meter */}
+          <div className="flex flex-col items-center mb-4">
+            <div className="relative w-44 h-24">
+              {/* Semicircle gauge background */}
+              <div className="absolute w-full h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-t-full"></div>
+              <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
+              
+              {/* Dial needle - pointing to 75% (good) */}
+              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom rotate-[5deg] left-[50%] bottom-0"
+                style={{ transform: `rotate(127deg)` }}
+              ></div>
+              
+              {/* Dial center point */}
+              <div className="absolute w-3 h-3 bg-gray-800 rounded-full left-[calc(50%-6px)] bottom-0"></div>
+            </div>
+            
+            {/* Meter scale */}
+            <div className="flex justify-between items-center w-full text-xs text-gray-500 mt-2 px-2">
+              <span>Conflict</span>
+              <span>Moderate</span>
+              <span>Very Healthy</span>
+            </div>
           </div>
-          <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-emerald-500"
-              style={{ width: '75%' }}
-            ></div>
+          
+          {/* Score display */}
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-1">
+              75<span className="text-sm font-normal text-gray-500">/100</span>
+            </div>
           </div>
         </div>
         
@@ -195,15 +235,39 @@ export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreD
         </div>
         
         <div className="mt-2 mb-4">
-          <div className="flex justify-between items-center mb-1 text-xs text-gray-500">
-            <span>Severe Conflict</span>
-            <span>Very Healthy</span>
+          {/* Semicircle gauge meter */}
+          <div className="flex flex-col items-center mb-4">
+            <div className="relative w-44 h-24">
+              {/* Semicircle gauge background */}
+              <div className="absolute w-full h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-t-full"></div>
+              <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
+              
+              {/* Dial needle */}
+              <div className="absolute w-1 h-20 bg-gray-800 origin-bottom rotate-[5deg] left-[50%] bottom-0"
+                style={{ 
+                  transform: `rotate(${Math.max(5, Math.min(175, 
+                    healthScore ? (healthScore.score * 1.7) : 90
+                  ))}deg)` 
+                }}
+              ></div>
+              
+              {/* Dial center point */}
+              <div className="absolute w-3 h-3 bg-gray-800 rounded-full left-[calc(50%-6px)] bottom-0"></div>
+            </div>
+            
+            {/* Meter scale */}
+            <div className="flex justify-between items-center w-full text-xs text-gray-500 mt-2 px-2">
+              <span>Conflict</span>
+              <span>Moderate</span>
+              <span>Very Healthy</span>
+            </div>
           </div>
-          <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className={`h-full ${meterColor}`}
-              style={{ width: scoreWidth }}
-            ></div>
+          
+          {/* Score display */}
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-1">
+              {healthScore ? healthScore.score : 50}<span className="text-sm font-normal text-gray-500">/100</span>
+            </div>
           </div>
         </div>
         

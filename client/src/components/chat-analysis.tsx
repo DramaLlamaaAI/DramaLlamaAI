@@ -382,10 +382,37 @@ export default function ChatAnalysis() {
             ${result.healthScore ? `
             <div class="document-section">
               <div class="section-title">Conversation Health</div>
-              <div class="health-score">
-                <div class="health-score-label">Health Score:</div>
-                <div class="health-score-value health-score-${result.healthScore.color}">
-                  ${result.healthScore.label} (${Math.min(10, result.healthScore.score)}/10)
+              
+              <!-- Health Meter Gauge -->
+              <div class="health-meter-container" style="text-align: center; margin-bottom: 20px;">
+                <div style="position: relative; width: 200px; height: 100px; margin: 0 auto;">
+                  <!-- Semicircle background with gradient -->
+                  <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%); border-radius: 100px 100px 0 0;"></div>
+                  <div style="position: absolute; width: 94%; height: 94%; background: white; border-radius: 100px 100px 0 0; top: 3%; left: 3%;"></div>
+                  
+                  <!-- Needle -->
+                  <div style="position: absolute; width: 2px; height: 90px; background: #333; transform-origin: bottom center; left: 50%; bottom: 0; transform: rotate(${Math.max(5, Math.min(175, result.healthScore.score * 1.7))}deg);"></div>
+                  
+                  <!-- Center point -->
+                  <div style="position: absolute; width: 8px; height: 8px; background: #333; border-radius: 50%; left: calc(50% - 4px); bottom: 0;"></div>
+                </div>
+                
+                <!-- Scale labels -->
+                <div style="display: flex; justify-content: space-between; margin-top: 5px; width: 200px; margin: 0 auto;">
+                  <span style="font-size: 12px; color: #666;">Conflict</span>
+                  <span style="font-size: 12px; color: #666;">Moderate</span>
+                  <span style="font-size: 12px; color: #666;">Very Healthy</span>
+                </div>
+                
+                <!-- Score display -->
+                <div style="margin-top: 15px;">
+                  <div style="font-size: 24px; font-weight: bold;">${result.healthScore.score}<span style="font-size: 14px; font-weight: normal; color: #666;">/100</span></div>
+                  <div style="font-size: 14px; margin-top: 5px; color: #555;">
+                    ${result.healthScore.score >= 80 ? 'Healthy communication with mutual respect.' :
+                      result.healthScore.score >= 60 ? 'Generally positive with areas for improvement.' :
+                      result.healthScore.score >= 40 ? 'Moderate to high tension present.' :
+                      'Significant conflict, needs attention.'}
+                  </div>
                 </div>
               </div>
             </div>
