@@ -59,19 +59,18 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
       const blobUrl = URL.createObjectURL(pdfBlob);
       
-      // Create the dialog content
+      // Create the dialog content with a button instead of a link
       downloadDialog.innerHTML = `
         <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
           <h3 class="text-lg font-bold mb-4">Your PDF is Ready!</h3>
           <p class="mb-4">Tap the button below to download your analysis as a PDF file.</p>
           <div class="flex justify-center">
-            <a 
-              href="${blobUrl}" 
-              download="drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf"
+            <button 
+              id="download-pdf-button"
               class="bg-primary text-white font-medium py-2 px-4 rounded hover:bg-primary/90"
             >
               Download PDF
-            </a>
+            </button>
           </div>
           <button id="close-dialog" class="mt-4 w-full text-gray-500">Close</button>
         </div>
@@ -80,7 +79,25 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       // Add to document
       document.body.appendChild(downloadDialog);
       
-      // Add close functionality
+      // Create an actual download function
+      const triggerDownload = () => {
+        // Create an invisible link element
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show download success message
+        toast({
+          title: "Download Started",
+          description: "Your PDF is downloading now. Check your Downloads folder.",
+        });
+      };
+      
+      // Add click handlers
+      document.getElementById('download-pdf-button')?.addEventListener('click', triggerDownload);
       document.getElementById('close-dialog')?.addEventListener('click', () => {
         document.body.removeChild(downloadDialog);
         URL.revokeObjectURL(blobUrl);
@@ -136,19 +153,18 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       let downloadDialog = document.createElement('div');
       downloadDialog.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
       
-      // Create the dialog content
+      // Create the dialog content with a button instead of a link
       downloadDialog.innerHTML = `
         <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
           <h3 class="text-lg font-bold mb-4">Your Image is Ready!</h3>
           <p class="mb-4">Tap the button below to download your analysis as an image.</p>
           <div class="flex justify-center">
-            <a 
-              href="${dataUrl}" 
-              download="drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg"
+            <button 
+              id="download-image-button"
               class="bg-primary text-white font-medium py-2 px-4 rounded hover:bg-primary/90"
             >
               Download Image
-            </a>
+            </button>
           </div>
           <button id="close-dialog" class="mt-4 w-full text-gray-500">Close</button>
         </div>
@@ -157,7 +173,25 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       // Add to document
       document.body.appendChild(downloadDialog);
       
-      // Add close functionality
+      // Create an actual download function
+      const triggerImageDownload = () => {
+        // Create an invisible link element
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show download success message
+        toast({
+          title: "Download Started",
+          description: "Your image is downloading now. Check your Downloads folder.",
+        });
+      };
+      
+      // Add click handlers
+      document.getElementById('download-image-button')?.addEventListener('click', triggerImageDownload);
       document.getElementById('close-dialog')?.addEventListener('click', () => {
         document.body.removeChild(downloadDialog);
       });
