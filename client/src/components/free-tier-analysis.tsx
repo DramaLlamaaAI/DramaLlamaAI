@@ -17,7 +17,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
   const [isExporting, setIsExporting] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
   
-  // Mobile View-and-Save PDF approach
+  // Direct PDF download with inline viewer
   const exportToPdf = async () => {
     if (!resultsRef.current || !result) {
       toast({
@@ -37,72 +37,99 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
         description: "Please wait while we generate your PDF...",
       });
       
-      // Configure html2pdf options
+      // Configure html2pdf options - simplified for better mobile compatibility
       const opt = {
-        margin: 10,
+        margin: 5,
         filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.9 },
-        html2canvas: { 
-          scale: 1.5,
-          useCORS: true
-        },
+        image: { type: 'jpeg', quality: 0.8 },
+        html2canvas: { scale: 1.5 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
       try {
-        // Generate PDF blob
-        const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
-        
-        // Create a URL for the Blob
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        
-        // Create a modal with an iframe to display the PDF
+        // For mobile compatibility, create an embedded viewer
         const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
+        modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center z-50';
         modal.style.overflowY = 'auto';
         
-        const currentDate = new Date().toISOString().split('T')[0];
-        const filename = `drama-llama-analysis-${currentDate}.pdf`;
-        
         modal.innerHTML = `
-          <div class="bg-white rounded-lg w-full max-w-lg p-4 flex flex-col items-center">
-            <h3 class="text-lg font-bold mb-2">Your PDF is Ready</h3>
-            <p class="text-sm text-center mb-3">
-              Please click the button below to open the PDF. 
-              Then use your browser's share or download feature to save the file.
-            </p>
-            <div class="mb-3 w-full flex justify-center">
-              <a href="${blobUrl}" target="_blank" class="px-4 py-2 bg-primary text-white rounded mb-3">
-                Open PDF in New Tab
-              </a>
+          <div class="bg-white w-full h-full flex flex-col">
+            <div class="p-3 flex justify-between items-center bg-gray-100 border-b">
+              <h3 class="text-lg font-bold">Your PDF</h3>
+              <div class="flex gap-2">
+                <button id="download-pdf-directly" class="px-3 py-1 bg-primary text-white text-sm rounded">
+                  Download
+                </button>
+                <button id="close-pdf-viewer" class="px-3 py-1 bg-gray-200 text-sm rounded">
+                  Close
+                </button>
+              </div>
             </div>
-            <p class="text-xs text-center mb-2">
-              On iPhone: After opening, tap the Share icon (square with arrow) and select "Save to Files"<br>
-              On Android: After opening, tap the Download icon or use the browser menu
-            </p>
-            <div class="flex w-full justify-center mt-2">
-              <button id="close-pdf-modal" class="px-4 py-2 bg-gray-200 rounded">Close</button>
+            <div id="pdf-loading-message" class="flex-1 flex flex-col items-center justify-center">
+              <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              <p class="mt-4">Generating PDF...</p>
             </div>
+            <div id="pdf-container" class="flex-1 w-full" style="display:none;"></div>
           </div>
         `;
         
         document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
         
-        // Add event listener to close button
-        document.getElementById('close-pdf-modal')?.addEventListener('click', () => {
+        // Create PDF directly with loading indicator
+        const pdfOutput = await html2pdf().from(element).set(opt).outputPdf();
+        
+        // Convert to base64 for direct embedding
+        const base64PDF = btoa(pdfOutput);
+        const dataUri = `data:application/pdf;base64,${base64PDF}`;
+        
+        // Create download blob for direct save
+        const pdfBlob = new Blob([pdfOutput], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        
+        // Show PDF in viewer
+        const pdfContainer = document.getElementById('pdf-container');
+        const loadingMessage = document.getElementById('pdf-loading-message');
+        
+        if (pdfContainer && loadingMessage) {
+          loadingMessage.style.display = 'none';
+          pdfContainer.style.display = 'block';
+          
+          // For mobile, show the PDF directly in the container
+          pdfContainer.innerHTML = `
+            <iframe src="${dataUri}" style="width:100%; height:100%; border:none;"></iframe>
+          `;
+        }
+        
+        // Add direct download handler
+        document.getElementById('download-pdf-directly')?.addEventListener('click', () => {
+          const downloadLink = document.createElement('a');
+          downloadLink.href = blobUrl;
+          downloadLink.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`;
+          downloadLink.click();
+        });
+        
+        // Add close button handler
+        document.getElementById('close-pdf-viewer')?.addEventListener('click', () => {
           document.body.removeChild(modal);
-          URL.revokeObjectURL(blobUrl); // Clean up when modal is closed
+          document.body.style.overflow = ''; // Restore scrolling
+          URL.revokeObjectURL(blobUrl);
         });
         
         toast({
           title: "PDF Ready",
-          description: "Open and save your PDF using your browser's features",
-          duration: 10000,
+          description: "Your PDF is ready to view and download",
+          duration: 3000,
         });
         
       } catch (err) {
         console.error("PDF generation error", err);
-        // Fallback to traditional save method if needed
+        toast({
+          title: "PDF Generation Failed",
+          description: "Trying alternative method...",
+        });
+        
+        // Fallback to traditional save method
         await html2pdf().from(element).set(opt).save();
       }
       
