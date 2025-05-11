@@ -5,6 +5,7 @@ import { ChatAnalysisResult } from '@shared/schema';
 import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
 import { useToast } from "@/hooks/use-toast";
+import llamaImage from '@/assets/drama-llama-sunglasses.jpg';
 
 interface FreeTierAnalysisProps {
   result: ChatAnalysisResult;
