@@ -17,7 +17,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
   const [isExporting, setIsExporting] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
   
-  // Direct PDF download with inline viewer
+  // Simple Direct PDF download - mobile optimized
   const exportToPdf = async () => {
     if (!resultsRef.current || !result) {
       toast({
@@ -33,119 +33,102 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       const element = resultsRef.current;
       
       toast({
-        title: "Preparing PDF",
+        title: "Creating PDF",
         description: "Please wait while we generate your PDF...",
       });
       
-      // Configure html2pdf options - simplified for better mobile compatibility
+      // Configure html2pdf options - highly simplified for better mobile compatibility
       const opt = {
-        margin: 5,
+        margin: 10,
         filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
         image: { type: 'jpeg', quality: 0.8 },
-        html2canvas: { scale: 1.5 },
+        html2canvas: { scale: 1, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
-      try {
-        // For mobile compatibility, create an embedded viewer
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center z-50';
-        modal.style.overflowY = 'auto';
-        
-        modal.innerHTML = `
-          <div class="bg-white w-full h-full flex flex-col">
-            <div class="p-3 flex justify-between items-center bg-gray-100 border-b">
-              <h3 class="text-lg font-bold">Your PDF</h3>
-              <div class="flex gap-2">
-                <button id="download-pdf-directly" class="px-3 py-1 bg-primary text-white text-sm rounded">
-                  Download
-                </button>
-                <button id="close-pdf-viewer" class="px-3 py-1 bg-gray-200 text-sm rounded">
-                  Close
-                </button>
-              </div>
-            </div>
-            <div id="pdf-loading-message" class="flex-1 flex flex-col items-center justify-center">
-              <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-              <p class="mt-4">Generating PDF...</p>
-            </div>
-            <div id="pdf-container" class="flex-1 w-full" style="display:none;"></div>
-          </div>
-        `;
-        
-        document.body.appendChild(modal);
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        
-        // Create PDF directly with loading indicator
-        const pdfOutput = await html2pdf().from(element).set(opt).outputPdf();
-        
-        // Convert to base64 for direct embedding
-        const base64PDF = btoa(pdfOutput);
-        const dataUri = `data:application/pdf;base64,${base64PDF}`;
-        
-        // Create download blob for direct save
-        const pdfBlob = new Blob([pdfOutput], { type: 'application/pdf' });
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        
-        // Show PDF in viewer
-        const pdfContainer = document.getElementById('pdf-container');
-        const loadingMessage = document.getElementById('pdf-loading-message');
-        
-        if (pdfContainer && loadingMessage) {
-          loadingMessage.style.display = 'none';
-          pdfContainer.style.display = 'block';
-          
-          // For mobile, show the PDF directly in the container
-          pdfContainer.innerHTML = `
-            <iframe src="${dataUri}" style="width:100%; height:100%; border:none;"></iframe>
-          `;
-        }
-        
-        // Add direct download handler
-        document.getElementById('download-pdf-directly')?.addEventListener('click', () => {
-          const downloadLink = document.createElement('a');
-          downloadLink.href = blobUrl;
-          downloadLink.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`;
-          downloadLink.click();
-        });
-        
-        // Add close button handler
-        document.getElementById('close-pdf-viewer')?.addEventListener('click', () => {
-          document.body.removeChild(modal);
-          document.body.style.overflow = ''; // Restore scrolling
-          URL.revokeObjectURL(blobUrl);
-        });
-        
-        toast({
-          title: "PDF Ready",
-          description: "Your PDF is ready to view and download",
-          duration: 3000,
-        });
-        
-      } catch (err) {
-        console.error("PDF generation error", err);
-        toast({
-          title: "PDF Generation Failed",
-          description: "Trying alternative method...",
-        });
-        
-        // Fallback to traditional save method
-        await html2pdf().from(element).set(opt).save();
-      }
+      // Mobile-friendly approach - direct download with reliable method
+      const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
       
+      // Create a simple confirmation dialog instead of trying to display PDF
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
+      
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg w-full max-w-sm p-5 flex flex-col items-center text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <h3 class="text-lg font-bold mb-2">PDF Created Successfully</h3>
+          <p class="text-sm mb-4">Your PDF is ready to download. Click the button below to save it to your device.</p>
+          <button id="download-pdf-directly" class="w-full py-2 px-4 bg-primary text-white rounded mb-3">
+            Download PDF
+          </button>
+          <button id="close-pdf-dialog" class="w-full py-2 px-4 bg-gray-200 rounded">
+            Cancel
+          </button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Create URL for download
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      
+      // Add download handler
+      document.getElementById('download-pdf-directly')?.addEventListener('click', () => {
+        const downloadLink = document.createElement('a');
+        downloadLink.href = blobUrl;
+        downloadLink.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`;
+        downloadLink.click();
+        
+        // On mobile, need to keep the dialog open to allow the download to complete
+        toast({
+          title: "Download Started",
+          description: "Look for the PDF in your downloads folder",
+          duration: 5000,
+        });
+      });
+      
+      // Add close handler
+      document.getElementById('close-pdf-dialog')?.addEventListener('click', () => {
+        document.body.removeChild(modal);
+        URL.revokeObjectURL(blobUrl);
+      });
+        
     } catch (error) {
       console.error("PDF export error:", error);
       toast({
         title: "PDF Export Failed",
-        description: "Could not generate the PDF. Please try again.",
+        description: "Could not generate the PDF. Trying simpler method...",
         variant: "destructive",
       });
+      
+      // Fallback to traditional save method
+      try {
+        const opt = {
+          margin: 10,
+          filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
+          image: { type: 'jpeg', quality: 0.7 },
+          html2canvas: { scale: 1 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        await html2pdf().from(resultsRef.current).set(opt).save();
+        
+      } catch (fallbackError) {
+        console.error("Fallback PDF export also failed:", fallbackError);
+        toast({
+          title: "Export Failed",
+          description: "Please try again or take a screenshot instead.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsExporting(false);
     }
   };
   
-  // Mobile View-and-Save Image approach
+  // Simplified Mobile-friendly Image download
   const exportAsImage = async () => {
     if (!resultsRef.current || !result) {
       toast({
@@ -161,51 +144,88 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       const element = resultsRef.current;
       
       toast({
-        title: "Preparing Image",
+        title: "Creating Image",
         description: "Please wait while we generate your image...",
       });
       
       // Create a JPEG image with mobile-optimized settings
       const dataUrl = await toJpeg(element, { 
         cacheBust: true,
-        quality: 0.95,
+        quality: 0.9,
         backgroundColor: 'white',
-        canvasWidth: 1200,
-        pixelRatio: 2
+        canvasWidth: 1080,
+        pixelRatio: 1.5
       });
       
-      // Create a modal that displays the image with instructions
+      // Show a simple download dialog
       const modal = document.createElement('div');
       modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
-      modal.style.overflowY = 'auto';
-      
-      const currentDate = new Date().toISOString().split('T')[0];
-      const filename = `drama-llama-analysis-${currentDate}.jpg`;
       
       modal.innerHTML = `
-        <div class="bg-white rounded-lg w-full max-w-md p-4 flex flex-col items-center">
-          <h3 class="text-lg font-bold mb-2">Your Image is Ready</h3>
-          <p class="text-sm text-center mb-3">On most phones, press and hold the image below, then choose "Save image" or "Download image" from the menu</p>
-          <div class="mb-3 w-full bg-gray-100 p-2 rounded">
-            <img src="${dataUrl}" alt="Analysis Result" class="w-full border border-gray-300 rounded" />
-          </div>
-          <div class="flex w-full justify-center">
-            <button id="close-image-modal" class="px-4 py-2 bg-gray-200 rounded">Close</button>
-          </div>
+        <div class="bg-white rounded-lg w-full max-w-sm p-5 flex flex-col items-center text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <h3 class="text-lg font-bold mb-2">Image Created Successfully</h3>
+          <p class="text-sm mb-4">Your image is ready to download. Click the button below to save it.</p>
+          <button id="save-image-directly" class="w-full py-2 px-4 bg-primary text-white rounded mb-3">
+            Download Image
+          </button>
+          <button id="show-image-preview" class="w-full py-2 px-4 bg-secondary text-white rounded mb-3">
+            View Image
+          </button>
+          <button id="close-image-dialog" class="w-full py-2 px-4 bg-gray-200 rounded">
+            Cancel
+          </button>
         </div>
       `;
       
       document.body.appendChild(modal);
       
-      // Add event listener to close button
-      document.getElementById('close-image-modal')?.addEventListener('click', () => {
-        document.body.removeChild(modal);
+      // Direct save when download button is clicked
+      document.getElementById('save-image-directly')?.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
+        link.click();
+        
+        toast({
+          title: "Download Started",
+          description: "Look for the image in your downloads folder",
+          duration: 5000,
+        });
       });
       
-      toast({
-        title: "Image Ready",
-        description: "Press and hold on the image to save it to your device",
-        duration: 10000,
+      // Show image in a new window for saving on devices where direct download doesn't work
+      document.getElementById('show-image-preview')?.addEventListener('click', () => {
+        document.body.removeChild(modal);
+        
+        // Create fullscreen image modal
+        const imageModal = document.createElement('div');
+        imageModal.className = 'fixed inset-0 bg-black/95 flex flex-col z-50';
+        
+        imageModal.innerHTML = `
+          <div class="p-3 flex justify-between items-center bg-gray-900 text-white">
+            <h3 class="text-lg font-bold">Press and hold image to save</h3>
+            <button id="close-image-preview" class="px-3 py-1 bg-gray-700 text-sm rounded">
+              Close
+            </button>
+          </div>
+          <div class="flex-1 overflow-auto p-4 flex items-center justify-center">
+            <img src="${dataUrl}" alt="Analysis Result" class="max-w-full max-h-full border border-gray-700" />
+          </div>
+        `;
+        
+        document.body.appendChild(imageModal);
+        
+        document.getElementById('close-image-preview')?.addEventListener('click', () => {
+          document.body.removeChild(imageModal);
+        });
+      });
+      
+      // Add close handler
+      document.getElementById('close-image-dialog')?.addEventListener('click', () => {
+        document.body.removeChild(modal);
       });
       
     } catch (error) {
