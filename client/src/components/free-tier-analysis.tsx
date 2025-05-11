@@ -17,12 +17,12 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
   const [isExporting, setIsExporting] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
   
-  // Simple Direct PDF download - mobile optimized
+  // Extremely simplified PDF export for maximum mobile compatibility
   const exportToPdf = async () => {
     if (!resultsRef.current || !result) {
       toast({
-        title: "PDF Export Failed",
-        description: "Could not generate PDF. Please try again.",
+        title: "Export Failed",
+        description: "Could not create PDF. Please try again.",
         variant: "destructive",
       });
       return;
@@ -30,110 +30,113 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
     
     try {
       setIsExporting(true);
-      const element = resultsRef.current;
       
       toast({
         title: "Creating PDF",
-        description: "Please wait while we generate your PDF...",
+        description: "Please wait...",
+        duration: 3000,
       });
       
-      // Configure html2pdf options - highly simplified for better mobile compatibility
-      const opt = {
-        margin: 10,
-        filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.8 },
-        html2canvas: { scale: 1, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      
-      // Mobile-friendly approach - direct download with reliable method
-      const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
-      
-      // Create a simple confirmation dialog instead of trying to display PDF
-      const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
-      
-      modal.innerHTML = `
-        <div class="bg-white rounded-lg w-full max-w-sm p-5 flex flex-col items-center text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <h3 class="text-lg font-bold mb-2">PDF Created Successfully</h3>
-          <p class="text-sm mb-4">Your PDF is ready to download. Click the button below to save it to your device.</p>
-          <button id="download-pdf-directly" class="w-full py-2 px-4 bg-primary text-white rounded mb-3">
-            Download PDF
-          </button>
-          <button id="close-pdf-dialog" class="w-full py-2 px-4 bg-gray-200 rounded">
-            Cancel
-          </button>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-      
-      // Create URL for download
-      const blobUrl = URL.createObjectURL(pdfBlob);
-      
-      // Add download handler
-      document.getElementById('download-pdf-directly')?.addEventListener('click', () => {
-        const downloadLink = document.createElement('a');
-        downloadLink.href = blobUrl;
-        downloadLink.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`;
-        downloadLink.click();
-        
-        // On mobile, need to keep the dialog open to allow the download to complete
-        toast({
-          title: "Download Started",
-          description: "Look for the PDF in your downloads folder",
-          duration: 5000,
-        });
-      });
-      
-      // Add close handler
-      document.getElementById('close-pdf-dialog')?.addEventListener('click', () => {
-        document.body.removeChild(modal);
-        URL.revokeObjectURL(blobUrl);
-      });
-        
-    } catch (error) {
-      console.error("PDF export error:", error);
-      toast({
-        title: "PDF Export Failed",
-        description: "Could not generate the PDF. Trying simpler method...",
-        variant: "destructive",
-      });
-      
-      // Fallback to traditional save method
+      // Ultra-simplified direct save approach
       try {
+        // Force direct save with simplified options - minimal processing
+        const element = resultsRef.current;
         const opt = {
           margin: 10,
           filename: `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.pdf`,
           image: { type: 'jpeg', quality: 0.7 },
-          html2canvas: { scale: 1 },
+          html2canvas: { scale: 1, logging: false },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         
-        await html2pdf().from(resultsRef.current).set(opt).save();
+        await html2pdf().from(element).set(opt).save();
         
-      } catch (fallbackError) {
-        console.error("Fallback PDF export also failed:", fallbackError);
         toast({
-          title: "Export Failed",
-          description: "Please try again or take a screenshot instead.",
-          variant: "destructive",
+          title: "PDF Download Started",
+          description: "Your PDF should download automatically. Check your downloads folder.",
+          duration: 5000,
+        });
+        
+      } catch (directSaveError) {
+        console.error("Direct PDF save failed:", directSaveError);
+        
+        toast({
+          title: "PDF Creation Failed",
+          description: "We'll try an alternative method...",
+          duration: 2000,
+        });
+        
+        // Fallback to text copy method (last resort)
+        const textContent = resultsRef.current.innerText;
+        
+        // Create a copy/paste dialog with content
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
+        
+        modal.innerHTML = `
+          <div class="bg-white rounded-lg w-full max-w-md p-5 flex flex-col">
+            <h3 class="text-lg font-bold mb-2 text-center">Copy Your Analysis</h3>
+            <p class="text-sm mb-4 text-center">PDF download did not work. You can copy the text below:</p>
+            <div class="mb-4 p-3 bg-gray-100 rounded-md text-sm overflow-y-auto" style="max-height: 60vh;">
+              ${textContent.replace(/\n/g, '<br>')}
+            </div>
+            <div class="flex justify-between">
+              <button id="copy-text-content" class="px-4 py-2 bg-primary text-white rounded">
+                Copy Text
+              </button>
+              <button id="close-text-dialog" class="px-4 py-2 bg-gray-200 rounded">
+                Close
+              </button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add copy handler
+        document.getElementById('copy-text-content')?.addEventListener('click', () => {
+          navigator.clipboard.writeText(textContent)
+            .then(() => {
+              toast({
+                title: "Copied to Clipboard",
+                description: "Analysis text has been copied. You can paste it anywhere.",
+                duration: 3000,
+              });
+            })
+            .catch(err => {
+              console.error("Clipboard write failed:", err);
+              toast({
+                title: "Copy Failed",
+                description: "Please select and copy the text manually.",
+                variant: "destructive",
+              });
+            });
+        });
+        
+        // Add close handler
+        document.getElementById('close-text-dialog')?.addEventListener('click', () => {
+          document.body.removeChild(modal);
         });
       }
+      
+    } catch (error) {
+      console.error("All PDF export methods failed:", error);
+      toast({
+        title: "Export Failed",
+        description: "Please try taking screenshots instead.",
+        variant: "destructive",
+      });
     } finally {
       setIsExporting(false);
     }
   };
   
-  // Simplified Mobile-friendly Image download
+  // Extremely simplified screenshot feature for mobile compatibility
   const exportAsImage = async () => {
     if (!resultsRef.current || !result) {
       toast({
-        title: "Image Export Failed",
-        description: "Could not generate image. Please try again.",
+        title: "Screenshot Failed",
+        description: "Could not create image. Please try again.",
         variant: "destructive",
       });
       return;
@@ -141,98 +144,68 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
     
     try {
       setIsExporting(true);
-      const element = resultsRef.current;
       
       toast({
         title: "Creating Image",
-        description: "Please wait while we generate your image...",
+        description: "Please wait...",
+        duration: 3000,
       });
       
-      // Create a JPEG image with mobile-optimized settings
-      const dataUrl = await toJpeg(element, { 
-        cacheBust: true,
-        quality: 0.9,
-        backgroundColor: 'white',
-        canvasWidth: 1080,
-        pixelRatio: 1.5
-      });
-      
-      // Show a simple download dialog
-      const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black/80 flex flex-col items-center justify-center z-50 p-4';
-      
-      modal.innerHTML = `
-        <div class="bg-white rounded-lg w-full max-w-sm p-5 flex flex-col items-center text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <h3 class="text-lg font-bold mb-2">Image Created Successfully</h3>
-          <p class="text-sm mb-4">Your image is ready to download. Click the button below to save it.</p>
-          <button id="save-image-directly" class="w-full py-2 px-4 bg-primary text-white rounded mb-3">
-            Download Image
-          </button>
-          <button id="show-image-preview" class="w-full py-2 px-4 bg-secondary text-white rounded mb-3">
-            View Image
-          </button>
-          <button id="close-image-dialog" class="w-full py-2 px-4 bg-gray-200 rounded">
-            Cancel
-          </button>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-      
-      // Direct save when download button is clicked
-      document.getElementById('save-image-directly')?.addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = `drama-llama-analysis-${new Date().toISOString().split('T')[0]}.jpg`;
-        link.click();
-        
-        toast({
-          title: "Download Started",
-          description: "Look for the image in your downloads folder",
-          duration: 5000,
+      try {
+        // Generate image with minimal settings for better mobile compatibility
+        const element = resultsRef.current;
+        const dataUrl = await toJpeg(element, { 
+          cacheBust: true,
+          quality: 0.8,
+          backgroundColor: 'white',
+          canvasWidth: 1000,
+          pixelRatio: 1
         });
-      });
-      
-      // Show image in a new window for saving on devices where direct download doesn't work
-      document.getElementById('show-image-preview')?.addEventListener('click', () => {
-        document.body.removeChild(modal);
         
-        // Create fullscreen image modal
-        const imageModal = document.createElement('div');
-        imageModal.className = 'fixed inset-0 bg-black/95 flex flex-col z-50';
+        // Skip trying to download directly, just show the image for saving
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/95 flex flex-col z-50';
         
-        imageModal.innerHTML = `
+        modal.innerHTML = `
           <div class="p-3 flex justify-between items-center bg-gray-900 text-white">
-            <h3 class="text-lg font-bold">Press and hold image to save</h3>
-            <button id="close-image-preview" class="px-3 py-1 bg-gray-700 text-sm rounded">
+            <h3 class="text-sm font-bold">Long-press on image to save</h3>
+            <button id="close-fullscreen-image" class="px-3 py-1 bg-gray-700 text-sm rounded">
               Close
             </button>
           </div>
-          <div class="flex-1 overflow-auto p-4 flex items-center justify-center">
-            <img src="${dataUrl}" alt="Analysis Result" class="max-w-full max-h-full border border-gray-700" />
+          <div class="flex-1 overflow-auto flex items-center justify-center">
+            <img src="${dataUrl}" alt="Analysis Result" class="max-w-full" />
           </div>
         `;
         
-        document.body.appendChild(imageModal);
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
         
-        document.getElementById('close-image-preview')?.addEventListener('click', () => {
-          document.body.removeChild(imageModal);
+        // Add close handler
+        document.getElementById('close-fullscreen-image')?.addEventListener('click', () => {
+          document.body.removeChild(modal);
+          document.body.style.overflow = ''; // Restore scrolling
         });
-      });
-      
-      // Add close handler
-      document.getElementById('close-image-dialog')?.addEventListener('click', () => {
-        document.body.removeChild(modal);
-      });
-      
+        
+        toast({
+          title: "Screenshot Ready",
+          description: "Long-press on the image to save it to your phone",
+          duration: 5000,
+        });
+        
+      } catch (error) {
+        console.error("Screenshot generation failed:", error);
+        toast({
+          title: "Screenshot Failed",
+          description: "Please try taking a manual screenshot instead.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Image export error:", error);
       toast({
-        title: "Image Export Failed",
-        description: "Could not generate the image. Please try again.",
+        title: "Screenshot Failed",
+        description: "Please try taking a manual screenshot instead.",
         variant: "destructive",
       });
     } finally {
