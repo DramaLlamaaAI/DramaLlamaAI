@@ -581,23 +581,17 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           <h4 className="font-medium mb-3">Conversation Health Meter</h4>
           <div className="p-4 bg-muted rounded-lg">
             <div className="flex flex-col items-center mb-4">
-              <div className="relative w-44 h-24">
-                {/* Semicircle gauge background */}
-                <div className="absolute w-full h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-t-full"></div>
-                <div className="absolute w-[94%] h-[94%] bg-white rounded-t-full top-[3%] left-[3%]"></div>
-                
+              <div className="relative w-full h-12 bg-white border border-gray-200 rounded-full overflow-hidden">
                 {/* Tick marks - 20%, 40%, 60%, 80% */}
-                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[20%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
-                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[35%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
-                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[50%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
-                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[65%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
-                <div className="absolute w-0.5 h-3 bg-gray-400 origin-bottom left-[80%] bottom-0" style={{ transform: 'rotate(0deg)' }}></div>
+                <div className="absolute w-0.5 h-3 bg-gray-300 top-[50%] transform -translate-y-1/2 left-[20%]"></div>
+                <div className="absolute w-0.5 h-3 bg-gray-300 top-[50%] transform -translate-y-1/2 left-[40%]"></div>
+                <div className="absolute w-0.5 h-3 bg-gray-300 top-[50%] transform -translate-y-1/2 left-[60%]"></div>
+                <div className="absolute w-0.5 h-3 bg-gray-300 top-[50%] transform -translate-y-1/2 left-[80%]"></div>
                 
-                {/* Progress bar instead of dial needle */}
-                <div className="absolute h-[6px] bg-gray-800 bottom-[10px] rounded-full" 
+                {/* Progress bar showing dynamic health score */}
+                <div className="absolute h-6 top-[50%] transform -translate-y-1/2 left-0 rounded-full" 
                   style={{
                     width: `${result.healthScore ? Math.min(100, result.healthScore.score) : 50}%`,
-                    left: '0%',
                     background: `linear-gradient(to right, 
                       #ef4444 0%, 
                       #f59e0b 40%, 
@@ -606,9 +600,6 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
                     )`
                   }}
                 ></div>
-                
-                {/* Dial center point */}
-                <div className="absolute w-3 h-3 bg-gray-800 rounded-full left-[calc(50%-6px)] bottom-0"></div>
               </div>
               
               {/* Meter scale */}
