@@ -337,12 +337,12 @@ export function generateExportDocument({ result, me, them }: ExportDocumentProps
           <div class="section-title">Support Resources</div>
           <div class="section-content">
             <div style="padding: 12px; background-color: #f0f8ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
-              <p>If you're experiencing relationship difficulties or emotional distress, support is available:</p>
+              <p>If you're experiencing relationship difficulties or emotional distress, UK support is available:</p>
               <ul style="margin-top: 8px;">
-                <li style="margin-bottom: 8px;">National Suicide Prevention Lifeline: 1-800-273-8255 (24/7)</li>
-                <li style="margin-bottom: 8px;">Crisis Text Line: Text HOME to 741741 (24/7)</li>
-                <li style="margin-bottom: 8px;">National Domestic Violence Hotline: 1-800-799-7233 (24/7)</li>
-                <li style="margin-bottom: 8px;">Psychology Today Therapist Finder: psychologytoday.com/us/therapists</li>
+                <li style="margin-bottom: 8px;">Samaritans: 116 123 (24/7)</li>
+                <li style="margin-bottom: 8px;">Shout: Text SHOUT to 85258 (24/7)</li>
+                <li style="margin-bottom: 8px;">National Domestic Abuse Helpline: 0808 2000 247 (24/7)</li>
+                <li style="margin-bottom: 8px;">NHS Mental Health Services: nhs.uk/service-search/mental-health</li>
               </ul>
               <p style="margin-top: 12px; font-style: italic; font-size: 12px;">
                 Visit app.dramallama.ai/support-helplines for a comprehensive list of support resources.

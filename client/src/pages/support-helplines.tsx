@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import BackHomeButton from "@/components/back-home-button";
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 
 interface HelplineCategory {
   title: string;
@@ -16,34 +18,110 @@ interface Helpline {
   phone?: string;
   website?: string;
   hours?: string;
+  tags?: string[]; // Tags to match against analysis results
 }
 
 const SupportHelplines = () => {
+  const [location] = useLocation();
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [relevantTags, setRelevantTags] = useState<string[]>([]);
+  
+  // Try to get last analysis from localStorage
+  useEffect(() => {
+    try {
+      const lastAnalysis = localStorage.getItem('lastAnalysisResult');
+      if (lastAnalysis) {
+        const parsed = JSON.parse(lastAnalysis);
+        setAnalysisData(parsed);
+        
+        // Extract relevant tags based on analysis
+        const tags: string[] = [];
+        
+        // Check for overall tone
+        const overallTone = parsed?.toneAnalysis?.overallTone?.toLowerCase() || '';
+        if (overallTone.includes('hostile') || overallTone.includes('abusive')) {
+          tags.push('abuse', 'crisis');
+        }
+        if (overallTone.includes('anxiety') || overallTone.includes('stress')) {
+          tags.push('anxiety', 'mental-health');
+        }
+        if (overallTone.includes('depression') || overallTone.includes('sad')) {
+          tags.push('depression', 'mental-health');
+        }
+        
+        // Check red flags
+        const redFlags = parsed?.redFlags || [];
+        redFlags.forEach((flag: any) => {
+          const flagType = flag.type?.toLowerCase() || '';
+          const flagDesc = flag.description?.toLowerCase() || '';
+          
+          if (flagType.includes('abuse') || flagDesc.includes('abuse')) {
+            tags.push('abuse', 'domestic-violence');
+          }
+          if (flagType.includes('self-harm') || flagDesc.includes('self-harm')) {
+            tags.push('crisis', 'suicide');
+          }
+          if (flagType.includes('manipulation') || flagDesc.includes('manipulation')) {
+            tags.push('coercive-control', 'abuse');
+          }
+        });
+        
+        // Health score
+        const healthScore = parsed?.healthScore?.score || 0;
+        if (healthScore < 30) {
+          tags.push('crisis', 'urgent');
+        } else if (healthScore < 50) {
+          tags.push('mental-health', 'relationship-counseling');
+        }
+        
+        // Filter unique tags
+        const uniqueTags: string[] = [];
+        tags.forEach(tag => {
+          if (!uniqueTags.includes(tag)) {
+            uniqueTags.push(tag);
+          }
+        });
+        setRelevantTags(uniqueTags);
+      }
+    } catch (error) {
+      console.error('Error parsing last analysis:', error);
+    }
+  }, [location]);
+  
+  // Function to check if a helpline is recommended based on analysis
+  const isRecommended = (helpline: Helpline) => {
+    if (!helpline.tags || !relevantTags.length) return false;
+    return helpline.tags.some(tag => relevantTags.includes(tag));
+  };
+  
   const categories: HelplineCategory[] = [
     {
       title: "Crisis & Emotional Support",
       description: "Immediate support for those in emotional distress or crisis",
       helplines: [
         {
-          name: "National Suicide Prevention Lifeline",
-          description: "Free and confidential support for people in distress, prevention and crisis resources.",
-          phone: "1-800-273-8255",
-          website: "https://suicidepreventionlifeline.org",
-          hours: "24/7"
+          name: "Samaritans",
+          description: "Confidential emotional support for anyone in distress or despair.",
+          phone: "116 123",
+          website: "https://www.samaritans.org",
+          hours: "24/7",
+          tags: ["crisis", "suicide", "depression", "anxiety", "mental-health", "urgent"]
         },
         {
-          name: "Crisis Text Line",
-          description: "Free crisis support via text message.",
-          phone: "Text HOME to 741741",
-          website: "https://www.crisistextline.org",
-          hours: "24/7"
+          name: "Shout",
+          description: "Free, confidential, 24/7 text messaging support service for anyone struggling to cope.",
+          phone: "Text SHOUT to 85258",
+          website: "https://giveusashout.org",
+          hours: "24/7",
+          tags: ["crisis", "anxiety", "depression", "mental-health", "urgent"]
         },
         {
-          name: "SAMHSA's National Helpline",
-          description: "Treatment referral and information service for individuals facing mental health or substance use disorders.",
-          phone: "1-800-662-4357",
-          website: "https://www.samhsa.gov/find-help/national-helpline",
-          hours: "24/7"
+          name: "Mind",
+          description: "Information and advice about mental health problems, support and advocacy.",
+          phone: "0300 123 3393",
+          website: "https://www.mind.org.uk",
+          hours: "Monday to Friday, 9am to 6pm",
+          tags: ["mental-health", "anxiety", "depression"]
         }
       ]
     },
@@ -52,18 +130,28 @@ const SupportHelplines = () => {
       description: "Support for those experiencing abuse in relationships",
       helplines: [
         {
-          name: "National Domestic Violence Hotline",
-          description: "Support, crisis intervention, and referral service for those experiencing domestic violence.",
-          phone: "1-800-799-7233",
-          website: "https://www.thehotline.org",
-          hours: "24/7"
+          name: "National Domestic Abuse Helpline",
+          description: "Support, crisis intervention, and referral service for those experiencing domestic abuse.",
+          phone: "0808 2000 247",
+          website: "https://www.nationaldahelpline.org.uk",
+          hours: "24/7",
+          tags: ["abuse", "domestic-violence", "coercive-control", "urgent"]
         },
         {
-          name: "Love Is Respect",
-          description: "National resource to disrupt and prevent unhealthy relationships and intimate partner violence.",
-          phone: "Text LOVEIS to 22522 or call 1-866-331-9474",
-          website: "https://www.loveisrespect.org",
-          hours: "24/7"
+          name: "Refuge",
+          description: "Support and shelter for women and children experiencing domestic violence.",
+          phone: "0808 2000 247",
+          website: "https://www.refuge.org.uk",
+          hours: "24/7",
+          tags: ["abuse", "domestic-violence", "coercive-control", "women"]
+        },
+        {
+          name: "Men's Advice Line",
+          description: "Support for men experiencing domestic abuse.",
+          phone: "0808 8010 327",
+          website: "https://mensadviceline.org.uk",
+          hours: "Monday to Friday, 9am to 8pm",
+          tags: ["abuse", "domestic-violence", "men"]
         }
       ]
     },
@@ -72,17 +160,24 @@ const SupportHelplines = () => {
       description: "Support specifically for LGBTQ+ individuals",
       helplines: [
         {
-          name: "The Trevor Project",
-          description: "Crisis intervention and suicide prevention for LGBTQ young people.",
-          phone: "1-866-488-7386",
-          website: "https://www.thetrevorproject.org",
-          hours: "24/7"
+          name: "Switchboard LGBT+ Helpline",
+          description: "Information, support and referral service for LGBTQ+ people.",
+          phone: "0300 330 0630",
+          website: "https://switchboard.lgbt",
+          hours: "10am to 10pm, 365 days a year"
         },
         {
-          name: "LGBT National Help Center",
-          description: "Peer-support, community connections and resource information.",
-          phone: "1-888-843-4564",
-          website: "https://www.glbthotline.org",
+          name: "LGBT Foundation",
+          description: "Support for lesbian, gay, bisexual and trans people.",
+          phone: "0345 3 30 30 30",
+          website: "https://lgbt.foundation",
+          hours: "Monday to Friday, 9am to 9pm"
+        },
+        {
+          name: "Galop - LGBT+ Anti-Violence Charity",
+          description: "Support for LGBTQ+ people experiencing hate crime, domestic abuse, or sexual violence.",
+          phone: "0800 999 5428",
+          website: "https://galop.org.uk",
           hours: "Varies by service"
         }
       ]
@@ -92,35 +187,46 @@ const SupportHelplines = () => {
       description: "Professional therapy and counseling services",
       helplines: [
         {
-          name: "Psychology Today Therapist Finder",
-          description: "Find a therapist in your area with specific specialties.",
-          website: "https://www.psychologytoday.com/us/therapists",
+          name: "NHS Mental Health Services",
+          description: "Find NHS mental health services in your area.",
+          website: "https://www.nhs.uk/service-search/mental-health",
         },
         {
-          name: "BetterHelp",
-          description: "Online counseling platform with licensed therapists.",
-          website: "https://www.betterhelp.com",
+          name: "British Association for Counselling and Psychotherapy",
+          description: "Find a registered therapist in the UK.",
+          website: "https://www.bacp.co.uk/search/Therapists",
         },
         {
-          name: "Talkspace",
-          description: "Text, audio, and video-based therapy with licensed professionals.",
-          website: "https://www.talkspace.com",
+          name: "Counselling Directory",
+          description: "Directory of UK counsellors and psychotherapists.",
+          website: "https://www.counselling-directory.org.uk",
         }
       ]
     },
     {
-      title: "International Resources",
-      description: "Support services available outside the United States",
+      title: "Specialist Support Services",
+      description: "Helplines for specific issues and demographics",
       helplines: [
         {
-          name: "International Association for Suicide Prevention",
-          description: "Directory of crisis centers around the world.",
-          website: "https://www.iasp.info/resources/Crisis_Centres/",
+          name: "Childline",
+          description: "Support service for children and young people under 19.",
+          phone: "0800 1111",
+          website: "https://www.childline.org.uk",
+          hours: "24/7"
         },
         {
-          name: "Befrienders Worldwide",
-          description: "Providing emotional support to prevent suicide worldwide.",
-          website: "https://www.befrienders.org",
+          name: "Campaign Against Living Miserably (CALM)",
+          description: "Leading movement against suicide in men.",
+          phone: "0800 58 58 58",
+          website: "https://www.thecalmzone.net",
+          hours: "5pm to midnight, 365 days a year"
+        },
+        {
+          name: "Age UK",
+          description: "Information, advice and support for older people.",
+          phone: "0800 055 6112",
+          website: "https://www.ageuk.org.uk",
+          hours: "8am to 7pm, 365 days a year"
         }
       ]
     }
