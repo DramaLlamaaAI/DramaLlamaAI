@@ -67,7 +67,7 @@ export default function InstantDeepDivePage() {
                 
                 <Button 
                   className="w-full h-14 text-lg bg-purple-600 hover:bg-purple-700"
-                  onClick={() => navigate("/checkout?product=instant-deep-dive")}
+                  onClick={() => setLocation("/checkout?product=instant-deep-dive")}
                 >
                   Get Instant Analysis Now
                 </Button>
