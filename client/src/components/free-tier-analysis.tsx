@@ -116,6 +116,18 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
               font-weight: 600;
               margin-bottom: 15px;
               color: #22C9C9;
+              border-left: 4px solid #22C9C9;
+              padding-left: 10px;
+            }
+            
+            .participant-me {
+              color: #22C9C9;
+              font-weight: 600;
+            }
+            
+            .participant-them {
+              color: #FF69B4;
+              font-weight: 600;
             }
             
             .section-content {
