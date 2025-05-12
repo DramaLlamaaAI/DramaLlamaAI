@@ -115,6 +115,8 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
               font-size: 20px;
               font-weight: 600;
               margin-bottom: 15px;
+              border-left: 4px solid #22C9C9;
+              padding-left: 10px;
               color: #22C9C9;
               border-left: 4px solid #22C9C9;
               padding-left: 10px;
@@ -195,6 +197,22 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
               color: #2f855a;
             }
             
+            .red-flags-box {
+              padding: 12px;
+              border-radius: 8px;
+              margin-bottom: 15px;
+            }
+            
+            .red-flags-box.has-flags {
+              background-color: #FFF0F0;
+              border-left: 4px solid #e53e3e;
+            }
+            
+            .red-flags-box.no-flags {
+              background-color: #F0FFF4;
+              border-left: 4px solid #38a169;
+            }
+            
             .red-flags-count {
               font-weight: 600;
               color: #e53e3e;
@@ -235,23 +253,35 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           <div class="drama-llama-document">
             <div class="document-header">
               <div class="logo-container">
-                <svg width="100" height="100" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="300" height="300" fill="#22C9C9" />
-                  <!-- Llama outline -->
-                  <path d="M150 30 C 120 30, 90 80, 80 150 C 70 220, 85 260, 100 270 C 120 280, 180 280, 200 270 C 215 260, 230 220, 220 150 C 210 80, 180 30, 150 30" fill="#FF69B4" stroke="#000" stroke-width="10" />
+                <svg width="100" height="100" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Background -->
+                  <rect width="200" height="200" fill="#22C9C9" />
+                  
+                  <!-- Llama head shape -->
+                  <path d="M100 25 C 65 25, 45 50, 40 90 C 35 130, 40 160, 60 175 C 80 190, 120 190, 140 175 C 160 160, 165 130, 160 90 C 155 50, 135 25, 100 25" fill="#FF69B4" stroke="#000" stroke-width="4" />
+                  
                   <!-- Ears -->
-                  <path d="M90 80 C 80 40, 60 30, 60 60 C 60 80, 75 100, 90 80" fill="#FF69B4" stroke="#000" stroke-width="8" />
-                  <path d="M210 80 C 220 40, 240 30, 240 60 C 240 80, 225 100, 210 80" fill="#FF69B4" stroke="#000" stroke-width="8" />
+                  <path d="M55 60 C 45 30, 30 30, 35 45 C 40 60, 45 70, 55 60" fill="#FF69B4" stroke="#000" stroke-width="3" />
+                  <path d="M145 60 C 155 30, 170 30, 165 45 C 160 60, 155 70, 145 60" fill="#FF69B4" stroke="#000" stroke-width="3" />
+                  
+                  <!-- Face details -->
+                  <path d="M75 140 C 85 145, 115 145, 125 140" stroke="#000" stroke-width="2" fill="none" />
+                  <path d="M85 110 C 90 105, 95 105, 100 110" stroke="#000" stroke-width="1.5" fill="none" />
+                  <path d="M115 110 C 110 105, 105 105, 100 110" stroke="#000" stroke-width="1.5" fill="none" />
+                  
                   <!-- Muzzle -->
-                  <path d="M140 220 C 150 240, 170 240, 180 220" fill="#FFCBA4" stroke="#000" stroke-width="8" />
-                  <path d="M150 190 L 150 220" stroke="#000" stroke-width="5" />
+                  <ellipse cx="100" cy="125" rx="20" ry="15" fill="#FFCBA4" stroke="#000" stroke-width="2" />
+
                   <!-- Sunglasses -->
-                  <path d="M80 160 C 80 140, 220 140, 220 160" stroke="#000" stroke-width="12" fill="none" />
-                  <rect x="70" y="140" width="70" height="40" rx="20" fill="#000" />
-                  <rect x="160" y="140" width="70" height="40" rx="20" fill="#000" />
+                  <path d="M40 85 L 160 85" stroke="#000" stroke-width="5" />
+                  <path d="M50 85 C 50 75, 70 70, 80 85" stroke="#000" stroke-width="4" fill="none" />
+                  <path d="M150 85 C 150 75, 130 70, 120 85" stroke="#000" stroke-width="4" fill="none" />
+                  
+                  <path d="M40 85 Q 55 75 80 85 Q 90 95 100 85 Q 110 95 120 85 Q 145 75 160 85" fill="#000" />
+                  
                   <!-- Reflections on glasses -->
-                  <path d="M90 155 L 110 165" stroke="#fff" stroke-width="3" />
-                  <path d="M180 155 L 200 165" stroke="#fff" stroke-width="3" />
+                  <path d="M60 80 L 70 83" stroke="#fff" stroke-width="2" />
+                  <path d="M130 80 L 140 83" stroke="#fff" stroke-width="2" />
                 </svg>
               </div>
               <div class="header-text">
@@ -295,12 +325,14 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             <div class="document-section">
               <div class="section-title">Red Flags</div>
               <div class="section-content">
-                <p>
-                  <span class="red-flags-count">
-                    ${result.redFlagsCount} potential red flag${result.redFlagsCount !== 1 ? 's' : ''}
-                  </span> ${result.redFlagsCount === 0 ? 'were' : 'was'} identified in this conversation.
-                  ${result.redFlagsCount > 0 ? ' Upgrade to see detailed analysis of each red flag.' : ''}
-                </p>
+                <div class="red-flags-box ${result.redFlagsCount > 0 ? 'has-flags' : 'no-flags'}">
+                  <p>
+                    <span class="red-flags-count">
+                      ${result.redFlagsCount} potential red flag${result.redFlagsCount !== 1 ? 's' : ''}
+                    </span> ${result.redFlagsCount === 0 ? 'were' : 'was'} identified in this conversation.
+                    ${result.redFlagsCount > 0 ? ' Upgrade to see detailed analysis of each red flag.' : ''}
+                  </p>
+                </div>
               </div>
             </div>
             ` : ''}
