@@ -40,6 +40,7 @@ export interface ChatAnalysisResponse {
     description: string;
     severity: number;
   }>;
+  redFlagsCount?: number;
   communication: {
     patterns?: string[];
     dynamics?: string[];
