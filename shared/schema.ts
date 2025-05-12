@@ -161,6 +161,12 @@ export const TIER_LIMITS = {
 
 // Feature schemas
 export const chatAnalysisResultSchema = z.object({
+  // Psychological Profile (Pro and Instant Deep Dive tiers)
+  psychologicalProfile: z.record(z.object({
+    behavior: z.string(),
+    emotionalState: z.string(),
+    riskIndicators: z.string()
+  })).optional(),
   toneAnalysis: z.object({
     overallTone: z.string(),
     emotionalState: z.array(z.object({

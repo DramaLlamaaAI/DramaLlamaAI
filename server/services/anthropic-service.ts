@@ -166,6 +166,13 @@ const prompts = {
     pro: `Perform a comprehensive analysis of this conversation between {me} and {them}.
     Return a JSON object with the following structure:
     {
+      "psychologicalProfile": {
+        "participant name": {
+          "behavior": "string describing participant's observed behavioral patterns",
+          "emotionalState": "string describing participant's emotional state and vulnerabilities",
+          "riskIndicators": "string describing potential risk factors in this participant's communication style"
+        }
+      },
       "toneAnalysis": {
         "overallTone": "string describing the conversation's overall tone",
         "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
@@ -198,12 +205,15 @@ const prompts = {
     }
     
     IMPORTANT GUIDELINES:
-    1. Only include the "tensionContributions" and "tensionMeaning" fields if there is moderate to high tension in the conversation. If the conversation is relatively tension-free, omit these fields entirely.
-    2. When describing participant tones, distinguish between healthy expressions of appreciation and unhealthy dependency:
+    1. ALWAYS include the "psychologicalProfile" section as the first result with detailed analysis for each participant.
+       - For "behavior" focus on observable patterns like communication style, responsiveness, and emotional expression.
+       - For "emotionalState" describe underlying emotional currents that drive their communication.
+       - For "riskIndicators" note potential concerning patterns that could impact relationship health.
+    2. Only include the "tensionContributions" and "tensionMeaning" fields if there is moderate to high tension in the conversation. If the conversation is relatively tension-free, omit these fields entirely.
+    3. When describing participant tones, distinguish between healthy expressions of appreciation and unhealthy dependency:
        - Expressions of gratitude, thankfulness, appreciation for others, and acknowledgment of support are generally HEALTHY communication patterns
        - Do not characterize these positive expressions as "dependency," "neediness," or "seeking validation" unless they are excessive or manipulative
        - Reserve terms like "dependency needs" or "relying on external validation" for genuinely problematic patterns, not for normal appreciation
-    3. Focus on describing each participant's communication style rather than making psychological assessments
     
     Here's the conversation:
     {conversation}`
