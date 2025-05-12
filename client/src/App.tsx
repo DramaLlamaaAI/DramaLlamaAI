@@ -17,6 +17,7 @@ import VerifyEmailPage from "@/pages/verify-email-page";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import PricingPage from "@/pages/pricing";
 import InstantDeepDivePage from "@/pages/instant-deep-dive";
+import SupportHelplines from "@/pages/support-helplines";
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
 import DeEscalate from "./components/de-escalate";
