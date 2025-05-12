@@ -197,6 +197,75 @@ export function generateExportDocument({ result, me, them, tier = 'free' }: Expo
           color: #FF69B4;
         }
         
+        .red-flag-item {
+          padding: 12px;
+          background-color: #FFF0F0;
+          border-left: 3px solid #e53e3e;
+          border-radius: 4px;
+          margin-bottom: 15px;
+        }
+        
+        .red-flag-type {
+          font-weight: bold;
+          margin-bottom: 5px;
+          color: #e53e3e;
+        }
+        
+        .red-flag-description {
+          margin-bottom: 5px;
+        }
+        
+        .red-flag-severity {
+          font-size: 14px;
+          color: #666;
+          font-style: italic;
+        }
+        
+        .psychological-profile {
+          background-color: #f7f2ff;
+          padding: 15px;
+          border-radius: 6px;
+          border: 1px solid #e4d5f7;
+          margin-top: 15px;
+        }
+        
+        .profile-participant {
+          padding: 12px;
+          border-radius: 6px;
+          margin-bottom: 10px;
+        }
+        
+        .profile-me {
+          background-color: rgba(34, 201, 201, 0.05);
+          border: 1px solid rgba(34, 201, 201, 0.3);
+        }
+        
+        .profile-them {
+          background-color: rgba(255, 105, 180, 0.05);
+          border: 1px solid rgba(255, 105, 180, 0.3);
+        }
+        
+        .profile-trait {
+          margin-bottom: 8px;
+        }
+        
+        .profile-trait-name {
+          font-weight: bold;
+          margin-right: 5px;
+        }
+        
+        .tension-contributions {
+          margin-top: 15px;
+        }
+        
+        .tension-meaning {
+          padding: 12px;
+          background-color: #f5f5f5;
+          border-radius: 4px;
+          margin-top: 10px;
+          font-style: italic;
+        }
+        
         .health-score {
           display: flex;
           align-items: center;
@@ -347,8 +416,31 @@ export function generateExportDocument({ result, me, them, tier = 'free' }: Expo
           </div>
         </div>
         
+        ${(userTier === 'pro' || userTier === 'instant') && result.psychologicalProfile ? `
+        <div class="document-section">
+          <div class="section-title">Psychological Profile</div>
+          <div class="psychological-profile">
+            ${Object.entries(result.psychologicalProfile).map(([participant, profile]) => {
+              const isMe = participant.toLowerCase() === me.toLowerCase();
+              return `
+              <div class="profile-participant ${isMe ? 'profile-me' : 'profile-them'}">
+                <div class="participant-name ${isMe ? 'participant-name-me' : 'participant-name-them'}">${participant}</div>
+                ${Object.entries(profile).map(([trait, value]) => `
+                  <div class="profile-trait">
+                    <span class="profile-trait-name">${trait}:</span>
+                    <span>${value}</span>
+                  </div>
+                `).join('')}
+              </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+        ` : ''}
+        
         <div class="document-section">
           <div class="section-title">Red Flags</div>
+          ${userTier === 'free' ? `
           <div class="red-flags-box ${result.redFlagsCount && result.redFlagsCount > 0 ? 'has-flags' : 'no-flags'}">
             ${result.redFlagsCount && result.redFlagsCount > 0 
               ? `<div><span class="red-flags-count">${result.redFlagsCount}</span> potential red flags detected.</div>
@@ -356,6 +448,22 @@ export function generateExportDocument({ result, me, them, tier = 'free' }: Expo
               : `<div style="color:#38a169; font-weight:500;">No significant red flags detected in the conversation.</div>`
             }
           </div>
+          ` : `
+          <div class="section-content">
+            ${result.redFlags && result.redFlags.length > 0 
+              ? result.redFlags.map(flag => `
+                <div class="red-flag-item">
+                  <div class="red-flag-type">${flag.type}</div>
+                  <div class="red-flag-description">${flag.description}</div>
+                  <div class="red-flag-severity">Severity: ${flag.severity}/10</div>
+                </div>
+              `).join('')
+              : `<div style="color:#38a169; font-weight:500; padding: 15px; background-color: #F0FFF4; border-radius: 6px; border-left: 4px solid #38a169;">
+                   No significant red flags detected in the conversation.
+                 </div>`
+            }
+          </div>
+          `}
         </div>
         
         <div class="document-section">
@@ -370,6 +478,46 @@ export function generateExportDocument({ result, me, them, tier = 'free' }: Expo
           </div>
         </div>
         
+        ${(userTier === 'personal' || userTier === 'pro' || userTier === 'instant') && result.communication?.dynamics ? `
+        <div class="document-section">
+          <div class="section-title">Communication Dynamics</div>
+          <div class="section-content">
+            <ul class="pattern-list">
+              ${result.communication.dynamics.map(dynamic => 
+                `<li class="pattern-item">${dynamic}</li>`
+              ).join('')}
+            </ul>
+          </div>
+        </div>
+        ` : ''}
+        
+        ${(userTier === 'personal' || userTier === 'pro' || userTier === 'instant') && result.tensionContributions ? `
+        <div class="document-section">
+          <div class="section-title">Individual Contributions to Tension</div>
+          <div class="tension-contributions">
+            ${Object.entries(result.tensionContributions).map(([participant, contributions]) => {
+              const isMe = participant.toLowerCase() === me.toLowerCase();
+              return `
+              <div class="profile-participant ${isMe ? 'profile-me' : 'profile-them'}" style="margin-bottom: 15px;">
+                <div class="participant-name ${isMe ? 'participant-name-me' : 'participant-name-them'}">${participant}</div>
+                <ul class="pattern-list" style="margin-top: 10px;">
+                  ${contributions.map(contribution => `
+                    <li>${contribution}</li>
+                  `).join('')}
+                </ul>
+              </div>
+              `;
+            }).join('')}
+            
+            ${result.tensionMeaning ? `
+            <div class="tension-meaning">
+              <strong>What This Means:</strong> ${result.tensionMeaning}
+            </div>
+            ` : ''}
+          </div>
+        </div>
+        ` : ''}
+        
         ${result.toneAnalysis.emotionalState && result.toneAnalysis.emotionalState.length > 0 ? `
         <div class="document-section">
           <div class="section-title">Emotional Intensity</div>
@@ -382,6 +530,19 @@ export function generateExportDocument({ result, me, them, tier = 'free' }: Expo
               </div>
             </div>
             `).join('')}
+          </div>
+        </div>
+        ` : ''}
+        
+        ${(userTier === 'pro' || userTier === 'instant') && result.communication?.suggestions ? `
+        <div class="document-section">
+          <div class="section-title">Suggestions for Improvement</div>
+          <div class="section-content">
+            <ul class="pattern-list">
+              ${result.communication.suggestions.map(suggestion => 
+                `<li class="pattern-item">${suggestion}</li>`
+              ).join('')}
+            </ul>
           </div>
         </div>
         ` : ''}
