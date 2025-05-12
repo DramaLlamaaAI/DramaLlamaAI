@@ -90,37 +90,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'No file provided' });
       }
       
-      // Convert base64 to buffer
-      const fileBuffer = Buffer.from(file.split(',')[1] || file, 'base64');
+      // Handle base64 with or without data URL prefix
+      let fileBuffer;
+      if (file.includes('base64,')) {
+        // Extract base64 part from data URL
+        fileBuffer = Buffer.from(file.split('base64,')[1], 'base64');
+      } else {
+        // Use as-is if it's already just base64
+        fileBuffer = Buffer.from(file, 'base64');
+      }
+      
+      console.log('ZIP file size:', fileBuffer.length, 'bytes');
       
       // Process with JSZip
       const JSZip = await import('jszip');
       const zip = new JSZip.default();
       
-      // Load ZIP content
-      const zipContents = await zip.loadAsync(fileBuffer);
-      
-      // Find a .txt file in the ZIP
-      let textContent = '';
-      let foundTextFile = false;
-      
-      for (const filename of Object.keys(zipContents.files)) {
-        const file = zipContents.files[filename];
+      try {
+        // Load ZIP content
+        const zipContents = await zip.loadAsync(fileBuffer);
+        console.log('Files in ZIP:', Object.keys(zipContents.files).length);
         
-        // Skip directories and non-text files
-        if (file.dir || !(filename.endsWith('.txt') || filename.includes('_chat'))) continue;
+        // Find a .txt file in the ZIP
+        let textContent = '';
+        let foundTextFile = false;
         
-        // Extract the text content
-        textContent = await file.async('text');
-        foundTextFile = true;
-        break;
+        for (const filename of Object.keys(zipContents.files)) {
+          const zipFile = zipContents.files[filename];
+          
+          console.log('Processing file in ZIP:', filename, zipFile.dir ? '(directory)' : '(file)');
+          
+          // Skip directories and non-text files
+          if (zipFile.dir || !(filename.endsWith('.txt') || filename.includes('_chat'))) continue;
+          
+          try {
+            // Extract the text content
+            textContent = await zipFile.async('text');
+            foundTextFile = true;
+            console.log('Found text file in ZIP:', filename, 'with', textContent.length, 'characters');
+            break;
+          } catch (fileErr) {
+            console.error('Error extracting file from ZIP:', filename, fileErr);
+          }
+        }
+        
+        if (!foundTextFile) {
+          return res.status(400).json({ error: 'No chat text file found in the ZIP archive' });
+        }
+        
+        res.json({ text: textContent });
+      } catch (zipErr) {
+        console.error('Error processing ZIP archive:', zipErr);
+        return res.status(400).json({ error: 'Invalid ZIP file format' });
       }
-      
-      if (!foundTextFile) {
-        return res.status(400).json({ error: 'No chat text file found in the ZIP archive' });
-      }
-      
-      res.json({ text: textContent });
     } catch (error) {
       console.error('Error extracting chat from ZIP:', error);
       res.status(500).json({ error: 'Failed to extract chat from ZIP file' });
