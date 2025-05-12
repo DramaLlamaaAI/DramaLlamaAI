@@ -18,6 +18,13 @@ export interface ChatAnalysisRequest {
 }
 
 export interface ChatAnalysisResponse {
+  psychologicalProfile?: {
+    [participant: string]: {
+      behavior: string;
+      emotionalState: string;
+      riskIndicators: string;
+    };
+  };
   toneAnalysis: {
     overallTone: string;
     emotionalState: Array<{

@@ -28,6 +28,7 @@ import { AdvancedTrendLines } from "@/components/advanced-trend-lines";
 import { EvasionPowerDynamics } from "@/components/evasion-power-dynamics";
 import { EmotionalShiftsTimeline } from "@/components/emotional-shifts-timeline";
 import { SelfReflection } from "@/components/self-reflection";
+import { PsychologicalProfile } from "@/components/psychological-profile";
 import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
 import { FreeTierAnalysis } from "@/components/free-tier-analysis";
@@ -1120,6 +1121,11 @@ export default function ChatAnalysis() {
                     <FreeTierAnalysis result={result} me={me} them={them} />
                   ) : (
                     <>
+                      {/* Psychological Profile for Pro and Instant Deep Dive tiers */}
+                      {(tier === 'pro' || tier === 'instant') && result.psychologicalProfile && (
+                        <PsychologicalProfile result={result} me={me} them={them} />
+                      )}
+                      
                       <div className="bg-muted p-4 rounded-lg mb-4">
                         <h4 className="font-medium mb-2">Overall Tone</h4>
                         <div className="mb-4">
