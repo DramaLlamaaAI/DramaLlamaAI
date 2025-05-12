@@ -164,8 +164,9 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
               align-items: center;
               margin: 15px 0;
               padding: 15px;
-              background-color: #f9f9f9;
+              background-color: #f0ffff;
               border-radius: 8px;
+              border-left: 4px solid #22C9C9;
             }
             
             .health-score-label {
@@ -234,14 +235,23 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           <div class="drama-llama-document">
             <div class="document-header">
               <div class="logo-container">
-                <svg width="70" height="70" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="70" height="70" rx="35" fill="#22C9C9" />
-                  <path d="M35 15 C 30 18, 27 25, 25 32 C 23 39, 22 46, 25 50 C 28 54, 35 56, 42 53 C 49 50, 53 42, 53 35 C 53 28, 49 22, 42 19 C 35 16, 30 18, 35 15" fill="#FFF" />
-                  <circle cx="30" cy="32" r="3" fill="#000" />
-                  <circle cx="46" cy="32" r="3" fill="#000" />
-                  <path d="M30 42 C 35 46, 40 46, 46 42" stroke="#000" stroke-width="2" fill="none" />
-                  <path d="M20 28 C 18 22, 22 18, 25 20" stroke="#FF69B4" stroke-width="2" fill="none" />
-                  <path d="M56 28 C 58 22, 54 18, 51 20" stroke="#FF69B4" stroke-width="2" fill="none" />
+                <svg width="100" height="100" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="300" height="300" fill="#22C9C9" />
+                  <!-- Llama outline -->
+                  <path d="M150 30 C 120 30, 90 80, 80 150 C 70 220, 85 260, 100 270 C 120 280, 180 280, 200 270 C 215 260, 230 220, 220 150 C 210 80, 180 30, 150 30" fill="#FF69B4" stroke="#000" stroke-width="10" />
+                  <!-- Ears -->
+                  <path d="M90 80 C 80 40, 60 30, 60 60 C 60 80, 75 100, 90 80" fill="#FF69B4" stroke="#000" stroke-width="8" />
+                  <path d="M210 80 C 220 40, 240 30, 240 60 C 240 80, 225 100, 210 80" fill="#FF69B4" stroke="#000" stroke-width="8" />
+                  <!-- Muzzle -->
+                  <path d="M140 220 C 150 240, 170 240, 180 220" fill="#FFCBA4" stroke="#000" stroke-width="8" />
+                  <path d="M150 190 L 150 220" stroke="#000" stroke-width="5" />
+                  <!-- Sunglasses -->
+                  <path d="M80 160 C 80 140, 220 140, 220 160" stroke="#000" stroke-width="12" fill="none" />
+                  <rect x="70" y="140" width="70" height="40" rx="20" fill="#000" />
+                  <rect x="160" y="140" width="70" height="40" rx="20" fill="#000" />
+                  <!-- Reflections on glasses -->
+                  <path d="M90 155 L 110 165" stroke="#fff" stroke-width="3" />
+                  <path d="M180 155 L 200 165" stroke="#fff" stroke-width="3" />
                 </svg>
               </div>
               <div class="header-text">
@@ -262,7 +272,10 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             <div class="document-section">
               <div class="section-title">Overall Tone</div>
               <div class="section-content">
-                ${result.toneAnalysis.overallTone}
+                <p>${result.toneAnalysis.overallTone}</p>
+                <p class="participants-info">
+                  Conversation between <span class="participant-me">${me}</span> and <span class="participant-them">${them}</span>
+                </p>
               </div>
             </div>
             
