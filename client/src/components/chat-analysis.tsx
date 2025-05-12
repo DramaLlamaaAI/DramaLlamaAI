@@ -13,6 +13,7 @@ import { getUserUsage } from "@/lib/openai";
 import { format } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import BackHomeButton from "@/components/back-home-button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cleanPatternForDisplay, cleanCommunicationPatterns } from "@/lib/analysis-utils";
@@ -878,6 +879,9 @@ export default function ChatAnalysis() {
 
   return (
     <section className="container py-10">
+      <div className="mb-4">
+        <BackHomeButton />
+      </div>
       <Card>
         <CardContent className="p-6">
           <div className="mb-6">

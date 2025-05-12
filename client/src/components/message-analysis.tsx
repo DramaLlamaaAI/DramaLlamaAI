@@ -11,6 +11,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeMessage, MessageAnalysisResponse, getUserUsage } from "@/lib/openai";
 import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
+import BackHomeButton from "@/components/back-home-button";
 
 export default function MessageAnalysis() {
   const [message, setMessage] = useState("");
