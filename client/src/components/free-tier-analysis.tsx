@@ -405,13 +405,13 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       
       modal.innerHTML = `
         <div class="bg-white rounded-lg w-full h-full md:h-auto md:max-h-[90vh] flex flex-col overflow-hidden">
-          <div class="p-3 flex justify-between items-center bg-primary text-white">
+          <div class="p-3 flex justify-between items-center bg-[#22C9C9] text-white">
             <h3 class="text-lg font-bold">Drama Llama Analysis</h3>
             <div class="flex items-center">
-              <button id="download-document" class="px-3 py-1 bg-white/20 text-sm rounded mr-2">
+              <button id="download-document" class="px-3 py-1 bg-white/20 hover:bg-white/30 text-sm rounded mr-2 transition-colors">
                 Download
               </button>
-              <button id="close-document-preview" class="px-3 py-1 bg-white/20 text-sm rounded">
+              <button id="close-document-preview" class="px-3 py-1 bg-white/20 hover:bg-white/30 text-sm rounded transition-colors">
                 Close
               </button>
             </div>
@@ -478,18 +478,20 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           
           mobileInstructions.innerHTML = `
             <div class="bg-white rounded-lg w-full max-w-md p-5 flex flex-col">
-              <h3 class="text-lg font-bold mb-2 text-center">Download Instructions</h3>
-              <p class="text-sm mb-4 text-center">For mobile devices:</p>
+              <div class="border-b-2 border-[#22C9C9] pb-2 mb-4">
+                <h3 class="text-lg font-bold mb-2 text-center text-[#22C9C9]">Download Instructions</h3>
+                <p class="text-sm text-center">For mobile devices:</p>
+              </div>
               <ol class="text-sm mb-4 ml-5 list-decimal">
                 <li class="mb-2">If a download prompt appears, tap "Download"</li>
                 <li class="mb-2">If the report opens in a new tab, tap and hold on the page and select "Save" or "Download"</li>
                 <li class="mb-2">On some devices, you may need to tap the "..." menu and select "Download"</li>
               </ol>
-              <div class="text-sm mb-4 p-3 bg-blue-50 rounded">
+              <div class="text-sm mb-4 p-3 bg-[#f0f8ff] rounded border-l-4 border-[#22C9C9]">
                 <p class="font-bold">Trouble downloading?</p>
                 <p>You can also view the report in the preview window and take screenshots</p>
               </div>
-              <button id="close-mobile-instructions" class="px-4 py-2 bg-primary text-white rounded self-center">
+              <button id="close-mobile-instructions" class="px-4 py-2 bg-[#22C9C9] text-white rounded self-center hover:bg-[#1baeae] transition-colors">
                 Got it
               </button>
             </div>
