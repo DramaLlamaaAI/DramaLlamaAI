@@ -404,7 +404,7 @@ export function exportToPdf(result: ChatAnalysisResult, me: string, them: string
           description: "Your analysis has been downloaded as a PDF.",
         });
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.error("PDF generation error:", error);
         document.body.removeChild(tempContainer);
         
