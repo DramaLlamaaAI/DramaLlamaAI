@@ -2,12 +2,12 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChatAnalysisResult } from '@shared/schema';
-import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
 import { useToast } from "@/hooks/use-toast";
 import llamaImage from '@/assets/drama-llama-sunglasses.jpg';
 import llamaLogo from '@/assets/drama-llama-logo.svg';
 import BackHomeButton from "@/components/back-home-button";
+import exportToPdf from '@/components/export-document-generator';
 
 interface FreeTierAnalysisProps {
   result: ChatAnalysisResult;
@@ -40,7 +40,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       tempContainer.style.left = '-9999px';
       document.body.appendChild(tempContainer);
       
-      // Render our formal document component to string with simplified elements for PDF export
+      // Using a completely new approach with a simple, reliable text-based logo for PDF export
       const formalDocumentContent = `
         <!DOCTYPE html>
         <html>
