@@ -33,6 +33,7 @@ import { PsychologicalProfile } from "@/components/psychological-profile";
 import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
 import { FreeTierAnalysis } from "@/components/free-tier-analysis";
+import SupportHelpLinesLink from "@/components/support-helplines-link";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -1505,28 +1506,35 @@ export default function ChatAnalysis() {
                     emotionalState={result.toneAnalysis.emotionalState}
                   />
                   
-                  <div className="mt-6 flex justify-end">
-                    <Button
-                      variant="outline"
-                      className="mr-2"
-                      onClick={() => setShowResults(false)}
-                    >
-                      Back to Analysis
-                    </Button>
-                    <Button
-                      onClick={exportToPdf}
-                      disabled={isExporting}
-                      className="mr-2"
-                    >
-                      {isExporting ? 'Creating...' : 'Create Formal Report'}
-                    </Button>
-                    <Button 
-                      variant="secondary"
-                      onClick={exportAsImage}
-                      disabled={isExporting}
-                    >
-                      {isExporting ? 'Creating...' : 'View as Image'}
-                    </Button>
+                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col">
+                      <p className="text-sm text-blue-800 mb-2">
+                        Need additional support? We've compiled a list of professional resources that may help:
+                      </p>
+                      <SupportHelpLinesLink variant="secondary" size="sm" className="mt-auto w-full" />
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row items-center justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowResults(false)}
+                      >
+                        Back to Analysis
+                      </Button>
+                      <Button
+                        onClick={exportToPdf}
+                        disabled={isExporting}
+                      >
+                        {isExporting ? 'Creating...' : 'Create Report'}
+                      </Button>
+                      <Button 
+                        variant="secondary"
+                        onClick={exportAsImage}
+                        disabled={isExporting}
+                      >
+                        {isExporting ? 'Creating...' : 'As Image'}
+                      </Button>
+                    </div>
                   </div>
                     </>
                   )}

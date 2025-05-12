@@ -415,7 +415,7 @@ export function exportToPdf(result: ChatAnalysisResult, me: string, them: string
         });
       });
       
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Export error:", error);
     toast({
       title: "Export Failed",
