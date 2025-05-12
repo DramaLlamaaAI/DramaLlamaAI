@@ -70,22 +70,29 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             
             .document-header {
               display: flex;
+              flex-direction: column;
               align-items: center;
               margin-bottom: 30px;
               padding: 20px;
               border-bottom: 2px solid #22C9C9;
               background-color: #f0f8ff;
               border-radius: 8px 8px 0 0;
+              text-align: center;
             }
             
-            .logo-container {
-              width: 80px;
-              margin-right: 20px;
+            .logo-text {
+              font-size: 24px;
+              font-weight: bold;
+              margin-bottom: 10px;
+              letter-spacing: 1px;
             }
             
-            .logo-container img {
-              width: 100%;
-              height: auto;
+            .pink {
+              color: #FF69B4;
+            }
+            
+            .teal {
+              color: #22C9C9;
             }
             
             .header-text {
