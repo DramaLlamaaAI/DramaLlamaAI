@@ -551,30 +551,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           </div>
         </div>
         
-        {/* Free Tier Participant Summary */}
-        <div>
-          <h4 className="font-medium mb-3">Participant Summary</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="shadow-none border-[#22C9C9] border-l-2">
-              <CardContent className="p-4">
-                <CardTitle className="text-base font-medium text-[#22C9C9] mb-1">{me}</CardTitle>
-                <p className="text-sm text-gray-700">
-                  {result.toneAnalysis?.participantTones?.[me]?.split(".")[0] || 
-                    (result.healthScore?.score && result.healthScore.score < 60 ? "Frustrated" : "Balanced")}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="shadow-none border-[#FF69B4] border-l-2">
-              <CardContent className="p-4">
-                <CardTitle className="text-base font-medium text-[#FF69B4] mb-1">{them}</CardTitle>
-                <p className="text-sm text-gray-700">
-                  {result.toneAnalysis?.participantTones?.[them]?.split(".")[0] || 
-                    (result.healthScore?.score && result.healthScore.score < 60 ? "Defensive" : "Responsive")}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* Participant Summary removed from Free Tier */}
         
         {/* Free Tier Health Meter */}
         <div>
