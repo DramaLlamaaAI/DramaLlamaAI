@@ -38,6 +38,7 @@ function Router() {
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/instant-deep-dive" component={InstantDeepDivePage} />
+      <Route path="/support-helplines" component={SupportHelplines} />
       <Route component={NotFound} />
     </Switch>
   );

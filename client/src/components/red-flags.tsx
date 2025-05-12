@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
+import SupportHelpLinesLink from "@/components/support-helplines-link";
 
 interface RedFlagsProps {
   redFlags?: Array<{
@@ -177,7 +178,15 @@ export function RedFlags({ redFlags, tier, conversation }: RedFlagsProps) {
           </Card>
         ))}
         
-        {/* Removed "Upgrade to Pro" message as requested */}
+        {/* Support helplines link when red flags are detected */}
+        <div className="mt-4">
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-3">
+            <p className="text-sm text-blue-800 mb-2">
+              Need additional support? We've compiled a list of professional resources that may help:
+            </p>
+            <SupportHelpLinesLink variant="secondary" size="sm" className="mt-1 w-full" />
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -333,6 +333,24 @@ export function generateExportDocument({ result, me, them }: ExportDocumentProps
         </div>
         ` : ''}
         
+        <div class="document-section">
+          <div class="section-title">Support Resources</div>
+          <div class="section-content">
+            <div style="padding: 12px; background-color: #f0f8ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+              <p>If you're experiencing relationship difficulties or emotional distress, support is available:</p>
+              <ul style="margin-top: 8px;">
+                <li style="margin-bottom: 8px;">National Suicide Prevention Lifeline: 1-800-273-8255 (24/7)</li>
+                <li style="margin-bottom: 8px;">Crisis Text Line: Text HOME to 741741 (24/7)</li>
+                <li style="margin-bottom: 8px;">National Domestic Violence Hotline: 1-800-799-7233 (24/7)</li>
+                <li style="margin-bottom: 8px;">Psychology Today Therapist Finder: psychologytoday.com/us/therapists</li>
+              </ul>
+              <p style="margin-top: 12px; font-style: italic; font-size: 12px;">
+                Visit app.dramallama.ai/support-helplines for a comprehensive list of support resources.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div class="document-footer">
           <p>© Drama Llama AI - Powered by Claude</p>
           <p>For a more detailed analysis, upgrade your plan at app.dramallama.ai</p>
