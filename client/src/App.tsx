@@ -17,7 +17,7 @@ import VerifyEmailPage from "@/pages/verify-email-page";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import PricingPage from "@/pages/pricing";
 import InstantDeepDivePage from "@/pages/instant-deep-dive";
-import SupportHelplines from "@/pages/support-helplines";
+// Support helplines converted to dialog component
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
 import DeEscalate from "./components/de-escalate";
@@ -38,7 +38,7 @@ function Router() {
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/instant-deep-dive" component={InstantDeepDivePage} />
-      <Route path="/support-helplines" component={SupportHelplines} />
+      {/* Support helplines converted to dialog component */}
       <Route component={NotFound} />
     </Switch>
   );
