@@ -115,11 +115,17 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
               font-size: 20px;
               font-weight: 600;
               margin-bottom: 15px;
-              border-left: 4px solid #22C9C9;
-              padding-left: 10px;
               color: #22C9C9;
               border-left: 4px solid #22C9C9;
               padding-left: 10px;
+            }
+            
+            .tone-analysis-box {
+              padding: 15px;
+              background-color: #f0f8ff;
+              border-radius: 8px;
+              border-left: 4px solid #22C9C9;
+              margin-bottom: 15px;
             }
             
             .participant-me {
@@ -221,10 +227,24 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             .pattern-list {
               margin: 0;
               padding-left: 20px;
+              list-style-type: none;
             }
             
             .pattern-item {
-              margin-bottom: 8px;
+              margin-bottom: 10px;
+              position: relative;
+              padding-left: 15px;
+            }
+            
+            .pattern-item:before {
+              content: "";
+              position: absolute;
+              left: 0;
+              top: 6px;
+              height: 8px;
+              width: 8px;
+              border-radius: 50%;
+              background-color: #22C9C9;
             }
             
             .document-footer {
@@ -302,7 +322,9 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             <div class="document-section">
               <div class="section-title">Overall Tone</div>
               <div class="section-content">
-                <p>${result.toneAnalysis.overallTone}</p>
+                <div class="tone-analysis-box">
+                  <p>${result.toneAnalysis.overallTone}</p>
+                </div>
                 <p class="participants-info">
                   Conversation between <span class="participant-me">${me}</span> and <span class="participant-them">${them}</span>
                 </p>
