@@ -70,6 +70,13 @@ export default function ChatAnalysis() {
       setErrorMessage(null);
       setResult(data);
       setShowResults(true);
+      
+      // Store analysis result in localStorage for support helplines recommendations
+      try {
+        localStorage.setItem('lastAnalysisResult', JSON.stringify(data));
+      } catch (error) {
+        console.error('Failed to save analysis to localStorage:', error);
+      }
     },
     onError: (error: any) => {
       setErrorMessage(error.message || "Could not analyze conversation");

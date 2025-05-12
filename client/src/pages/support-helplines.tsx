@@ -249,8 +249,18 @@ const SupportHelplines = () => {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Remember: If you're in immediate danger, please call emergency services (911 in the US) right away.
+            Remember: If you're in immediate danger, please call emergency services (999 in the UK) right away.
           </p>
+          
+          {relevantTags.length > 0 && (
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
+              <h3 className="font-medium text-green-700 mb-2">Personalized Recommendations</h3>
+              <p className="text-sm text-green-800">
+                Based on your last conversation analysis, we've highlighted resources that may be particularly helpful for you.
+                Look for the <Badge className="bg-green-100 text-green-800">Recommended</Badge> badge next to specific helplines.
+              </p>
+            </div>
+          )}
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 mb-6">
             <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
@@ -281,7 +291,14 @@ const SupportHelplines = () => {
           <CardContent>
             {category.helplines.map((helpline, hdx) => (
               <div key={hdx} className="mb-4 last:mb-0">
-                <h3 className="font-semibold text-lg mb-1">{helpline.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-lg">{helpline.name}</h3>
+                  {isRecommended(helpline) && (
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900">
+                      Recommended
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground mb-2">{helpline.description}</p>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
