@@ -26,7 +26,7 @@ export default function PricingPage() {
             <Card className="border-2 border-gray-200 flex flex-col">
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-2xl">Free</CardTitle>
-                <div className="text-3xl font-bold mt-2">$0</div>
+                <div className="text-3xl font-bold mt-2">£0</div>
                 <CardDescription>For occasional analysis</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
@@ -67,7 +67,7 @@ export default function PricingPage() {
               </div>
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-2xl">Personal</CardTitle>
-                <div className="text-3xl font-bold mt-2">$4.99<span className="text-base font-normal text-gray-600">/month</span></div>
+                <div className="text-3xl font-bold mt-2">£3.99<span className="text-base font-normal text-gray-600">/month</span></div>
                 <CardDescription>For regular users</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
@@ -108,7 +108,7 @@ export default function PricingPage() {
             <Card className="border-2 border-gray-200 flex flex-col">
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-2xl">Pro</CardTitle>
-                <div className="text-3xl font-bold mt-2">$9.99<span className="text-base font-normal text-gray-600">/month</span></div>
+                <div className="text-3xl font-bold mt-2">£8.99<span className="text-base font-normal text-gray-600">/month</span></div>
                 <CardDescription>For power users</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
@@ -156,7 +156,7 @@ export default function PricingPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-center mb-4">
-                  <span className="text-3xl font-bold text-purple-700">$14.99</span>
+                  <span className="text-3xl font-bold text-purple-700">£2.99</span>
                   <span className="text-lg text-purple-600"> one time</span>
                 </div>
                 <p className="text-purple-700 text-center mb-4">

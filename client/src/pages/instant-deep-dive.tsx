@@ -33,7 +33,7 @@ export default function InstantDeepDivePage() {
               <CardHeader className="text-center pb-2">
                 <CardTitle className="text-3xl text-purple-800">One-Time Payment</CardTitle>
                 <CardDescription className="text-xl text-purple-600">No subscription, no recurring charges</CardDescription>
-                <div className="text-4xl font-bold mt-4 text-purple-800">$14.99</div>
+                <div className="text-4xl font-bold mt-4 text-purple-800">£2.99</div>
               </CardHeader>
               <CardContent>
                 <div className="bg-purple-100 p-4 rounded-lg mb-6">

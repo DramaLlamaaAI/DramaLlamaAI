@@ -150,7 +150,7 @@ export default function PricingSection() {
         <Card className={`overflow-hidden border-2 ${currentTier === 'instant' ? 'border-purple-500 shadow-md' : 'border-transparent'} transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 bg-white`}>
           <div className="bg-purple-100 p-4">
             <h3 className="text-xl font-semibold text-purple-700">🦙 Instant Deep Dive</h3>
-            <p className="text-3xl font-bold mb-0 text-purple-700">£1.99<span className="text-base font-normal text-purple-500/70">one-off</span></p>
+            <p className="text-3xl font-bold mb-0 text-purple-700">£2.99<span className="text-base font-normal text-purple-500/70">one-off</span></p>
           </div>
           
           <CardContent className="p-6">
@@ -190,7 +190,7 @@ export default function PricingSection() {
         <Card className={`overflow-hidden border-2 ${currentTier === 'pro' ? 'border-primary shadow-md' : 'border-transparent'} transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 bg-white`}>
           <div style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)' }} className="p-4">
             <h3 className="text-xl font-semibold text-white">🦙 🦙 Pro/Relationship</h3>
-            <p className="text-3xl font-bold mb-0 text-white">£7.99<span className="text-base font-normal text-white/80">/month</span></p>
+            <p className="text-3xl font-bold mb-0 text-white">£8.99<span className="text-base font-normal text-white/80">/month</span></p>
           </div>
           
           <CardContent className="p-6">
