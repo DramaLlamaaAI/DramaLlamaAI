@@ -316,6 +316,18 @@ export default function ChatAnalysis() {
               color: #666;
             }
             
+            .profile-section {
+              margin-top: 12px;
+              text-align: left;
+            }
+            
+            .profile-heading {
+              font-weight: 600;
+              margin-bottom: 4px;
+              font-size: 14px;
+              color: #555;
+            }
+            
             /* Mobile styles */
             @media (max-width: 640px) {
               .document-header {
@@ -372,6 +384,34 @@ export default function ChatAnalysis() {
                   ''}
               </div>
             </div>
+            
+            ${(tier === 'pro' || tier === 'instant') && result.psychologicalProfile ? `
+            <div class="document-section">
+              <div class="section-title">Psychological Profile</div>
+              <div class="participants">
+                ${Object.entries(result.psychologicalProfile).map(([participant, profile]) => {
+                  const isMe = participant.toLowerCase() === me.toLowerCase();
+                  const profileData = profile as any;
+                  return `
+                  <div class="participant ${isMe ? 'participant-me' : 'participant-them'}">
+                    <div class="participant-name">${participant}</div>
+                    <div class="profile-section">
+                      <div class="profile-heading">Behavior</div>
+                      <p>${profileData.behavior}</p>
+                    </div>
+                    <div class="profile-section">
+                      <div class="profile-heading">Emotional State</div>
+                      <p>${profileData.emotionalState}</p>
+                    </div>
+                    <div class="profile-section">
+                      <div class="profile-heading">Risk Indicators</div>
+                      <p>${profileData.riskIndicators}</p>
+                    </div>
+                  </div>
+                `}).join('')}
+              </div>
+            </div>
+            ` : ''}
             
             <div class="document-section">
               <div class="section-title">Overall Tone</div>
