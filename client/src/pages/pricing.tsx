@@ -4,6 +4,7 @@ import Footer from "@/components/footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 import { useLocation } from "wouter";
+import BackHomeButton from "@/components/back-home-button";
 
 export default function PricingPage() {
   const [_, setLocation] = useLocation();
@@ -14,6 +15,9 @@ export default function PricingPage() {
       
       <main className="flex-grow py-12">
         <div className="container mx-auto px-4">
+          <div className="mb-4">
+            <BackHomeButton />
+          </div>
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-bold mb-3">Choose Your Plan</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">

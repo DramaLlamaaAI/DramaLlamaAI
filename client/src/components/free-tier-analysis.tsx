@@ -638,7 +638,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             )}
             
             {/* Red Flags Detected - Only shown when health score is below 80 and there are red flags */}
-            {(result.healthScore.score < 80 && result.redFlagsCount > 0) && (
+            {(result.healthScore.score < 80 && (result.redFlagsCount !== undefined && result.redFlagsCount > 0)) && (
               <div className="p-4 bg-red-50 rounded-lg border border-red-100 mb-4">
                 <div className="flex justify-between items-center">
                   <h4 className="text-lg font-medium text-red-700">
@@ -695,9 +695,15 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
                         <span className="mr-1.5">•</span> Co-parenting conflict detected
                       </li>
                     )}
-                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('aggress') && (
+                    {result.toneAnalysis && (
+                      result.toneAnalysis.overallTone.toLowerCase().includes('aggress') || 
+                      result.toneAnalysis.overallTone.toLowerCase().includes('hostile') || 
+                      result.toneAnalysis.overallTone.toLowerCase().includes('violen') || 
+                      result.toneAnalysis.overallTone.toLowerCase().includes('threat') || 
+                      result.toneAnalysis.overallTone.toLowerCase().includes('abus')
+                    ) && (
                       <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Aggression detected
+                        <span className="mr-1.5">•</span> Extreme aggression detected
                       </li>
                     )}
                   </ul>
