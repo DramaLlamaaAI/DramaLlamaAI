@@ -1,0 +1,14 @@
+            <div class="document-header">
+              <div class="logo-text">
+                <span style="font-weight:bold; font-size:28px; color:#FF69B4;">Drama</span><span style="font-weight:bold; font-size:28px; color:#22C9C9;">Llama</span>
+              </div>
+              <div class="header-text">
+                <h1>Drama Llama AI</h1>
+                <p>Conversation Analysis Report</p>
+                <p>Generated on: ${new Date().toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}</p>
+              </div>
+            </div>
