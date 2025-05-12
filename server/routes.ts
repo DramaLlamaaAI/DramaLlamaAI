@@ -81,6 +81,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/analyze/detect-names', analysisController.detectNames);
   app.post('/api/ocr', analysisController.processOcr);
   
+  // ZIP file extraction route
+  app.post('/api/extract-chat', async (req: Request, res: Response) => {
+    try {
+      const { file } = req.body;
+      
+      if (!file) {
+        return res.status(400).json({ error: 'No file provided' });
+      }
+      
+      // Convert base64 to buffer
+      const fileBuffer = Buffer.from(file.split(',')[1] || file, 'base64');
+      
+      // Process with JSZip
+      const JSZip = await import('jszip');
+      const zip = new JSZip.default();
+      
+      // Load ZIP content
+      const zipContents = await zip.loadAsync(fileBuffer);
+      
+      // Find a .txt file in the ZIP
+      let textContent = '';
+      let foundTextFile = false;
+      
+      for (const filename of Object.keys(zipContents.files)) {
+        const file = zipContents.files[filename];
+        
+        // Skip directories and non-text files
+        if (file.dir || !(filename.endsWith('.txt') || filename.includes('_chat'))) continue;
+        
+        // Extract the text content
+        textContent = await file.async('text');
+        foundTextFile = true;
+        break;
+      }
+      
+      if (!foundTextFile) {
+        return res.status(400).json({ error: 'No chat text file found in the ZIP archive' });
+      }
+      
+      res.json({ text: textContent });
+    } catch (error) {
+      console.error('Error extracting chat from ZIP:', error);
+      res.status(500).json({ error: 'Failed to extract chat from ZIP file' });
+    }
+  });
+  
   // Audio transcription route (Pro feature)
   // Allow trial users to use this feature without authentication for better user experience
   app.post('/api/transcribe', transcriptionUpload, transcribeAudio);
