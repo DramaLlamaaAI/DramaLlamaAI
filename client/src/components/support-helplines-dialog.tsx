@@ -384,89 +384,107 @@ const SupportHelpLinesDialog: React.FC<SupportHelpLinesDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-2">
-          <DialogTitle className="text-2xl font-bold text-primary">Support Helplines</DialogTitle>
-          <DialogDescription>
-            UK-based support services available for various issues
-          </DialogDescription>
-        </DialogHeader>
-        
-        <ScrollArea className="flex-1 px-6 pb-6 h-[70vh]">
-          {relevantTags.length > 0 && (
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
-              <h3 className="font-medium text-green-700 mb-2">Personalized Recommendations</h3>
-              <div className="text-sm text-green-800">
-                <p className="mb-2">Based on your conversation analysis, we've highlighted resources that may be particularly helpful for you.</p>
-                <div className="flex items-center">
-                  Look for the <Badge className="bg-green-100 text-green-800 mx-2">Recommended</Badge> badge next to specific helplines.
+      <DialogContent className="max-w-5xl max-h-[90vh] p-0">
+        <div className="flex flex-col h-full">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle className="text-2xl font-bold text-primary">Support Helplines</DialogTitle>
+            <DialogDescription>
+              UK-based support services available for various issues
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="overflow-y-auto px-6 pb-6" style={{ maxHeight: 'calc(90vh - 130px)' }}>
+            {relevantTags.length > 0 && (
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
+                <h3 className="font-medium text-green-700 mb-2">Personalized Recommendations</h3>
+                <div className="text-sm text-green-800">
+                  Based on the conversation you analyzed, these resources may be helpful:
                 </div>
               </div>
-            </div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 mb-6">
-            {helplineCategories.map((category, i) => (
-              <Card key={i} className="overflow-hidden">
-                <CardHeader className="bg-primary/10 pb-2">
-                  <CardTitle className="text-lg font-semibold">{category.title}</CardTitle>
-                  <CardDescription className="text-xs">{category.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  {category.helplines.map((helpline, j) => (
-                    <div key={j} className="mb-4 last:mb-0">
-                      <div className="flex items-start justify-between mb-1">
-                        <div className="font-medium">{helpline.name}</div>
-                        {isRecommended(helpline) && (
-                          <Badge className="bg-green-100 text-green-800">Recommended</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{helpline.description}</p>
-                      <div className="flex flex-col gap-1 text-sm">
-                        {helpline.phone && (
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-3 w-3" />
-                            <span>{helpline.phone}</span>
+            )}
+            
+            {helplineCategories.map((category, categoryIndex) => (
+              <div key={categoryIndex} className="mb-8">
+                <h2 className="text-xl font-semibold mb-1">{category.title}</h2>
+                <p className="text-muted-foreground text-sm mb-4">{category.description}</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {category.helplines.map((helpline, helplineIndex) => {
+                    const recommended = isRecommended(helpline);
+                    return (
+                      <Card 
+                        key={helplineIndex} 
+                        className={`overflow-hidden ${recommended ? 'border-primary/50 shadow-md' : ''}`}
+                      >
+                        <CardHeader className="pb-2">
+                          <div className="flex items-start justify-between">
+                            <CardTitle className="text-lg">
+                              {helpline.name}
+                            </CardTitle>
+                            {recommended && (
+                              <Badge className="ml-2 bg-primary hover:bg-primary text-white">
+                                Recommended
+                              </Badge>
+                            )}
                           </div>
-                        )}
-                        {helpline.website && (
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-3 w-3" />
-                            <a href={helpline.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                              Website
-                            </a>
-                          </div>
-                        )}
-                        {helpline.hours && (
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-3 w-3" />
-                            <span>{helpline.hours}</span>
-                          </div>
-                        )}
-                      </div>
-                      {j < category.helplines.length - 1 && <Separator className="my-3" />}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+                          <CardDescription className="mt-1">
+                            {helpline.description}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pb-4 pt-0">
+                          {helpline.phone && (
+                            <div className="flex items-center mt-2">
+                              <Phone className="h-4 w-4 mr-2 text-primary" />
+                              <span className="text-sm font-medium">{helpline.phone}</span>
+                            </div>
+                          )}
+                          {helpline.website && (
+                            <div className="flex items-center mt-2">
+                              <Globe className="h-4 w-4 mr-2 text-primary" />
+                              <a 
+                                href={helpline.website} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-sm font-medium text-primary hover:underline"
+                              >
+                                Visit Website
+                              </a>
+                            </div>
+                          )}
+                          {helpline.hours && (
+                            <div className="flex items-center mt-2">
+                              <Clock className="h-4 w-4 mr-2 text-primary" />
+                              <span className="text-sm">{helpline.hours}</span>
+                            </div>
+                          )}
+                          {helpline.tags && (
+                            <div className="flex flex-wrap mt-3 gap-1">
+                              {helpline.tags.map((tag, tagIndex) => (
+                                <Badge 
+                                  key={tagIndex} 
+                                  variant="outline" 
+                                  className="text-xs font-normal"
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
             ))}
           </div>
           
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-6">
-            <h3 className="font-medium text-blue-700 mb-2">Important Note</h3>
-            <p className="text-sm text-blue-800">
-              If you or someone you know is in immediate danger, please call emergency services on <strong>999</strong>. 
-              This information is provided for reference purposes only and should not be considered a substitute for 
-              professional medical or psychological advice.
-            </p>
-          </div>
-        </ScrollArea>
-        
-        <DialogFooter className="px-6 py-4 border-t">
-          <Button onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="px-6 py-4 border-t">
+            <Button onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
