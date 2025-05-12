@@ -60,9 +60,12 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
               font-family: system-ui, -apple-system, sans-serif;
               max-width: 800px;
               margin: 0 auto;
-              padding: 20px;
+              padding: 0;
               background-color: white;
               color: #333;
+              border-radius: 8px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+              overflow: hidden;
             }
             
             .document-header {
@@ -94,7 +97,6 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
               font-size: 28px;
               font-weight: 700;
               color: #22C9C9;
-              color: #22C9C9;
             }
             
             .header-text p {
@@ -112,6 +114,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             
             .document-section {
               margin-bottom: 25px;
+              padding: 0 20px;
             }
             
             .section-title {
@@ -139,6 +142,15 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             .participant-them {
               color: #FF69B4;
               font-weight: 600;
+            }
+            
+            .participants-info {
+              padding: 10px;
+              background-color: #f8f8f8;
+              border-radius: 8px;
+              margin-top: 10px;
+              font-style: italic;
+              text-align: center;
             }
             
             .section-content {
