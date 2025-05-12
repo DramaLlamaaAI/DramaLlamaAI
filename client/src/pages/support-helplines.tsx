@@ -237,9 +237,11 @@ const SupportHelplines = () => {
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-primary">Support Helplines</h1>
-        <Button variant="outline" onClick={() => window.history.back()} className="flex items-center gap-2">
-          <ArrowLeft size={16} />
-          <span>Back to Analysis</span>
+        <Button variant="outline" asChild className="flex items-center gap-2">
+          <Link href="/chat-analysis?restore=true">
+            <ArrowLeft size={16} />
+            <span>Back to Analysis</span>
+          </Link>
         </Button>
       </div>
       
@@ -399,9 +401,11 @@ const SupportHelplines = () => {
       
       <div className="text-center text-sm text-muted-foreground mt-8">
         <p>
-          <Button variant="outline" onClick={() => window.history.back()} size="sm" className="mx-auto">
-            <ArrowLeft size={14} className="mr-2" />
-            Return to Analysis
+          <Button variant="outline" size="sm" asChild className="mx-auto">
+            <Link href="/chat-analysis?restore=true">
+              <ArrowLeft size={14} className="mr-2" />
+              Return to Analysis
+            </Link>
           </Button>
         </p>
       </div>

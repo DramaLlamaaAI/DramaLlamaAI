@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import BackHomeButton from "@/components/back-home-button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useLocation } from "wouter";
 import { cleanPatternForDisplay, cleanCommunicationPatterns } from "@/lib/analysis-utils";
 import { CommunicationStyles } from "@/components/communication-styles";
 import { RedFlags } from "@/components/red-flags";
@@ -53,6 +54,42 @@ export default function ChatAnalysis() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [location] = useLocation();
+
+  // Parse URL parameters
+  const params = new URLSearchParams(location.split('?')[1] || '');
+  const shouldRestore = params.get('restore') === 'true';
+
+  // Effect to restore analysis state from localStorage
+  useEffect(() => {
+    if (shouldRestore) {
+      try {
+        const savedAnalysis = localStorage.getItem('lastAnalysisResult');
+        const savedNames = localStorage.getItem('lastAnalysisNames');
+        
+        if (savedAnalysis) {
+          const parsedAnalysis = JSON.parse(savedAnalysis);
+          setResult(parsedAnalysis);
+          setShowResults(true);
+          
+          if (savedNames) {
+            const { me, them } = JSON.parse(savedNames);
+            setMe(me);
+            setThem(them);
+          }
+          
+          // Scroll to results section
+          setTimeout(() => {
+            if (resultsRef.current) {
+              resultsRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 100);
+        }
+      } catch (error) {
+        console.error('Failed to restore analysis from localStorage:', error);
+      }
+    }
+  }, [shouldRestore]);
 
   const { data: usage } = useQuery({
     queryKey: ['/api/user/usage'],
@@ -71,9 +108,11 @@ export default function ChatAnalysis() {
       setResult(data);
       setShowResults(true);
       
-      // Store analysis result in localStorage for support helplines recommendations
+      // Store analysis result and names in localStorage for support helplines recommendations
+      // and for restoring the analysis when returning from support helplines page
       try {
         localStorage.setItem('lastAnalysisResult', JSON.stringify(data));
+        localStorage.setItem('lastAnalysisNames', JSON.stringify({ me, them }));
       } catch (error) {
         console.error('Failed to save analysis to localStorage:', error);
       }
