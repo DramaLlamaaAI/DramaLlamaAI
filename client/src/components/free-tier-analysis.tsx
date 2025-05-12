@@ -40,7 +40,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
       tempContainer.style.left = '-9999px';
       document.body.appendChild(tempContainer);
       
-      // Render our formal document component to string without any complex elements
+      // Render our formal document component to string with simplified elements for PDF export
       const formalDocumentContent = `
         <!DOCTYPE html>
         <html>
