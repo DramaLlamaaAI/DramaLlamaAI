@@ -628,12 +628,81 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
                   result.healthScore.score < 60 ? 2 : 1
                 }
               </h4>
-              <div className="px-2 py-1 bg-red-100 text-xs text-red-800 font-medium rounded-full">Upgrade to see details</div>
             </div>
-            <p className="text-sm text-red-600 mt-2">
-              This conversation contains potentially concerning patterns that may need attention.
-              Upgrade to Personal plan to see detailed analysis.
+            
+            {/* Specific pattern indicators based on red flags and health score */}
+            <div className="mt-3 mb-3">
+              <ul className="text-sm text-red-600 space-y-1.5">
+                {/* Dynamically show specific patterns based on the health score and potential red flags */}
+                {result.healthScore.score < 30 && (
+                  <li className="flex items-center">
+                    <span className="mr-1.5">•</span> Potential manipulation detected
+                  </li>
+                )}
+                {result.healthScore.score < 40 && (
+                  <li className="flex items-center">
+                    <span className="mr-1.5">•</span> Potential gaslighting detected
+                  </li>
+                )}
+                {result.healthScore.score < 50 && (
+                  <li className="flex items-center">
+                    <span className="mr-1.5">•</span> Potential passive-aggressive communication detected
+                  </li>
+                )}
+                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('love bomb') && (
+                  <li className="flex items-center">
+                    <span className="mr-1.5">•</span> Potential love-bombing detected
+                  </li>
+                )}
+                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('trauma') && (
+                  <li className="flex items-center">
+                    <span className="mr-1.5">•</span> Potential trauma-bonding detected
+                  </li>
+                )}
+                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('blame') && (
+                  <li className="flex items-center">
+                    <span className="mr-1.5">•</span> Potential victim blaming detected
+                  </li>
+                )}
+                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('narciss') && (
+                  <li className="flex items-center">
+                    <span className="mr-1.5">•</span> Potential narcissistic traits detected
+                  </li>
+                )}
+                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('parent') && (
+                  <li className="flex items-center">
+                    <span className="mr-1.5">•</span> Co-parenting conflict detected
+                  </li>
+                )}
+                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('aggress') && (
+                  <li className="flex items-center">
+                    <span className="mr-1.5">•</span> Aggression detected
+                  </li>
+                )}
+              </ul>
+            </div>
+            
+            <p className="text-sm text-red-600 mb-3">
+              Get detailed insights about these patterns and recommended responses:
             </p>
+            
+            {/* Upgrade buttons */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                className="bg-red-100 hover:bg-red-200 text-red-800 border-red-300 flex-1"
+                onClick={() => window.location.href = '/pricing'}
+              >
+                Upgrade Here
+              </Button>
+              <Button 
+                variant="outline"
+                className="bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300 flex-1"
+                onClick={() => window.location.href = '/instant-deep-dive'}
+              >
+                One Time Insight
+              </Button>
+            </div>
           </div>
         )}
         
