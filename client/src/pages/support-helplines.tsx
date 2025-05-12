@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import BackHomeButton from "@/components/back-home-button";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 
@@ -236,7 +237,10 @@ const SupportHelplines = () => {
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-primary">Support Helplines</h1>
-        <BackHomeButton />
+        <Button variant="outline" onClick={() => window.history.back()} className="flex items-center gap-2">
+          <ArrowLeft size={16} />
+          <span>Back to Analysis</span>
+        </Button>
       </div>
       
       <Card className="mb-8">
@@ -255,10 +259,12 @@ const SupportHelplines = () => {
           {relevantTags.length > 0 && (
             <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
               <h3 className="font-medium text-green-700 mb-2">Personalized Recommendations</h3>
-              <p className="text-sm text-green-800">
-                Based on your last conversation analysis, we've highlighted resources that may be particularly helpful for you.
-                Look for the <Badge className="bg-green-100 text-green-800">Recommended</Badge> badge next to specific helplines.
-              </p>
+              <div className="text-sm text-green-800">
+                <p className="mb-2">Based on your last conversation analysis, we've highlighted resources that may be particularly helpful for you.</p>
+                <div className="flex items-center">
+                  Look for the <Badge className="bg-green-100 text-green-800 mx-2">Recommended</Badge> badge next to specific helplines.
+                </div>
+              </div>
             </div>
           )}
           
@@ -392,7 +398,12 @@ const SupportHelplines = () => {
       </Card>
       
       <div className="text-center text-sm text-muted-foreground mt-8">
-        <p>If you need to return to your analysis, you can <Link href="/" className="text-primary hover:underline">go back to the home page</Link>.</p>
+        <p>
+          <Button variant="outline" onClick={() => window.history.back()} size="sm" className="mx-auto">
+            <ArrowLeft size={14} className="mr-2" />
+            Return to Analysis
+          </Button>
+        </p>
       </div>
     </div>
   );
