@@ -290,35 +290,30 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           <div class="drama-llama-document">
             <div class="document-header">
               <div class="logo-container">
-                <svg width="100" height="100" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                   <!-- Background -->
-                  <rect width="200" height="200" fill="#22C9C9" />
+                  <rect width="100" height="100" fill="#22C9C9" />
                   
                   <!-- Llama head shape -->
-                  <path d="M100 25 C 65 25, 45 50, 40 90 C 35 130, 40 160, 60 175 C 80 190, 120 190, 140 175 C 160 160, 165 130, 160 90 C 155 50, 135 25, 100 25" fill="#FF69B4" stroke="#000" stroke-width="4" />
+                  <ellipse cx="50" cy="50" rx="30" ry="35" fill="#FF69B4" stroke="#000" stroke-width="2" />
                   
                   <!-- Ears -->
-                  <path d="M55 60 C 45 30, 30 30, 35 45 C 40 60, 45 70, 55 60" fill="#FF69B4" stroke="#000" stroke-width="3" />
-                  <path d="M145 60 C 155 30, 170 30, 165 45 C 160 60, 155 70, 145 60" fill="#FF69B4" stroke="#000" stroke-width="3" />
+                  <path d="M25 30 L 20 15 C 20 15, 30 20, 30 25" fill="#FF69B4" stroke="#000" stroke-width="1.5" />
+                  <path d="M75 30 L 80 15 C 80 15, 70 20, 70 25" fill="#FF69B4" stroke="#000" stroke-width="1.5" />
                   
-                  <!-- Face details -->
-                  <path d="M75 140 C 85 145, 115 145, 125 140" stroke="#000" stroke-width="2" fill="none" />
-                  <path d="M85 110 C 90 105, 95 105, 100 110" stroke="#000" stroke-width="1.5" fill="none" />
-                  <path d="M115 110 C 110 105, 105 105, 100 110" stroke="#000" stroke-width="1.5" fill="none" />
+                  <!-- Snout/mouth circle -->
+                  <circle cx="50" cy="60" r="12" fill="#FFCBA4" stroke="#000" stroke-width="1.5" />
                   
-                  <!-- Muzzle -->
-                  <ellipse cx="100" cy="125" rx="20" ry="15" fill="#FFCBA4" stroke="#000" stroke-width="2" />
-
-                  <!-- Sunglasses -->
-                  <path d="M40 85 L 160 85" stroke="#000" stroke-width="5" />
-                  <path d="M50 85 C 50 75, 70 70, 80 85" stroke="#000" stroke-width="4" fill="none" />
-                  <path d="M150 85 C 150 75, 130 70, 120 85" stroke="#000" stroke-width="4" fill="none" />
+                  <!-- Sunglasses frame -->
+                  <rect x="20" y="35" width="60" height="20" rx="5" fill="#000" />
                   
-                  <path d="M40 85 Q 55 75 80 85 Q 90 95 100 85 Q 110 95 120 85 Q 145 75 160 85" fill="#000" />
+                  <!-- Sunglasses lenses -->
+                  <rect x="25" y="38" width="20" height="14" rx="3" fill="#333" />
+                  <rect x="55" y="38" width="20" height="14" rx="3" fill="#333" />
                   
                   <!-- Reflections on glasses -->
-                  <path d="M60 80 L 70 83" stroke="#fff" stroke-width="2" />
-                  <path d="M130 80 L 140 83" stroke="#fff" stroke-width="2" />
+                  <path d="M30 42 L 38 44" stroke="#fff" stroke-width="1" />
+                  <path d="M60 42 L 68 44" stroke="#fff" stroke-width="1" />
                 </svg>
               </div>
               <div class="header-text">
