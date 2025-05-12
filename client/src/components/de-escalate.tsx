@@ -9,6 +9,7 @@ import { deEscalateMessage, DeEscalateResponse, getUserUsage } from "@/lib/opena
 import { useToast } from "@/hooks/use-toast";
 import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
+import BackHomeButton from "@/components/back-home-button";
 
 export default function DeEscalate() {
   const [message, setMessage] = useState("");
@@ -147,7 +148,10 @@ export default function DeEscalate() {
   };
 
   return (
-    <section id="deEscalateMode" className="mb-12">
+    <section id="deEscalateMode" className="container py-10">
+      <div className="mb-4">
+        <BackHomeButton />
+      </div>
       <Card>
         <CardContent className="p-6">
           <h2 className="text-2xl font-bold mb-4">De-escalate Mode</h2>

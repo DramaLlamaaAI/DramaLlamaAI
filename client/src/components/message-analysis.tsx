@@ -164,7 +164,10 @@ export default function MessageAnalysis() {
   };
 
   return (
-    <section id="messageAnalysis" className="mb-12">
+    <section id="messageAnalysis" className="container py-10">
+      <div className="mb-4">
+        <BackHomeButton />
+      </div>
       <Card>
         <CardContent className="p-6">
           <h2 className="text-2xl font-bold mb-4">One Message Analysis</h2>
