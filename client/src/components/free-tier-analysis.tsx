@@ -256,24 +256,7 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
             </div>
             ` : ''}
             
-            ${result.toneAnalysis.emotionalState && result.toneAnalysis.emotionalState.length > 0 ? `
-            <div class="document-section">
-              <div class="section-title">Emotional States</div>
-              <div class="section-content">
-                ${result.toneAnalysis.emotionalState.map(emotion => `
-                <div class="emotion-item">
-                  <div class="emotion-label">${emotion.emotion}</div>
-                  <div class="emotion-bar-container">
-                    <div 
-                      class="emotion-bar" 
-                      style="width: ${emotion.intensity * 100}%"
-                    ></div>
-                  </div>
-                </div>
-                `).join('')}
-              </div>
-            </div>
-            ` : ''}
+            {/* Emotional States section removed - redundant with participant analysis */}
             
             ${result.redFlagsCount !== undefined ? `
             <div class="document-section">
