@@ -255,8 +255,11 @@ export function generateExportDocument({ result, me, them }: ExportDocumentProps
     <body>
       <div class="drama-llama-document">
         <div class="document-header">
-          <div class="logo-text">
-            <span class="pink">Drama</span><span class="teal">Llama</span>
+          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIGZpbGw9IiMyMkM5QzkiIHN0eWxlPSJkaXNwbGF5Om5vbmU7Ii8+CiAgCiAgPCEtLSBQaW5rIExsYW1hIC0tPgogIDxwYXRoIGQ9Ik0yNTYgOTBjLTQwIDAtNzUgMjAtMTAwIDQ1LTI1IDI1LTQwIDYwLTQwIDk1IDAgMzAgMTUgNTUgMzUgNzAgMjAgMTUgNDUgMjAgNjUgMjAgMTUgMCAzMC01IDQwLTE1IDEwLTEwIDE1LTI1IDE1LTQ1IDAtMTUtNS0zMC0xNS00MC0xMC0xMC0yNS0xNS00MC0xNS0xMCAwLTIwIDUtMjUgMTAtNSA1LTEwIDE1LTEwIDI1IDAgNSAwIDEwIDUgMTUgNSA1IDEwIDUgMTUgNSA1IDAgMTAgMCAxNS01IDUtNSA1LTEwIDUtMTUiIGZpbGw9IiNGRjY5QjQiIC8+CiAgCiAgPCEtLSBFYXJzIC0tPgogIDxwYXRoIGQ9Ik0xNzAgMTMwYy0xMC0xNS0yMC0zNS0xNS01NSA1LTIwIDIwLTM1IDQwLTQwIDIwLTUgNDAgNSA1NSAyMCAxNSAxNSAyMCAzNSAxNSA1NS01IDIwLTIwIDMwLTM1IDM1LTE1IDUtMzAgMC00NS01IiBmaWxsPSIjRkY2OUI0IiAvPgogIDxwYXRoIGQ9Ik0zNDIgMTMwYzEwLTE1IDIwLTM1IDE1LTU1LTUtMjAtMjAtMzUtNDAtNDAtMjAtNS00MCA1LTU1IDIwLTE1IDE1LTIwIDM1LTE1IDU1IDUgMjAgMjAgMzAgMzUgMzUgMTUgNSAzMCAwIDQ1LTUiIGZpbGw9IiNGRjY5QjQiIC8+CiAgCiAgPCEtLSBGYWNlIERldGFpbHMgLS0+CiAgPGVsbGlwc2UgY3g9IjIwNSIgY3k9IjIxMCIgcng9IjEwIiByeT0iMTUiIGZpbGw9IiMwMDAiIC8+CiAgPGVsbGlwc2UgY3g9IjMwNyIgY3k9IjIxMCIgcng9IjEwIiByeT0iMTUiIGZpbGw9IiMwMDAiIC8+CiAgCiAgPCEtLSBOb3NlIC0tPgogIDxwYXRoIGQ9Ik0yNTYgMjM1Yy0xMCAwLTIwIDUtMjUgMTAtNSA1LTEwIDE1LTEwIDI1IDAgMTAgNSAyMCAxNSAyNSAxMCA1IDIwIDUgMzAgMCAxMC01IDE1LTE1IDE1LTI1IDAtMTAtNS0yMC0xMC0yNS01LTUtMTAtMTAtMTUtMTAiIGZpbGw9IiNGRkMwQ0IiIC8+CiAgCiAgPCEtLSBNb3V0aCAtLT4KICA8cGF0aCBkPSJNMjQwIDI3NWM1IDEwIDE1IDE1IDI1IDE1IDEwIDAgMjAtNSAyNS0xNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjUiIC8+CiAgCiAgPCEtLSBTdW5nbGFzc2VzIC0tPgogIDxwYXRoIGQ9Ik0xNzUgMTkwaDE2MGMxMCAwIDIwIDEwIDIwIDIwdjEwYzAgMTAtMTAgMjAtMjAgMjBoLTcwYy01IDAtMTAtNS0xMC0xMCAwLTUgNS0xMCAxMC0xMGgzMGM1IDAgMTAtNSAxMC0xMCAwLTUtNS0xMC0xMC0xMGgtODBjLTUgMC0xMCA1LTEwIDEwIDAgNSA1IDEwIDEwIDEwaDMwYzUgMCAxMCA1IDEwIDEwIDAgNS01IDEwLTEwIDEwaC03MGMtMTAgMC0yMC0xMC0yMC0yMHYtMTBjMC0xMCAxMC0yMCAyMC0yMHoiIGZpbGw9IiMwMDAiIC8+CiAgCiAgPCEtLSBPdXRsaW5lIC0tPgogIDxwYXRoIGQ9Ik0yNTYgOTBjLTQwIDAtNzUgMjAtMTAwIDQ1LTI1IDI1LTQwIDYwLTQwIDk1IDAgMzAgMTUgNTUgMzUgNzAgMjAgMTUgNDUgMjAgNjUgMjAgMTUgMCAzMC01IDQwLTE1IDEwLTEwIDE1LTI1IDE1LTQ1TTE3MCAxMzBjLTEwLTE1LTIwLTM1LTE1LTU1IDUtMjAgMjAtMzUgNDAtNDAgMjAtNSA0MCA1IDU1IDIwIDE1IDE1IDIwIDM1IDE1IDU1LTUgMjAtMjAgMzAtMzUgMzUtMTUgNS0zMCAwLTQ1LTVNMzQyIDEzMGMxMC0xNSAyMC0zNSAxNS01NS01LTIwLTIwLTM1LTQwLTQwLTIwLTUtNDAgNS01NSAyMC0xNSAxNS0yMCAzNS0xNSA1NSA1IDIwIDIwIDMwIDM1IDM1IDE1IDUgMzAgMCA0NS01IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMTAiIC8+Cjwvc3ZnPg==" width="80" height="80" alt="Drama Llama Logo" />
+            <div class="logo-text" style="margin-left: 15px;">
+              <span class="pink">Drama</span><span class="teal">Llama</span>
+            </div>
           </div>
           <div class="header-text">
             <h1>Drama Llama AI</h1>
@@ -372,6 +375,12 @@ export function exportToPdf(result: ChatAnalysisResult, me: string, them: string
   }
   
   try {
+    // Show loading toast
+    toast({
+      title: "Generating PDF",
+      description: "Please wait while we prepare your document...",
+    });
+    
     // Create document content
     const formalDocumentContent = generateExportDocument({ result, me, them });
     
@@ -384,20 +393,55 @@ export function exportToPdf(result: ChatAnalysisResult, me: string, them: string
     // Add document to container
     tempContainer.innerHTML = formalDocumentContent;
     
-    // Configuration for the PDF export
+    // Mobile detection
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    // Configuration for the PDF export with mobile-specific settings
     const options = {
       margin: [10, 10, 10, 10],
       filename: 'Drama-Llama-Analysis.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true, 
+        logging: false,
+        // Mobile devices often need these additional settings
+        allowTaint: true,
+        foreignObjectRendering: false
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      // For mobile devices, force download by opening in a new tab
+      autoPrint: false,
+      output: isMobile ? 'blob' : 'save'
     };
     
     // Generate the PDF
-    html2pdf().from(tempContainer).set(options).save()
-      .then(() => {
-        // Remove the temporary container when done
+    html2pdf().from(tempContainer).set(options).outputPdf(isMobile ? 'blob' : 'save')
+      .then((pdfBlob: any) => {
+        // Remove the temporary container
         document.body.removeChild(tempContainer);
+        
+        // For mobile devices, create a direct download link
+        if (isMobile && pdfBlob) {
+          // Create a URL for the blob
+          const blobUrl = URL.createObjectURL(pdfBlob);
+          
+          // Create an anchor element for downloading
+          const downloadLink = document.createElement('a');
+          downloadLink.href = blobUrl;
+          downloadLink.download = 'Drama-Llama-Analysis.pdf';
+          downloadLink.style.display = 'none';
+          document.body.appendChild(downloadLink);
+          
+          // Trigger download programmatically
+          downloadLink.click();
+          
+          // Clean up
+          setTimeout(() => {
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(blobUrl);
+          }, 100);
+        }
         
         toast({
           title: "Export Successful",
@@ -406,7 +450,9 @@ export function exportToPdf(result: ChatAnalysisResult, me: string, them: string
       })
       .catch((error: any) => {
         console.error("PDF generation error:", error);
-        document.body.removeChild(tempContainer);
+        if (tempContainer.parentNode) {
+          document.body.removeChild(tempContainer);
+        }
         
         toast({
           title: "Export Failed",
