@@ -6,6 +6,7 @@ import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
 import { useToast } from "@/hooks/use-toast";
 import llamaImage from '@/assets/drama-llama-sunglasses.jpg';
+import llamaLogo from '@/assets/drama-llama-logo.svg';
 import BackHomeButton from "@/components/back-home-button";
 
 interface FreeTierAnalysisProps {
@@ -256,8 +257,6 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
               </div>
             </div>
             ` : ''}
-            
-            {/* Emotional States section removed - redundant with participant analysis */}
             
             ${result.redFlagsCount !== undefined ? `
             <div class="document-section">
