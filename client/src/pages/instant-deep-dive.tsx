@@ -4,11 +4,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { CheckCircle, ChevronRight, Zap } from "lucide-react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { Separator } from "@/components/ui/separator";
 
 export default function InstantDeepDivePage() {
-  const [_, navigate] = useNavigate();
+  const [_, setLocation] = useLocation();
   const [showFeatures, setShowFeatures] = useState(false);
 
   return (

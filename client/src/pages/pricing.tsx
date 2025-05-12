@@ -3,10 +3,10 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 
 export default function PricingPage() {
-  const [_, navigate] = useNavigate();
+  const [_, setLocation] = useLocation();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -53,7 +53,7 @@ export default function PricingPage() {
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => navigate("/")}
+                  onClick={() => setLocation("/")}
                 >
                   Current Plan
                 </Button>
@@ -97,7 +97,7 @@ export default function PricingPage() {
               <CardFooter className="pt-2">
                 <Button 
                   className="w-full"
-                  onClick={() => navigate("/subscription?tier=personal")}
+                  onClick={() => setLocation("/subscription?tier=personal")}
                 >
                   Subscribe Now
                 </Button>
@@ -139,7 +139,7 @@ export default function PricingPage() {
                 <Button 
                   variant="outline"
                   className="w-full"
-                  onClick={() => navigate("/subscription?tier=pro")}
+                  onClick={() => setLocation("/subscription?tier=pro")}
                 >
                   Subscribe Now
                 </Button>
@@ -164,7 +164,7 @@ export default function PricingPage() {
                 </p>
                 <Button 
                   className="w-full bg-purple-600 hover:bg-purple-700"
-                  onClick={() => navigate("/instant-deep-dive")}
+                  onClick={() => setLocation("/instant-deep-dive")}
                 >
                   Get Instant Analysis
                 </Button>
