@@ -616,94 +616,116 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
           </div>
         )}
         
-        {/* Red Flags Teaser - Only shown when health score is below 80 */}
-        {(result.healthScore && result.healthScore.score < 80) && (
-          <div className="p-4 bg-red-50 rounded-lg border border-red-100 mb-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-lg font-medium text-red-700">
-                Red Flags Detected: {
-                  // Show real count if available, otherwise determine based on health score
-                  result.redFlagsCount !== undefined ? result.redFlagsCount : 
-                  result.healthScore.score < 40 ? 3 : 
-                  result.healthScore.score < 60 ? 2 : 1
-                }
-              </h4>
-            </div>
+        {/* Red Flags Section */}
+        {result.healthScore && (
+          <>
+            {/* Zero Red Flags - Green success message */}
+            {(result.redFlagsCount === 0) && (
+              <div className="p-4 bg-green-50 rounded-lg border border-green-100 mb-4">
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <h4 className="text-lg font-medium text-green-700">
+                    No Red Flags Detected
+                  </h4>
+                </div>
+                <p className="mt-2 ml-7 text-sm text-green-600">
+                  This conversation appears healthy with positive communication patterns.
+                </p>
+              </div>
+            )}
             
-            {/* Specific pattern indicators based on red flags and health score */}
-            <div className="mt-3 mb-3">
-              <ul className="text-sm text-red-600 space-y-1.5">
-                {/* Dynamically show specific patterns based on the health score and potential red flags */}
-                {result.healthScore.score < 30 && (
-                  <li className="flex items-center">
-                    <span className="mr-1.5">•</span> Potential manipulation detected
-                  </li>
-                )}
-                {result.healthScore.score < 40 && (
-                  <li className="flex items-center">
-                    <span className="mr-1.5">•</span> Potential gaslighting detected
-                  </li>
-                )}
-                {result.healthScore.score < 50 && (
-                  <li className="flex items-center">
-                    <span className="mr-1.5">•</span> Potential passive-aggressive communication detected
-                  </li>
-                )}
-                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('love bomb') && (
-                  <li className="flex items-center">
-                    <span className="mr-1.5">•</span> Potential love-bombing detected
-                  </li>
-                )}
-                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('trauma') && (
-                  <li className="flex items-center">
-                    <span className="mr-1.5">•</span> Potential trauma-bonding detected
-                  </li>
-                )}
-                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('blame') && (
-                  <li className="flex items-center">
-                    <span className="mr-1.5">•</span> Potential victim blaming detected
-                  </li>
-                )}
-                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('narciss') && (
-                  <li className="flex items-center">
-                    <span className="mr-1.5">•</span> Potential narcissistic traits detected
-                  </li>
-                )}
-                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('parent') && (
-                  <li className="flex items-center">
-                    <span className="mr-1.5">•</span> Co-parenting conflict detected
-                  </li>
-                )}
-                {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('aggress') && (
-                  <li className="flex items-center">
-                    <span className="mr-1.5">•</span> Aggression detected
-                  </li>
-                )}
-              </ul>
-            </div>
-            
-            <p className="text-sm text-red-600 mb-3">
-              Get detailed insights about these patterns and recommended responses:
-            </p>
-            
-            {/* Upgrade buttons */}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button 
-                variant="outline" 
-                className="bg-red-100 hover:bg-red-200 text-red-800 border-red-300 flex-1"
-                onClick={() => window.location.href = '/pricing'}
-              >
-                Upgrade Here
-              </Button>
-              <Button 
-                variant="outline"
-                className="bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300 flex-1"
-                onClick={() => window.location.href = '/instant-deep-dive'}
-              >
-                One Time Insight
-              </Button>
-            </div>
-          </div>
+            {/* Red Flags Detected - Only shown when health score is below 80 and there are red flags */}
+            {(result.healthScore.score < 80 && result.redFlagsCount > 0) && (
+              <div className="p-4 bg-red-50 rounded-lg border border-red-100 mb-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-lg font-medium text-red-700">
+                    Red Flags Detected: {
+                      // Show real count if available, otherwise determine based on health score
+                      result.redFlagsCount !== undefined ? result.redFlagsCount : 
+                      result.healthScore.score < 40 ? 3 : 
+                      result.healthScore.score < 60 ? 2 : 1
+                    }
+                  </h4>
+                </div>
+                
+                {/* Specific pattern indicators based on red flags and health score */}
+                <div className="mt-3 mb-3">
+                  <ul className="text-sm text-red-600 space-y-1.5">
+                    {/* Dynamically show specific patterns based on the health score and potential red flags */}
+                    {result.healthScore.score < 30 && (
+                      <li className="flex items-center">
+                        <span className="mr-1.5">•</span> Potential manipulation detected
+                      </li>
+                    )}
+                    {result.healthScore.score < 40 && (
+                      <li className="flex items-center">
+                        <span className="mr-1.5">•</span> Potential gaslighting detected
+                      </li>
+                    )}
+                    {result.healthScore.score < 50 && (
+                      <li className="flex items-center">
+                        <span className="mr-1.5">•</span> Potential passive-aggressive communication detected
+                      </li>
+                    )}
+                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('love bomb') && (
+                      <li className="flex items-center">
+                        <span className="mr-1.5">•</span> Potential love-bombing detected
+                      </li>
+                    )}
+                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('trauma') && (
+                      <li className="flex items-center">
+                        <span className="mr-1.5">•</span> Potential trauma-bonding detected
+                      </li>
+                    )}
+                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('blame') && (
+                      <li className="flex items-center">
+                        <span className="mr-1.5">•</span> Potential victim blaming detected
+                      </li>
+                    )}
+                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('narciss') && (
+                      <li className="flex items-center">
+                        <span className="mr-1.5">•</span> Potential narcissistic traits detected
+                      </li>
+                    )}
+                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('parent') && (
+                      <li className="flex items-center">
+                        <span className="mr-1.5">•</span> Co-parenting conflict detected
+                      </li>
+                    )}
+                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('aggress') && (
+                      <li className="flex items-center">
+                        <span className="mr-1.5">•</span> Aggression detected
+                      </li>
+                    )}
+                  </ul>
+                </div>
+                
+                <p className="text-sm text-red-600 mb-3">
+                  Get detailed insights about these patterns and recommended responses:
+                </p>
+                
+                {/* Upgrade buttons */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="bg-red-100 hover:bg-red-200 text-red-800 border-red-300 flex-1"
+                    onClick={() => window.location.href = '/pricing'}
+                  >
+                    Upgrade Here
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300 flex-1"
+                    onClick={() => window.location.href = '/instant-deep-dive'}
+                  >
+                    One Time Insight
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
         
         {/* Export Buttons */}
