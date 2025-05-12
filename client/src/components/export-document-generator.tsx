@@ -7,10 +7,12 @@ interface ExportDocumentProps {
   result: ChatAnalysisResult;
   me: string;
   them: string;
+  tier?: string;
 }
 
-export function generateExportDocument({ result, me, them }: ExportDocumentProps): string {
-  // Create a clean HTML document for exporting
+export function generateExportDocument({ result, me, them, tier = 'free' }: ExportDocumentProps): string {
+  // Create a clean HTML document for exporting based on user's tier
+  const userTier = tier || 'free';
   return `
     <!DOCTYPE html>
     <html>
@@ -160,6 +162,41 @@ export function generateExportDocument({ result, me, them }: ExportDocumentProps
           background-color: #22C9C9;
         }
         
+        .participant-tones {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+          margin-top: 15px;
+        }
+        
+        .participant-tone-box {
+          padding: 12px;
+          border-radius: 8px;
+        }
+        
+        .participant-tone-me {
+          background-color: rgba(34, 201, 201, 0.1);
+          border: 1px solid rgba(34, 201, 201, 0.3);
+        }
+        
+        .participant-tone-them {
+          background-color: rgba(255, 105, 180, 0.1);
+          border: 1px solid rgba(255, 105, 180, 0.3);
+        }
+        
+        .participant-name {
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+        
+        .participant-name-me {
+          color: #22C9C9;
+        }
+        
+        .participant-name-them {
+          color: #FF69B4;
+        }
+        
         .health-score {
           display: flex;
           align-items: center;
@@ -285,6 +322,19 @@ export function generateExportDocument({ result, me, them }: ExportDocumentProps
           <div class="participants-info">
             Conversation between <span class="participant-me">${me}</span> and <span class="participant-them">${them}</span>
           </div>
+          
+          ${result.toneAnalysis.participantTones && userTier !== 'free' ? `
+          <div class="participant-tones">
+            <div class="participant-tone-box participant-tone-me">
+              <div class="participant-name participant-name-me">${me}</div>
+              <div>${result.toneAnalysis.participantTones[me] || 'No specific tone identified'}</div>
+            </div>
+            <div class="participant-tone-box participant-tone-them">
+              <div class="participant-name participant-name-them">${them}</div>
+              <div>${result.toneAnalysis.participantTones[them] || 'No specific tone identified'}</div>
+            </div>
+          </div>
+          ` : ''}
         </div>
         
         <div class="document-section">
@@ -364,7 +414,7 @@ export function generateExportDocument({ result, me, them }: ExportDocumentProps
   `;
 }
 
-export function exportToPdf(result: ChatAnalysisResult, me: string, them: string, toast: any) {
+export function exportToPdf(result: ChatAnalysisResult, me: string, them: string, toast: any, tier: string = 'free') {
   if (!result) {
     toast({
       title: "Export Failed",
@@ -381,8 +431,8 @@ export function exportToPdf(result: ChatAnalysisResult, me: string, them: string
       description: "Please wait while we prepare your document...",
     });
     
-    // Create document content
-    const formalDocumentContent = generateExportDocument({ result, me, them });
+    // Create document content with tier information
+    const formalDocumentContent = generateExportDocument({ result, me, them, tier });
     
     // Create a temporary container for the formal document
     const tempContainer = document.createElement('div');
