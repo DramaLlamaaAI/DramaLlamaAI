@@ -6,6 +6,7 @@ import Footer from "@/components/footer";
 import { CheckCircle, ChevronRight, Zap } from "lucide-react";
 import { useLocation } from "wouter";
 import { Separator } from "@/components/ui/separator";
+import BackHomeButton from "@/components/back-home-button";
 
 export default function InstantDeepDivePage() {
   const [_, setLocation] = useLocation();
@@ -17,6 +18,9 @@ export default function InstantDeepDivePage() {
       
       <main className="flex-grow py-12 bg-gradient-to-b from-purple-50 to-white">
         <div className="container mx-auto px-4">
+          <div className="mb-4">
+            <BackHomeButton />
+          </div>
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-10">
               <h1 className="text-3xl md:text-5xl font-bold mb-4 text-purple-800">Instant Deep Dive</h1>

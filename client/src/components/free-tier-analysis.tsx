@@ -654,58 +654,172 @@ export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
                 {/* Specific pattern indicators based on red flags and health score */}
                 <div className="mt-3 mb-3">
                   <ul className="text-sm text-red-600 space-y-1.5">
-                    {/* Dynamically show specific patterns based on the health score and potential red flags */}
-                    {result.healthScore.score < 30 && (
-                      <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Potential manipulation detected
-                      </li>
-                    )}
-                    {result.healthScore.score < 40 && (
-                      <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Potential gaslighting detected
-                      </li>
-                    )}
-                    {result.healthScore.score < 50 && (
-                      <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Potential passive-aggressive communication detected
-                      </li>
-                    )}
-                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('love bomb') && (
-                      <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Potential love-bombing detected
-                      </li>
-                    )}
-                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('trauma') && (
-                      <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Potential trauma-bonding detected
-                      </li>
-                    )}
-                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('blame') && (
-                      <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Potential victim blaming detected
-                      </li>
-                    )}
-                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('narciss') && (
-                      <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Potential narcissistic traits detected
-                      </li>
-                    )}
-                    {result.toneAnalysis && result.toneAnalysis.overallTone.toLowerCase().includes('parent') && (
-                      <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Co-parenting conflict detected
-                      </li>
-                    )}
-                    {result.toneAnalysis && (
-                      result.toneAnalysis.overallTone.toLowerCase().includes('aggress') || 
-                      result.toneAnalysis.overallTone.toLowerCase().includes('hostile') || 
-                      result.toneAnalysis.overallTone.toLowerCase().includes('violen') || 
-                      result.toneAnalysis.overallTone.toLowerCase().includes('threat') || 
-                      result.toneAnalysis.overallTone.toLowerCase().includes('abus')
-                    ) && (
-                      <li className="flex items-center">
-                        <span className="mr-1.5">•</span> Extreme aggression detected
-                      </li>
-                    )}
+                    {/* More intelligent detection of communication patterns based on overall tone */}
+                    {(() => {
+                      // Get the lowercase overall tone for pattern matching
+                      const tone = result.toneAnalysis?.overallTone?.toLowerCase() || '';
+                      const patterns = result.communication?.patterns || [];
+                      const patternsText = patterns.join(' ').toLowerCase();
+                      
+                      // Create an array to store detected issues
+                      const detectedIssues = [];
+                      
+                      // Check for manipulation patterns
+                      if (tone.includes('manipulat') || 
+                          tone.includes('control') || 
+                          patternsText.includes('manipulat') ||
+                          result.healthScore.score < 30) {
+                        detectedIssues.push(
+                          <li key="manipulation" className="flex items-center">
+                            <span className="mr-1.5">•</span> Manipulation patterns detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for gaslighting
+                      if (tone.includes('gaslight') || 
+                          tone.includes('reality distort') || 
+                          tone.includes('making you doubt') ||
+                          tone.includes('question your reality') ||
+                          patternsText.includes('gaslight') ||
+                          result.healthScore.score < 35) {
+                        detectedIssues.push(
+                          <li key="gaslighting" className="flex items-center">
+                            <span className="mr-1.5">•</span> Gaslighting behaviors detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for passive-aggressive behavior
+                      if (tone.includes('passive-aggress') || 
+                          tone.includes('passive aggress') ||
+                          tone.includes('indirect hostil') ||
+                          patternsText.includes('passive') && patternsText.includes('aggress')) {
+                        detectedIssues.push(
+                          <li key="passive-aggressive" className="flex items-center">
+                            <span className="mr-1.5">•</span> Passive-aggressive communication detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for love-bombing
+                      if (tone.includes('love bomb') || 
+                          tone.includes('excessive affection') ||
+                          tone.includes('overwhelming attention') ||
+                          patternsText.includes('love bomb')) {
+                        detectedIssues.push(
+                          <li key="love-bombing" className="flex items-center">
+                            <span className="mr-1.5">•</span> Love-bombing patterns detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for trauma-bonding
+                      if (tone.includes('trauma') || 
+                          tone.includes('cycle of abuse') ||
+                          tone.includes('intermittent reinforcement') ||
+                          patternsText.includes('trauma bond')) {
+                        detectedIssues.push(
+                          <li key="trauma-bonding" className="flex items-center">
+                            <span className="mr-1.5">•</span> Trauma-bonding patterns detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for victim blaming
+                      if (tone.includes('blame') || 
+                          tone.includes('fault') ||
+                          tone.includes('guilt') && tone.includes('shift') ||
+                          tone.includes('responsib') && (tone.includes('deflect') || tone.includes('avoid'))) {
+                        detectedIssues.push(
+                          <li key="victim-blaming" className="flex items-center">
+                            <span className="mr-1.5">•</span> Victim-blaming behaviors detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for narcissistic traits
+                      if (tone.includes('narciss') || 
+                          tone.includes('self-center') ||
+                          tone.includes('grandiose') ||
+                          tone.includes('entitle') ||
+                          patternsText.includes('narciss')) {
+                        detectedIssues.push(
+                          <li key="narcissism" className="flex items-center">
+                            <span className="mr-1.5">•</span> Narcissistic behavior patterns detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for parental conflict
+                      if (tone.includes('parent') || 
+                          tone.includes('child') && tone.includes('conflict') ||
+                          tone.includes('custody') ||
+                          patternsText.includes('co-parent')) {
+                        detectedIssues.push(
+                          <li key="parental-conflict" className="flex items-center">
+                            <span className="mr-1.5">•</span> Co-parenting conflict detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for aggression/hostility/violence
+                      if (tone.includes('aggress') || 
+                          tone.includes('hostile') || 
+                          tone.includes('violen') || 
+                          tone.includes('threat') || 
+                          tone.includes('abus') ||
+                          tone.includes('intimi') ||
+                          tone.includes('coerci')) {
+                        detectedIssues.push(
+                          <li key="aggression" className="flex items-center">
+                            <span className="mr-1.5">•</span> Extreme aggression or hostility detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for emotional blackmail
+                      if (tone.includes('blackmail') || 
+                          tone.includes('guilt trip') ||
+                          tone.includes('emotional manipulat')) {
+                        detectedIssues.push(
+                          <li key="emotional-blackmail" className="flex items-center">
+                            <span className="mr-1.5">•</span> Emotional blackmail detected
+                          </li>
+                        );
+                      }
+                      
+                      // Check for power imbalance
+                      if (tone.includes('power imbalance') || 
+                          tone.includes('control') ||
+                          tone.includes('dominat') ||
+                          tone.includes('submission') ||
+                          tone.includes('coerci')) {
+                        detectedIssues.push(
+                          <li key="power-imbalance" className="flex items-center">
+                            <span className="mr-1.5">•</span> Power imbalance detected
+                          </li>
+                        );
+                      }
+                      
+                      // If we have too many detected issues, show only the most significant ones
+                      // to avoid overwhelming the user with redundant information
+                      if (detectedIssues.length > 3) {
+                        return detectedIssues.slice(0, 3);
+                      }
+                      
+                      // If we have no detected issues but a poor health score,
+                      // show a generic warning based on health score
+                      if (detectedIssues.length === 0 && result.healthScore.score < 50) {
+                        return [
+                          <li key="general-concern" className="flex items-center">
+                            <span className="mr-1.5">•</span> Concerning interaction patterns detected
+                          </li>
+                        ];
+                      }
+                      
+                      return detectedIssues;
+                    })()}
                   </ul>
                 </div>
                 

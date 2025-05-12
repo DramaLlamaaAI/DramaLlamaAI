@@ -489,9 +489,9 @@ export default function ChatAnalysis() {
               <div class="section-content">
                 <p>
                   <span class="red-flags-count">
-                    ${result.redFlags ? result.redFlags.length : result.redFlagsCount} potential red flag${(result.redFlags ? result.redFlags.length : result.redFlagsCount) !== 1 ? 's' : ''}
-                  </span> ${(result.redFlags ? result.redFlags.length : result.redFlagsCount) === 0 ? 'were' : 'was'} identified in this conversation.
-                  ${tier === 'free' && (result.redFlags ? result.redFlags.length : result.redFlagsCount) > 0 ? ' Upgrade to see detailed analysis of each red flag.' : ''}
+                    ${result.redFlags ? result.redFlags.length : (result.redFlagsCount || 0)} potential red flag${(result.redFlags ? result.redFlags.length : (result.redFlagsCount || 0)) !== 1 ? 's' : ''}
+                  </span> ${(result.redFlags ? result.redFlags.length : (result.redFlagsCount || 0)) === 0 ? 'were' : 'was'} identified in this conversation.
+                  ${tier === 'free' && ((result.redFlags ? result.redFlags.length : (result.redFlagsCount || 0)) > 0) ? ' Upgrade to see detailed analysis of each red flag.' : ''}
                 </p>
                 ${tier !== 'free' && result.redFlags && result.redFlags.length > 0 ? 
                   `<ul style="margin-top: 10px; padding-left: 20px;">
