@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse, OcrRequest } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -751,33 +751,56 @@ export default function ChatAnalysis() {
                       <h3 className="text-lg font-semibold">Potential Red Flags</h3>
                     </div>
                     
-                    {result.redFlags && result.redFlags.length > 0 ? (
-                      <div className="space-y-3">
-                        {result.redFlags.map((flag, idx) => (
-                          <div key={idx} className="p-3 border-l-4 border-red-400 bg-red-50 rounded-r-md">
-                            <h4 className="font-medium text-red-700">{flag.type}</h4>
-                            <p className="text-red-600 text-sm mt-1">{flag.description}</p>
-                          </div>
-                        ))}
-                        
-                        {tier === 'free' && (
-                          <div className="mt-4 p-3 bg-gray-50 rounded-md">
-                            <p className="text-sm mb-2">
-                              <strong>Get more detailed insights and personalized advice</strong> with an upgraded plan.
-                            </p>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                              <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                                Upgrade Here
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                One-time Insight
-                              </Button>
+                    {tier === 'free' ? (
+                      // Free tier - only show count with upgrade prompt
+                      <>
+                        {result.redFlags && result.redFlags.length > 0 ? (
+                          <div>
+                            <div className="p-3 border-l-4 border-red-400 bg-red-50 rounded-r-md">
+                              <h4 className="font-medium text-red-700">
+                                {result.redFlags.length} potential red flag{result.redFlags.length !== 1 ? 's' : ''} detected
+                              </h4>
+                              <p className="text-gray-700 text-sm mt-1">
+                                Our analysis has identified potential concerning patterns in this conversation.
+                                Upgrade to see detailed information about each red flag.
+                              </p>
+                              
+                              <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                                <a href="/pricing">
+                                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                                    <ChevronUpCircle className="h-4 w-4 mr-2" />
+                                    Upgrade for Details
+                                  </Button>
+                                </a>
+                                <a href="/one-time-analysis">
+                                  <Button size="sm" variant="outline">
+                                    <Zap className="h-4 w-4 mr-2" />
+                                    One-time Insight
+                                  </Button>
+                                </a>
+                              </div>
                             </div>
                           </div>
+                        ) : (
+                          <p className="text-green-600">No significant red flags detected in this conversation.</p>
                         )}
-                      </div>
+                      </>
                     ) : (
-                      <p className="text-green-600">No significant red flags detected in this conversation.</p>
+                      // Personal tier and above - show full red flag details
+                      <>
+                        {result.redFlags && result.redFlags.length > 0 ? (
+                          <div className="space-y-3">
+                            {result.redFlags.map((flag, idx) => (
+                              <div key={idx} className="p-3 border-l-4 border-red-400 bg-red-50 rounded-r-md">
+                                <h4 className="font-medium text-red-700">{flag.type}</h4>
+                                <p className="text-red-600 text-sm mt-1">{flag.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-green-600">No significant red flags detected in this conversation.</p>
+                        )}
+                      </>
                     )}
                   </div>
                   
