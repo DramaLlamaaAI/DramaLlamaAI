@@ -32,7 +32,7 @@ export const sendEmail = async (params: EmailParams): Promise<boolean> => {
   try {
     // Send the email with Resend
     const { data, error } = await resendClient!.emails.send({
-      from: 'Drama Llama <onboarding@resend.dev>', // Resend allows using onboarding@resend.dev for testing
+      from: 'Drama Llama AI <onboarding@resend.dev>', // Resend allows using onboarding@resend.dev for testing
       to: params.to,
       subject: params.subject,
       text: params.text || '',
@@ -58,7 +58,7 @@ export const sendVerificationEmail = async (user: User, verificationCode: string
   
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #22C9C9;">Welcome to Drama Llama!</h2>
+      <h2 style="color: #22C9C9;">Welcome to Drama Llama AI!</h2>
       <p>Hi ${user.username},</p>
       <p>Thank you for signing up. Please verify your email address by clicking the button below:</p>
       <div style="text-align: center; margin: 30px 0;">
@@ -68,13 +68,13 @@ export const sendVerificationEmail = async (user: User, verificationCode: string
       </div>
       <p>Or enter this verification code when prompted: <strong>${verificationCode}</strong></p>
       <p>This code will expire in 24 hours.</p>
-      <p>If you didn't sign up for Drama Llama, please ignore this email.</p>
-      <p>Thank you,<br>The Drama Llama Team</p>
+      <p>If you didn't sign up for Drama Llama AI, please ignore this email.</p>
+      <p>Thank you,<br>The Drama Llama AI Team</p>
     </div>
   `;
   
   const textContent = `
-    Welcome to Drama Llama!
+    Welcome to Drama Llama AI!
     
     Hi ${user.username},
     
@@ -86,15 +86,15 @@ export const sendVerificationEmail = async (user: User, verificationCode: string
     
     This code will expire in 24 hours.
     
-    If you didn't sign up for Drama Llama, please ignore this email.
+    If you didn't sign up for Drama Llama AI, please ignore this email.
     
     Thank you,
-    The Drama Llama Team
+    The Drama Llama AI Team
   `;
   
   return sendEmail({
     to: user.email,
-    subject: 'Verify Your Drama Llama Account',
+    subject: 'Verify Your Drama Llama AI Account',
     text: textContent,
     html: htmlContent,
   });
