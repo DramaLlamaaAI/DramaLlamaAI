@@ -1,7 +1,9 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ChevronUpCircle, Zap } from "lucide-react";
 import SupportHelpLinesLink from "@/components/support-helplines-link";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 interface RedFlagsProps {
   redFlags?: Array<{
@@ -12,16 +14,74 @@ interface RedFlagsProps {
   tier: string;
   conversation?: string;
   overallTone?: string;
+  redFlagsCount?: number;
 }
 
-export default function RedFlags({ redFlags, tier, conversation, overallTone }: RedFlagsProps) {
+export default function RedFlags({ redFlags, tier, conversation, overallTone, redFlagsCount }: RedFlagsProps) {
   // Only rely on the red flags from the API response directly
   // This ensures consistency between free tier count and personal tier actual flags
   let flagsToDisplay = redFlags || [];
   
-  // We'll keep this simple and not add any generated flags
-  // This ensures consistency with the free tier red flags count
-  console.log(`Red flags component received ${flagsToDisplay.length} flags from API`);
+  // For free tier, we'll only show the count of red flags, not the details
+  const isFree = tier === 'free';
+  
+  // Determine the number of red flags to display
+  const flagCount = isFree 
+    ? (redFlagsCount || flagsToDisplay.length) 
+    : flagsToDisplay.length;
+  
+  console.log(`Red flags component received ${flagsToDisplay.length} flags from API, total count: ${flagCount}`);
+  
+  // For free tier, we'll return early with just the count
+  if (isFree) {
+    // Only display if we have red flags
+    if (flagCount <= 0) {
+      return (
+        <div className="mt-6">
+          <div className="flex items-center mb-3">
+            <AlertTriangle className="h-5 w-5 text-green-500 mr-2" />
+            <h3 className="text-lg font-semibold text-green-600">
+              No red flags detected
+            </h3>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="mt-6">
+        <div className="flex items-center mb-3">
+          <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+          <h3 className="text-lg font-semibold text-red-600">
+            {flagCount} potential red flag{flagCount !== 1 ? 's' : ''} detected
+          </h3>
+        </div>
+        
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-gray-700 mb-4">
+              Our analysis has identified {flagCount} potential red flag{flagCount !== 1 ? 's' : ''} in this conversation 
+              that may indicate concerning communication patterns.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link href="/pricing">
+                <Button className="w-full sm:w-auto" variant="default">
+                  <ChevronUpCircle className="h-4 w-4 mr-2" />
+                  Upgrade to see details
+                </Button>
+              </Link>
+              <Link href="/one-time-analysis">
+                <Button className="w-full sm:w-auto" variant="outline">
+                  <Zap className="h-4 w-4 mr-2" />
+                  One-time insight
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   // If we have no flags but this is the personal tier or above, use a fallback
   // But make sure this matches what the free tier would show
@@ -90,7 +150,7 @@ export default function RedFlags({ redFlags, tier, conversation, overallTone }: 
     }
   }
   
-  // If no flags to display after all checks, don't render component
+  // If no flags to display after all checks for paid tiers, don't render component
   if (flagsToDisplay.length === 0 || !shouldDisplay) {
     return null;
   }
