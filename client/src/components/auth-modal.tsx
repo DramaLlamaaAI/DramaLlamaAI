@@ -57,7 +57,7 @@ export default function AuthModal({
   
   // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: { username: string; password: string }) => {
+    mutationFn: async (credentials: { email: string; password: string }) => {
       const response = await apiRequest("POST", "/api/auth/login", credentials);
       return response.json();
     },
@@ -100,16 +100,16 @@ export default function AuthModal({
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!username || !password) {
+    if (!email || !password) {
       toast({
         title: "Missing information",
-        description: "Please enter your username and password.",
+        description: "Please enter your email and password.",
         variant: "destructive",
       });
       return;
     }
     
-    loginMutation.mutate({ username, password });
+    loginMutation.mutate({ email, password });
   };
   
   return (
@@ -139,12 +139,13 @@ export default function AuthModal({
           <TabsContent value="login">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="login-username">Username</Label>
+                <Label htmlFor="login-email">Email</Label>
                 <Input 
-                  id="login-username" 
-                  placeholder="Your username" 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="login-email" 
+                  placeholder="Your email address" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
                   required
                 />
               </div>
