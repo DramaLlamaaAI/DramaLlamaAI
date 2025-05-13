@@ -5,13 +5,17 @@ import { Shield } from "lucide-react";
 interface PersonalizedSuggestionsProps {
   me: string;
   them: string;
-  tier: string;
+  tier?: string;
   suggestions?: string[];
+  result?: any; // ChatAnalysisResponse type
 }
 
-export default function PersonalizedSuggestions({ me, them, tier, suggestions }: PersonalizedSuggestionsProps) {
+export default function PersonalizedSuggestions({ me, them, tier, suggestions: propSuggestions, result }: PersonalizedSuggestionsProps) {
+  // Extract suggestions from result if provided, otherwise use the prop
+  const suggestions = result?.communication?.suggestions || propSuggestions;
+  
   // Only show for personal+ tiers
-  if (tier === 'free' || !suggestions || suggestions.length === 0) {
+  if ((tier === 'free' && !result?.tier) || !suggestions || suggestions.length === 0) {
     return null;
   }
   

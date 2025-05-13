@@ -755,6 +755,7 @@ export default function ChatAnalysis() {
                                 tensionContributions={result.tensionContributions}
                                 me={me}
                                 them={them}
+                                tier={tierLevel}
                               />
                             </>
                           )}
@@ -778,6 +779,7 @@ export default function ChatAnalysis() {
                             result={result}
                             me={me}
                             them={them}
+                            tier={tierLevel}
                           />
                         </>
                       )}
