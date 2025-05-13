@@ -1,74 +1,71 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer, 
-  Legend, 
-  Tooltip 
-} from "recharts";
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 
 interface UsersByTierChartProps {
-  data: {
-    [tier: string]: number;
-  };
-  isLoading?: boolean;
+  data: { [tier: string]: number };
+  isLoading: boolean;
 }
 
-export default function UsersByTierChart({ data, isLoading = false }: UsersByTierChartProps) {
-  // Transform data for the chart
-  const chartData = Object.entries(data || {}).map(([tier, count]) => ({
-    name: getTierDisplayName(tier),
+// Colors for different tiers
+const TIER_COLORS = {
+  free: "#94a3b8", // slate-400
+  personal: "#3b82f6", // blue-500
+  pro: "#a855f7", // purple-500
+};
+
+export default function UsersByTierChart({ data, isLoading }: UsersByTierChartProps) {
+  // Convert data to format required by Recharts
+  const chartData = Object.entries(data).map(([tier, count]) => ({
+    name: tier.charAt(0).toUpperCase() + tier.slice(1),
     value: count,
-    tier
+    color: TIER_COLORS[tier as keyof typeof TIER_COLORS] || "#cbd5e1",
   }));
-
-  // Custom colors for different tiers
-  const COLORS = {
-    'free': '#22C9C9', // turquoise
-    'personal': '#FF69B4', // pink
-    'pro': '#9370DB', // purple
-    'instant': '#FFD700', // gold
+  
+  // Calculate percentages for each tier
+  const total = Object.values(data).reduce((acc, count) => acc + count, 0);
+  const getPercentage = (value: number) => {
+    if (total === 0) return "0%";
+    return `${Math.round((value / total) * 100)}%`;
   };
-
-  // Default colors for any other tiers
-  const DEFAULT_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Users by Tier</CardTitle>
-          <CardDescription>Distribution of users across different tiers</CardDescription>
-        </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Helper function to get tier display name
-  function getTierDisplayName(tier: string): string {
-    const displayNames: Record<string, string> = {
-      'free': 'Free',
-      'personal': 'Personal',
-      'pro': 'Pro',
-      'instant': 'Instant Deep Dive'
-    };
-    return displayNames[tier] || tier;
-  }
-
+  
+  // Customize the tooltip content
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border rounded-md p-2 shadow-md">
+          <p className="font-medium">{payload[0].name} Tier</p>
+          <p className="text-sm">
+            {payload[0].value} users ({getPercentage(payload[0].value)})
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+  
   return (
-    <Card>
+    <Card className="col-span-1">
       <CardHeader>
         <CardTitle>Users by Tier</CardTitle>
-        <CardDescription>Distribution of users across different tiers</CardDescription>
+        <CardDescription>
+          Distribution of users across different subscription tiers
+        </CardDescription>
       </CardHeader>
       <CardContent className="h-[300px]">
-        {chartData.length === 0 ? (
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center">
+            <Skeleton className="h-[250px] w-[250px] rounded-full" />
+          </div>
+        ) : chartData.length === 0 ? (
           <div className="h-full flex items-center justify-center text-muted-foreground">
-            No tier data available
+            No data available
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
@@ -77,26 +74,23 @@ export default function UsersByTierChart({ data, isLoading = false }: UsersByTie
                 data={chartData}
                 cx="50%"
                 cy="50%"
-                labelLine={false}
-                outerRadius={100}
+                innerRadius={60}
+                outerRadius={80}
                 fill="#8884d8"
+                paddingAngle={5}
                 dataKey="value"
-                nameKey="name"
-                label={({ name, percent }) => 
-                  `${name}: ${(percent * 100).toFixed(0)}%`
-                }
+                label={({ name, value }) => `${name}: ${value}`}
               >
                 {chartData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS[entry.tier as keyof typeof COLORS] || DEFAULT_COLORS[index % DEFAULT_COLORS.length]} 
-                  />
+                  <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip 
-                formatter={(value: number) => [`${value} users`, 'Count']}
+              <Tooltip content={<CustomTooltip />} />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36} 
+                formatter={(value) => <span className="text-sm">{value}</span>}
               />
-              <Legend />
             </PieChart>
           </ResponsiveContainer>
         )}
