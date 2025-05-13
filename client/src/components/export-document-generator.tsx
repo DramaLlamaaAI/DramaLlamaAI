@@ -455,7 +455,7 @@ export function generateExportDocument({ result, me, them, tier = 'free' }: Expo
                 <div class="red-flag-item">
                   <div class="red-flag-type">${flag.type}</div>
                   <div class="red-flag-description">${flag.description}</div>
-                  <div class="red-flag-severity">Severity: ${flag.severity}/10</div>
+                  <div class="red-flag-severity">Severity: ${flag.severity}/5</div>
                 </div>
               `).join('')
               : `<div style="color:#38a169; font-weight:500; padding: 15px; background-color: #F0FFF4; border-radius: 6px; border-left: 4px solid #38a169;">
@@ -466,113 +466,51 @@ export function generateExportDocument({ result, me, them, tier = 'free' }: Expo
           `}
         </div>
         
+        ${userTier !== 'free' && result.communication ? `
         <div class="document-section">
           <div class="section-title">Communication Patterns</div>
           <div class="section-content">
-            <ul class="pattern-list">
-              ${result.communication && result.communication.patterns ? 
-                result.communication.patterns.map(pattern => 
-                  `<li class="pattern-item">${pattern}</li>`
-                ).join('') : ''}
-            </ul>
-          </div>
-        </div>
-        
-        ${(userTier === 'personal' || userTier === 'pro' || userTier === 'instant') && result.communication?.dynamics ? `
-        <div class="document-section">
-          <div class="section-title">Communication Dynamics</div>
-          <div class="section-content">
-            <ul class="pattern-list">
-              ${result.communication.dynamics.map(dynamic => 
-                `<li class="pattern-item">${dynamic}</li>`
-              ).join('')}
-            </ul>
-          </div>
-        </div>
-        ` : ''}
-        
-        ${(userTier === 'personal' || userTier === 'pro' || userTier === 'instant') && result.tensionContributions ? `
-        <div class="document-section">
-          <div class="section-title">Individual Contributions to Tension</div>
-          <div class="tension-contributions">
-            ${Object.entries(result.tensionContributions).map(([participant, contributions]) => {
-              const isMe = participant.toLowerCase() === me.toLowerCase();
-              return `
-              <div class="profile-participant ${isMe ? 'profile-me' : 'profile-them'}" style="margin-bottom: 15px;">
-                <div class="participant-name ${isMe ? 'participant-name-me' : 'participant-name-them'}">${participant}</div>
-                <ul class="pattern-list" style="margin-top: 10px;">
-                  ${contributions.map(contribution => `
-                    <li>${contribution}</li>
-                  `).join('')}
-                </ul>
-              </div>
-              `;
-            }).join('')}
-            
-            ${result.tensionMeaning ? `
-            <div class="tension-meaning">
-              <strong>What This Means:</strong> ${result.tensionMeaning}
+            ${result.communication.patterns ? `
+            <div class="mb-4">
+              <h4 class="text-lg font-medium text-gray-800 mb-2">Prevalent Patterns</h4>
+              <ul class="pattern-list">
+                ${result.communication.patterns.map(pattern => `
+                  <li class="pattern-item">${pattern}</li>
+                `).join('')}
+              </ul>
+            </div>
+            ` : ''}
+            ${result.communication.recommendations ? `
+            <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+              <h4 class="text-lg font-medium text-gray-800 mb-2">Recommendations</h4>
+              <p>${result.communication.recommendations}</p>
             </div>
             ` : ''}
           </div>
         </div>
         ` : ''}
         
-        ${result.toneAnalysis.emotionalState && result.toneAnalysis.emotionalState.length > 0 ? `
-        <div class="document-section">
-          <div class="section-title">Emotional Intensity</div>
-          <div class="section-content">
-            ${result.toneAnalysis.emotionalState.map(emotion => `
-            <div class="emotion-item">
-              <div class="emotion-label">${emotion.emotion}</div>
-              <div class="emotion-bar-container">
-                <div class="emotion-bar" style="width: ${emotion.intensity * 100}%"></div>
-              </div>
-            </div>
-            `).join('')}
-          </div>
-        </div>
-        ` : ''}
-        
-        ${(userTier === 'pro' || userTier === 'instant') && result.communication?.suggestions ? `
-        <div class="document-section">
-          <div class="section-title">Suggestions for Improvement</div>
-          <div class="section-content">
-            <ul class="pattern-list">
-              ${result.communication.suggestions.map(suggestion => 
-                `<li class="pattern-item">${suggestion}</li>`
-              ).join('')}
-            </ul>
-          </div>
-        </div>
-        ` : ''}
-        
-        <div class="document-section">
-          <div class="section-title">Support Resources</div>
-          <div class="section-content">
-            <div style="padding: 12px; background-color: #f0f8ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
-              <p>If you're experiencing relationship difficulties or emotional distress, UK support is available:</p>
-              <ul style="margin-top: 8px;">
-                <li style="margin-bottom: 8px;">Samaritans: 116 123 (24/7)</li>
-                <li style="margin-bottom: 8px;">Shout: Text SHOUT to 85258 (24/7)</li>
-                <li style="margin-bottom: 8px;">National Domestic Abuse Helpline: 0808 2000 247 (24/7)</li>
-                <li style="margin-bottom: 8px;">NHS Mental Health Services: nhs.uk/service-search/mental-health</li>
-              </ul>
-              <p style="margin-top: 12px; font-style: italic; font-size: 12px;">
-                Visit app.dramallama.ai/support-helplines for a comprehensive list of support resources.
-              </p>
-            </div>
-          </div>
-        </div>
-
         <div class="document-footer">
-          <p>© Drama Llama AI - Powered by Claude</p>
-          <p>For a more detailed analysis, upgrade your plan at app.dramallama.ai</p>
+          <p>Report generated by Drama Llama AI - Copyright © ${new Date().getFullYear()}</p>
+          <p>For more insights into your conversations, visit <a href="https://drama-llama-ai.replit.app">drama-llama-ai.replit.app</a></p>
         </div>
       </div>
     </body>
     </html>
   `;
+}
+
+// Helper function to handle export errors
+function handleExportError(tempContainer: HTMLDivElement, toast: any) {
+  if (tempContainer.parentNode) {
+    document.body.removeChild(tempContainer);
+  }
+  
+  toast({
+    title: "Export Failed",
+    description: "Could not create PDF. Please try again.",
+    variant: "destructive",
+  });
 }
 
 export function exportToPdf(result: ChatAnalysisResult, me: string, them: string, toast: any, tier: string = 'free') {
@@ -604,9 +542,6 @@ export function exportToPdf(result: ChatAnalysisResult, me: string, them: string
     // Add document to container
     tempContainer.innerHTML = formalDocumentContent;
     
-    // Mobile detection
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
     // Create a timestamp for unique filenames
     const timestamp = new Date().getTime();
     const fileName = `Drama-Llama-Analysis-${timestamp}.pdf`;
@@ -626,71 +561,98 @@ export function exportToPdf(result: ChatAnalysisResult, me: string, them: string
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
-    // Generate the PDF as a blob for all devices
-    html2pdf().from(tempContainer).set(options).outputPdf('blob')
-      .then((pdfBlob: any) => {
-        // Remove the temporary container
-        document.body.removeChild(tempContainer);
-        
-        // Create a URL for the blob
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        
-        // For Safari on iOS which has special requirements
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-        
-        if (isIOS) {
-          // For iOS, open the PDF in a new tab/window
-          // This often works better on iOS than programmatic downloads
-          window.open(blobUrl, '_blank');
+    // For mobile devices, we need a different approach
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    
+    if (isIOS) {
+      // For iOS, use direct data URL approach which works better in Safari
+      html2pdf().from(tempContainer).set(options).outputPdf('dataurlstring')
+        .then((pdfDataUrl: string) => {
+          // Remove the temporary container
+          document.body.removeChild(tempContainer);
+          
+          // Open the PDF in a new tab (iOS handles this better)
+          window.open(pdfDataUrl, '_blank');
           
           toast({
             title: "PDF Ready",
-            description: "Your PDF has opened in a new tab. Tap the share icon to save or share it.",
+            description: "Your PDF has opened in a new window. Use the share button to save or share it.",
           });
-        } else {
-          // For all other devices, create and click a download link
+        })
+        .catch((error: any) => {
+          console.error("iOS PDF generation error:", error);
+          handleExportError(tempContainer, toast);
+        });
+    } else if (isAndroid) {
+      // For Android, we'll use a data URL approach with a download attribute
+      html2pdf().from(tempContainer).set(options).outputPdf('dataurlstring')
+        .then((pdfDataUrl: string) => {
+          // Remove the temporary container
+          document.body.removeChild(tempContainer);
+          
+          // Create a download link with the data URL
+          const downloadLink = document.createElement('a');
+          downloadLink.href = pdfDataUrl;
+          downloadLink.download = fileName;
+          downloadLink.setAttribute('download', fileName);
+          downloadLink.setAttribute('target', '_blank');
+          
+          // Add to DOM and trigger immediately
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          
+          // Remove after a delay
+          setTimeout(() => {
+            document.body.removeChild(downloadLink);
+            
+            toast({
+              title: "Export Successful",
+              description: "Your analysis has been downloaded as a PDF.",
+            });
+          }, 100);
+        })
+        .catch((error: any) => {
+          console.error("Android PDF generation error:", error);
+          handleExportError(tempContainer, toast);
+        });
+    } else {
+      // For desktop browsers, use the blob approach which is more reliable
+      html2pdf().from(tempContainer).set(options).outputPdf('blob')
+        .then((pdfBlob: any) => {
+          // Remove the temporary container
+          document.body.removeChild(tempContainer);
+          
+          // Create a URL for the blob
+          const blobUrl = URL.createObjectURL(pdfBlob);
+          
+          // Create and click a download link
           const downloadLink = document.createElement('a');
           downloadLink.href = blobUrl;
           downloadLink.download = fileName;
-          downloadLink.target = '_blank'; // This helps on some mobile browsers
           
-          // Add to DOM for some mobile browsers that require the element to be in the DOM
-          downloadLink.style.position = 'fixed';
-          downloadLink.style.top = '0';
-          downloadLink.style.left = '0';
-          downloadLink.style.opacity = '0';
+          // Add to DOM for browsers that require the element to be in the DOM
           document.body.appendChild(downloadLink);
           
-          // Use a slight delay to ensure the browser has time to process
+          // Trigger the download
+          downloadLink.click();
+          
+          // Clean up
           setTimeout(() => {
-            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(blobUrl);
             
-            // Give the browser some time to initiate the download before cleanup
-            setTimeout(() => {
-              document.body.removeChild(downloadLink);
-              URL.revokeObjectURL(blobUrl);
-              
-              toast({
-                title: "Export Successful",
-                description: "Your analysis has been downloaded as a PDF.",
-              });
-            }, 1000);
+            toast({
+              title: "Export Successful",
+              description: "Your analysis has been downloaded as a PDF.",
+            });
           }, 100);
-        }
-      })
-      .catch((error: any) => {
-        console.error("PDF generation error:", error);
-        if (tempContainer.parentNode) {
-          document.body.removeChild(tempContainer);
-        }
-        
-        toast({
-          title: "Export Failed",
-          description: "Could not create PDF. Please try again.",
-          variant: "destructive",
+        })
+        .catch((error: any) => {
+          console.error("Desktop PDF generation error:", error);
+          handleExportError(tempContainer, toast);
         });
-      });
-      
+    }
   } catch (error: any) {
     console.error("Export error:", error);
     toast({
