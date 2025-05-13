@@ -8,6 +8,11 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import UsersByTierChart from '@/components/analytics/users-by-tier-chart';
+import RegistrationsChart from '@/components/analytics/registrations-chart';
+import TierConversionChart from '@/components/analytics/tier-conversion-chart';
+import UserStatsCards from '@/components/analytics/user-stats-cards';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -39,7 +44,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 
 // Interface for user data
 interface User {
@@ -51,6 +56,24 @@ interface User {
   emailVerified: boolean;
   discountPercentage: number;
   discountExpiryDate: string | null;
+}
+
+// Define the user type for the current user
+interface CurrentUser {
+  id: number;
+  username: string;
+  email: string;
+  tier: string;
+  isAdmin: boolean;
+  emailVerified: boolean;
+}
+
+// Interface for analytics data
+interface AnalyticsSummary {
+  totalUsers: number;
+  usersByTier: { [tier: string]: number };
+  registrationsByDate: { date: string; count: number }[];
+  tierConversionRate: { fromTier: string; toTier: string; count: number }[];
 }
 
 // Define schemas for form validation
@@ -65,6 +88,7 @@ export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [activeTab, setActiveTab] = useState('users');
   
   // Form for setting user discount
   const discountForm = useForm<DiscountFormValues>({
@@ -75,22 +99,12 @@ export default function AdminDashboard() {
     },
   });
 
-// Define the user type for the current user
-interface CurrentUser {
-  id: number;
-  username: string;
-  email: string;
-  tier: string;
-  isAdmin: boolean;
-  emailVerified: boolean;
-}
-
   // Query to fetch current user
   const { data: currentUser, isLoading: currentUserLoading } = useQuery<CurrentUser | null>({
     queryKey: ['/api/auth/user'],
     retry: false,
   });
-
+  
   // Check if the user is admin and has the right email
   useEffect(() => {
     if (!currentUserLoading && currentUser) {
@@ -114,6 +128,16 @@ interface CurrentUser {
   // Query to fetch all users
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
+    enabled: !!currentUser?.isAdmin,
+  });
+  
+  // Query to fetch analytics data
+  const { 
+    data: analyticsData, 
+    isLoading: analyticsLoading,
+    refetch: refetchAnalytics 
+  } = useQuery<AnalyticsSummary>({
+    queryKey: ['/api/admin/analytics'],
     enabled: !!currentUser?.isAdmin,
   });
 
@@ -211,160 +235,219 @@ interface CurrentUser {
 
   return (
     <div className="container mx-auto py-8">
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Admin Dashboard</CardTitle>
-          <CardDescription>
-            Manage users, tiers, and discounts for Drama Llama.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">User Management</h2>
-            
-            {usersLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="users">
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>
+                Manage users, tiers, and discounts for Drama Llama.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {usersLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>ID</TableHead>
+                          <TableHead>Username</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Tier</TableHead>
+                          <TableHead>Verified</TableHead>
+                          <TableHead>Discount</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {users?.map((user) => (
+                          <TableRow key={user.id}>
+                            <TableCell>{user.id}</TableCell>
+                            <TableCell>{user.username}</TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>
+                              <Select 
+                                defaultValue={user.tier}
+                                onValueChange={(value) => handleTierChange(user.id, value)}
+                              >
+                                <SelectTrigger className="w-[120px]">
+                                  <SelectValue placeholder="Select tier" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="free">Free</SelectItem>
+                                  <SelectItem value="personal">Personal</SelectItem>
+                                  <SelectItem value="pro">Pro</SelectItem>
+                                  <SelectItem value="instant">Instant</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell>
+                              {user.emailVerified ? (
+                                <span className="text-green-500">Verified</span>
+                              ) : (
+                                <span className="text-red-500">Not Verified</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {user.discountPercentage > 0 ? (
+                                <div className="flex flex-col">
+                                  <span className="text-green-500">{user.discountPercentage}%</span>
+                                  <span className="text-xs text-gray-500">
+                                    Expires: {formatDate(user.discountExpiryDate)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span>None</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => setSelectedUser(user)}
+                              >
+                                Apply Discount
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Username</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Tier</TableHead>
-                      <TableHead>Verified</TableHead>
-                      <TableHead>Discount</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users?.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>{user.id}</TableCell>
-                        <TableCell>{user.username}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <Select 
-                            defaultValue={user.tier}
-                            onValueChange={(value) => handleTierChange(user.id, value)}
-                          >
-                            <SelectTrigger className="w-[120px]">
-                              <SelectValue placeholder="Select tier" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="free">Free</SelectItem>
-                              <SelectItem value="personal">Personal</SelectItem>
-                              <SelectItem value="pro">Pro</SelectItem>
-                              <SelectItem value="instant">Instant</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell>
-                          {user.emailVerified ? (
-                            <span className="text-green-500">Verified</span>
-                          ) : (
-                            <span className="text-red-500">Not Verified</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {user.discountPercentage > 0 ? (
-                            <div className="flex flex-col">
-                              <span className="text-green-500">{user.discountPercentage}%</span>
-                              <span className="text-xs text-gray-500">
-                                Expires: {formatDate(user.discountExpiryDate)}
-                              </span>
-                            </div>
-                          ) : (
-                            <span>None</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => setSelectedUser(user)}
-                          >
-                            Apply Discount
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      {selectedUser && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Apply Discount for {selectedUser.username}</CardTitle>
-            <CardDescription>
-              Set a discount percentage and expiry period for this user.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...discountForm}>
-              <form onSubmit={discountForm.handleSubmit(onDiscountSubmit)} className="space-y-6">
-                <FormField
-                  control={discountForm.control}
-                  name="discountPercentage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Discount Percentage (%)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="0" min="0" max="100" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Enter a value between 0-100%
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+          {selectedUser && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Apply Discount for {selectedUser.username}</CardTitle>
+                <CardDescription>
+                  Set a discount percentage and expiry period for this user.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...discountForm}>
+                  <form onSubmit={discountForm.handleSubmit(onDiscountSubmit)} className="space-y-6">
+                    <FormField
+                      control={discountForm.control}
+                      name="discountPercentage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Discount Percentage (%)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="0" min="0" max="100" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Enter a value between 0-100%
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={discountForm.control}
+                      name="expiryDays"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Expiry Period (days)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="30" min="1" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Number of days before the discount expires
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="flex gap-2">
+                      <Button type="submit" disabled={setDiscountMutation.isPending}>
+                        {setDiscountMutation.isPending && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        Apply Discount
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        type="button" 
+                        onClick={() => setSelectedUser(null)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="analytics">
+          <Card className="mb-8">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Analytics Dashboard</CardTitle>
+                <CardDescription>
+                  View user statistics and engagement metrics for Drama Llama.
+                </CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => refetchAnalytics()}
+                disabled={analyticsLoading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${analyticsLoading ? 'animate-spin' : ''}`} />
+                Refresh Data
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {/* Analytics Cards */}
+              <UserStatsCards 
+                data={analyticsData || {
+                  totalUsers: 0,
+                  usersByTier: {},
+                  registrationsByDate: [],
+                  tierConversionRate: []
+                }} 
+                isLoading={analyticsLoading} 
+              />
+              
+              {/* Charts */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <UsersByTierChart 
+                  data={analyticsData?.usersByTier || {}} 
+                  isLoading={analyticsLoading} 
                 />
                 
-                <FormField
-                  control={discountForm.control}
-                  name="expiryDays"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Expiry Period (days)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="30" min="1" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Number of days before the discount expires
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                <RegistrationsChart 
+                  data={analyticsData?.registrationsByDate || []} 
+                  isLoading={analyticsLoading}
                 />
-                
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={setDiscountMutation.isPending}>
-                    {setDiscountMutation.isPending && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Apply Discount
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    type="button" 
-                    onClick={() => setSelectedUser(null)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      )}
+              </div>
+              
+              <TierConversionChart 
+                data={analyticsData?.tierConversionRate || []} 
+                isLoading={analyticsLoading}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

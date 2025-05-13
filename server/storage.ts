@@ -399,11 +399,13 @@ export class MemStorage implements IStorage {
       }
       
       if (filter.startDate !== undefined) {
-        events = events.filter(event => event.createdAt >= filter.startDate);
+        const startDate = filter.startDate;
+        events = events.filter(event => event.createdAt >= startDate);
       }
       
       if (filter.endDate !== undefined) {
-        events = events.filter(event => event.createdAt <= filter.endDate);
+        const endDate = filter.endDate;
+        events = events.filter(event => event.createdAt <= endDate);
       }
     }
     
