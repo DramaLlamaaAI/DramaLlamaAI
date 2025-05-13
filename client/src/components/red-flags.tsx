@@ -214,9 +214,19 @@ export default function RedFlags({ redFlags, tier, conversation, overallTone, re
                   <div className="flex items-center text-sm">
                     <span className="font-medium text-gray-700 mr-1">Participant:</span>
                     <span className="text-gray-600">
-                      {flag.participant || (flag.type.toLowerCase().includes('both') ? 'Both participants' : 
-                        flag.type.toLowerCase().includes(me?.toLowerCase() || '') ? me : 
-                        flag.type.toLowerCase().includes(them?.toLowerCase() || '') ? them : 'Both participants')}
+                      {/* Prioritize direct participant field, then check the flag type, then use names from props */}
+                      {flag.participant ? flag.participant : 
+                       flag.type.toLowerCase().includes('both') ? 'Both participants' : 
+                       me && flag.type.toLowerCase().includes(me.toLowerCase()) ? me : 
+                       them && flag.type.toLowerCase().includes(them.toLowerCase()) ? them : 
+                       // Additional check for common terms that might indicate the speaker
+                       flag.description?.toLowerCase().includes('dismissive tone') || 
+                       flag.description?.toLowerCase().includes('defensive language') ? 
+                         (me || 'First participant') : 
+                       flag.description?.toLowerCase().includes('accusatory') || 
+                       flag.description?.toLowerCase().includes('critical remarks') ? 
+                         (them || 'Second participant') : 
+                       'Both participants'}
                     </span>
                   </div>
                 </div>
@@ -231,7 +241,12 @@ export default function RedFlags({ redFlags, tier, conversation, overallTone, re
                   {flag.quote && (
                     <div className="mb-3 p-2 bg-white rounded border-l-2 border-gray-300">
                       <div className="flex items-center mb-1">
-                        <span className="font-medium text-gray-700 mr-1">From {flag.participant || 'conversation'}:</span>
+                        <span className="font-medium text-gray-700 mr-1">
+                          From {flag.participant || 
+                              (flag.quote?.toLowerCase().includes(me?.toLowerCase() || '') ? me : 
+                               flag.quote?.toLowerCase().includes(them?.toLowerCase() || '') ? them :
+                               'conversation')}:
+                        </span>
                       </div>
                       <p className="italic text-gray-600">"{flag.quote}"</p>
                       {flag.context && (
