@@ -805,68 +805,93 @@ export default function ChatAnalysis() {
                   </div>
                   
                   {/* Communication Patterns */}
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">Communication Insights</h4>
-                    {(result.communication?.patterns && result.communication?.patterns.length > 0) ? (
-                      <div className="mb-4">
-                        <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
-                        <div className="space-y-3">
-                          {result.communication?.patterns.map((pattern: string, idx: number) => {
-                            // Check if the pattern contains a quote (text inside quotes)
-                            const quoteMatch = pattern.match(/"([^"]+)"/);
-                            const hasQuote = quoteMatch && quoteMatch[1];
-                            
-                            // Split pattern into parts before and after the quote
-                            let beforeQuote = pattern;
-                            let quote = '';
-                            let afterQuote = '';
-                            
-                            if (hasQuote) {
-                              const parts = pattern.split(quoteMatch[0]);
-                              beforeQuote = parts[0];
-                              quote = quoteMatch[1];
-                              afterQuote = parts[1] || '';
-                            }
-                            
-                            // Detect which participant is mentioned
-                            const meColor = pattern.includes(me) ? "text-cyan-700 bg-cyan-50" : "";
-                            const themColor = pattern.includes(them) ? "text-pink-700 bg-pink-50" : "";
-                            
-                            return (
-                              <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
-                                <p>
-                                  <span className="text-gray-700">{beforeQuote}</span>
-                                  {hasQuote && (
-                                    <>
-                                      <span className={`italic px-2 py-1 rounded my-1 inline-block ${meColor || themColor || "bg-blue-50 text-blue-600"}`}>
-                                        "{quote}"
-                                      </span>
-                                      <span className="text-gray-700">{afterQuote}</span>
-                                    </>
-                                  )}
-                                </p>
+                  {tier === 'free' ? (
+                    // Free tier - Show upgrade prompt
+                    <div className="bg-muted p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">Communication Insights</h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Upgrade to unlock detailed communication pattern analysis and personalized improvement suggestions.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <a href="/pricing">
+                          <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                            <ChevronUpCircle className="h-4 w-4 mr-2" />
+                            Upgrade for Insights
+                          </Button>
+                        </a>
+                        <a href="/one-time-analysis">
+                          <Button size="sm" variant="outline">
+                            <Zap className="h-4 w-4 mr-2" />
+                            One-time Analysis
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  ) : (
+                    // Paid tiers - Show full communication insights
+                    <div className="bg-muted p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">Communication Insights</h4>
+                      {(result.communication?.patterns && result.communication?.patterns.length > 0) ? (
+                        <div className="mb-4">
+                          <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
+                          <div className="space-y-3">
+                            {result.communication?.patterns.map((pattern: string, idx: number) => {
+                              // Check if the pattern contains a quote (text inside quotes)
+                              const quoteMatch = pattern.match(/"([^"]+)"/);
+                              const hasQuote = quoteMatch && quoteMatch[1];
+                              
+                              // Split pattern into parts before and after the quote
+                              let beforeQuote = pattern;
+                              let quote = '';
+                              let afterQuote = '';
+                              
+                              if (hasQuote) {
+                                const parts = pattern.split(quoteMatch[0]);
+                                beforeQuote = parts[0];
+                                quote = quoteMatch[1];
+                                afterQuote = parts[1] || '';
+                              }
+                              
+                              // Detect which participant is mentioned
+                              const meColor = pattern.includes(me) ? "text-cyan-700 bg-cyan-50" : "";
+                              const themColor = pattern.includes(them) ? "text-pink-700 bg-pink-50" : "";
+                              
+                              return (
+                                <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
+                                  <p>
+                                    <span className="text-gray-700">{beforeQuote}</span>
+                                    {hasQuote && (
+                                      <>
+                                        <span className={`italic px-2 py-1 rounded my-1 inline-block ${meColor || themColor || "bg-blue-50 text-blue-600"}`}>
+                                          "{quote}"
+                                        </span>
+                                        <span className="text-gray-700">{afterQuote}</span>
+                                      </>
+                                    )}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-sm">No significant communication patterns detected.</p>
+                      )}
+                      
+                      {result.communication?.suggestions && result.communication?.suggestions.length > 0 && (
+                        <div className="mt-4">
+                          <h5 className="text-sm font-medium text-muted-foreground mb-1">Improvement Suggestions</h5>
+                          <div className="space-y-2">
+                            {result.communication?.suggestions.map((suggestion: string, idx: number) => (
+                              <div key={idx} className="p-3 bg-blue-50 text-blue-700 rounded">
+                                {suggestion}
                               </div>
-                            );
-                          })}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground text-sm">No significant communication patterns detected.</p>
-                    )}
-                    
-                    {result.communication?.suggestions && result.communication?.suggestions.length > 0 && (
-                      <div className="mt-4">
-                        <h5 className="text-sm font-medium text-muted-foreground mb-1">Improvement Suggestions</h5>
-                        <div className="space-y-2">
-                          {result.communication?.suggestions.map((suggestion: string, idx: number) => (
-                            <div key={idx} className="p-3 bg-blue-50 text-blue-700 rounded">
-                              {suggestion}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                   
                   <SupportHelpLinesLink variant="secondary" size="default" />
                 </div>
