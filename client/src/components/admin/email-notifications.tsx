@@ -19,38 +19,37 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
-import { LoaderCircle, Mail, Send, BookMarked, Sparkles } from "lucide-react";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { LoaderCircle, Mail, SendHorizonal, Users } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
-// Interface for user data
 interface User {
   id: number;
   username: string;
   email: string;
   tier: string;
+  isAdmin: boolean;
+  emailVerified: boolean;
+  discountPercentage: number;
+  discountExpiryDate: string | null;
 }
 
 interface EmailNotificationsProps {
@@ -58,115 +57,66 @@ interface EmailNotificationsProps {
   onComplete: () => void;
 }
 
-// Schema for email template form
-const emailTemplateSchema = z.object({
-  templateName: z.string().min(1, "Template name is required"),
-  subject: z.string().min(1, "Subject is required"),
-  body: z.string().min(10, "Body must be at least 10 characters"),
-  saveAsTemplate: z.boolean().default(false),
-});
-
-// Schema for custom email form
-const customEmailSchema = z.object({
-  subject: z.string().min(1, "Subject is required"),
-  body: z.string().min(10, "Body must be at least 10 characters"),
-  includeFooter: z.boolean().default(true),
+// Schema for email form
+const emailFormSchema = z.object({
+  subject: z.string().min(1, "Subject is required").max(100, "Subject is too long"),
+  body: z.string().min(1, "Email body is required"),
   includeLogo: z.boolean().default(true),
-  sendPreview: z.boolean().default(false),
+  includeFooter: z.boolean().default(true),
+  isPreview: z.boolean().default(false),
   previewEmail: z.string().email("Please enter a valid email").optional(),
-  userFilter: z.string().optional(),
 });
 
-type EmailTemplateFormValues = z.infer<typeof emailTemplateSchema>;
-type CustomEmailFormValues = z.infer<typeof customEmailSchema>;
+type EmailFormValues = z.infer<typeof emailFormSchema>;
 
-// Email template options
-const EMAIL_TEMPLATES = [
-  {
-    id: "special_offer",
-    name: "Special Offer",
-    subject: "Special Discount Just For You - Drama Llama",
-    body: "Dear {{username}},\n\nWe're excited to offer you a special discount on your Drama Llama subscription! For a limited time, you can enjoy a {{discount}}% discount on our services.\n\nLog in to your account to take advantage of this offer.\n\nBest regards,\nThe Drama Llama Team",
-  },
-  {
-    id: "new_feature_announcement",
-    name: "New Feature Announcement",
-    subject: "Exciting New Features Available - Drama Llama",
-    body: "Hello {{username}},\n\nWe're thrilled to announce that we've just released some exciting new features to Drama Llama!\n\n- Improved chat analysis\n- Enhanced message insights\n- New conflict resolution tools\n\nLog in to your account to explore these new features today.\n\nBest regards,\nThe Drama Llama Team",
-  },
-  {
-    id: "subscription_reminder",
-    name: "Subscription Reminder",
-    subject: "Your Drama Llama Subscription Update",
-    body: "Hi {{username}},\n\nThis is a friendly reminder about your Drama Llama subscription. Your current plan is {{tier}}.\n\nWe value your continued support and want to ensure you're getting the most out of our services.\n\nIf you have any questions about your subscription or would like to upgrade, please don't hesitate to contact us.\n\nBest regards,\nThe Drama Llama Team",
-  },
-  {
-    id: "account_notification",
-    name: "Account Notification",
-    subject: "Important Account Information - Drama Llama",
-    body: "Dear {{username}},\n\nWe're writing to inform you about an important update to your Drama Llama account.\n\nYour account information has been successfully updated. If you did not make these changes, please contact our support team immediately.\n\nBest regards,\nThe Drama Llama Team",
-  }
-];
-
-export function EmailNotifications({ 
-  selectedUsers, 
-  onComplete 
-}: EmailNotificationsProps) {
+export function EmailNotifications({ selectedUsers, onComplete }: EmailNotificationsProps) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("templates");
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("compose");
   
-  // Form for template-based email
-  const templateForm = useForm<EmailTemplateFormValues>({
-    resolver: zodResolver(emailTemplateSchema),
-    defaultValues: {
-      templateName: "",
-      subject: "",
-      body: "",
-      saveAsTemplate: false,
-    },
-  });
-  
-  // Form for custom email
-  const customForm = useForm<CustomEmailFormValues>({
-    resolver: zodResolver(customEmailSchema),
+  // Form for email settings
+  const form = useForm<EmailFormValues>({
+    resolver: zodResolver(emailFormSchema),
     defaultValues: {
       subject: "",
       body: "",
-      includeFooter: true,
       includeLogo: true,
-      sendPreview: false,
-      userFilter: "all",
+      includeFooter: true,
+      isPreview: false,
     },
   });
   
   // Watch for form value changes
-  const sendPreview = customForm.watch("sendPreview");
-  const userFilter = customForm.watch("userFilter");
+  const isPreview = form.watch("isPreview");
   
-  // Mutation for sending bulk emails
+  // Mutation for sending bulk email
   const sendEmailMutation = useMutation({
-    mutationFn: async (values: { 
-      subject: string;
-      body: string;
-      userIds: number[];
-      includeLogo?: boolean;
-      includeFooter?: boolean;
-      isPreview?: boolean;
-      previewEmail?: string;
-    }) => {
-      const res = await apiRequest("POST", "/api/admin/email/send", values);
+    mutationFn: async (values: EmailFormValues) => {
+      const res = await apiRequest("POST", "/api/admin/email/send", {
+        subject: values.subject,
+        body: values.body,
+        userIds: selectedUsers.map(user => user.id),
+        includeLogo: values.includeLogo,
+        includeFooter: values.includeFooter,
+        isPreview: values.isPreview,
+        previewEmail: values.previewEmail,
+      });
       return await res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      toast({
-        title: "Emails Sent",
-        description: `Successfully sent emails to ${data.sentCount} users.`,
-      });
-      setIsOpen(false);
-      onComplete();
+      if (isPreview) {
+        toast({
+          title: "Preview Email Sent",
+          description: `Preview email has been sent to ${data.sentTo}`,
+        });
+      } else {
+        toast({
+          title: "Emails Sent",
+          description: `Successfully sent emails to ${data.sentCount} out of ${data.totalCount} recipients`,
+        });
+        setIsOpen(false);
+        onComplete();
+      }
     },
     onError: (error: any) => {
       toast({
@@ -177,239 +127,186 @@ export function EmailNotifications({
     },
   });
   
+  // Handle form submission
+  const onSubmit = (values: EmailFormValues) => {
+    // Validate preview email if needed
+    if (values.isPreview && !values.previewEmail) {
+      form.setError("previewEmail", {
+        type: "manual",
+        message: "Preview email is required",
+      });
+      return;
+    }
+    
+    // Call mutation
+    sendEmailMutation.mutate(values);
+  };
+  
   // Handle template selection
-  const handleTemplateSelect = (templateId: string) => {
-    const template = EMAIL_TEMPLATES.find(t => t.id === templateId);
-    if (template) {
-      setSelectedTemplate(templateId);
-      templateForm.setValue("templateName", template.name);
-      templateForm.setValue("subject", template.subject);
-      templateForm.setValue("body", template.body);
-    }
-  };
-  
-  // Get filtered users based on tier selection
-  const getFilteredUsers = (): User[] => {
-    if (userFilter === "all") return selectedUsers;
-    return selectedUsers.filter(user => user.tier === userFilter);
-  };
-  
-  // Handle template email submission
-  const onTemplateSubmit = (values: EmailTemplateFormValues) => {
-    const filteredUsers = selectedUsers;
-    if (filteredUsers.length === 0) {
-      toast({
-        title: "No Users Selected",
-        description: "No users are selected to receive this email",
-        variant: "destructive",
-      });
-      return;
-    }
+  const selectTemplate = (templateType: string) => {
+    let subject = "";
+    let body = "";
     
-    // Prepare data for API call
-    const formData = {
-      subject: values.subject,
-      body: values.body,
-      userIds: filteredUsers.map(user => user.id),
-      includeLogo: true,
-      includeFooter: true,
-    };
-    
-    // Call mutation
-    sendEmailMutation.mutate(formData);
-  };
-  
-  // Handle custom email submission
-  const onCustomSubmit = (values: CustomEmailFormValues) => {
-    const filteredUsers = getFilteredUsers();
-    
-    if (values.sendPreview && (!values.previewEmail || values.previewEmail.trim() === "")) {
-      toast({
-        title: "Preview Email Required",
-        description: "Please enter a valid email address for the preview",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!values.sendPreview && filteredUsers.length === 0) {
-      toast({
-        title: "No Users Selected",
-        description: "No users match the selected criteria",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Prepare data for API call
-    const formData = {
-      subject: values.subject,
-      body: values.body,
-      userIds: filteredUsers.map(user => user.id),
-      includeLogo: values.includeLogo,
-      includeFooter: values.includeFooter,
-      isPreview: values.sendPreview,
-      previewEmail: values.sendPreview ? values.previewEmail : undefined,
-    };
-    
-    // Call mutation
-    sendEmailMutation.mutate(formData);
-  };
+    switch (templateType) {
+      case "welcome":
+        subject = "Welcome to Drama Llama - Get Started with Our AI Analysis Tools";
+        body = `Hello {{username}},
 
+We're thrilled to welcome you to Drama Llama! Your account has been successfully created and you're all set to start analyzing conversations and messages with our powerful AI tools.
+
+Here's what you can do with your account:
+- Analyze chat conversations to understand emotional dynamics
+- Get insights on individual messages
+- Learn how to de-escalate tense situations
+- Experience real-time analysis with Live Talk
+
+If you have any questions or need assistance, don't hesitate to reach out to our support team.
+
+Happy analyzing!
+The Drama Llama Team`;
+        break;
+      case "feature":
+        subject = "New Feature Alert - Explore What's New in Drama Llama";
+        body = `Hello {{username}},
+
+We're excited to announce some fantastic new features in Drama Llama that will enhance your experience:
+
+🚀 NEW FEATURE: Enhanced psychological profiles for deeper insights
+🚀 NEW FEATURE: Improved conversation analysis with more detailed breakdowns
+🚀 NEW FEATURE: Mobile export functionality for on-the-go access
+
+Log in to your account and try these new features today!
+
+Your current tier: {{tier}}
+
+Thank you for being part of the Drama Llama community.
+
+Best regards,
+The Drama Llama Team`;
+        break;
+      case "upgrade":
+        subject = "Unlock Premium Features - Upgrade Your Drama Llama Experience";
+        body = `Hello {{username}},
+
+We noticed you've been getting great value from your Drama Llama account! Did you know you can access even more powerful features by upgrading to a higher tier?
+
+By upgrading to Personal or Pro, you'll unlock:
+- Enhanced conversation analysis 
+- Psychological profiles of participants
+- More detailed sentiment breakdowns
+- Advanced pattern detection
+
+Your current tier: {{tier}}
+
+Visit our pricing page to explore the options that best suit your needs.
+
+Best regards,
+The Drama Llama Team`;
+        break;
+      case "tip":
+        subject = "Communication Tips from Drama Llama";
+        body = `Hello {{username}},
+
+Here are some quick communication tips from Drama Llama to enhance your conversations:
+
+1. Practice active listening by paraphrasing what others say
+2. Use "I" statements instead of "you" statements to reduce defensiveness
+3. Take a 10-second pause before responding when emotions run high
+4. Ask clarifying questions instead of making assumptions
+5. Acknowledge others' perspectives, even if you disagree
+
+We hope these tips help you improve your communication skills!
+
+Your Drama Llama Team`;
+        break;
+      default:
+        break;
+    }
+    
+    form.setValue("subject", subject);
+    form.setValue("body", body);
+  };
+  
+  // Format variable placeholders in preview
+  const formatPreview = (text: string) => {
+    if (!text) return "";
+    return text
+      .replace(/{{username}}/g, "<strong class='text-primary'>USERNAME</strong>")
+      .replace(/{{email}}/g, "<strong class='text-primary'>USER_EMAIL</strong>")
+      .replace(/{{tier}}/g, "<strong class='text-primary'>USER_TIER</strong>");
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button 
-          variant="outline"
-          disabled={selectedUsers.length === 0}
+          variant="outline" 
+          size="sm"
           className="gap-2"
         >
           <Mail className="h-4 w-4" />
-          Send Email ({selectedUsers.length})
+          Send Email
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Send Email Notification</DialogTitle>
+          <DialogTitle>Send Email to Users</DialogTitle>
           <DialogDescription>
-            Send email to {selectedUsers.length} selected users
+            Compose and send an email to {selectedUsers.length} selected users.
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs defaultValue="templates" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="templates" className="gap-2">
-              <BookMarked className="h-4 w-4" />
-              Email Templates
-            </TabsTrigger>
-            <TabsTrigger value="custom" className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Custom Email
-            </TabsTrigger>
+            <TabsTrigger value="compose">Compose Email</TabsTrigger>
+            <TabsTrigger value="recipients">Recipients ({selectedUsers.length})</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="templates" className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
-              {EMAIL_TEMPLATES.map((template) => (
-                <Card 
-                  key={template.id}
-                  className={`cursor-pointer transition-colors ${
-                    selectedTemplate === template.id 
-                      ? "border-primary bg-primary/5" 
-                      : "hover:border-primary/20"
-                  }`}
-                  onClick={() => handleTemplateSelect(template.id)}
-                >
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">{template.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pb-3">
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {template.body.substring(0, 120)}...
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
+          <TabsContent value="compose" className="mt-4 space-y-4">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => selectTemplate("welcome")}
+              >
+                Welcome
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => selectTemplate("feature")}
+              >
+                New Features
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => selectTemplate("upgrade")}
+              >
+                Upgrade Offer
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => selectTemplate("tip")}
+              >
+                Tips & Advice
+              </Button>
             </div>
             
-            {selectedTemplate && (
-              <Form {...templateForm}>
-                <form onSubmit={templateForm.handleSubmit(onTemplateSubmit)} className="space-y-4">
-                  <FormField
-                    control={templateForm.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Subject</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={templateForm.control}
-                    name="body"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Body</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            rows={8} 
-                            className="font-mono text-sm"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Available variables: {{username}}, {{email}}, {{tier}}, {{discount}}
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={templateForm.control}
-                    name="saveAsTemplate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>
-                            Save as custom template
-                          </FormLabel>
-                          <FormDescription>
-                            Save this as a custom template for future use
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="flex justify-between">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setSelectedTemplate(null)}
-                    >
-                      Back to Templates
-                    </Button>
-                    <Button 
-                      type="submit"
-                      disabled={sendEmailMutation.isPending}
-                      className="gap-2"
-                    >
-                      {sendEmailMutation.isPending ? (
-                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
-                      Send to {selectedUsers.length} Users
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="custom" className="space-y-4 pt-4">
-            <Form {...customForm}>
-              <form onSubmit={customForm.handleSubmit(onCustomSubmit)} className="space-y-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
-                  control={customForm.control}
+                  control={form.control}
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email Subject</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input 
+                          placeholder="Enter email subject..." 
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -417,32 +314,32 @@ export function EmailNotifications({
                 />
                 
                 <FormField
-                  control={customForm.control}
+                  control={form.control}
                   name="body"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email Body</FormLabel>
                       <FormControl>
                         <Textarea 
-                          rows={8} 
-                          className="font-mono text-sm"
+                          placeholder="Compose your email... Use {{username}}, {{email}}, and {{tier}} as placeholders for personalization." 
+                          className="min-h-[200px]" 
                           {...field} 
                         />
                       </FormControl>
                       <FormDescription>
-                        Available variables: {{username}}, {{email}}, {{tier}}
+                        You can use placeholders like &#123;&#123;username&#125;&#125;, &#123;&#123;email&#125;&#125;, and &#123;&#123;tier&#125;&#125;
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
-                    control={customForm.control}
+                    control={form.control}
                     name="includeLogo"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 border rounded-md p-3">
                         <FormControl>
                           <Checkbox
                             checked={field.value}
@@ -462,10 +359,10 @@ export function EmailNotifications({
                   />
                   
                   <FormField
-                    control={customForm.control}
+                    control={form.control}
                     name="includeFooter"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 border rounded-md p-3">
                         <FormControl>
                           <Checkbox
                             checked={field.value}
@@ -474,7 +371,7 @@ export function EmailNotifications({
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel>
-                            Include Standard Footer
+                            Include Footer
                           </FormLabel>
                           <FormDescription>
                             Add standard footer with unsubscribe link
@@ -486,40 +383,10 @@ export function EmailNotifications({
                 </div>
                 
                 <FormField
-                  control={customForm.control}
-                  name="userFilter"
+                  control={form.control}
+                  name="isPreview"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Send To Users With Tier</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select tier filter" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="all">All Selected Users</SelectItem>
-                          <SelectItem value="free">Free Tier Only</SelectItem>
-                          <SelectItem value="personal">Personal Tier Only</SelectItem>
-                          <SelectItem value="pro">Pro Tier Only</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Filter which users receive this email based on their tier
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={customForm.control}
-                  name="sendPreview"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 border rounded-md p-3">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
@@ -528,34 +395,52 @@ export function EmailNotifications({
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          Send as Preview Only
+                          Send Preview First
                         </FormLabel>
                         <FormDescription>
-                          Send a test email to yourself instead of to users
+                          Send a test email to yourself before bulk sending
                         </FormDescription>
                       </div>
                     </FormItem>
                   )}
                 />
                 
-                {sendPreview && (
+                {isPreview && (
                   <FormField
-                    control={customForm.control}
+                    control={form.control}
                     name="previewEmail"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Preview Email Address</FormLabel>
                         <FormControl>
                           <Input 
-                            type="email" 
-                            placeholder="Enter your email for preview"
+                            placeholder="Enter your email for preview..." 
+                            type="email"
                             {...field} 
+                            value={field.value || ""}
                           />
                         </FormControl>
+                        <FormDescription>
+                          We'll send a preview to this address first
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                )}
+                
+                {form.getValues("subject") && form.getValues("body") && (
+                  <div className="border rounded-md p-4 space-y-3">
+                    <h3 className="text-sm font-medium">Email Preview</h3>
+                    <Separator />
+                    <p className="text-sm font-semibold">Subject: {form.getValues("subject")}</p>
+                    <div 
+                      className="text-sm prose prose-sm max-w-none" 
+                      dangerouslySetInnerHTML={{ 
+                        __html: formatPreview(form.getValues("body").replace(/\n/g, "<br/>")) 
+                      }} 
+                    />
+                  </div>
                 )}
                 
                 <DialogFooter>
@@ -571,16 +456,78 @@ export function EmailNotifications({
                     disabled={sendEmailMutation.isPending}
                     className="gap-2"
                   >
-                    {sendEmailMutation.isPending ? (
+                    {sendEmailMutation.isPending && (
                       <LoaderCircle className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
                     )}
-                    {sendPreview ? 'Send Preview' : `Send to ${getFilteredUsers().length} Users`}
+                    {isPreview ? (
+                      <>
+                        <SendHorizonal className="h-4 w-4" />
+                        Send Preview
+                      </>
+                    ) : (
+                      <>
+                        <SendHorizonal className="h-4 w-4" />
+                        Send to {selectedUsers.length} Users
+                      </>
+                    )}
                   </Button>
                 </DialogFooter>
               </form>
             </Form>
+          </TabsContent>
+          
+          <TabsContent value="recipients" className="mt-4">
+            <ScrollArea className="h-[400px] border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Tier</TableHead>
+                    <TableHead>Discount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>{user.username}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            user.tier === 'free' ? 'border-gray-500 text-gray-500' : 
+                            user.tier === 'personal' ? 'border-blue-500 text-blue-500' : 
+                            'border-purple-500 text-purple-500'
+                          }
+                        >
+                          {user.tier.charAt(0).toUpperCase() + user.tier.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {user.discountPercentage > 0 ? (
+                          <Badge variant="outline" className="border-green-500 text-green-500">
+                            {user.discountPercentage}% OFF
+                          </Badge>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">None</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+            
+            <div className="mt-4 flex justify-end">
+              <Button 
+                onClick={() => setActiveTab("compose")}
+                className="gap-2"
+              >
+                <Mail className="h-4 w-4" />
+                Continue to Compose
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>

@@ -20,32 +20,31 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, LoaderCircle, Percent, Tags } from "lucide-react";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { LoaderCircle, Percent, Tag } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// Interface for user data
 interface User {
   id: number;
   username: string;
   email: string;
   tier: string;
+  isAdmin: boolean;
+  emailVerified: boolean;
+  discountPercentage: number;
+  discountExpiryDate: string | null;
 }
 
 interface BulkDiscountActionsProps {
@@ -56,20 +55,16 @@ interface BulkDiscountActionsProps {
 // Schema for bulk discount form
 const bulkDiscountSchema = z.object({
   discountPercentage: z.coerce.number().min(1).max(100),
-  expiryDays: z.coerce.number().min(1).optional(),
+  expiryMethod: z.enum(["days", "date"]),
+  expiryDays: z.coerce.number().min(1).max(365).optional(),
   exactExpiryDate: z.date().optional(),
-  useExactDate: z.boolean().default(false),
   sendEmail: z.boolean().default(true),
   emailTemplate: z.string().optional(),
-  tierFilter: z.string().optional(),
 });
 
 type BulkDiscountFormValues = z.infer<typeof bulkDiscountSchema>;
 
-export function BulkDiscountActions({ 
-  selectedUsers, 
-  onComplete 
-}: BulkDiscountActionsProps) {
+export function BulkDiscountActions({ selectedUsers, onComplete }: BulkDiscountActionsProps) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   
@@ -77,89 +72,89 @@ export function BulkDiscountActions({
   const form = useForm<BulkDiscountFormValues>({
     resolver: zodResolver(bulkDiscountSchema),
     defaultValues: {
-      discountPercentage: 10,
+      discountPercentage: 15,
+      expiryMethod: "days",
       expiryDays: 30,
-      useExactDate: false,
       sendEmail: true,
-      emailTemplate: "standard",
-      tierFilter: "all",
+      emailTemplate: "discount_notification",
     },
   });
   
   // Watch for form value changes
-  const useExactDate = form.watch("useExactDate");
-  const sendEmail = form.watch("sendEmail");
-  const tierFilter = form.watch("tierFilter");
+  const expiryMethod = form.watch("expiryMethod");
   
-  // Mutation for applying bulk discounts
+  // Mutation for applying bulk discount
   const applyBulkDiscountMutation = useMutation({
-    mutationFn: async (values: BulkDiscountFormValues & { userIds: number[] }) => {
-      const res = await apiRequest("POST", "/api/admin/users/bulk-discount", values);
+    mutationFn: async (values: BulkDiscountFormValues) => {
+      const res = await apiRequest("POST", "/api/admin/users/bulk-discount", {
+        discountPercentage: values.discountPercentage,
+        expiryDays: values.expiryDays,
+        exactExpiryDate: values.exactExpiryDate ? format(values.exactExpiryDate, "yyyy-MM-dd") : undefined,
+        useExactDate: values.expiryMethod === "date",
+        sendEmail: values.sendEmail,
+        emailTemplate: values.emailTemplate,
+        userIds: selectedUsers.map(user => user.id),
+      });
       return await res.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       toast({
-        title: "Bulk Discount Applied",
-        description: `Successfully applied discount to ${data.affectedCount} users.`,
+        title: "Discount Applied",
+        description: `Applied discount to ${data.affectedCount} users successfully.`,
       });
       setIsOpen(false);
       onComplete();
     },
     onError: (error: any) => {
       toast({
-        title: "Error Applying Discounts",
-        description: error.message || "Failed to apply bulk discounts",
+        title: "Error Applying Discount",
+        description: error.message || "Failed to apply discount to users",
         variant: "destructive",
       });
     },
   });
   
-  // Get filtered users based on tier selection
-  const getFilteredUsers = (): User[] => {
-    if (tierFilter === "all") return selectedUsers;
-    return selectedUsers.filter(user => user.tier === tierFilter);
-  };
-  
   // Handle form submission
   const onSubmit = (values: BulkDiscountFormValues) => {
-    const filteredUsers = getFilteredUsers();
-    if (filteredUsers.length === 0) {
-      toast({
-        title: "No Users Selected",
-        description: "No users match the selected criteria",
-        variant: "destructive",
+    // Validate form
+    if (values.expiryMethod === "days" && !values.expiryDays) {
+      form.setError("expiryDays", {
+        type: "manual",
+        message: "Number of days is required",
       });
       return;
     }
     
-    // Prepare data for API call
-    const formData = {
-      ...values,
-      userIds: filteredUsers.map(user => user.id),
-    };
+    if (values.expiryMethod === "date" && !values.exactExpiryDate) {
+      form.setError("exactExpiryDate", {
+        type: "manual",
+        message: "Expiry date is required",
+      });
+      return;
+    }
     
     // Call mutation
-    applyBulkDiscountMutation.mutate(formData);
+    applyBulkDiscountMutation.mutate(values);
   };
-
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button 
-          variant="outline"
-          disabled={selectedUsers.length === 0}
+          variant="outline" 
+          size="sm"
           className="gap-2"
         >
-          <Tags className="h-4 w-4" />
-          Bulk Discount ({selectedUsers.length})
+          <Percent className="h-4 w-4" />
+          Apply Discount
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Apply Bulk Discount</DialogTitle>
           <DialogDescription>
-            Apply discount to {selectedUsers.length} selected users
+            Apply a discount to {selectedUsers.length} selected users.
           </DialogDescription>
         </DialogHeader>
         
@@ -170,18 +165,32 @@ export function BulkDiscountActions({
               name="discountPercentage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Discount Percentage (%)</FormLabel>
+                  <FormLabel>Discount Percentage</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input type="number" min={1} max={100} {...field} />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <Percent className="h-4 w-4 text-muted-foreground" />
+                    <div className="space-y-2">
+                      <Slider
+                        min={1}
+                        max={100}
+                        step={1}
+                        defaultValue={[field.value]}
+                        onValueChange={(vals) => field.onChange(vals[0])}
+                      />
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">1%</span>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            className="w-16 h-8"
+                            min={1}
+                            max={100}
+                            {...field}
+                          />
+                          <Percent className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <span className="text-sm text-muted-foreground">100%</span>
                       </div>
                     </div>
                   </FormControl>
-                  <FormDescription>
-                    Enter a percentage between 1-100%
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -189,28 +198,62 @@ export function BulkDiscountActions({
             
             <FormField
               control={form.control}
-              name="useExactDate"
+              name="expiryMethod"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormItem className="space-y-3">
+                  <FormLabel>Expiry Method</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="days" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Set number of days
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="date" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Choose specific date
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Use exact expiry date instead of days
-                    </FormLabel>
-                    <FormDescription>
-                      Set a specific date when the discount will expire
-                    </FormDescription>
-                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
             
-            {useExactDate ? (
+            {expiryMethod === "days" ? (
+              <FormField
+                control={form.control}
+                name="expiryDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Expires In (Days)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min={1} 
+                        max={365} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Number of days until discount expires
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
               <FormField
                 control={form.control}
                 name="exactExpiryDate"
@@ -241,65 +284,21 @@ export function BulkDiscountActions({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date() || date < new Date("1900-01-01")
-                          }
                           initialFocus
+                          disabled={(date) => 
+                            date < new Date(new Date().setHours(0, 0, 0, 0))
+                          }
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormField
-                control={form.control}
-                name="expiryDays"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Expiry Period (days)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={1} {...field} />
-                    </FormControl>
                     <FormDescription>
-                      Number of days before the discount expires
+                      Exact date when discount expires
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             )}
-            
-            <FormField
-              control={form.control}
-              name="tierFilter"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Apply To Users With Tier</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select tier filter" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="all">All Selected Users</SelectItem>
-                      <SelectItem value="free">Free Tier Only</SelectItem>
-                      <SelectItem value="personal">Personal Tier Only</SelectItem>
-                      <SelectItem value="pro">Pro Tier Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Filter which users receive the discount based on their current tier
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             
             <FormField
               control={form.control}
@@ -314,52 +313,15 @@ export function BulkDiscountActions({
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      Send email notification
+                      Send email notification to users
                     </FormLabel>
                     <FormDescription>
-                      Notify users about their new discount
+                      Notify users about their discount via email
                     </FormDescription>
                   </div>
                 </FormItem>
               )}
             />
-            
-            {sendEmail && (
-              <FormField
-                control={form.control}
-                name="emailTemplate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Template</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select email template" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="standard">Standard Notification</SelectItem>
-                        <SelectItem value="special_offer">Special Offer</SelectItem>
-                        <SelectItem value="limited_time">Limited Time Offer</SelectItem>
-                        <SelectItem value="loyal_customer">Loyal Customer Discount</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Choose the email template to send to users
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-amber-800 text-sm">
-              <p className="font-medium">This will apply discounts to {getFilteredUsers().length} users.</p>
-              <p className="mt-1">Any existing discounts will be overwritten.</p>
-            </div>
             
             <DialogFooter>
               <Button 

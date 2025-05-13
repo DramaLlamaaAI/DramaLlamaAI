@@ -1,281 +1,432 @@
-import { useState } from 'react';
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { 
   Card, 
   CardContent, 
+  CardDescription, 
+  CardFooter, 
   CardHeader, 
-  CardTitle, 
-  CardDescription,
-  CardFooter
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SubscriptionManager } from './subscription-manager';
+  CardTitle 
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
-  User, 
-  Mail, 
-  Shield, 
+  ArrowLeft,
+  AtSign, 
+  BadgeCheck, 
+  BadgeX, 
   Calendar, 
-  BarChart4, 
-  History,
-  ArrowLeft
-} from 'lucide-react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-
-interface Analysis {
-  id: number;
-  userId: number;
-  title: string;
-  type: string;
-  content: string;
-  createdAt: string;
-}
-
-interface UserData {
-  id: number;
-  username: string;
-  email: string;
-  tier: string;
-  isAdmin: boolean;
-  emailVerified: boolean;
-  stripeCustomerId?: string;
-  stripeSubscriptionId?: string;
-  discountPercentage: number;
-  discountExpiryDate: string | null;
-  createdAt?: string;
-}
+  Clock, 
+  CreditCard, 
+  LoaderCircle, 
+  LockKeyhole, 
+  Mail, 
+  Percent, 
+  RefreshCw, 
+  Shield, 
+  ShieldOff, 
+  User, 
+  UserCog 
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface UserDetailViewProps {
-  user: UserData;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    tier: string;
+    isAdmin: boolean;
+    emailVerified: boolean;
+    discountPercentage: number;
+    discountExpiryDate: string | null;
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    createdAt?: string;
+  };
   onBack: () => void;
 }
 
 export function UserDetailView({ user, onBack }: UserDetailViewProps) {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [tierValue, setTierValue] = useState(user.tier);
+  const [isAdmin, setIsAdmin] = useState(user.isAdmin);
+  const [discountPercentage, setDiscountPercentage] = useState(user.discountPercentage.toString());
+  const [discountExpiryDate, setDiscountExpiryDate] = useState<Date | undefined>(
+    user.discountExpiryDate ? new Date(user.discountExpiryDate) : undefined
+  );
 
-  // Query user analyses
-  const { 
-    data: analyses,
-    isLoading: analysesLoading
-  } = useQuery<Analysis[]>({
-    queryKey: [`/api/admin/users/${user.id}/analyses`],
-    enabled: activeTab === 'analyses',
+  // Mutation for updating user tier
+  const updateTierMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("PUT", "/api/admin/user/tier", {
+        userId: user.id,
+        tier: tierValue,
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({
+        title: "Tier Updated",
+        description: `User tier updated to ${tierValue}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update tier",
+        variant: "destructive",
+      });
+    },
   });
 
+  // Mutation for updating admin status
+  const updateAdminMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("PUT", "/api/admin/user/admin", {
+        userId: user.id,
+        isAdmin,
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({
+        title: "Admin Status Updated",
+        description: isAdmin ? "User is now an admin" : "User is no longer an admin",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update admin status",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for updating discount
+  const updateDiscountMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("PUT", "/api/admin/user/discount", {
+        userId: user.id,
+        discountPercentage: parseInt(discountPercentage, 10),
+        expiryDays: discountExpiryDate 
+          ? Math.ceil((discountExpiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) 
+          : 30,
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({
+        title: "Discount Updated",
+        description: `User discount updated to ${discountPercentage}%`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update discount",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle tier change
+  const handleTierChange = (value: string) => {
+    setTierValue(value);
+  };
+
+  // Handle admin toggle change
+  const handleAdminToggle = (checked: boolean) => {
+    setIsAdmin(checked);
+  };
+
+  // Handle discount percentage change
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Ensure it's a valid number between 0 and 100
+    const value = e.target.value;
+    if (value === "" || (/^\d+$/.test(value) && parseInt(value, 10) >= 0 && parseInt(value, 10) <= 100)) {
+      setDiscountPercentage(value);
+    }
+  };
+
   // Format date
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
+  const formatDate = (date: string | null) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString();
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onBack}
-          className="gap-1"
-        >
+        <Button variant="ghost" onClick={onBack} className="flex gap-2 items-center">
           <ArrowLeft className="h-4 w-4" />
           Back to Users
         </Button>
+        
+        <div className="flex gap-2">
+          <Badge variant="outline" className="flex items-center gap-1 border-primary">
+            <User className="h-3 w-3" />
+            ID: {user.id}
+          </Badge>
+          {user.isAdmin && (
+            <Badge className="bg-amber-500 text-amber-950">Admin</Badge>
+          )}
+          <Badge 
+            className={
+              user.tier === 'free' ? 'bg-gray-500' : 
+              user.tier === 'personal' ? 'bg-blue-500' : 
+              'bg-purple-500'
+            }
+          >
+            {user.tier.charAt(0).toUpperCase() + user.tier.slice(1)}
+          </Badge>
+        </div>
       </div>
-
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* User Profile Card */}
-        <Card className="md:w-1/3">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* User Info Card */}
+        <Card>
           <CardHeader>
-            <CardTitle className="text-lg flex items-center">
-              <User className="w-5 h-5 mr-2" />
-              User Profile
+            <CardTitle className="flex items-center gap-2">
+              <UserCog className="h-5 w-5" />
+              User Information
             </CardTitle>
+            <CardDescription>
+              Basic details about the user
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center mb-6">
-              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
-                <span className="text-2xl font-bold">
-                  {user.username.charAt(0).toUpperCase()}
-                </span>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col gap-1.5">
+              <div className="text-sm font-medium text-muted-foreground">Username</div>
+              <div className="flex items-center gap-2">
+                <AtSign className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">{user.username}</span>
               </div>
-              <h3 className="text-xl font-bold">{user.username}</h3>
-              <div className="flex items-center text-sm text-muted-foreground mt-1">
-                <Mail className="h-4 w-4 mr-1" />
-                {user.email}
-              </div>
-              <div className="mt-3 flex gap-2">
-                {user.tier === 'free' && <Badge className="bg-gray-500">Free</Badge>}
-                {user.tier === 'personal' && <Badge className="bg-blue-500">Personal</Badge>}
-                {user.tier === 'pro' && <Badge className="bg-purple-500">Pro</Badge>}
-                {user.tier === 'instant' && <Badge className="bg-amber-500">Instant</Badge>}
-                
-                {user.isAdmin && (
-                  <Badge className="bg-red-500">Admin</Badge>
-                )}
-                
+            </div>
+            
+            <div className="flex flex-col gap-1.5">
+              <div className="text-sm font-medium text-muted-foreground">Email</div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">{user.email}</span>
                 {user.emailVerified ? (
-                  <Badge variant="outline" className="border-green-500 text-green-600">
-                    Verified
-                  </Badge>
+                  <BadgeCheck className="h-4 w-4 text-green-500" />
                 ) : (
-                  <Badge variant="outline" className="border-amber-500 text-amber-600">
-                    Unverified
-                  </Badge>
+                  <BadgeX className="h-4 w-4 text-red-500" />
                 )}
               </div>
             </div>
             
-            <div className="space-y-3 border-t pt-4">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">User ID:</span>
-                <span className="font-medium">{user.id}</span>
+            {user.createdAt && (
+              <div className="flex flex-col gap-1.5">
+                <div className="text-sm font-medium text-muted-foreground">Joined</div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>{formatDate(user.createdAt)}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Account Created:</span>
-                <span className="font-medium">{formatDate(user.createdAt)}</span>
+            )}
+            
+            {user.stripeCustomerId && (
+              <div className="flex flex-col gap-1.5">
+                <div className="text-sm font-medium text-muted-foreground">Stripe Customer ID</div>
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-mono text-sm">{user.stripeCustomerId}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Discount:</span>
-                <span className="font-medium">
-                  {user.discountPercentage > 0 
-                    ? `${user.discountPercentage}% (Expires: ${formatDate(user.discountExpiryDate)})` 
-                    : 'None'}
-                </span>
+            )}
+            
+            {user.stripeSubscriptionId && (
+              <div className="flex flex-col gap-1.5">
+                <div className="text-sm font-medium text-muted-foreground">Subscription ID</div>
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-mono text-sm">{user.stripeSubscriptionId}</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* User Management Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LockKeyhole className="h-5 w-5" />
+              Manage User
+            </CardTitle>
+            <CardDescription>
+              Update user settings and permissions
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Tier selection */}
+            <div className="space-y-2">
+              <Label htmlFor="tier-select">User Tier</Label>
+              <Select
+                value={tierValue}
+                onValueChange={handleTierChange}
+              >
+                <SelectTrigger id="tier-select">
+                  <SelectValue placeholder="Select tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="personal">Personal</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                Change the user's subscription tier
+              </p>
+            </div>
+            
+            <Separator />
+            
+            {/* Admin toggle */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="admin-toggle">Admin Access</Label>
+                <p className="text-sm text-muted-foreground">
+                  Grant administrative privileges
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {isAdmin ? (
+                  <Shield className="h-4 w-4 text-amber-500" />
+                ) : (
+                  <ShieldOff className="h-4 w-4 text-muted-foreground" />
+                )}
+                <Switch
+                  id="admin-toggle"
+                  checked={isAdmin}
+                  onCheckedChange={handleAdminToggle}
+                />
+              </div>
+            </div>
+            
+            <Separator />
+            
+            {/* Discount settings */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="discount-percentage">Discount Percentage</Label>
+                <div className="flex items-center">
+                  <Input
+                    id="discount-percentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={discountPercentage}
+                    onChange={handleDiscountChange}
+                    className="w-20 text-right"
+                  />
+                  <span className="ml-2">%</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="discount-expiry">Discount Expiry Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !discountExpiryDate && "text-muted-foreground"
+                      )}
+                    >
+                      <Clock className="mr-2 h-4 w-4" />
+                      {discountExpiryDate ? format(discountExpiryDate, "PPP") : "Select expiration date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={discountExpiryDate}
+                      onSelect={setDiscountExpiryDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button
+              variant="outline" 
+              onClick={onBack}
+            >
+              Cancel
+            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => updateDiscountMutation.mutate()}
+                disabled={updateDiscountMutation.isPending}
+              >
+                {updateDiscountMutation.isPending && (
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                <Percent className="mr-2 h-4 w-4" />
+                Update Discount
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => updateAdminMutation.mutate()}
+                disabled={updateAdminMutation.isPending}
+              >
+                {updateAdminMutation.isPending && (
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                <Shield className="mr-2 h-4 w-4" />
+                Update Admin
+              </Button>
+              
+              <Button
+                onClick={() => updateTierMutation.mutate()}
+                disabled={updateTierMutation.isPending}
+              >
+                {updateTierMutation.isPending && (
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Save Changes
+              </Button>
+            </div>
+          </CardFooter>
         </Card>
-
-        {/* Main Content Area */}
-        <div className="flex-1">
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="subscription">Subscription</TabsTrigger>
-              <TabsTrigger value="analyses">Analyses</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center">
-                    <BarChart4 className="w-5 h-5 mr-2" />
-                    Account Overview
-                  </CardTitle>
-                  <CardDescription>
-                    Summary of user activity and account status
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader className="py-4">
-                        <CardTitle className="text-sm font-medium">Usage Stats</CardTitle>
-                      </CardHeader>
-                      <CardContent className="py-2">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">Chat Analyses:</span>
-                            <span className="font-medium">--</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">Message Analyses:</span>
-                            <span className="font-medium">--</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">De-escalation Requests:</span>
-                            <span className="font-medium">--</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">Total Usage:</span>
-                            <span className="font-medium">--</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader className="py-4">
-                        <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-                      </CardHeader>
-                      <CardContent className="py-2">
-                        <div className="text-center py-6 text-muted-foreground">
-                          <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          <p>No recent activity data available</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <p className="text-xs text-muted-foreground">
-                    This information is for administrative purposes only.
-                  </p>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="subscription">
-              <SubscriptionManager user={user} />
-            </TabsContent>
-            
-            <TabsContent value="analyses">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center">
-                    <History className="w-5 h-5 mr-2" />
-                    Analysis History
-                  </CardTitle>
-                  <CardDescription>
-                    Past analyses performed by this user
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {analysesLoading ? (
-                    <div className="py-8 text-center">
-                      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
-                      <p className="mt-2 text-muted-foreground">Loading analyses...</p>
-                    </div>
-                  ) : !analyses || analyses.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <History className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>No analyses found for this user</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {analyses.map((analysis) => (
-                        <Card key={analysis.id}>
-                          <CardHeader className="py-3">
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="text-base">{analysis.title}</CardTitle>
-                              <Badge>
-                                {analysis.type === 'chat' && 'Chat Analysis'}
-                                {analysis.type === 'message' && 'Message Analysis'}
-                                {analysis.type === 'deescalate' && 'De-escalation'}
-                              </Badge>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="py-2">
-                            <p className="text-sm text-muted-foreground">
-                              Created: {formatDate(analysis.createdAt)}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
       </div>
     </div>
   );

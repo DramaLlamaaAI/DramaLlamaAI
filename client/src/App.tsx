@@ -18,7 +18,7 @@ import ForgotPasswordPage from "@/pages/forgot-password-page";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import PricingPage from "@/pages/pricing";
 import InstantDeepDivePage from "@/pages/instant-deep-dive";
-import AdminDashboard from "@/pages/admin-dashboard";
+import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 // Support helplines converted to dialog component
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
@@ -41,7 +41,7 @@ function Router() {
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/instant-deep-dive" component={InstantDeepDivePage} />
-      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin" component={AdminDashboardEnhanced} />
       {/* Support helplines converted to dialog component */}
       <Route component={NotFound} />
     </Switch>
