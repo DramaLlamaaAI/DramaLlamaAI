@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,9 @@ import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/u
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
 import SupportHelpLinesLink from "@/components/support-helplines-link";
+import { useLocation } from "wouter";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -25,6 +28,12 @@ export default function ChatAnalysis() {
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedTier, setSelectedTier] = useState("free");
+  
+  // Get the location for dev mode
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  const isDevMode = searchParams.get('dev') === 'true';
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -206,11 +215,19 @@ export default function ChatAnalysis() {
     // Reset any previous error
     setErrorMessage(null);
     
-    analysisMutation.mutate({ 
+    // Use the selected tier in dev mode
+    const requestData: any = { 
       conversation, 
       me, 
       them,
-    });
+    };
+    
+    // Add tier header if in dev mode
+    if (isDevMode && selectedTier) {
+      requestData.tier = selectedTier;
+    }
+    
+    analysisMutation.mutate(requestData);
   };
 
   const handleSwitchNames = () => {
@@ -249,7 +266,7 @@ export default function ChatAnalysis() {
                 onValueChange={setTabValue}
                 className="mt-6"
               >
-                <TabsList className="grid grid-cols-2">
+                <TabsList className={`grid ${isDevMode ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   <TabsTrigger value="paste">
                     <Edit className="h-4 w-4 mr-2" />
                     Paste Text
@@ -258,6 +275,12 @@ export default function ChatAnalysis() {
                     <Upload className="h-4 w-4 mr-2" />
                     Upload File
                   </TabsTrigger>
+                  {isDevMode && (
+                    <TabsTrigger value="debug">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Developer
+                    </TabsTrigger>
+                  )}
                 </TabsList>
                 
                 <TabsContent value="paste" className="mt-4">
