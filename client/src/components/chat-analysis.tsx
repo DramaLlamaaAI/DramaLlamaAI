@@ -580,8 +580,8 @@ export default function ChatAnalysis() {
                         <h4 className="font-medium text-lg">{me}</h4>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {result.toneAnalysis?.participantTones && result.toneAnalysis.participantTones[me] ? (
-                          `Typical tone: ${result.toneAnalysis.participantTones[me]}`
+                        {result.participantTones && result.participantTones[me] ? (
+                          `Typical tone: ${result.participantTones[me]}`
                         ) : (
                           "Participant in the conversation"
                         )}
@@ -600,8 +600,8 @@ export default function ChatAnalysis() {
                         <h4 className="font-medium text-lg">{them}</h4>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {result.toneAnalysis?.participantTones && result.toneAnalysis.participantTones[them] ? (
-                          `Typical tone: ${result.toneAnalysis.participantTones[them]}`
+                        {result.participantTones && result.participantTones[them] ? (
+                          `Typical tone: ${result.participantTones[them]}`
                         ) : (
                           "Participant in the conversation"
                         )}
@@ -622,11 +622,11 @@ export default function ChatAnalysis() {
                         : "Analysis not available"}
                     </p>
                     
-                    {result.toneAnalysis?.emotionalState && result.toneAnalysis.emotionalState.length > 0 && (
+                    {result.emotionalState && result.emotionalState.length > 0 && (
                       <div className="mt-4">
                         <h4 className="text-sm font-medium text-muted-foreground mb-2">Emotional Temperature</h4>
                         <div className="space-y-3">
-                          {result.toneAnalysis.emotionalState.slice(0, 5).map((emotion: { emotion: string; intensity: number }, idx: number) => (
+                          {result.emotionalState.slice(0, 5).map((emotion: { emotion: string; intensity: number }, idx: number) => (
                             <div key={idx} className="space-y-1">
                               <div className="flex justify-between text-sm">
                                 <span>{emotion.emotion}</span>

@@ -27,13 +27,21 @@ export interface ChatAnalysisResponse {
   };
   toneAnalysis: {
     overallTone: string;
-    emotionalState: Array<{
+    emotionalState?: Array<{
       emotion: string;
       intensity: number;
     }>;
     participantTones?: {
       [key: string]: string;
     };
+  };
+  // Legacy properties (to ensure backwards compatibility)
+  emotionalState?: Array<{
+    emotion: string;
+    intensity: number;
+  }>;
+  participantTones?: {
+    [key: string]: string;
   };
   redFlags?: Array<{
     type: string;
