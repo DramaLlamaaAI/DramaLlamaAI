@@ -21,6 +21,7 @@ export interface IStorage {
   getUserByVerificationCode(code: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserTier(userId: number, tier: string): Promise<User>;
+  updateUserPassword(userId: number, newPassword: string): Promise<User>;
   updateStripeCustomerId(userId: number, customerId: string): Promise<User>;
   updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User>;
   setVerificationCode(userId: number, code: string, expiresIn: number): Promise<User>;
@@ -219,6 +220,18 @@ export class MemStorage implements IStorage {
     
     const updatedUser = { ...user, tier };
     this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateUserPassword(userId: number, newPassword: string): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+    
+    const updatedUser = { ...user, password: newPassword };
+    this.users.set(userId, updatedUser);
+    console.log(`Updated password for user: ${updatedUser.username}`);
     return updatedUser;
   }
   

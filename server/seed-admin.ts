@@ -29,7 +29,7 @@ export async function seedAdminUser() {
   if (!adminUser) {
     console.log("Admin user not found, creating default admin user...");
     
-    const adminPassword = "admin123";
+    const adminPassword = "Drama11ama#2025";
     const hashedPassword = hashPassword(adminPassword);
     
     try {
@@ -44,7 +44,7 @@ export async function seedAdminUser() {
       
       console.log("Created default admin user:");
       console.log("  Email:", adminEmail);
-      console.log("  Password: admin123");
+      console.log("  Password: Drama11ama#2025");
       console.log("  ID:", adminUser.id);
       console.log("  isAdmin:", adminUser.isAdmin);
       
@@ -76,6 +76,16 @@ export async function seedAdminUser() {
       } catch (error) {
         console.error("Error verifying admin email:", error);
       }
+    }
+    
+    // Update admin password
+    try {
+      const newPassword = "Drama11ama#2025";
+      const hashedPassword = hashPassword(newPassword);
+      adminUser = await storage.updateUserPassword(adminUser.id, hashedPassword);
+      console.log("Updated admin password to: Drama11ama#2025");
+    } catch (error) {
+      console.error("Error updating admin password:", error);
     }
     
     console.log("Admin user already exists");
