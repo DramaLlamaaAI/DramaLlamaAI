@@ -201,6 +201,17 @@ export default function AuthPage() {
                       )}
                     />
                     
+                    <div className="flex justify-end my-2">
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto text-xs text-primary/80 hover:text-primary"
+                        onClick={() => setLocation("/forgot-password")}
+                        type="button"
+                      >
+                        Forgot password?
+                      </Button>
+                    </div>
+                    
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? "Logging in..." : "Log In"}
                     </Button>

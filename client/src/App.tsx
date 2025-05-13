@@ -14,6 +14,7 @@ import SubscriptionPage from "@/pages/subscription";
 import CheckoutPage from "@/pages/checkout";
 import AuthPage from "@/pages/auth-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
+import ForgotPasswordPage from "@/pages/forgot-password-page";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import PricingPage from "@/pages/pricing";
 import InstantDeepDivePage from "@/pages/instant-deep-dive";
@@ -36,6 +37,7 @@ function Router() {
       <Route path="/checkout" component={CheckoutPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/instant-deep-dive" component={InstantDeepDivePage} />
