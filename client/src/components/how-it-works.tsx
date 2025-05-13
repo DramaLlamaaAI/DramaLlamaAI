@@ -1,6 +1,10 @@
-import { Upload, Sparkles, FileBarChart, Mic, BadgePlus } from "lucide-react";
+import { Upload, Sparkles, FileBarChart, Mic, BadgePlus, Gift, ChevronUpCircle, UserCheck } from "lucide-react";
 import llamaImage from "@assets/FB Profile Pic.png";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { getUserUsage } from "@/lib/openai";
 
 export default function HowItWorks() {
   return (

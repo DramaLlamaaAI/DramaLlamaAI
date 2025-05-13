@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BadgeInfo, Flag, BarChart2 } from "lucide-react";
+import { BadgeInfo, Flag, BarChart2, ChevronUpCircle } from "lucide-react";
 import llamaImage from "@assets/FB Profile Pic.png";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { getUserUsage } from "@/lib/openai";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +17,17 @@ import {
 
 export default function HeroSection() {
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
+  
+  // Get usage data for free tier indicator
+  const { data: usage } = useQuery({
+    queryKey: ['/api/user/usage'],
+    queryFn: getUserUsage,
+  });
+  
+  const used = usage?.used || 0;
+  const limit = usage?.limit || 2;
+  const remaining = Math.max(0, limit - used);
+  const tier = usage?.tier || 'free';
   
   return (
     <div className="mb-10">
@@ -38,10 +51,38 @@ export default function HeroSection() {
               </div>
             </div>
             
+            {/* Display remaining analyses indicator for free tier users */}
+            {tier === 'free' && (
+              <div className="mb-4 bg-white/10 border border-white/20 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <ChevronUpCircle className="w-5 h-5 mr-2 text-white/70" />
+                    <span className="text-sm font-medium text-white">Free Analyses Remaining</span>
+                  </div>
+                  <span className="bg-white/20 rounded-full px-2 py-0.5 text-xs font-bold text-white">
+                    {remaining} / {limit}
+                  </span>
+                </div>
+                
+                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#FF69B4] to-[#22C9C9]"
+                    style={{ width: `${Math.max(0, (remaining / limit) * 100)}%` }}
+                  />
+                </div>
+                
+                <p className="text-xs text-white/70 mt-2">
+                  {remaining === 0 
+                    ? "You've used all your free analyses. Sign up to continue!"
+                    : `You have ${remaining} free analysis${remaining !== 1 ? 'es' : ''} remaining this month.`}
+                </p>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/chat-analysis" className="w-full">
                 <Button size="lg" className="w-full bg-gradient-to-r from-primary to-secondary text-white border-0 shadow-md hover:shadow-lg">
-                  Try For Free
+                  {tier === 'free' && remaining > 0 ? `Try Now (${remaining} left)` : "Try For Free"}
                 </Button>
               </Link>
               
