@@ -1,801 +1,761 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Archive, FileText, AlertCircle, Calendar, Download } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
-import { format } from "date-fns";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import BackHomeButton from "@/components/back-home-button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { useLocation } from "wouter";
-import { cleanPatternForDisplay, cleanCommunicationPatterns } from "@/lib/analysis-utils";
-import CommunicationPatterns from "@/components/communication-patterns";
-import HealthScoreDisplay from "@/components/health-score-display";
-import RedFlags from "@/components/red-flags";
-import ParticipantEmotions from "@/components/participant-emotions";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import SupportHelpLinesLink from "@/components/support-helplines-link";
-import EmotionalState from "@/components/emotional-state";
-import KeyQuotes from "@/components/key-quotes";
-import ParticipantChips from "@/components/participant-chips";
-import TensionContributions from "@/components/tension-contributions";
-import TensionMeaning from "@/components/tension-meaning";
-import PsychologicalProfile from "@/components/psychological-profile";
-import PersonalizedSuggestions from "@/components/personalized-suggestions";
-import FreeTierAnalysis from "@/components/free-tier-analysis";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { toBlob } from "html-to-image";
-import { Separator } from "@/components/ui/separator";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
   const [conversation, setConversation] = useState("");
   const [me, setMe] = useState("");
   const [them, setThem] = useState("");
-  const [useStartDate, setUseStartDate] = useState(false);
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
+  const [fileName, setFileName] = useState("");
+  const [fileIsZip, setFileIsZip] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
-  const [tierLevel, setTierLevel] = useState("free");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDetectingParticipants, setIsDetectingParticipants] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
-  const resultsRef = useRef<HTMLDivElement>(null);
-  const [location] = useLocation();
+  const [showResults, setShowResults] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  
   const { toast } = useToast();
-  
-  // Parse URL search parameters
-  const getSearchParams = () => {
-    return new URLSearchParams(window.location.search);
-  };
-  
-  useEffect(() => {
-    const searchParams = getSearchParams();
-    if (searchParams.get('tier')) {
-      setTierLevel(searchParams.get('tier') || 'free');
-    } else if (localStorage.getItem('userTier')) {
-      setTierLevel(localStorage.getItem('userTier') || 'free');
-    }
-  }, [location]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    if (files[0].type === 'image/jpeg' || files[0].type === 'image/png') {
-      setSelectedFile(files[0]);
-      return;
-    }
-    
-    try {
-      // Handle .txt file
-      if (files[0].type === 'text/plain') {
-        const text = await files[0].text();
-        setConversation(text);
-        setTabValue("paste");
-        return;
-      }
-      
-      // Handle .zip file containing WhatsApp chat export
-      if (files[0].type === 'application/zip' || files[0].type === 'application/x-zip-compressed') {
-        setSelectedFile(files[0]);
-        return;
-      }
-    } catch (error) {
-      console.error("Error processing file:", error);
-      toast({
-        title: "Error",
-        description: "Could not process file. Please try a different one.",
-        variant: "destructive",
-      });
-    }
-  };
+  const { data: usage } = useQuery({
+    queryKey: ['/api/user/usage'],
+    queryFn: getUserUsage,
+  });
+  
+  const tier = usage?.tier || 'free';
+  const usedAnalyses = usage?.used || 0;
+  const limit = usage?.limit || 1;
+  const canUseFeature = usedAnalyses < limit;
 
-  const processOCRMutation = useMutation({
-    mutationFn: async (image: string) => {
-      const response = await fetch('/api/analyze/ocr', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('OCR processing failed');
-      }
-      
-      return response.json();
-    },
+  const analysisMutation = useMutation({
+    mutationFn: analyzeChatConversation,
     onSuccess: (data) => {
-      setConversation(data.text);
-      setTabValue("paste");
-      setSelectedFile(null);
+      setErrorMessage(null);
+      console.log("Analysis result:", data);
+      console.log("Health Score:", data.healthScore);
+      setResult(data);
+      setShowResults(true);
+      window.scrollTo({ top: document.getElementById('analysisResults')?.offsetTop || 0, behavior: 'smooth' });
     },
-    onError: (error) => {
-      toast({
-        title: "OCR Processing Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      let errorMsg = error.message || "Could not analyze conversation. Please try again.";
+      
+      // Special handling for potential OpenAI API issues
+      if (errorMsg.includes('API') || errorMsg.includes('key') || errorMsg.includes('OpenAI')) {
+        errorMsg = "OpenAI API error. Please check that your API key is valid and has sufficient credits.";
+      }
+      
+      setErrorMessage(errorMsg);
+      console.error("Analysis error details:", error);
+      
+      // Only show toast for non-API errors since we display API errors more prominently
+      if (!errorMsg.includes('API')) {
+        toast({
+          title: "Analysis Failed",
+          description: errorMsg,
+          variant: "destructive",
+        });
+      }
     },
   });
 
-  const handleImageProcess = async () => {
-    if (!selectedFile) return;
-    
-    try {
-      const base64 = await fileToBase64(selectedFile);
-      const base64Data = base64.split(',')[1]; // Extract the base64 data
-      processOCRMutation.mutate(base64Data);
-    } catch (error) {
-      console.error("Error converting image:", error);
-      toast({
-        title: "Error",
-        description: "Could not process image. Please try a different one.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const participantDetectionMutation = useMutation({
-    mutationFn: async (conversationText: string) => {
-      const response = await fetch('/api/analyze/detect-names', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ conversation: conversationText }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Participant detection failed');
-      }
-      
-      return response.json();
-    },
+  const detectNamesMutation = useMutation({
+    mutationFn: detectParticipants,
     onSuccess: (data) => {
       setMe(data.me);
       setThem(data.them);
-      setIsDetectingParticipants(false);
+      toast({
+        title: "Names Detected",
+        description: `Found participants: ${data.me} and ${data.them}`,
+      });
     },
     onError: () => {
       toast({
-        title: "Participant Detection Failed",
-        description: "Could not detect participant names. Please enter them manually.",
+        title: "Detection Failed",
+        description: "Could not detect names automatically. Please enter them manually.",
         variant: "destructive",
       });
-      setIsDetectingParticipants(false);
     },
   });
 
-  const handleDetectParticipants = () => {
-    if (!conversation) {
-      toast({
-        title: "No Conversation",
-        description: "Please enter or upload a conversation first.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsDetectingParticipants(true);
-    participantDetectionMutation.mutate(conversation);
-  };
-
-  const switchNames = () => {
-    const tempMe = me;
-    setMe(them);
-    setThem(tempMe);
-  };
-
-  const analysisMutation = useMutation({
-    mutationFn: async () => {
-      // Prepare the request
-      const requestBody: any = {
-        conversation,
-        me,
-        them,
-      };
-
-      // Only include date filters if they're being used
-      if (useStartDate) {
-        requestBody.startDate = startDate;
-        requestBody.endDate = endDate;
-      }
-      
-      // Add tier for server-side filtering
-      requestBody.tier = tierLevel;
-
-      // Add developer mode headers if specified
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      
-      const searchParams = getSearchParams();
-      if (searchParams.get('dev') === 'true') {
-        headers['X-Developer-Mode'] = 'true';
-      }
-      
-      // Add tier override if specified
-      if (searchParams.get('devTier')) {
-        headers['X-Developer-Tier'] = searchParams.get('devTier') || '';
-      }
-      
-      const response = await fetch('/api/analyze/chat', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Analysis failed');
-      }
-      
-      return response.json();
-    },
+  const ocrMutation = useMutation({
+    mutationFn: processImageOcr,
     onSuccess: (data) => {
-      setResult(data);
-      setIsSubmitting(false);
-      
-      // Scroll to results
-      if (resultsRef.current) {
-        window.scrollTo({
-          top: resultsRef.current.offsetTop - 20,
-          behavior: 'smooth'
-        });
-      }
-    },
-    onError: (error) => {
-      setIsSubmitting(false);
+      setConversation(data.text);
+      setTabValue("paste");
       toast({
-        title: "Analysis Failed",
-        description: error.message,
+        title: "Image Processed",
+        description: "Text has been extracted from your image.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "OCR Failed",
+        description: "Could not extract text from image. Try uploading a clearer image or paste text manually.",
         variant: "destructive",
       });
     },
   });
 
-  // Export as formal branded document with text copying - supports tier-specific content
-  const exportToPdf = async () => {
-    if (!result) {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      // Check if it's a ZIP file by extension or MIME type
+      const isZip = file.name.toLowerCase().endsWith('.zip') || 
+                   file.type === 'application/zip' || 
+                   file.type === 'application/x-zip-compressed';
+      
+      setFileIsZip(isZip);
+      const text = await file.text();
+      setConversation(text);
+      setFileName(file.name);
+      
       toast({
-        title: "Export Failed",
-        description: "Could not create document. Please try again.",
+        title: isZip ? "ZIP File Processed" : "WhatsApp Export Loaded",
+        description: `${file.name} has been loaded successfully.`,
+      });
+      
+      // If we have text content, try to auto-detect names
+      if (text && text.trim().length > 0 && !me && !them) {
+        handleDetectNames();
+      }
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "Could not read the file. Please check the format and try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      const base64 = await fileToBase64(file);
+      
+      if (typeof base64 === 'string') {
+        setImagePreview(base64);
+        
+        // Send to OCR API if it's an image
+        if (file.type.startsWith('image/')) {
+          ocrMutation.mutate({ base64Image: base64.split(',')[1] });
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Image Processing Failed",
+        description: "Could not process the image. Please try another image.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDetectNames = () => {
+    if (!conversation.trim()) {
+      toast({
+        title: "Empty Conversation",
+        description: "Please paste or upload a conversation first.",
         variant: "destructive",
       });
       return;
     }
     
-    try {
-      setIsExporting(true);
-      
-      // Import our enhanced PDF export function from export-document-generator
-      const { exportToPdf } = await import('@/components/export-document-generator');
-      
-      // Get the current tier - from URL, localStorage or default to 'free'
-      const searchParams = getSearchParams();
-      const currentTier = searchParams.get('tier') || localStorage.getItem('userTier') || 'free';
-      
-      // Call the PDF export function with the tier parameter
-      exportToPdf(result, me, them, toast, currentTier);
-    } catch (error) {
-      console.error("Export error:", error);
-      toast({
-        title: "Export Failed",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsExporting(false);
-    }
+    detectNamesMutation.mutate({ conversation });
   };
 
-  // Extremely simplified screenshot feature for mobile compatibility
-  const exportAsImage = async () => {
-    if (!resultsRef.current || !result) {
-      toast({
-        title: "Screenshot Failed",
-        description: "Could not capture screenshot. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      setIsExporting(true);
-      
-      const blob = await toBlob(resultsRef.current);
-      if (!blob) throw new Error("Failed to create image");
-      
-      // Create download link
-      const link = document.createElement("a");
-      link.download = `drama-llama-analysis-${format(new Date(), "yyyy-MM-dd")}.png`;
-      link.href = URL.createObjectURL(blob);
-      link.click();
-      
-      toast({
-        title: "Screenshot Captured",
-        description: "Your analysis has been saved as an image.",
-      });
-    } catch (error) {
-      console.error("Screenshot error:", error);
-      toast({
-        title: "Screenshot Failed",
-        description: "Could not capture screenshot. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  // Check for sufficient data before submitting
   const handleSubmit = () => {
-    // Validation
-    if (!validateConversation(conversation)) {
+    // Basic validation
+    if (!conversation.trim()) {
       toast({
-        title: "Invalid Conversation",
-        description: "Please enter a longer conversation with more interaction.",
+        title: "Empty Conversation",
+        description: "Please paste or upload a conversation.",
         variant: "destructive",
       });
       return;
     }
     
-    if (!me) {
+    if (!me.trim() || !them.trim()) {
       toast({
-        title: "Missing Information",
-        description: "Please enter your name.",
+        title: "Missing Names",
+        description: "Please enter names for both participants.",
         variant: "destructive",
       });
       return;
     }
     
-    if (!them) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter the other person's name.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Reset any previous error
+    setErrorMessage(null);
     
-    if (me === them) {
-      toast({
-        title: "Invalid Names",
-        description: "Your name and the other person's name must be different.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Date validation if date filter is enabled
-    if (useStartDate) {
-      if (!startDate) {
-        toast({
-          title: "Missing Start Date",
-          description: "Please select a start date for the date filter.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-    
-    setIsSubmitting(true);
-    analysisMutation.mutate();
+    analysisMutation.mutate({ 
+      conversation, 
+      me, 
+      them,
+    });
   };
 
-  const { data: usageData } = useQuery({
-    queryKey: ['/api/user/usage'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/user/usage');
-        if (!response.ok) return { used: 0, limit: 1, tier: 'free' };
-        return await response.json();
-      } catch (error) {
-        console.error("Error fetching usage:", error);
-        return { used: 0, limit: 1, tier: 'free' };
-      }
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  const getUsageMessage = () => {
-    if (!usageData) return "Loading usage information...";
-    
-    const { used, limit, tier } = usageData;
-    const remaining = Math.max(0, limit - used);
-    
-    return `You have ${remaining} analysis${remaining === 1 ? '' : 'es'} remaining this month (${used}/${limit} used).`;
+  const handleSwitchNames = () => {
+    setMe(them);
+    setThem(me);
   };
+
+  const isValidating = validateConversation(conversation);
+  const isSubmitting = analysisMutation.isPending;
+  const isDetectingNames = detectNamesMutation.isPending;
 
   return (
-    <div className="container mx-auto pb-10 pt-4">
-      <BackHomeButton />
-      <h1 className="text-3xl font-bold text-center mb-3">Chat Analysis</h1>
-      <p className="text-center mb-6 text-muted-foreground">
-        Analyze the emotional dynamics of a conversation
-      </p>
-      
-      <div className="flex flex-col md:flex-row gap-4 mb-4">
-        <Card className="w-full md:w-2/3">
-          <CardContent className="pt-6">
-            <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
-              <TabsList className="w-full mb-4">
-                <TabsTrigger value="paste" className="w-full">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Paste Text
-                </TabsTrigger>
-                <TabsTrigger value="upload" className="w-full">
-                  <Archive className="mr-2 h-4 w-4" />
-                  Upload File
-                </TabsTrigger>
-                {getSearchParams().get('dev') === 'true' && (
-                  <TabsTrigger value="debug" className="w-full">
-                    <AlertCircle className="mr-2 h-4 w-4" />
-                    Debug
+    <section className="container max-w-5xl py-8">
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          {errorMessage && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+          
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold mb-2">Chat Analysis</h1>
+            <p className="text-muted-foreground">
+              Analyze your text conversation to understand communication patterns,
+              emotional tones and potential issues
+            </p>
+          </div>
+          
+          {!showResults ? (
+            <>
+              <Tabs
+                defaultValue={tabValue} 
+                value={tabValue}
+                onValueChange={setTabValue}
+                className="mt-6"
+              >
+                <TabsList className="grid grid-cols-2">
+                  <TabsTrigger value="paste">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Paste Text
                   </TabsTrigger>
-                )}
-              </TabsList>
-              
-              <TabsContent value="paste" className="space-y-4">
-                <div>
-                  <Textarea
-                    placeholder="Paste your conversation here..."
-                    className="min-h-[200px] font-mono text-sm"
-                    value={conversation}
-                    onChange={(e) => setConversation(e.target.value)}
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch 
-                    id="date-filter" 
-                    checked={useStartDate}
-                    onCheckedChange={setUseStartDate}
-                  />
-                  <Label htmlFor="date-filter">Filter by date</Label>
-                </div>
+                  <TabsTrigger value="upload">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload File
+                  </TabsTrigger>
+                </TabsList>
                 
-                {useStartDate && (
-                  <div className="flex flex-wrap gap-4">
-                    <div>
-                      <Label htmlFor="start-date">Start Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start text-left font-normal mt-2"
-                          >
-                            <Calendar className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "PPP") : "Select start date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <CalendarComponent
-                            mode="single"
-                            selected={startDate}
-                            onSelect={setStartDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                <TabsContent value="paste" className="mt-4">
+                  <div className="space-y-4">
+                    <Textarea
+                      placeholder="Paste your conversation here..."
+                      value={conversation}
+                      onChange={(e) => setConversation(e.target.value)}
+                      className="min-h-[200px]"
+                    />
+                    
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Your name (the gray messages)"
+                          value={me}
+                          onChange={(e) => setMe(e.target.value)}
+                        />
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        type="button" 
+                        onClick={handleSwitchNames}
+                        className="sm:flex-shrink-0"
+                      >
+                        <ArrowLeftRight className="h-4 w-4 mr-2" />
+                        Switch Names
+                      </Button>
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Their name (the blue messages)"
+                          value={them}
+                          onChange={(e) => setThem(e.target.value)}
+                        />
+                      </div>
                     </div>
                     
-                    <div>
-                      <Label htmlFor="end-date">End Date (Optional)</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start text-left font-normal mt-2"
-                          >
-                            <Calendar className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "PPP") : "Select end date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <CalendarComponent
-                            mode="single"
-                            selected={endDate}
-                            onSelect={setEndDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="upload" className="space-y-4">
-                <div className="grid gap-4 py-4">
-                  <div className="flex flex-col space-y-3">
-                    <Label htmlFor="file">Upload Chat File</Label>
-                    <input
-                      type="file"
-                      id="file"
-                      className="rounded-md border border-input p-2"
-                      accept=".txt,.zip,.png,.jpg,.jpeg"
-                      onChange={handleFileChange}
-                    />
-                  </div>
-                  
-                  {selectedFile && selectedFile.type.includes('image') && (
-                    <div className="flex flex-col space-y-2">
-                      <p className="text-sm">
-                        Selected image: {selectedFile.name}
-                      </p>
-                      <Button onClick={handleImageProcess} disabled={processOCRMutation.isPending}>
-                        {processOCRMutation.isPending ? "Processing..." : "Extract Text from Image"}
-                      </Button>
-                    </div>
-                  )}
-                  
-                  <div className="text-sm text-muted-foreground">
-                    <p>Supported formats:</p>
-                    <ul className="list-disc pl-5 mt-1">
-                      <li>Text files (.txt)</li>
-                      <li>WhatsApp chat exports (.zip)</li>
-                      <li>Screenshot or image of conversation (.png, .jpg)</li>
-                    </ul>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              {getSearchParams().get('dev') === 'true' && (
-                <TabsContent value="debug" className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="tierOverride">Override Tier</Label>
-                      <select 
-                        id="tierOverride" 
-                        className="w-full p-2 border rounded-md"
-                        value={tierLevel}
-                        onChange={(e) => setTierLevel(e.target.value)}
+                    <div className="flex justify-between">
+                      <Button
+                        variant="outline"
+                        onClick={handleDetectNames}
+                        disabled={isDetectingNames || !conversation.trim()}
                       >
-                        <option value="free">Free</option>
-                        <option value="personal">Personal</option>
-                        <option value="pro">Pro</option>
-                        <option value="instant">Instant Deep Dive</option>
-                      </select>
+                        {isDetectingNames ? (
+                          <>
+                            <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                            Detecting...
+                          </>
+                        ) : (
+                          <>
+                            <Search className="h-4 w-4 mr-2" />
+                            Auto-Detect Names
+                          </>
+                        )}
+                      </Button>
+                      
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={!canUseFeature || isSubmitting || !conversation.trim() || !me.trim() || !them.trim()}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Brain className="h-4 w-4 mr-2" />
+                            {canUseFeature ? 'Analyze Conversation' : 'Usage Limit Reached'}
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </div>
                 </TabsContent>
-              )}
-            </Tabs>
-          </CardContent>
-        </Card>
-        
-        <Card className="w-full md:w-1/3">
-          <CardContent className="pt-6 space-y-4">
-            <div>
-              <h3 className="text-lg font-medium mb-2">Participant Names</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="me">You</Label>
-                  <input 
-                    id="me" 
-                    className="w-full p-2 border rounded-md mt-1"
-                    value={me}
-                    onChange={(e) => setMe(e.target.value)}
-                    placeholder="Your name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="them">Other Person</Label>
-                  <input 
-                    id="them" 
-                    className="w-full p-2 border rounded-md mt-1"
-                    value={them}
-                    onChange={(e) => setThem(e.target.value)}
-                    placeholder="Their name"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex justify-between mt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={handleDetectParticipants} 
-                  disabled={isDetectingParticipants || !conversation}
-                  size="sm"
-                >
-                  {isDetectingParticipants ? "Detecting..." : "Auto-Detect Names"}
-                </Button>
                 
-                <Button 
-                  variant="outline" 
-                  onClick={switchNames} 
-                  disabled={!me || !them}
-                  size="sm"
-                >
-                  Switch Names
-                </Button>
-              </div>
-            </div>
-            
-            <div className="pt-4">
-              <h3 className="text-lg font-medium mb-2">Submit Analysis</h3>
-              
-              <div className="text-sm text-muted-foreground mb-4">
-                <Info className="inline-block mr-1 h-4 w-4" />
-                {usageData ? getUsageMessage() : "Loading usage information..."}
-              </div>
-              
-              <Button 
-                className="w-full" 
-                onClick={handleSubmit} 
-                disabled={isSubmitting || !conversation || !me || !them || (useStartDate && !startDate)}
-              >
-                {isSubmitting ? "Analyzing..." : "Analyze Conversation"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {result && (
-        <div ref={resultsRef} className="mt-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <h2 className="text-2xl font-bold">Analysis Results</h2>
-                
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={exportToPdf}
-                    disabled={isExporting}
-                    size="sm"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    {isExporting ? "Exporting..." : "Export as PDF"}
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={exportAsImage}
-                    disabled={isExporting}
-                    size="sm"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    {isExporting ? "Exporting..." : "Save as Image"}
-                  </Button>
-                </div>
-              </div>
-              
-              <ParticipantChips 
-                me={me} 
-                them={them} 
-                participantTones={result.toneAnalysis.participantTones} 
-              />
-              
-              <ScrollArea className="rounded-md border p-4 mt-6 max-h-[800px]">
-                <div className="space-y-6">
-                  {tierLevel === 'free' ? (
-                    <FreeTierAnalysis 
-                      result={result} 
-                      me={me} 
-                      them={them} 
-                    />
-                  ) : (
-                    <>
-                      <div>
-                        <h3 className="text-xl font-semibold mb-2">Overall Tone</h3>
-                        <p className="text-lg">{result.toneAnalysis.overallTone}</p>
+                <TabsContent value="upload" className="mt-4">
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <h3 className="font-medium mb-1">Upload WhatsApp Chat Export</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Drag and drop a file, or click to select
+                      </p>
+                      
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                          <Button
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex-1"
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload .txt or .zip
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            onClick={() => imageInputRef.current?.click()}
+                            className="flex-1"
+                          >
+                            <Image className="h-4 w-4 mr-2" />
+                            Upload Screenshot
+                          </Button>
+                        </div>
                       </div>
                       
-                      <Separator />
-                      
-                      <HealthScoreDisplay 
-                        healthScore={result.healthScore} 
-                        tier={tierLevel}
-                        me={me}
-                        them={them}
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        accept=".txt,.zip"
                       />
                       
-                      <Separator />
-                      
-                      <EmotionalState 
-                        emotions={result.toneAnalysis.emotionalState} 
+                      <input
+                        type="file"
+                        ref={imageInputRef}
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        accept="image/*"
                       />
                       
-                      <Separator />
-                      
-                      <RedFlags 
-                        redFlags={result.redFlags || []} 
-                        tier={tierLevel} 
-                        overallTone={result.toneAnalysis.overallTone}
-                      />
-                      
-                      <Separator />
-                      
-                      <CommunicationPatterns 
-                        patterns={result.communication.patterns || []} 
-                        suggestions={result.communication.suggestions} 
-                      />
-                      
-                      {result.participantConflictScores && (
-                        <>
-                          <Separator />
-                          <ParticipantEmotions 
-                            participantScores={result.participantConflictScores} 
-                            me={me} 
-                            them={them} 
-                          />
-                        </>
-                      )}
-                      
-                      {result.keyQuotes && result.keyQuotes.length > 0 && (
-                        <>
-                          <Separator />
-                          <KeyQuotes 
-                            quotes={result.keyQuotes} 
-                            tier={tierLevel}
-                          />
-                        </>
-                      )}
-                      
-                      {(tierLevel === 'pro' || tierLevel === 'instant') && (
-                        <>
-                          {result.tensionContributions && (
-                            <>
-                              <Separator />
-                              <TensionContributions
-                                tensionContributions={result.tensionContributions}
-                                me={me}
-                                them={them}
-                                tier={tierLevel}
+                      {fileName && (
+                        <div className="mt-4 text-center">
+                          <p className="text-sm font-medium">
+                            File loaded: {fileName}
+                          </p>
+                          
+                          <div className="flex flex-col sm:flex-row mt-4 gap-3">
+                            <div className="flex-1">
+                              <Input
+                                placeholder="Your name (the gray messages)"
+                                value={me}
+                                onChange={(e) => setMe(e.target.value)}
                               />
-                            </>
-                          )}
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              type="button" 
+                              onClick={handleSwitchNames}
+                              className="sm:flex-shrink-0"
+                            >
+                              <ArrowLeftRight className="h-4 w-4 mr-2" />
+                              Switch
+                            </Button>
+                            <div className="flex-1">
+                              <Input
+                                placeholder="Their name (the blue messages)"
+                                value={them}
+                                onChange={(e) => setThem(e.target.value)}
+                              />
+                            </div>
+                          </div>
                           
-                          {result.tensionMeaning && (
-                            <>
-                              <Separator />
-                              <TensionMeaning tensionMeaning={result.tensionMeaning} />
-                            </>
-                          )}
-                          
-                          <Separator />
-                          <PsychologicalProfile 
-                            result={result} 
-                            me={me} 
-                            them={them}
-                          />
-                          
-                          <Separator />
-                          <PersonalizedSuggestions 
-                            result={result}
-                            me={me}
-                            them={them}
-                            tier={tierLevel}
-                          />
-                        </>
+                          <div className="mt-4 flex justify-between">
+                            <Button
+                              variant="outline"
+                              onClick={handleDetectNames}
+                              disabled={isDetectingNames || !conversation}
+                            >
+                              {isDetectingNames ? (
+                                <>
+                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                  Detecting...
+                                </>
+                              ) : (
+                                <>
+                                  <Search className="h-4 w-4 mr-2" />
+                                  Auto-Detect Names
+                                </>
+                              )}
+                            </Button>
+                            
+                            <Button
+                              onClick={handleSubmit}
+                              disabled={!canUseFeature || isSubmitting || !conversation || !me || !them}
+                            >
+                              {isSubmitting ? (
+                                <>
+                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                  Analyzing...
+                                </>
+                              ) : (
+                                <>
+                                  <Brain className="h-4 w-4 mr-2" />
+                                  {canUseFeature ? 'Analyze Conversation' : 'Usage Limit Reached'}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
                       )}
-                    </>
-                  )}
+                      
+                      {imagePreview && (
+                        <div className="mt-4">
+                          <h4 className="font-medium mb-2">Image Preview</h4>
+                          <img 
+                            src={imagePreview} 
+                            alt="Uploaded screenshot" 
+                            className="max-h-48 mx-auto border rounded-lg"
+                          />
+                          
+                          {ocrMutation.isPending && (
+                            <div className="mt-2 text-sm text-center">
+                              <div className="h-4 w-4 mx-auto mb-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                              Extracting text from image...
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      <div className="flex items-start mb-2">
+                        <Info className="h-4 w-4 mr-2 mt-0.5" />
+                        <div>
+                          <strong>WhatsApp Export Instructions:</strong>
+                          <ol className="list-decimal ml-5 mt-1 space-y-1">
+                            <li>Open the WhatsApp chat</li>
+                            <li>Tap the three dots ⋮ in the top right</li>
+                            <li>Select "More" → "Export chat"</li>
+                            <li>Choose "Without media"</li>
+                            <li>Share the .zip file here</li>
+                          </ol>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {!canUseFeature && (
+                <Alert className="mt-6">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    You've reached your analysis limit. Please upgrade your plan to continue.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </>
+          ) : (
+            <div id="analysisResults">
+              {result && (
+                <div className="space-y-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                    <h3 className="text-2xl font-bold mb-2 md:mb-0">Analysis Results</h3>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowResults(false)}
+                      className="self-start"
+                    >
+                      Back to Input
+                    </Button>
+                  </div>
                   
-                  <SupportHelpLinesLink 
-                    variant="secondary" 
-                    size="default"
-                  />
+                  {/* Participants */}
+                  <div className="flex flex-col md:flex-row gap-4 mb-4">
+                    <div 
+                      className="flex-1 p-4 rounded-lg border" 
+                      style={{ borderColor: getParticipantColor(me) }}
+                    >
+                      <div className="flex items-center mb-2">
+                        <div 
+                          className="w-3 h-3 rounded-full mr-2" 
+                          style={{ backgroundColor: getParticipantColor(me) }}
+                        ></div>
+                        <h4 className="font-medium text-lg">{me}</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {result.participantTones && result.participantTones[me] ? (
+                          `Typical tone: ${result.participantTones[me]}`
+                        ) : (
+                          "Participant in the conversation"
+                        )}
+                      </p>
+                    </div>
+                    
+                    <div 
+                      className="flex-1 p-4 rounded-lg border" 
+                      style={{ borderColor: getParticipantColor(them) }}
+                    >
+                      <div className="flex items-center mb-2">
+                        <div 
+                          className="w-3 h-3 rounded-full mr-2" 
+                          style={{ backgroundColor: getParticipantColor(them) }}
+                        ></div>
+                        <h4 className="font-medium text-lg">{them}</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {result.participantTones && result.participantTones[them] ? (
+                          `Typical tone: ${result.participantTones[them]}`
+                        ) : (
+                          "Participant in the conversation"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Overall Tone Analysis */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <div className="flex items-center mb-3">
+                      <Activity className="h-5 w-5 text-blue-600 mr-2" />
+                      <h3 className="text-lg font-semibold">Overall Tone Analysis</h3>
+                    </div>
+                    
+                    <p className="text-lg mb-4">
+                      {result.toneAnalysis && result.toneAnalysis.overallTone 
+                        ? result.toneAnalysis.overallTone 
+                        : "Analysis not available"}
+                    </p>
+                    
+                    {result.emotionalState && result.emotionalState.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Emotional Temperature</h4>
+                        <div className="space-y-3">
+                          {result.emotionalState.slice(0, 5).map((emotion, idx) => (
+                            <div key={idx} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span>{emotion.emotion}</span>
+                                <span>{Math.round(emotion.intensity * 100)}%</span>
+                              </div>
+                              <Progress value={emotion.intensity * 100} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Health Score */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <div className="flex items-center mb-3">
+                      <Activity className="h-5 w-5 text-blue-600 mr-2" />
+                      <h3 className="text-lg font-semibold">Relationship Health Score</h3>
+                    </div>
+                    
+                    {result.healthScore ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-red-500">Conflict</span>
+                          <span className="font-medium text-yellow-500">Neutral</span>
+                          <span className="font-medium text-green-500">Healthy</span>
+                          <span className="font-medium text-green-700">Very Healthy</span>
+                        </div>
+                        
+                        <div className="h-3 bg-gray-100 rounded-full relative">
+                          <div 
+                            className="h-3 rounded-full" 
+                            style={{
+                              width: `${result.healthScore.score}%`,
+                              backgroundColor: 
+                                result.healthScore.score < 30 ? '#ef4444' : 
+                                result.healthScore.score < 50 ? '#f59e0b' : 
+                                result.healthScore.score < 75 ? '#84cc16' : 
+                                '#16a34a',
+                            }}
+                          ></div>
+                          
+                          <div 
+                            className="absolute top-3 text-sm font-medium"
+                            style={{
+                              left: `calc(${result.healthScore.score}% - 15px)`,
+                            }}
+                          >
+                            {result.healthScore.score}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 p-3 rounded-md" style={{
+                          backgroundColor: 
+                            result.healthScore.score < 30 ? '#fef2f2' : 
+                            result.healthScore.score < 50 ? '#fffbeb' : 
+                            result.healthScore.score < 75 ? '#f7fee7' : 
+                            '#ecfdf5',
+                          color: 
+                            result.healthScore.score < 30 ? '#b91c1c' : 
+                            result.healthScore.score < 50 ? '#b45309' : 
+                            result.healthScore.score < 75 ? '#3f6212' : 
+                            '#166534',
+                        }}>
+                          <p className="font-medium">
+                            {result.healthScore.label}: {result.healthScore.score}/100
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p>Health score not available for this conversation.</p>
+                    )}
+                  </div>
+                  
+                  {/* Red Flags */}
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <div className="flex items-center mb-3">
+                      <Flame className="h-5 w-5 text-red-600 mr-2" />
+                      <h3 className="text-lg font-semibold">Potential Red Flags</h3>
+                    </div>
+                    
+                    {result.redFlags && result.redFlags.length > 0 ? (
+                      <div className="space-y-3">
+                        {result.redFlags.map((flag, idx) => (
+                          <div key={idx} className="p-3 border-l-4 border-red-400 bg-red-50 rounded-r-md">
+                            <h4 className="font-medium text-red-700">{flag.type}</h4>
+                            <p className="text-red-600 text-sm mt-1">{flag.description}</p>
+                          </div>
+                        ))}
+                        
+                        {tier === 'free' && (
+                          <div className="mt-4 p-3 bg-gray-50 rounded-md">
+                            <p className="text-sm mb-2">
+                              <strong>Get more detailed insights and personalized advice</strong> with an upgraded plan.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                                Upgrade Here
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                One-time Insight
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-green-600">No significant red flags detected in this conversation.</p>
+                    )}
+                  </div>
+                  
+                  {/* Communication Patterns */}
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Communication Insights</h4>
+                    {(result.communication.patterns && result.communication.patterns.length > 0) ? (
+                      <div className="mb-4">
+                        <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
+                        <div className="space-y-3">
+                          {result.communication.patterns.map((pattern, idx) => {
+                            // Check if the pattern contains a quote (text inside quotes)
+                            const quoteMatch = pattern.match(/"([^"]+)"/);
+                            const hasQuote = quoteMatch && quoteMatch[1];
+                            
+                            // Split pattern into parts before and after the quote
+                            let beforeQuote = pattern;
+                            let quote = '';
+                            let afterQuote = '';
+                            
+                            if (hasQuote) {
+                              const parts = pattern.split(quoteMatch[0]);
+                              beforeQuote = parts[0];
+                              quote = quoteMatch[1];
+                              afterQuote = parts[1] || '';
+                            }
+                            
+                            // Detect which participant is mentioned
+                            const meColor = pattern.includes(me) ? "text-cyan-700 bg-cyan-50" : "";
+                            const themColor = pattern.includes(them) ? "text-pink-700 bg-pink-50" : "";
+                            
+                            return (
+                              <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
+                                <p>
+                                  <span className="text-gray-700">{beforeQuote}</span>
+                                  {hasQuote && (
+                                    <>
+                                      <span className={`italic px-2 py-1 rounded my-1 inline-block ${meColor || themColor || "bg-blue-50 text-blue-600"}`}>
+                                        "{quote}"
+                                      </span>
+                                      <span className="text-gray-700">{afterQuote}</span>
+                                    </>
+                                  )}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">No significant communication patterns detected.</p>
+                    )}
+                    
+                    {result.communication.suggestions && result.communication.suggestions.length > 0 && (
+                      <div className="mt-4">
+                        <h5 className="text-sm font-medium text-muted-foreground mb-1">Improvement Suggestions</h5>
+                        <div className="space-y-2">
+                          {result.communication.suggestions.map((suggestion, idx) => (
+                            <div key={idx} className="p-3 bg-blue-50 text-blue-700 rounded">
+                              {suggestion}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <SupportHelpLinesLink variant="secondary" size="default" />
                 </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </section>
   );
 }
