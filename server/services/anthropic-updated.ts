@@ -810,8 +810,9 @@ export async function detectParticipants(conversation: string) {
   try {
     console.log('Attempting to use Anthropic for participant detection');
     
-    // Extract the first 500 characters for a faster name detection
-    const excerpt = conversation.substring(0, 500);
+    // Make sure conversation is a string and extract the first 500 characters for a faster name detection
+    const excerptText = typeof conversation === 'string' ? conversation : JSON.stringify(conversation);
+    const excerpt = excerptText.substring(0, 500);
     
     // Direct pattern matching approach first
     const namePatterns = excerpt.match(/(?:^|\n|\[)[^:[\]]*?([A-Z][a-z]+)(?::|:)/g);

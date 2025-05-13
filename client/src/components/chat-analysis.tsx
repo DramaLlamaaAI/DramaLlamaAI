@@ -93,7 +93,7 @@ export default function ChatAnalysis() {
   });
 
   const ocrMutation = useMutation({
-    mutationFn: processImageOcr,
+    mutationFn: (params: string) => processImageOcr(params),
     onSuccess: (data) => {
       setConversation(data.text);
       setTabValue("paste");
@@ -156,7 +156,8 @@ export default function ChatAnalysis() {
         
         // Send to OCR API if it's an image
         if (file.type.startsWith('image/')) {
-          ocrMutation.mutate({ base64Image: base64.split(',')[1] });
+          // Pass the base64 string directly
+          ocrMutation.mutate(base64.split(',')[1]);
         }
       }
     } catch (error) {
@@ -178,7 +179,8 @@ export default function ChatAnalysis() {
       return;
     }
     
-    detectNamesMutation.mutate({ conversation });
+    // Pass the conversation as a string directly
+    detectNamesMutation.mutate(conversation);
   };
 
   const handleSubmit = () => {
