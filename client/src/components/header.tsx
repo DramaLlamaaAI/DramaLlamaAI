@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { getTierDisplayName } from "@/lib/utils";
 import { Link } from "wouter";
 import llamaImage from "@assets/FB Profile Pic.png";
+import AdminNavItem from "./admin-nav-item";
 
 export default function Header() {
   const { data: usage } = useQuery({
@@ -73,6 +74,9 @@ export default function Header() {
           </TooltipProvider>
           
           <div className="flex items-center space-x-2">
+            {/* Admin navigation option - only visible to admin users */}
+            <AdminNavItem />
+            
             <Link href="/auth">
               <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10">
                 Sign up / Log in

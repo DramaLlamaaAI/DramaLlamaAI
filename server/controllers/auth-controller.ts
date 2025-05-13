@@ -77,12 +77,20 @@ export const authController = {
       // Hash password and create user
       const hashedPassword = hashPassword(validatedData.password);
       
+      // Check if this is the admin email
+      const isAdminEmail = validatedData.email.toLowerCase() === 'dramallamaconsultancy@gmail.com';
+      
       const user = await storage.createUser({
         username: validatedData.username,
         email: validatedData.email.toLowerCase(),
         password: hashedPassword,
-        tier: "free" // Default tier
+        tier: isAdminEmail ? "pro" : "free" // Admin gets pro by default
       });
+      
+      // If this is the admin email, set admin flag
+      if (isAdminEmail) {
+        await storage.setUserAdmin(user.id, true);
+      }
       
       // Generate verification code
       const verificationCode = generateVerificationCode();
