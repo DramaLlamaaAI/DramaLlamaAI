@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap, Archive } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap, Archive, FilePdf } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse, OcrRequest } from "@/lib/openai";
@@ -18,6 +18,7 @@ import { useLocation } from "wouter";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import JSZip from "jszip";
+import exportToPdf from '@/components/export-document-generator';
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -612,13 +613,27 @@ export default function ChatAnalysis() {
                 <div className="space-y-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
                     <h3 className="text-2xl font-bold mb-2 md:mb-0">Analysis Results</h3>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowResults(false)}
-                      className="self-start"
-                    >
-                      Back to Input
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          if (result) {
+                            exportToPdf(result, me, them, toast, userTier);
+                          }
+                        }}
+                        className="self-start"
+                      >
+                        <FilePdf className="h-4 w-4 mr-2" />
+                        Export to PDF
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowResults(false)}
+                        className="self-start"
+                      >
+                        Back to Input
+                      </Button>
+                    </div>
                   </div>
                   
                   {/* Participants section removed as requested */}
