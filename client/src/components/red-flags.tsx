@@ -10,14 +10,19 @@ interface RedFlagsProps {
     type: string;
     description: string;
     severity: number;
+    participant?: string; // Added for Personal tier
+    quote?: string; // Added for Pro tier
+    context?: string; // Added for Pro tier
   }>;
   tier: string;
   conversation?: string;
   overallTone?: string;
   redFlagsCount?: number;
+  me?: string; // First participant name
+  them?: string; // Second participant name
 }
 
-export default function RedFlags({ redFlags, tier, conversation, overallTone, redFlagsCount }: RedFlagsProps) {
+export default function RedFlags({ redFlags, tier, conversation, overallTone, redFlagsCount, me, them }: RedFlagsProps) {
   // Only rely on the red flags from the API response directly
   // This ensures consistency between free tier count and personal tier actual flags
   let flagsToDisplay = redFlags || [];
@@ -202,11 +207,39 @@ export default function RedFlags({ redFlags, tier, conversation, overallTone, re
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-700">{flag.description}</p>
+              {/* Personal tier adds participant information */}
+              {tier === 'personal' ? (
+                <div>
+                  <p className="text-sm text-gray-700 mb-2">{flag.description}</p>
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium text-gray-700 mr-1">Participant:</span>
+                    <span className="text-gray-600">
+                      {flag.participant || (flag.type.toLowerCase().includes('both') ? 'Both participants' : 
+                        flag.type.toLowerCase().includes(me?.toLowerCase() || '') ? me : 
+                        flag.type.toLowerCase().includes(them?.toLowerCase() || '') ? them : 'Both participants')}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-700">{flag.description}</p>
+              )}
               
-              {/* Pro tier gets additional insights */}
+              {/* Pro tier gets additional insights with quotes */}
               {isPro && (
                 <div className="mt-3 bg-gray-50 p-2 rounded border border-gray-200 text-xs">
+                  {/* Add quote from conversation if available */}
+                  {flag.quote && (
+                    <div className="mb-3 p-2 bg-white rounded border-l-2 border-gray-300">
+                      <div className="flex items-center mb-1">
+                        <span className="font-medium text-gray-700 mr-1">From {flag.participant || 'conversation'}:</span>
+                      </div>
+                      <p className="italic text-gray-600">"{flag.quote}"</p>
+                      {flag.context && (
+                        <p className="text-gray-500 mt-1 text-xs">{flag.context}</p>
+                      )}
+                    </div>
+                  )}
+                
                   <div className="mb-2">
                     <span className="font-medium text-gray-700">Impact Analysis: </span>
                     <span className="text-gray-600">

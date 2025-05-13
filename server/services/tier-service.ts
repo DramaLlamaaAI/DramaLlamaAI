@@ -87,8 +87,67 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
     // Add red flags if available 
     if (tierFeatures.includes('redFlags')) {
       // Make sure we always add redFlags to the filtered analysis, even if empty array
-      filteredAnalysis.redFlags = analysis.redFlags || [];
-      console.log(`Added ${filteredAnalysis.redFlags.length} red flags to ${tier} tier analysis`);
+      const redFlags = analysis.redFlags || [];
+      
+      // For personal tier, enhance red flags with participant information
+      if (tier === 'personal') {
+        filteredAnalysis.redFlags = redFlags.map(flag => {
+          // Add participant info based on the flag type if not already present
+          if (!flag.participant) {
+            // Try to determine participant based on flag type
+            const flagType = flag.type.toLowerCase();
+            const participantInfo = 
+              flagType.includes('both participants') ? 'Both' :
+              flagType.includes(analysis.toneAnalysis?.participant1?.toLowerCase() || '') ? analysis.toneAnalysis?.participant1 :
+              flagType.includes(analysis.toneAnalysis?.participant2?.toLowerCase() || '') ? analysis.toneAnalysis?.participant2 :
+              'Both participants';
+            
+            return {
+              ...flag,
+              participant: participantInfo
+            };
+          }
+          return flag;
+        });
+      } 
+      // For pro tier, enhance with quotes and context
+      else if (tier === 'pro' || tier === 'instant') {
+        filteredAnalysis.redFlags = redFlags.map(flag => {
+          // Try to find relevant quote from key quotes if available
+          let enhancedFlag = { 
+            ...flag,
+            participant: flag.participant || 'Both participants'
+          };
+          
+          // If we have key quotes, try to find a relevant one for this flag type
+          if (analysis.keyQuotes && analysis.keyQuotes.length > 0) {
+            const relevantQuote = analysis.keyQuotes.find(quote => {
+              const quoteAnalysis = quote.analysis?.toLowerCase() || '';
+              const flagType = flag.type.toLowerCase();
+              
+              return quoteAnalysis.includes(flagType) || 
+                (flagType.includes('manipulation') && quoteAnalysis.includes('manipulat')) ||
+                (flagType.includes('criticism') && quoteAnalysis.includes('critic')) ||
+                (flagType.includes('defensive') && quoteAnalysis.includes('defens')) ||
+                (flagType.includes('stonewalling') && quoteAnalysis.includes('avoid')) ||
+                (flagType.includes('contempt') && quoteAnalysis.includes('disrespect'));
+            });
+            
+            if (relevantQuote) {
+              enhancedFlag.quote = relevantQuote.quote;
+              enhancedFlag.participant = relevantQuote.speaker;
+              enhancedFlag.context = relevantQuote.analysis;
+            }
+          }
+          
+          return enhancedFlag;
+        });
+      } 
+      else {
+        filteredAnalysis.redFlags = redFlags;
+      }
+      
+      console.log(`Added ${filteredAnalysis.redFlags.length} enhanced red flags to ${tier} tier analysis`);
     }
     
     // Add high tension factors (part of advancedToneAnalysis)
