@@ -7,6 +7,17 @@ import { useQuery } from "@tanstack/react-query";
 import { getUserUsage } from "@/lib/openai";
 
 export default function HowItWorks() {
+  // Get usage data for free tier indicator
+  const { data: usage } = useQuery({
+    queryKey: ['/api/user/usage'],
+    queryFn: getUserUsage,
+  });
+  
+  const used = usage?.used || 0;
+  const limit = usage?.limit || 2;
+  const remaining = Math.max(0, limit - used);
+  const tier = usage?.tier || 'free';
+  
   return (
     <section id="how-it-works" className="mb-12 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl p-8">
       <div className="flex items-center justify-center gap-3 mb-6">
@@ -73,6 +84,54 @@ export default function HowItWorks() {
         </div>
       </div>
       
+      {/* Free tier info section */}
+      {tier === 'free' && (
+        <div className="mt-8 max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-6 border-2 border-violet-100">
+            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+              <div className="bg-violet-100 rounded-full w-16 h-16 flex-shrink-0 flex items-center justify-center">
+                <Gift className="h-8 w-8 text-violet-600" />
+              </div>
+              
+              <div className="flex-grow">
+                <h3 className="font-semibold text-lg flex items-center">
+                  <span className="mr-2">Try Drama Llama For Free</span>
+                  <Badge className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white border-0">
+                    {remaining} left
+                  </Badge>
+                </h3>
+                
+                <p className="text-gray-600 mb-3">
+                  You can try Drama Llama's basic features without signing up. You have {remaining} free {remaining === 1 ? 'analysis' : 'analyses'} remaining this month.
+                </p>
+                
+                <div className="h-2 bg-gray-100 rounded-full w-full mb-3">
+                  <div 
+                    className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full"
+                    style={{ width: `${Math.max(0, (remaining / limit) * 100)}%` }}
+                  />
+                </div>
+                
+                <div className="flex flex-wrap gap-3">
+                  <Link href="/chat-analysis">
+                    <Button variant="secondary" className="bg-violet-600 hover:bg-violet-700 text-white border-0">
+                      Try It Now
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/auth">
+                    <Button variant="outline" className="border-violet-300 text-violet-700">
+                      <UserCheck className="h-4 w-4 mr-1" />
+                      Create Account
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mt-8 bg-white/80 rounded-lg p-5 max-w-4xl mx-auto">
         <div className="flex items-start md:items-center flex-col md:flex-row">
           <div className="mb-4 md:mb-0 md:mr-6">
