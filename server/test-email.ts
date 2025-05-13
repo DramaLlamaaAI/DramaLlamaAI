@@ -3,7 +3,7 @@ import { sendEmail } from './services/resend-email-service';
 async function testEmailService() {
   console.log('Testing Resend email service...');
   
-  const testEmail = 'test@example.com'; // Replace with a real email for testing
+  const testEmail = 'elskieproduction@gmail.com'; // User's email for testing
   
   const result = await sendEmail({
     to: testEmail,
