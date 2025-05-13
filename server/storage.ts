@@ -134,24 +134,25 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userId++;
-    // Ensure tier is set with a default if not provided
-    const userWithDefaultTier = {
-      ...insertUser,
-      tier: insertUser.tier || "free"
-    };
     
+    // Apply defaults while preserving provided values
     const user: User = { 
-      ...userWithDefaultTier, 
       id,
-      emailVerified: false,
+      username: insertUser.username,
+      password: insertUser.password,
+      email: insertUser.email.toLowerCase(), // Normalize email to lowercase
+      tier: insertUser.tier || "free",
+      emailVerified: insertUser.emailVerified !== undefined ? insertUser.emailVerified : false,
       verificationCode: null,
       verificationCodeExpires: null,
       stripeCustomerId: null,
       stripeSubscriptionId: null,
-      isAdmin: false,
+      isAdmin: insertUser.isAdmin !== undefined ? insertUser.isAdmin : false,
       discountPercentage: 0,
       discountExpiryDate: null
     };
+    
+    console.log(`Creating user: ${user.username}, Email: ${user.email}, Admin: ${user.isAdmin}, Tier: ${user.tier}`);
     this.users.set(id, user);
     
     // Create usage limits for new user
