@@ -366,9 +366,13 @@ export class MemStorage implements IStorage {
     const id = this.userEventId++;
     const now = new Date();
     
+    // Create a properly typed event object with defaults for optional fields
     const newEvent: UserEvent = {
-      ...event,
       id,
+      userId: event.userId || null,
+      eventType: event.eventType,
+      oldValue: event.oldValue || null,
+      newValue: event.newValue || null,
       createdAt: now
     };
     
@@ -394,11 +398,11 @@ export class MemStorage implements IStorage {
         events = events.filter(event => event.eventType === filter.eventType);
       }
       
-      if (filter.startDate) {
+      if (filter.startDate !== undefined) {
         events = events.filter(event => event.createdAt >= filter.startDate);
       }
       
-      if (filter.endDate) {
+      if (filter.endDate !== undefined) {
         events = events.filter(event => event.createdAt <= filter.endDate);
       }
     }
@@ -452,9 +456,10 @@ export class MemStorage implements IStorage {
     }
     
     // Convert map to array and sort by date
-    for (const [date, count] of dateCountMap.entries()) {
+    // Use Array.from to work around the iterator compatibility issue
+    Array.from(dateCountMap.entries()).forEach(([date, count]) => {
       registrationsByDate.push({ date, count });
-    }
+    });
     registrationsByDate.sort((a, b) => a.date.localeCompare(b.date));
     
     // Calculate tier conversion rates
@@ -470,10 +475,11 @@ export class MemStorage implements IStorage {
     
     const tierConversionRate: { fromTier: string; toTier: string; count: number }[] = [];
     
-    for (const [key, count] of tierChanges.entries()) {
+    // Use Array.from to work around the iterator compatibility issue
+    Array.from(tierChanges.entries()).forEach(([key, count]) => {
       const [fromTier, toTier] = key.split(':');
       tierConversionRate.push({ fromTier, toTier, count });
-    }
+    });
     
     // Sort by count (highest first)
     tierConversionRate.sort((a, b) => b.count - a.count);

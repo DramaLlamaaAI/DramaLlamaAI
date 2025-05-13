@@ -49,7 +49,19 @@ export const adminController = {
       const validatedData = schema.parse(req.body);
       const { userId, tier } = validatedData;
       
+      // Get current user to track the tier change
+      const currentUser = await storage.getUser(userId);
+      const oldTier = currentUser?.tier || 'free';
+      
       const updatedUser = await storage.updateUserTier(userId, tier);
+      
+      // Track tier change event for analytics
+      await storage.trackUserEvent({
+        userId: userId,
+        eventType: 'tier_change',
+        oldValue: oldTier,
+        newValue: tier
+      });
       
       const { password, verificationCode, ...safeUser } = updatedUser;
       return res.status(200).json(safeUser);
