@@ -470,12 +470,12 @@ export default function ChatAnalysis() {
                               />
                             </div>
                           
-                            <div className="flex gap-3">
+                            <div className="space-y-3">
                               <Button
                                 variant="outline"
                                 onClick={handleDetectNames}
                                 disabled={isDetectingNames || !conversation}
-                                className="flex-1"
+                                className="w-full"
                                 size="default"
                               >
                                 {isDetectingNames ? (
@@ -494,7 +494,7 @@ export default function ChatAnalysis() {
                               <Button
                                 variant="outline"
                                 onClick={handleSwitchNames}
-                                className="flex-1"
+                                className="w-full"
                               >
                                 <ArrowLeftRight className="h-4 w-4 mr-2" />
                                 Switch Names
