@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   Card, 
@@ -25,7 +25,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Loader2, RefreshCw, User as UserIcon, X, CheckSquare } from 'lucide-react';
+import { Loader2, RefreshCw, User as UserIcon, X, CheckSquare, ArrowLeft } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
@@ -263,11 +263,21 @@ export default function AdminDashboardEnhanced() {
         />
       ) : (
         // Main dashboard view
-        <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="users">User Management</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab} className="flex-1">
+              <TabsList>
+                <TabsTrigger value="users">User Management</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Link href="/">
+              <Button variant="outline" className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Button>
+            </Link>
+          </div>
           
           <TabsContent value="users">
             <Card className="mb-6">
@@ -496,7 +506,7 @@ export default function AdminDashboardEnhanced() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+        </div>
       )}
     </div>
   );

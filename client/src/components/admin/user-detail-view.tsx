@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { 
   Card, 
   CardContent, 
@@ -23,7 +24,8 @@ import {
   BadgeX, 
   Calendar, 
   Clock, 
-  CreditCard, 
+  CreditCard,
+  Home,
   LoaderCircle, 
   LockKeyhole, 
   Mail, 
@@ -187,11 +189,20 @@ export function UserDetailView({ user, onBack }: UserDetailViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="flex gap-2 items-center">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Users
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={onBack} className="flex gap-2 items-center">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Users
+          </Button>
+          
+          <Link href="/">
+            <Button variant="outline" className="flex gap-2 items-center">
+              <Home className="h-4 w-4" />
+              Back to Home
+            </Button>
+          </Link>
+        </div>
         
         <div className="flex gap-2">
           <Badge variant="outline" className="flex items-center gap-1 border-primary">
