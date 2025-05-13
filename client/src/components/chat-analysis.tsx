@@ -772,11 +772,11 @@ export default function ChatAnalysis() {
                   {/* Communication Patterns */}
                   <div className="bg-muted p-4 rounded-lg">
                     <h4 className="font-medium mb-2">Communication Insights</h4>
-                    {(result.communication?.patterns && result.communication.patterns.length > 0) ? (
+                    {(result.communication?.patterns && result.communication?.patterns.length > 0) ? (
                       <div className="mb-4">
                         <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
                         <div className="space-y-3">
-                          {result.communication.patterns.map((pattern: string, idx: number) => {
+                          {result.communication?.patterns.map((pattern: string, idx: number) => {
                             // Check if the pattern contains a quote (text inside quotes)
                             const quoteMatch = pattern.match(/"([^"]+)"/);
                             const hasQuote = quoteMatch && quoteMatch[1];
@@ -819,11 +819,11 @@ export default function ChatAnalysis() {
                       <p className="text-muted-foreground text-sm">No significant communication patterns detected.</p>
                     )}
                     
-                    {result.communication.suggestions && result.communication.suggestions.length > 0 && (
+                    {result.communication?.suggestions && result.communication?.suggestions.length > 0 && (
                       <div className="mt-4">
                         <h5 className="text-sm font-medium text-muted-foreground mb-1">Improvement Suggestions</h5>
                         <div className="space-y-2">
-                          {result.communication.suggestions.map((suggestion, idx) => (
+                          {result.communication?.suggestions.map((suggestion: string, idx: number) => (
                             <div key={idx} className="p-3 bg-blue-50 text-blue-700 rounded">
                               {suggestion}
                             </div>
