@@ -35,7 +35,7 @@ export interface ChatAnalysisResponse {
       [key: string]: string;
     };
   };
-  // Legacy properties (to ensure backwards compatibility)
+  // These properties exist at both levels for backward compatibility
   emotionalState?: Array<{
     emotion: string;
     intensity: number;
@@ -43,13 +43,14 @@ export interface ChatAnalysisResponse {
   participantTones?: {
     [key: string]: string;
   };
+  // Red flags and related fields
   redFlags?: Array<{
     type: string;
     description: string;
     severity: number;
   }>;
   redFlagsCount?: number;
-  communication: {
+  communication?: {
     patterns?: string[];
     dynamics?: string[];
     suggestions?: string[];
