@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap, Archive } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse, OcrRequest } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -406,34 +407,24 @@ export default function ChatAnalysis() {
                 </TabsContent>
                 
                 <TabsContent value="upload" className="mt-4">
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                      <h3 className="font-medium mb-1">Upload WhatsApp Chat Export</h3>
+                      <div className="bg-blue-100 inline-block p-4 mb-3 rounded-full">
+                        <Archive className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-xl font-medium text-blue-700 mb-2">WhatsApp Chat Exports</h3>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Drag and drop a file, or click to select
+                        Upload a WhatsApp chat export (.txt file or .zip archive). On WhatsApp, tap ⋮ on a
+                        chat, "More" → "Export chat" → "Without media"
                       </p>
                       
                       <div className="flex items-center justify-center mb-4">
-                        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-                          <Button
-                            variant="outline"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex-1"
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Upload .txt or .zip
-                          </Button>
-                          
-                          <Button
-                            variant="outline"
-                            onClick={() => imageInputRef.current?.click()}
-                            className="flex-1"
-                          >
-                            <Image className="h-4 w-4 mr-2" />
-                            Upload Screenshot
-                          </Button>
-                        </div>
+                        <Button
+                          className="bg-blue-500 hover:bg-blue-600 text-white"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          Choose File
+                        </Button>
                       </div>
                       
                       <input
@@ -453,74 +444,85 @@ export default function ChatAnalysis() {
                       />
                       
                       {fileName && (
-                        <div className="mt-4 text-center">
-                          <p className="text-sm font-medium">
-                            File loaded: {fileName}
+                        <div className="mt-4 text-left max-w-md mx-auto">
+                          <p className="text-sm font-medium text-center mb-4">
+                            File loaded: <span className="text-blue-700">{fileName}</span>
                           </p>
                           
-                          <div className="flex flex-col sm:flex-row mt-4 gap-3">
-                            <div className="flex-1">
+                          <div className="space-y-4">
+                            <div>
+                              <Label htmlFor="your-name" className="block mb-1">Your Name</Label>
                               <Input
-                                placeholder="Your name (the gray messages)"
+                                id="your-name"
+                                placeholder="Your name in the chat"
                                 value={me}
                                 onChange={(e) => setMe(e.target.value)}
                               />
                             </div>
-                            <Button 
-                              variant="outline" 
-                              type="button" 
-                              onClick={handleSwitchNames}
-                              className="sm:flex-shrink-0"
-                            >
-                              <ArrowLeftRight className="h-4 w-4 mr-2" />
-                              Switch
-                            </Button>
-                            <div className="flex-1">
+                            
+                            <div>
+                              <Label htmlFor="other-name" className="block mb-1">Other Person's Name</Label>
                               <Input
-                                placeholder="Their name (the blue messages)"
+                                id="other-name"
+                                placeholder="Other person's name"
                                 value={them}
                                 onChange={(e) => setThem(e.target.value)}
                               />
                             </div>
-                          </div>
                           
-                          <div className="mt-4 flex gap-2">
-                            <Button
-                              variant="outline"
-                              onClick={handleDetectNames}
-                              disabled={isDetectingNames || !conversation}
-                              className="flex-shrink-0"
-                              size="sm"
-                            >
-                              {isDetectingNames ? (
-                                <>
-                                  <div className="h-4 w-4 mr-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                                  <span className="hidden sm:inline">Detecting...</span>
-                                  <span className="sm:hidden">Detect</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Search className="h-4 w-4 mr-1" />
-                                  <span className="hidden sm:inline">Auto-Detect Names</span>
-                                  <span className="sm:hidden">Detect</span>
-                                </>
-                              )}
-                            </Button>
+                            <div className="flex gap-3">
+                              <Button
+                                variant="outline"
+                                onClick={handleDetectNames}
+                                disabled={isDetectingNames || !conversation}
+                                className="flex-1"
+                                size="default"
+                              >
+                                {isDetectingNames ? (
+                                  <>
+                                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                    Detecting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Search className="h-4 w-4 mr-2" />
+                                    Auto-Detect Names
+                                  </>
+                                )}
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                onClick={handleSwitchNames}
+                                className="flex-1"
+                              >
+                                <ArrowLeftRight className="h-4 w-4 mr-2" />
+                                Switch Names
+                              </Button>
+                            </div>
+                            
+                            <div className="relative">
+                              <div className="flex items-center space-x-2 mb-4">
+                                <Switch id="focus-recent" />
+                                <Label htmlFor="focus-recent">Focus on Recent Messages</Label>
+                                <span className="text-xs px-2 py-1 bg-amber-100 text-amber-800 rounded-full">New</span>
+                              </div>
+                            </div>
                             
                             <Button
                               onClick={handleSubmit}
                               disabled={!canUseFeature || isSubmitting || !conversation || !me || !them}
-                              className="flex-grow"
+                              className="w-full bg-teal-500 hover:bg-teal-600"
                             >
                               {isSubmitting ? (
                                 <>
                                   <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                                  <span>Analyzing...</span>
+                                  Analyzing...
                                 </>
                               ) : (
                                 <>
                                   <Brain className="h-4 w-4 mr-2" />
-                                  <span>{canUseFeature ? 'Analyze Conversation' : 'Usage Limit Reached'}</span>
+                                  {canUseFeature ? 'Analyze Chat' : 'Usage Limit Reached'}
                                 </>
                               )}
                             </Button>
