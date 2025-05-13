@@ -24,6 +24,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   email: true,
   tier: true,
+  isAdmin: true,
+  emailVerified: true,
 });
 
 // Analysis schema
