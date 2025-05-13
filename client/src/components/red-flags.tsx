@@ -65,9 +65,29 @@ export default function RedFlags({ redFlags, tier, conversation, overallTone, re
         <Card>
           <CardContent className="p-4">
             <p className="text-gray-700 mb-4">
-              Our analysis has identified {flagCount} potential red flag{flagCount !== 1 ? 's' : ''} in this conversation 
-              that may indicate concerning communication patterns.
+              Our analysis has identified {flagCount} potential red flag{flagCount !== 1 ? 's' : ''} in this conversation:
             </p>
+            
+            {/* Preview of red flag types for free tier */}
+            <div className="mb-5 space-y-2">
+              {redFlags && redFlags.map((flag, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <div className={`h-3 w-3 rounded-full ${
+                    flag.severity >= 4 ? 'bg-red-500' : 
+                    flag.severity >= 3 ? 'bg-yellow-500' : 
+                    'bg-orange-400'
+                  }`}></div>
+                  <p className="text-sm font-medium">{flag.type}</p>
+                </div>
+              ))}
+            </div>
+            
+            <div className="p-3 bg-amber-50 rounded-lg border border-amber-100 mb-4">
+              <p className="text-sm text-amber-800">
+                Upgrade your account to see detailed explanations, which participants are displaying these behaviors, and actionable advice.
+              </p>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/pricing">
                 <Button className="w-full sm:w-auto" variant="default">
