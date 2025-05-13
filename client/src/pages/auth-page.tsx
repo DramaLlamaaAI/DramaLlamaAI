@@ -68,6 +68,22 @@ export default function AuthPage() {
       const response = await apiRequest("POST", "/api/auth/login", values);
       const data = await response.json();
       
+      // Special handling for unverified emails 
+      if (response.status === 403 && data.needsVerification) {
+        toast({
+          title: "Email verification required",
+          description: data.message || "Please verify your email before logging in.",
+        });
+        
+        // If the server included the verification code directly, pass it in the URL
+        if (data.verificationCode) {
+          setLocation(`/verify-email?code=${data.verificationCode}`);
+        } else {
+          setLocation("/verify-email");
+        }
+        return;
+      }
+      
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
       }
@@ -101,13 +117,29 @@ export default function AuthPage() {
         throw new Error(data.error || "Registration failed");
       }
       
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created. Welcome!",
-      });
-      
-      // Redirect to home page
-      setLocation("/");
+      // Check if email verification is needed
+      if (data.verificationNeeded) {
+        toast({
+          title: "Registration successful",
+          description: "Please check your email to verify your account.",
+        });
+        
+        // Redirect to the verification page
+        // If the server included the verification code directly, pass it in the URL
+        if (data.verificationCode) {
+          setLocation(`/verify-email?code=${data.verificationCode}`);
+        } else {
+          setLocation("/verify-email");
+        }
+      } else {
+        toast({
+          title: "Registration successful",
+          description: "Your account has been created. Welcome!",
+        });
+        
+        // Redirect to home page
+        setLocation("/");
+      }
     } catch (error: any) {
       setErrorMsg(error.message || "Registration failed. Please try again.");
     } finally {
