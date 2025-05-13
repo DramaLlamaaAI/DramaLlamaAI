@@ -96,10 +96,18 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
           if (!flag.participant) {
             // Try to determine participant based on flag type
             const flagType = flag.type.toLowerCase();
+            
+            // Get participant names from participantTones if available
+            const participantNames = analysis.toneAnalysis?.participantTones ? 
+              Object.keys(analysis.toneAnalysis.participantTones) : [];
+            
+            const participant1 = participantNames.length > 0 ? participantNames[0] : '';
+            const participant2 = participantNames.length > 1 ? participantNames[1] : '';
+            
             const participantInfo = 
               flagType.includes('both participants') ? 'Both' :
-              flagType.includes(analysis.toneAnalysis?.participant1?.toLowerCase() || '') ? analysis.toneAnalysis?.participant1 :
-              flagType.includes(analysis.toneAnalysis?.participant2?.toLowerCase() || '') ? analysis.toneAnalysis?.participant2 :
+              (participant1 && flagType.includes(participant1.toLowerCase())) ? participant1 :
+              (participant2 && flagType.includes(participant2.toLowerCase())) ? participant2 :
               'Both participants';
             
             return {

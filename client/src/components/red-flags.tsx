@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, ChevronUpCircle, Zap } from "lucide-react";
+import { AlertTriangle, ChevronUpCircle, Zap, MessageSquare } from "lucide-react";
 import SupportHelpLinesLink from "@/components/support-helplines-link";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -13,6 +13,10 @@ interface RedFlagsProps {
     participant?: string; // Added for Personal tier
     quote?: string; // Added for Pro tier
     context?: string; // Added for Pro tier
+    examples?: Array<{
+      text: string;
+      from: string;
+    }>; // Added for advanced Pro tier
   }>;
   tier: string;
   conversation?: string;
@@ -265,7 +269,7 @@ export default function RedFlags({ redFlags, tier, conversation, overallTone, re
                         <span className="font-medium text-gray-700">Supporting Examples:</span>
                       </div>
                       
-                      {flag.examples.map((example, i) => (
+                      {flag.examples.map((example: {text: string, from: string}, i: number) => (
                         <div key={i} className="mb-2 p-2 bg-white rounded border-l-2 border-gray-300">
                           <div className="flex items-center mb-1">
                             <span className={`font-medium mr-1 ${
