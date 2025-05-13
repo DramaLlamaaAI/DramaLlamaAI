@@ -804,31 +804,8 @@ export default function ChatAnalysis() {
                     )}
                   </div>
                   
-                  {/* Communication Patterns */}
-                  {tier === 'free' ? (
-                    // Free tier - Show upgrade prompt
-                    <div className="bg-muted p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Communication Insights</h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Upgrade to unlock detailed communication pattern analysis and personalized improvement suggestions.
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <a href="/pricing">
-                          <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                            <ChevronUpCircle className="h-4 w-4 mr-2" />
-                            Upgrade for Insights
-                          </Button>
-                        </a>
-                        <a href="/one-time-analysis">
-                          <Button size="sm" variant="outline">
-                            <Zap className="h-4 w-4 mr-2" />
-                            One-time Analysis
-                          </Button>
-                        </a>
-                      </div>
-                    </div>
-                  ) : (
-                    // Paid tiers - Show full communication insights
+                  {/* Communication Patterns - Only for paid tiers */}
+                  {tier !== 'free' && (
                     <div className="bg-muted p-4 rounded-lg">
                       <h4 className="font-medium mb-2">Communication Insights</h4>
                       {(result.communication?.patterns && result.communication?.patterns.length > 0) ? (
