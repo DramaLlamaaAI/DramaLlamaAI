@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import SupportHelpLinesLink from "@/components/support-helplines-link";
 
 export default function ChatAnalysis() {
