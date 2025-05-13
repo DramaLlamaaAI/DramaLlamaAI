@@ -31,8 +31,12 @@ function verifyPassword(storedPassword: string, suppliedPassword: string): boole
 
 // Schema for login
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  username: z.string().optional(),
+  email: z.string().optional(),
   password: z.string().min(1, "Password is required"),
+}).refine(data => data.username || data.email, {
+  message: "Either username or email is required",
+  path: ["username"]
 });
 
 // Schema for registration
@@ -145,10 +149,21 @@ export const authController = {
     try {
       const validatedData = loginSchema.parse(req.body);
       
-      const user = await storage.getUserByUsername(validatedData.username);
+      // Look up the user by username or email
+      let user;
+      if (validatedData.email && typeof validatedData.email === 'string') {
+        user = await storage.getUserByEmail(validatedData.email);
+        console.log(`Looking up user by email: ${validatedData.email}, found:`, user?.username);
+      } else if (validatedData.username && typeof validatedData.username === 'string') {
+        user = await storage.getUserByUsername(validatedData.username);
+        console.log(`Looking up user by username: ${validatedData.username}, found:`, user?.username);
+      }
+      
       if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
+      
+      console.log(`Authenticating user: ${user.username}, email: ${user.email}, password hash format: ${user.password.includes(':') ? 'Correct' : 'Invalid'}`);
       
       const isPasswordValid = verifyPassword(user.password, validatedData.password);
       if (!isPasswordValid) {
