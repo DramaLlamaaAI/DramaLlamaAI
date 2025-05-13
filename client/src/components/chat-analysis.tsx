@@ -361,21 +361,25 @@ export default function ChatAnalysis() {
                       </div>
                     </div>
                     
-                    <div className="flex justify-between">
+                    <div className="flex gap-2">
                       <Button
                         variant="outline"
                         onClick={handleDetectNames}
                         disabled={isDetectingNames || !conversation.trim()}
+                        className="flex-shrink-0"
+                        size="sm"
                       >
                         {isDetectingNames ? (
                           <>
-                            <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                            Detecting...
+                            <div className="h-4 w-4 mr-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                            <span className="hidden sm:inline">Detecting...</span>
+                            <span className="sm:hidden">Detect</span>
                           </>
                         ) : (
                           <>
-                            <Search className="h-4 w-4 mr-2" />
-                            Auto-Detect Names
+                            <Search className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Auto-Detect Names</span>
+                            <span className="sm:hidden">Detect</span>
                           </>
                         )}
                       </Button>
@@ -383,16 +387,17 @@ export default function ChatAnalysis() {
                       <Button
                         onClick={handleSubmit}
                         disabled={!canUseFeature || isSubmitting || !conversation.trim() || !me.trim() || !them.trim()}
+                        className="flex-grow"
                       >
                         {isSubmitting ? (
                           <>
                             <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                            Analyzing...
+                            <span>Analyzing...</span>
                           </>
                         ) : (
                           <>
                             <Brain className="h-4 w-4 mr-2" />
-                            {canUseFeature ? 'Analyze Conversation' : 'Usage Limit Reached'}
+                            <span>{canUseFeature ? 'Analyze Conversation' : 'Usage Limit Reached'}</span>
                           </>
                         )}
                       </Button>
@@ -479,21 +484,25 @@ export default function ChatAnalysis() {
                             </div>
                           </div>
                           
-                          <div className="mt-4 flex justify-between">
+                          <div className="mt-4 flex gap-2">
                             <Button
                               variant="outline"
                               onClick={handleDetectNames}
                               disabled={isDetectingNames || !conversation}
+                              className="flex-shrink-0"
+                              size="sm"
                             >
                               {isDetectingNames ? (
                                 <>
-                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                                  Detecting...
+                                  <div className="h-4 w-4 mr-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                  <span className="hidden sm:inline">Detecting...</span>
+                                  <span className="sm:hidden">Detect</span>
                                 </>
                               ) : (
                                 <>
-                                  <Search className="h-4 w-4 mr-2" />
-                                  Auto-Detect Names
+                                  <Search className="h-4 w-4 mr-1" />
+                                  <span className="hidden sm:inline">Auto-Detect Names</span>
+                                  <span className="sm:hidden">Detect</span>
                                 </>
                               )}
                             </Button>
@@ -501,16 +510,17 @@ export default function ChatAnalysis() {
                             <Button
                               onClick={handleSubmit}
                               disabled={!canUseFeature || isSubmitting || !conversation || !me || !them}
+                              className="flex-grow"
                             >
                               {isSubmitting ? (
                                 <>
                                   <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                                  Analyzing...
+                                  <span>Analyzing...</span>
                                 </>
                               ) : (
                                 <>
                                   <Brain className="h-4 w-4 mr-2" />
-                                  {canUseFeature ? 'Analyze Conversation' : 'Usage Limit Reached'}
+                                  <span>{canUseFeature ? 'Analyze Conversation' : 'Usage Limit Reached'}</span>
                                 </>
                               )}
                             </Button>
