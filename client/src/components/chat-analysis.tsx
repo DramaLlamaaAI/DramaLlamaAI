@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap, Archive, FilePdf } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap, Archive, FileText } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse, OcrRequest } from "@/lib/openai";
@@ -618,12 +618,12 @@ export default function ChatAnalysis() {
                         variant="outline" 
                         onClick={() => {
                           if (result) {
-                            exportToPdf(result, me, them, toast, userTier);
+                            exportToPdf(result as any, me, them, toast, tier);
                           }
                         }}
                         className="self-start"
                       >
-                        <FilePdf className="h-4 w-4 mr-2" />
+                        <FileText className="h-4 w-4 mr-2" />
                         Export to PDF
                       </Button>
                       <Button 
