@@ -257,8 +257,29 @@ export default function RedFlags({ redFlags, tier, conversation, overallTone, re
               {/* Pro tier gets additional insights with quotes */}
               {isPro && (
                 <div className="mt-3 bg-gray-50 p-2 rounded border border-gray-200 text-xs">
-                  {/* Add quote from conversation if available */}
-                  {flag.quote && (
+                  {/* Add examples with quotes from conversation if available */}
+                  {flag.examples && flag.examples.length > 0 ? (
+                    <div className="mb-3">
+                      <div className="flex items-center mb-2">
+                        <MessageSquare className="h-3 w-3 mr-1 text-gray-600" />
+                        <span className="font-medium text-gray-700">Supporting Examples:</span>
+                      </div>
+                      
+                      {flag.examples.map((example, i) => (
+                        <div key={i} className="mb-2 p-2 bg-white rounded border-l-2 border-gray-300">
+                          <div className="flex items-center mb-1">
+                            <span className={`font-medium mr-1 ${
+                              example.from === me ? 'text-teal-600' : 
+                              example.from === them ? 'text-pink-500' : 'text-gray-700'
+                            }`}>
+                              {example.from}:
+                            </span>
+                          </div>
+                          <p className="italic text-gray-600">"{example.text}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : flag.quote ? (
                     <div className="mb-3 p-2 bg-white rounded border-l-2 border-gray-300">
                       <div className="flex items-center mb-1">
                         <span className="font-medium text-gray-700 mr-1">
@@ -273,7 +294,7 @@ export default function RedFlags({ redFlags, tier, conversation, overallTone, re
                         <p className="text-gray-500 mt-1 text-xs">{flag.context}</p>
                       )}
                     </div>
-                  )}
+                  ) : null}
                 
                   <div className="mb-2">
                     <span className="font-medium text-gray-700">Impact Analysis: </span>
@@ -286,6 +307,10 @@ export default function RedFlags({ redFlags, tier, conversation, overallTone, re
                         'Shutting down communication prevents healthy conflict resolution and builds resentment over time.'}
                       {flag.type === 'Relationship Strain' && 
                         'Persistent communication issues often lead to emotional distance and difficulty resolving even minor disagreements.'}
+                      {flag.type === 'Gaslighting' && 
+                        'Invalidating someone\'s experiences can lead to self-doubt and damaged self-confidence over time.'}
+                      {flag.type === 'Victim Blaming' && 
+                        'This approach shifts responsibility and prevents addressing the actual problematic behavior.'}
                       {!['Communication Breakdown', 'Emotional Manipulation', 'Conversational Stonewalling', 'Relationship Strain'].includes(flag.type) && 
                         'This pattern can create ongoing tension and prevents healthy resolution of underlying issues.'}
                     </span>
