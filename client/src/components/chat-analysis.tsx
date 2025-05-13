@@ -50,16 +50,22 @@ export default function ChatAnalysis() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
-  const [location, params] = useLocation();
+  const [location] = useLocation();
   const { toast } = useToast();
   
+  // Parse URL search parameters
+  const getSearchParams = () => {
+    return new URLSearchParams(window.location.search);
+  };
+  
   useEffect(() => {
-    if (params.get('tier')) {
-      setTierLevel(params.get('tier') || 'free');
+    const searchParams = getSearchParams();
+    if (searchParams.get('tier')) {
+      setTierLevel(searchParams.get('tier') || 'free');
     } else if (localStorage.getItem('userTier')) {
       setTierLevel(localStorage.getItem('userTier') || 'free');
     }
-  }, [params]);
+  }, [location]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -215,13 +221,14 @@ export default function ChatAnalysis() {
         'Content-Type': 'application/json',
       };
       
-      if (params.get('dev') === 'true') {
+      const searchParams = getSearchParams();
+      if (searchParams.get('dev') === 'true') {
         headers['X-Developer-Mode'] = 'true';
       }
       
       // Add tier override if specified
-      if (params.get('devTier')) {
-        headers['X-Developer-Tier'] = params.get('devTier') || '';
+      if (searchParams.get('devTier')) {
+        headers['X-Developer-Tier'] = searchParams.get('devTier') || '';
       }
       
       const response = await fetch('/api/analyze/chat', {
@@ -277,7 +284,8 @@ export default function ChatAnalysis() {
       const { exportToPdf } = await import('@/components/export-document-generator');
       
       // Get the current tier - from URL, localStorage or default to 'free'
-      const currentTier = params.get('tier') || localStorage.getItem('userTier') || 'free';
+      const searchParams = getSearchParams();
+      const currentTier = searchParams.get('tier') || localStorage.getItem('userTier') || 'free';
       
       // Call the PDF export function with the tier parameter
       exportToPdf(result, me, them, toast, currentTier);
@@ -432,7 +440,7 @@ export default function ChatAnalysis() {
                   <Archive className="mr-2 h-4 w-4" />
                   Upload File
                 </TabsTrigger>
-                {params.get('dev') === 'true' && (
+                {getSearchParams().get('dev') === 'true' && (
                   <TabsTrigger value="debug" className="w-full">
                     <AlertCircle className="mr-2 h-4 w-4" />
                     Debug
@@ -544,7 +552,7 @@ export default function ChatAnalysis() {
                 </div>
               </TabsContent>
               
-              {params.get('dev') === 'true' && (
+              {getSearchParams().get('dev') === 'true' && (
                 <TabsContent value="debug" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
