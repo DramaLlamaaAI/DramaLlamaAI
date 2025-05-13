@@ -14,7 +14,7 @@ interface TensionContributionsProps {
   tensionContributions?: TensionContributionsMap;
 }
 
-export function TensionContributions({ me, them, tier, tensionContributions }: TensionContributionsProps) {
+export default function TensionContributions({ me, them, tier, tensionContributions }: TensionContributionsProps) {
   // Only show for personal+ tiers
   if (tier === 'free' || !tensionContributions) {
     return null;

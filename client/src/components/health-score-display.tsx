@@ -13,7 +13,7 @@ interface HealthScoreDisplayProps {
   tier: string;
 }
 
-export function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreDisplayProps) {
+export default function HealthScoreDisplay({ healthScore, me, them, tier }: HealthScoreDisplayProps) {
   // Only render this component for personal and higher tiers, and only when the tier is actually available
   // This helps prevent duplicate rendering
   if (tier === 'free' || !tier) {

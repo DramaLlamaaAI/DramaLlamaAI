@@ -13,7 +13,7 @@ interface RedFlagsProps {
   conversation?: string;
 }
 
-export function RedFlags({ redFlags, tier, conversation }: RedFlagsProps) {
+export default function RedFlags({ redFlags, tier, conversation }: RedFlagsProps) {
   // Only rely on the red flags from the API response directly
   // This ensures consistency between free tier count and personal tier actual flags
   let flagsToDisplay = redFlags || [];

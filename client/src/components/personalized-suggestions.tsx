@@ -9,7 +9,7 @@ interface PersonalizedSuggestionsProps {
   suggestions?: string[];
 }
 
-export function PersonalizedSuggestions({ me, them, tier, suggestions }: PersonalizedSuggestionsProps) {
+export default function PersonalizedSuggestions({ me, them, tier, suggestions }: PersonalizedSuggestionsProps) {
   // Only show for personal+ tiers
   if (tier === 'free' || !suggestions || suggestions.length === 0) {
     return null;

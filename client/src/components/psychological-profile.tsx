@@ -12,7 +12,7 @@ type ProfileData = {
   riskIndicators: string;
 };
 
-export function PsychologicalProfile({ result, me, them }: PsychologicalProfileProps) {
+export default function PsychologicalProfile({ result, me, them }: PsychologicalProfileProps) {
   if (!result.psychologicalProfile) return null;
   
   return (

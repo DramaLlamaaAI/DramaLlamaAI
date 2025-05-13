@@ -15,7 +15,7 @@ interface FreeTierAnalysisProps {
   them: string;
 }
 
-export function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
+export default function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisProps) {
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);

@@ -5,7 +5,7 @@ import 'express-session';
 import { 
   generateVerificationCode, 
   sendVerificationEmail 
-} from '../services/email-service';
+} from '../services/resend-email-service';
 
 // Augment express-session with custom properties
 declare module 'express-session' {
@@ -102,13 +102,17 @@ export const authController = {
         req.session.userTier = user.tier || 'free';
       }
       
-      // If email couldn't be sent, include the verification code in the response
+      // Check if we have Resend API key configured
+      const hasEmailService = !!process.env.RESEND_API_KEY;
+      
+      // If email couldn't be sent or there's no email service, include the verification code in the response
       // so user can verify manually
       res.status(201).json({ 
         ...userWithoutPassword,
         verificationNeeded: true,
-        verificationCode: !emailSent ? verificationCode : undefined,
-        emailSent
+        verificationCode: (!emailSent || !hasEmailService) ? verificationCode : undefined,
+        emailSent,
+        emailServiceConfigured: hasEmailService
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -371,13 +375,17 @@ export const authController = {
       // Set new verification code in user record (expires in 24 hours)
       await storage.setVerificationCode(user.id, verificationCode, 24 * 60);
       
+      // Check if email service is configured
+      const hasEmailService = !!process.env.RESEND_API_KEY;
+      
       // Try to send verification email
       const emailSent = await sendVerificationEmail(user, verificationCode);
       
       res.status(200).json({ 
         message: "Verification email sent successfully!",
-        verificationCode: !emailSent ? verificationCode : undefined,
-        emailSent
+        verificationCode: (!emailSent || !hasEmailService) ? verificationCode : undefined,
+        emailSent,
+        emailServiceConfigured: hasEmailService
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
