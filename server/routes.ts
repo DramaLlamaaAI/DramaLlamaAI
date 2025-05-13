@@ -73,6 +73,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User usage data
   app.get('/api/user/usage', authController.getUserUsage);
   
+  // DEBUG: Temporary route to help with admin login issues (remove in production)
+  app.get('/api/debug/users', async (req: Request, res: Response) => {
+    if (process.env.NODE_ENV !== 'development') {
+      return res.status(403).json({ error: 'Debug routes only available in development' });
+    }
+    
+    const users = await storage.getAllUsers();
+    const safeUsers = users.map(user => {
+      // Include password hash format for debugging
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        tier: user.tier,
+        isAdmin: user.isAdmin,
+        emailVerified: user.emailVerified,
+        passwordFormat: user.password.includes(':') ? 'Correct (salt:hash)' : 'Invalid (no salt separator)'
+      };
+    });
+    
+    res.json(safeUsers);
+  });
+  
   // Analysis routes with trial eligibility check
   app.post('/api/analyze/chat', checkTrialEligibility, analysisController.analyzeChat);
   app.post('/api/analyze/message', checkTrialEligibility, analysisController.analyzeMessage);
