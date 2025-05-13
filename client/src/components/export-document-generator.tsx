@@ -607,57 +607,76 @@ export function exportToPdf(result: ChatAnalysisResult, me: string, them: string
     // Mobile detection
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
+    // Create a timestamp for unique filenames
+    const timestamp = new Date().getTime();
+    const fileName = `Drama-Llama-Analysis-${timestamp}.pdf`;
+    
     // Configuration for the PDF export with mobile-specific settings
     const options = {
       margin: [10, 10, 10, 10],
-      filename: 'Drama-Llama-Analysis.pdf',
+      filename: fileName,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
         scale: 2, 
         useCORS: true, 
         logging: false,
-        // Mobile devices often need these additional settings
         allowTaint: true,
         foreignObjectRendering: false
       },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      // For mobile devices, force download by opening in a new tab
-      autoPrint: false,
-      output: isMobile ? 'blob' : 'save'
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
-    // Generate the PDF
-    html2pdf().from(tempContainer).set(options).outputPdf(isMobile ? 'blob' : 'save')
+    // Generate the PDF as a blob for all devices
+    html2pdf().from(tempContainer).set(options).outputPdf('blob')
       .then((pdfBlob: any) => {
         // Remove the temporary container
         document.body.removeChild(tempContainer);
         
-        // For mobile devices, create a direct download link
-        if (isMobile && pdfBlob) {
-          // Create a URL for the blob
-          const blobUrl = URL.createObjectURL(pdfBlob);
+        // Create a URL for the blob
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        
+        // For Safari on iOS which has special requirements
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+        
+        if (isIOS) {
+          // For iOS, open the PDF in a new tab/window
+          // This often works better on iOS than programmatic downloads
+          window.open(blobUrl, '_blank');
           
-          // Create an anchor element for downloading
+          toast({
+            title: "PDF Ready",
+            description: "Your PDF has opened in a new tab. Tap the share icon to save or share it.",
+          });
+        } else {
+          // For all other devices, create and click a download link
           const downloadLink = document.createElement('a');
           downloadLink.href = blobUrl;
-          downloadLink.download = 'Drama-Llama-Analysis.pdf';
-          downloadLink.style.display = 'none';
+          downloadLink.download = fileName;
+          downloadLink.target = '_blank'; // This helps on some mobile browsers
+          
+          // Add to DOM for some mobile browsers that require the element to be in the DOM
+          downloadLink.style.position = 'fixed';
+          downloadLink.style.top = '0';
+          downloadLink.style.left = '0';
+          downloadLink.style.opacity = '0';
           document.body.appendChild(downloadLink);
           
-          // Trigger download programmatically
-          downloadLink.click();
-          
-          // Clean up
+          // Use a slight delay to ensure the browser has time to process
           setTimeout(() => {
-            document.body.removeChild(downloadLink);
-            URL.revokeObjectURL(blobUrl);
+            downloadLink.click();
+            
+            // Give the browser some time to initiate the download before cleanup
+            setTimeout(() => {
+              document.body.removeChild(downloadLink);
+              URL.revokeObjectURL(blobUrl);
+              
+              toast({
+                title: "Export Successful",
+                description: "Your analysis has been downloaded as a PDF.",
+              });
+            }, 1000);
           }, 100);
         }
-        
-        toast({
-          title: "Export Successful",
-          description: "Your analysis has been downloaded as a PDF.",
-        });
       })
       .catch((error: any) => {
         console.error("PDF generation error:", error);
