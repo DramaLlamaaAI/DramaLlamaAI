@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import JSZip from "jszip";
 import exportToPdf from '@/components/export-document-generator';
 import RedFlags from "@/components/red-flags";
+import RegistrationPrompt from "@/components/registration-prompt";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -656,6 +657,9 @@ export default function ChatAnalysis() {
             </>
           ) : (
             <div id="analysisResults">
+              {/* Registration prompt for anonymous/free tier users */}
+              <RegistrationPrompt tier={tier} />
+              
               {result && (
                 <div className="space-y-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">

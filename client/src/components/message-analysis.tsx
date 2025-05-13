@@ -12,6 +12,7 @@ import { analyzeMessage, MessageAnalysisResponse, getUserUsage } from "@/lib/ope
 import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
 import BackHomeButton from "@/components/back-home-button";
+import RegistrationPrompt from "@/components/registration-prompt";
 
 export default function MessageAnalysis() {
   const [message, setMessage] = useState("");
@@ -213,6 +214,11 @@ export default function MessageAnalysis() {
               {analysisMutation.isPending ? "Analyzing..." : "Analyze Tone & Intent"}
             </Button>
           </div>
+          
+          {/* Registration prompt for anonymous/free tier users */}
+          {result && tier === 'free' && (
+            <RegistrationPrompt tier={tier} />
+          )}
           
           {result && (
             <div className="bg-muted p-4 rounded-lg mb-6 slide-in" ref={resultsRef}>
