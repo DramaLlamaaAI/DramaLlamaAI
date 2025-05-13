@@ -6,6 +6,8 @@ import { authController } from "./controllers/auth-controller";
 import { paymentController } from "./controllers/payment-controller";
 import { transcriptionUpload, transcribeAudio } from "./controllers/transcription-controller";
 import { adminController, isAdmin } from "./controllers/admin-controller";
+import { adminDiscountController } from "./controllers/admin-discount-controller";
+import { adminEmailController } from "./controllers/admin-email-controller";
 import session from "express-session";
 import memoryStore from "memorystore";
 
@@ -190,6 +192,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/admin/user/tier', isAuthenticated, isAdmin, adminController.updateUserTier);
   app.put('/api/admin/user/admin', isAuthenticated, isAdmin, adminController.makeUserAdmin);
   app.put('/api/admin/user/discount', isAuthenticated, isAdmin, adminController.setUserDiscount);
+  
+  // Advanced discount and bulk actions
+  app.post('/api/admin/users/bulk-discount', isAuthenticated, isAdmin, adminDiscountController.applyBulkDiscount);
+  app.post('/api/admin/discount-campaigns', isAuthenticated, isAdmin, adminDiscountController.createDiscountCampaign);
+  
+  // Subscription management
+  app.get('/api/admin/subscriptions/:id', isAuthenticated, isAdmin, adminDiscountController.getSubscription);
+  app.put('/api/admin/subscriptions/update', isAuthenticated, isAdmin, adminDiscountController.updateSubscription);
+  app.put('/api/admin/subscriptions/cancel', isAuthenticated, isAdmin, adminDiscountController.cancelSubscription);
+  app.put('/api/admin/subscriptions/reactivate', isAuthenticated, isAdmin, adminDiscountController.reactivateSubscription);
+  
+  // Email notifications
+  app.post('/api/admin/email/send', isAuthenticated, isAdmin, adminEmailController.sendBulkEmails);
   
   // Analytics routes (require admin access)
   app.get('/api/admin/analytics', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
