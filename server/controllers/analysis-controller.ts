@@ -66,8 +66,8 @@ const checkUsageLimit = async (req: Request): Promise<boolean> => {
 };
 
 // Filter conversation by date if date filter is provided
-const filterConversationByDate = (conversation: string, dateFilter?: { startDate?: string; endDate?: string }): string => {
-  if (!dateFilter || (!dateFilter.startDate && !dateFilter.endDate)) {
+const filterConversationByDate = (conversation: string, dateFilter?: { fromDate?: string; toDate?: string }): string => {
+  if (!dateFilter || (!dateFilter.fromDate && !dateFilter.toDate)) {
     return conversation;
   }
   
@@ -75,8 +75,8 @@ const filterConversationByDate = (conversation: string, dateFilter?: { startDate
   // Format examples: "1/2/23, 3:45 PM", "2023-01-02 15:45", "[02/01/2023, 15:45:21]", etc.
   const dateRegex = /(?:\[?\s*(\d{1,4}[-/\.]\d{1,2}[-/\.]\d{1,4})[,\s]+(\d{1,2}:\d{1,2}(?::\d{1,2})?(?:\s*[AP]M)?)\s*\]?)|((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4},?\s+\d{1,2}:\d{1,2}(?::\d{1,2})?(?:\s*[AP]M)?)/i;
   
-  const startDate = dateFilter.startDate ? new Date(dateFilter.startDate) : null;
-  const endDate = dateFilter.endDate ? new Date(dateFilter.endDate) : null;
+  const fromDate = dateFilter.fromDate ? new Date(dateFilter.fromDate) : null;
+  const toDate = dateFilter.toDate ? new Date(dateFilter.toDate) : null;
   
   // Split the conversation into lines and filter by date
   const lines = conversation.split('\n');
@@ -118,8 +118,8 @@ const filterConversationByDate = (conversation: string, dateFilter?: { startDate
     if (!messageDate || isNaN(messageDate.getTime())) return true;
     
     // Filter based on date range
-    if (startDate && messageDate < startDate) return false;
-    if (endDate && messageDate > endDate) return false;
+    if (fromDate && messageDate < fromDate) return false;
+    if (toDate && messageDate > toDate) return false;
     
     return true;
   });

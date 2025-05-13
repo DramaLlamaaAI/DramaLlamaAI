@@ -267,6 +267,17 @@ export default function ChatAnalysis() {
       them,
     };
     
+    // Add date filtering if enabled
+    if (focusRecent && fromDate) {
+      requestData.dateFilter = {
+        fromDate: fromDate
+      };
+      
+      if (toDate) {
+        requestData.dateFilter.toDate = toDate;
+      }
+    }
+    
     // Add tier header if in dev mode
     if (isDevMode && selectedTier) {
       requestData.tier = selectedTier;
@@ -506,11 +517,43 @@ export default function ChatAnalysis() {
                             </div>
                             
                             <div className="relative">
-                              <div className="flex items-center space-x-2 mb-4">
-                                <Switch id="focus-recent" />
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Switch 
+                                  id="focus-recent" 
+                                  checked={focusRecent}
+                                  onCheckedChange={setFocusRecent}
+                                />
                                 <Label htmlFor="focus-recent">Focus on Recent Messages</Label>
                                 <span className="text-xs px-2 py-1 bg-amber-100 text-amber-800 rounded-full">New</span>
                               </div>
+                              
+                              {focusRecent && (
+                                <div className="ml-7 mb-4 space-y-2 py-2 px-3 bg-gray-50 rounded-md">
+                                  <div className="text-sm text-gray-600 mb-1">Filter messages by date range:</div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <Label htmlFor="from-date" className="text-xs">From Date</Label>
+                                      <input
+                                        id="from-date"
+                                        type="date"
+                                        value={fromDate}
+                                        onChange={(e) => setFromDate(e.target.value)}
+                                        className="w-full h-8 px-2 text-sm rounded border border-gray-300"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="to-date" className="text-xs">To Date (optional)</Label>
+                                      <input
+                                        id="to-date"
+                                        type="date"
+                                        value={toDate}
+                                        onChange={(e) => setToDate(e.target.value)}
+                                        className="w-full h-8 px-2 text-sm rounded border border-gray-300"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             
                             <Button
