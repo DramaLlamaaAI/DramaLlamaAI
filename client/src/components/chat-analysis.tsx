@@ -159,6 +159,12 @@ export default function ChatAnalysis() {
         text = await file.text();
       }
       
+      // Make sure we have actual text content
+      if (!text.trim()) {
+        setErrorMessage("The file appears to be empty. Please check the file and try again.");
+        return;
+      }
+      
       setConversation(text);
       setFileName(file.name);
       
