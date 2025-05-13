@@ -281,7 +281,7 @@ export const authController = {
     }
   },
   
-  // Track anonymous usage
+  // Track anonymous usage - allowing up to 2 basic analyses without login
   trackAnonymousUsage: async (req: Request, res: Response) => {
     try {
       const { deviceId } = trackAnonymousSchema.parse(req.body);
@@ -289,24 +289,38 @@ export const authController = {
       // Check current usage
       const usage = await storage.getAnonymousUsage(deviceId);
       
-      // If no usage recorded yet, or count is less than 1, allow the free trial
-      if (!usage || usage.count < 1) {
+      // Anonymous users can use up to 2 basic analyses
+      const anonymousLimit = 2;
+      
+      // If no usage recorded yet, or count is less than limit, allow usage
+      if (!usage || usage.count < anonymousLimit) {
         // Increment and return
         const updatedUsage = await storage.incrementAnonymousUsage(deviceId);
+        const remaining = Math.max(0, anonymousLimit - updatedUsage.count);
+        
+        let message = "";
+        if (updatedUsage.count === 1) {
+          message = `This is your first free analysis. You have ${remaining} remaining.`;
+        } else if (updatedUsage.count === anonymousLimit) {
+          message = "This is your last free analysis. Sign up to continue using Drama Llama.";
+        } else {
+          message = `You have ${remaining} free analyses remaining.`;
+        }
+        
         return res.status(200).json({ 
           canUse: true, 
           usageCount: updatedUsage.count,
-          remaining: updatedUsage.count < 1 ? 1 : 0,
-          message: updatedUsage.count === 1 ? "This is your free trial usage" : "Free trial already used" 
+          remaining: remaining,
+          message: message
         });
       }
       
-      // User has already used their free trial
+      // User has used their free analyses
       return res.status(200).json({ 
         canUse: false, 
         usageCount: usage.count,
         remaining: 0,
-        message: "Free trial already used. Please sign up or log in to continue."
+        message: "You've used your free analyses. Please sign up or log in to continue."
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -329,7 +343,7 @@ export const authController = {
       if (devMode === 'true' && devTier && ['free', 'personal', 'pro', 'instant'].includes(devTier)) {
         console.log(`Developer mode active: Using tier ${devTier} for testing`);
         const tierLimits = {
-          free: 1,
+          free: 2, // Updated to 2 analyses per month
           personal: 10,
           pro: 100,
           instant: 1
@@ -347,7 +361,7 @@ export const authController = {
       // Regular flow for non-dev mode
       if (!req.session || !req.session.userId) {
         // Return free tier info for non-authenticated users
-        return res.status(200).json({ tier: "free", used: 0, limit: 1, remaining: 1 });
+        return res.status(200).json({ tier: "free", used: 0, limit: 2, remaining: 2 });
       }
       
       const userId = req.session.userId;
