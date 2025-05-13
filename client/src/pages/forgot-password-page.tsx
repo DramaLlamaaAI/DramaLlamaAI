@@ -112,10 +112,14 @@ export default function ForgotPasswordPage() {
         email: email || searchParams.get("email") || "",
       };
       
-      // Combine with code from the form
-      delete payload.confirmPassword;
+      // Create a new object without confirmPassword
+      const resetPayload = {
+        code: payload.code,
+        password: payload.password,
+        email: payload.email
+      };
       
-      const response = await apiRequest("POST", "/api/auth/reset-password", payload);
+      const response = await apiRequest("POST", "/api/auth/reset-password", resetPayload);
       const data = await response.json();
       
       if (!response.ok) {

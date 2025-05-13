@@ -61,6 +61,18 @@ const resendVerificationSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
+// Schema for forgot password request
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
+// Schema for password reset
+const resetPasswordSchema = z.object({
+  code: z.string().min(1, "Verification code is required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  email: z.string().email("Invalid email address"),
+});
+
 export const authController = {
   // User registration
   register: async (req: Request, res: Response) => {
@@ -438,6 +450,89 @@ export const authController = {
       } else {
         console.error("Resend verification error:", error);
         res.status(500).json({ error: "Failed to resend verification email" });
+      }
+    }
+  },
+  
+  // Forgot password request
+  forgotPassword: async (req: Request, res: Response) => {
+    try {
+      const { email } = forgotPasswordSchema.parse(req.body);
+      
+      // Look up the user by email 
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // For security reasons, don't reveal that the user doesn't exist
+        return res.status(200).json({ 
+          message: "If your email is registered, you will receive password reset instructions" 
+        });
+      }
+      
+      // Generate reset code
+      const resetCode = generateVerificationCode();
+      
+      // Set reset code in user record (expires in 24 hours)
+      await storage.setVerificationCode(user.id, resetCode, 24 * 60);
+      
+      // Check if email service is configured
+      const hasEmailService = !!process.env.RESEND_API_KEY;
+      
+      // Try to send password reset email
+      const emailSent = await sendPasswordResetEmail(user, resetCode);
+      
+      res.status(200).json({ 
+        message: "Password reset instructions sent to your email",
+        verificationCode: (!emailSent || !hasEmailService) ? resetCode : undefined,
+        emailSent,
+        emailServiceConfigured: hasEmailService
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors[0].message });
+      } else {
+        console.error("Forgot password error:", error);
+        res.status(500).json({ error: "Failed to process password reset request" });
+      }
+    }
+  },
+  
+  // Reset password with verification code
+  resetPassword: async (req: Request, res: Response) => {
+    try {
+      const validatedData = resetPasswordSchema.parse(req.body);
+      
+      // Look up the user by email
+      const user = await storage.getUserByEmail(validatedData.email);
+      if (!user) {
+        return res.status(400).json({ error: "Invalid reset request" });
+      }
+      
+      // Verify that the reset code is valid and not expired
+      if (
+        !user.verificationCode || 
+        user.verificationCode !== validatedData.code || 
+        !user.verificationCodeExpires || 
+        user.verificationCodeExpires < new Date()
+      ) {
+        return res.status(400).json({ error: "Invalid or expired verification code" });
+      }
+      
+      // Hash the new password
+      const hashedPassword = hashPassword(validatedData.password);
+      
+      // Update the user's password and clear the verification code
+      await storage.updateUserPassword(user.id, hashedPassword);
+      await storage.setVerificationCode(user.id, null, 0);
+      
+      res.status(200).json({ 
+        message: "Password has been reset successfully" 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors[0].message });
+      } else {
+        console.error("Reset password error:", error);
+        res.status(500).json({ error: "Failed to reset password" });
       }
     }
   }

@@ -68,6 +68,57 @@ export const sendEmail = async (params: EmailParams): Promise<boolean> => {
   }
 };
 
+// Send a password reset email to a user
+export const sendPasswordResetEmail = async (user: User, resetCode: string): Promise<boolean> => {
+  const resetUrl = `${process.env.APP_URL || 'http://localhost:5000'}/forgot-password?code=${resetCode}&email=${encodeURIComponent(user.email)}`;
+  
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="data:image/svg+xml;base64,${DRAMA_LLAMA_LOGO_BASE64}" alt="Drama Llama Logo" style="width: 120px; height: auto;" />
+      </div>
+      <h2 style="color: #22C9C9;">Drama Llama AI Password Reset</h2>
+      <p>Hi ${user.username},</p>
+      <p>We received a request to reset your password. Click the button below to set a new password:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="background-color: #22C9C9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+          Reset Password
+        </a>
+      </div>
+      <p>Or enter this verification code when prompted: <strong>${resetCode}</strong></p>
+      <p>This code will expire in 24 hours.</p>
+      <p>If you didn't request a password reset, please ignore this email.</p>
+      <p>Thank you,<br>The Drama Llama AI Team</p>
+    </div>
+  `;
+  
+  const textContent = `
+    Drama Llama AI Password Reset
+    
+    Hi ${user.username},
+    
+    We received a request to reset your password. Please visit the link below to set a new password:
+    
+    ${resetUrl}
+    
+    Or enter this verification code when prompted: ${resetCode}
+    
+    This code will expire in 24 hours.
+    
+    If you didn't request a password reset, please ignore this email.
+    
+    Thank you,
+    The Drama Llama AI Team
+  `;
+  
+  return sendEmail({
+    to: user.email,
+    subject: 'Reset Your Drama Llama AI Password',
+    text: textContent,
+    html: htmlContent,
+  });
+};
+
 // Send a verification email to a user
 export const sendVerificationEmail = async (user: User, verificationCode: string): Promise<boolean> => {
   const verificationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/verify-email?code=${verificationCode}`;
