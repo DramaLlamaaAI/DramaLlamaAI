@@ -81,13 +81,37 @@ export class MemStorage implements IStorage {
     this.usageLimitId = 1;
     this.userEventId = 1;
     
-    // Initialize with a demo user
-    this.createUser({
+    // Initialize with a demo user - using proper password format (salt:hash)
+    // This is a pre-hashed representation of "password123"
+    const demoSalt = "5b1ed2f96b8e4be184a84d1e8ced9f0a";
+    const demoHash = "6979d0bbd415e5f064c743e21aabc6c84f048d5b8daf2a3a5c89bed4bd3b18dd0eeada398d8c33ec36d90a8900d706adce3c2af727fed0b7e6295ce017724018";
+    
+    const id = this.userId++;
+    const user: User = { 
+      id,
       username: "demo",
-      password: "password123",
+      password: `${demoSalt}:${demoHash}`,
       email: "demo@example.com",
-      tier: "free"
-    });
+      tier: "free",
+      emailVerified: false,
+      verificationCode: null,
+      verificationCodeExpires: null,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      isAdmin: false,
+      discountPercentage: 0,
+      discountExpiryDate: null
+    };
+    this.users.set(id, user);
+    
+    // Create usage limits for demo user
+    const usageLimit: UsageLimit = {
+      id: this.usageLimitId++,
+      userId: id,
+      monthlyTotal: 0,
+      lastResetDate: new Date()
+    };
+    this.usageLimits.set(id, usageLimit);
   }
 
   async getUser(id: number): Promise<User | undefined> {

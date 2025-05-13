@@ -169,9 +169,19 @@ export const authController = {
       
       console.log(`Authenticating user: ${user.username}, email: ${user.email}, password hash format: ${user.password.includes(':') ? 'Correct' : 'Invalid'}`);
       
-      const isPasswordValid = verifyPassword(user.password, validatedData.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({ error: "Invalid credentials" });
+      // Add debugging for password validation
+      console.log(`Password validation: stored format = ${user.password.includes(':') ? 'salt:hash' : 'invalid'}`);
+      
+      try {
+        const isPasswordValid = verifyPassword(user.password, validatedData.password);
+        if (!isPasswordValid) {
+          console.log("Password verification failed");
+          return res.status(401).json({ error: "Invalid credentials" });
+        }
+        console.log("Password verification successful");
+      } catch (err) {
+        console.error("Password verification error:", err);
+        return res.status(401).json({ error: "Invalid credentials (password format error)" });
       }
       
       // Check if email is verified (skip this check if no verification system is in place)
