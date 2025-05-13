@@ -5,6 +5,7 @@ import { analysisController } from "./controllers/analysis-controller";
 import { authController } from "./controllers/auth-controller";
 import { paymentController } from "./controllers/payment-controller";
 import { transcriptionUpload, transcribeAudio } from "./controllers/transcription-controller";
+import { adminController, isAdmin } from "./controllers/admin-controller";
 import session from "express-session";
 import memoryStore from "memorystore";
 
@@ -156,6 +157,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Payment routes
   app.post('/api/create-subscription', isAuthenticated, paymentController.createSubscription);
   app.post('/api/webhook', paymentController.handleWebhook);
+  
+  // Admin routes (require admin access)
+  app.get('/api/admin/users', isAuthenticated, isAdmin, adminController.getAllUsers);
+  app.put('/api/admin/user/tier', isAuthenticated, isAdmin, adminController.updateUserTier);
+  app.put('/api/admin/user/admin', isAuthenticated, isAdmin, adminController.makeUserAdmin);
+  app.put('/api/admin/user/discount', isAuthenticated, isAdmin, adminController.setUserDiscount);
   
   // Protected routes that require authentication
   app.get('/api/user/analyses', isAuthenticated, async (req: Request, res: Response) => {
