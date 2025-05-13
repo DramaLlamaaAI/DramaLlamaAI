@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
+import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse, OcrRequest } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
@@ -102,7 +102,7 @@ export default function ChatAnalysis() {
   });
 
   const ocrMutation = useMutation({
-    mutationFn: (params: string) => processImageOcr(params),
+    mutationFn: (params: { image: string }) => processImageOcr(params),
     onSuccess: (data) => {
       setConversation(data.text);
       setTabValue("paste");
@@ -580,8 +580,8 @@ export default function ChatAnalysis() {
                         <h4 className="font-medium text-lg">{me}</h4>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {result.participantTones && result.participantTones[me] ? (
-                          `Typical tone: ${result.participantTones[me]}`
+                        {result.toneAnalysis?.participantTones && result.toneAnalysis.participantTones[me] ? (
+                          `Typical tone: ${result.toneAnalysis.participantTones[me]}`
                         ) : (
                           "Participant in the conversation"
                         )}
