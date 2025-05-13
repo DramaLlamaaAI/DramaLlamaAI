@@ -621,48 +621,7 @@ export default function ChatAnalysis() {
                     </Button>
                   </div>
                   
-                  {/* Participants */}
-                  <div className="flex flex-col md:flex-row gap-4 mb-4">
-                    <div 
-                      className="flex-1 p-4 rounded-lg border" 
-                      style={{ borderColor: getParticipantColor(me) }}
-                    >
-                      <div className="flex items-center mb-2">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-2" 
-                          style={{ backgroundColor: getParticipantColor(me) }}
-                        ></div>
-                        <h4 className="font-medium text-lg">{me}</h4>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {result.participantTones && result.participantTones[me] ? (
-                          `Typical tone: ${result.participantTones[me]}`
-                        ) : (
-                          "Participant in the conversation"
-                        )}
-                      </p>
-                    </div>
-                    
-                    <div 
-                      className="flex-1 p-4 rounded-lg border" 
-                      style={{ borderColor: getParticipantColor(them) }}
-                    >
-                      <div className="flex items-center mb-2">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-2" 
-                          style={{ backgroundColor: getParticipantColor(them) }}
-                        ></div>
-                        <h4 className="font-medium text-lg">{them}</h4>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {result.participantTones && result.participantTones[them] ? (
-                          `Typical tone: ${result.participantTones[them]}`
-                        ) : (
-                          "Participant in the conversation"
-                        )}
-                      </p>
-                    </div>
-                  </div>
+                  {/* Participants section removed as requested */}
                   
                   {/* Overall Tone Analysis */}
                   <div className="bg-white p-4 rounded-lg shadow-sm">
