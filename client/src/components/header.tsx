@@ -19,9 +19,9 @@ export default function Header() {
   const used = usage?.used || 0;
   const limit = usage?.limit || 1;
   
-  // For free tier, initially show "1/1" when no analyses used,
-  // but show "0/1" after they've used their free analysis
-  const displayUsed = tier === 'free' && used === 0 ? 1 - used : used;
+  // Display the actual remaining analyses count
+  const remaining = Math.max(0, limit - used);
+  const displayUsed = used;
   
   const isInfinite = limit === Infinity;
 
@@ -60,15 +60,29 @@ export default function Header() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="mr-4 text-sm bg-white/10 px-3 py-1 rounded-full">
+                <div className="mr-4 text-sm bg-white/10 px-3 py-1 rounded-full flex items-center">
                   <span className="text-white/80 mr-1">{getTierDisplayName(tier)}</span>
+                  
+                  {/* Visual progress indicator */}
+                  {!isInfinite && (
+                    <div className="relative w-16 h-4 bg-white/20 rounded-full overflow-hidden mr-2">
+                      <div 
+                        className="absolute left-0 top-0 h-full bg-white/60 rounded-full" 
+                        style={{width: `${Math.min(100, (displayUsed / limit) * 100)}%`}}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
+                        {remaining} left
+                      </div>
+                    </div>
+                  )}
+                  
                   <span className="text-white font-semibold">
                     {displayUsed}/{isInfinite ? '∞' : limit}
                   </span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Your usage this month</p>
+                <p>You have {remaining} analysis{remaining !== 1 ? 'es' : ''} remaining this month</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
