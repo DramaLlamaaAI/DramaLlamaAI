@@ -31,8 +31,9 @@ export default function MessageAnalysis() {
   });
   
   const usedAnalyses = usage?.used || 0;
-  const limit = usage?.limit || 1;
+  const limit = usage?.limit || 2;
   const canUseFeature = usedAnalyses < limit;
+  const tier = usage?.tier || 'free';
 
   const analysisMutation = useMutation({
     mutationFn: analyzeMessage,
@@ -216,8 +217,8 @@ export default function MessageAnalysis() {
           </div>
           
           {/* Registration prompt for anonymous/free tier users */}
-          {result && tier === 'free' && (
-            <RegistrationPrompt tier={tier} />
+          {result && usage?.tier === 'free' && (
+            <RegistrationPrompt tier={usage.tier} />
           )}
           
           {result && (

@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
 import BackHomeButton from "@/components/back-home-button";
+import RegistrationPrompt from "@/components/registration-prompt";
 
 export default function DeEscalate() {
   const [message, setMessage] = useState("");
@@ -185,6 +186,11 @@ export default function DeEscalate() {
               </Button>
             </div>
           </div>
+          
+          {/* Registration prompt for anonymous/free tier users */}
+          {result && usage?.tier === 'free' && (
+            <RegistrationPrompt tier={usage.tier} />
+          )}
           
           {result && (
             <div className="rounded-lg border border-border p-4 mb-6 bg-muted slide-in" ref={resultsRef}>
