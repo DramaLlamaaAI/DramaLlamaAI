@@ -68,24 +68,48 @@ export const paymentController = {
         await storage.updateStripeCustomerId(userId, customerId);
       }
       
-      // Create a payment intent
+      // Check if user has an active discount
+      let discountPercentage = 0;
+      if (user.discountPercentage && user.discountPercentage > 0) {
+        // Check if the discount is still valid
+        if (user.discountExpiryDate && new Date(user.discountExpiryDate) > new Date()) {
+          discountPercentage = user.discountPercentage;
+        }
+      }
+      
+      // Calculate base amount based on plan
+      let baseAmount = planKey === 'personal' ? 499 : 999; // Amount in cents (£4.99 or £9.99)
+      
+      // Apply discount if applicable
+      let finalAmount = baseAmount;
+      if (discountPercentage > 0) {
+        finalAmount = Math.round(baseAmount * (1 - discountPercentage / 100));
+      }
+      
+      // Create a payment intent with discounted amount
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: planKey === 'personal' ? 499 : 999, // Amount in cents (£4.99 or £9.99)
+        amount: finalAmount,
         currency: 'gbp',
         customer: customerId,
         metadata: {
           plan: planKey,
           userId: userId.toString(),
+          originalAmount: baseAmount.toString(),
+          discountPercentage: discountPercentage.toString(),
         },
         automatic_payment_methods: {
           enabled: true,
         },
       });
       
-      // Return client secret to the frontend
+      // Return client secret and discount info to the frontend
       res.json({
         clientSecret: paymentIntent.client_secret,
         customerId: customerId,
+        originalAmount: baseAmount,
+        finalAmount: finalAmount,
+        discountPercentage: discountPercentage,
+        hasDiscount: discountPercentage > 0
       });
     } catch (error: any) {
       console.error('Error creating subscription:', error);

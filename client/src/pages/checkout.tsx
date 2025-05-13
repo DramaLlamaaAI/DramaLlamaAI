@@ -81,6 +81,12 @@ export default function Checkout() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState('Personal');
+  const [discountInfo, setDiscountInfo] = useState<{
+    originalAmount: number;
+    finalAmount: number;
+    discountPercentage: number;
+    hasDiscount: boolean;
+  } | null>(null);
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   
@@ -109,6 +115,16 @@ export default function Checkout() {
         
         const data = await response.json();
         setClientSecret(data.clientSecret);
+        
+        // Set discount info if available
+        if (data.hasDiscount) {
+          setDiscountInfo({
+            originalAmount: data.originalAmount,
+            finalAmount: data.finalAmount,
+            discountPercentage: data.discountPercentage,
+            hasDiscount: data.hasDiscount
+          });
+        }
       } catch (err: any) {
         console.error('Error creating subscription:', err);
         setError(err.message || 'Something went wrong. Please try again.');
@@ -170,6 +186,14 @@ export default function Checkout() {
     );
   }
 
+  // Helper function to format price
+  const formatPrice = (amount: number) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP'
+    }).format(amount / 100);
+  };
+
   return (
     <div className="container py-12">
       <div className="max-w-md mx-auto">
@@ -179,6 +203,25 @@ export default function Checkout() {
             <CardDescription>
               Please enter your payment details to continue
             </CardDescription>
+            
+            {/* Display discount information if available */}
+            {discountInfo?.hasDiscount && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                <p className="text-green-800 font-medium mb-1">Special Discount Applied!</p>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Original price:</span>
+                  <span className="line-through">{formatPrice(discountInfo.originalAmount)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Discount:</span>
+                  <span className="text-green-600">{discountInfo.discountPercentage}% off</span>
+                </div>
+                <div className="flex justify-between font-medium mt-1">
+                  <span>Your price:</span>
+                  <span className="text-green-600">{formatPrice(discountInfo.finalAmount)}</span>
+                </div>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <Elements stripe={stripePromise} options={{ clientSecret }}>
