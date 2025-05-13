@@ -4,7 +4,10 @@ import { User } from '@shared/schema';
 // Initialize the Resend service if the API key is set
 let resendClient: Resend | null = null;
 if (process.env.RESEND_API_KEY) {
+  console.log('RESEND_API_KEY is set, initializing Resend client');
   resendClient = new Resend(process.env.RESEND_API_KEY);
+} else {
+  console.log('RESEND_API_KEY is not set, email functionality will be disabled');
 }
 
 // Check if email service is available
@@ -29,7 +32,7 @@ export const sendEmail = async (params: EmailParams): Promise<boolean> => {
   try {
     // Send the email with Resend
     const { data, error } = await resendClient!.emails.send({
-      from: 'Drama Llama <noreply@dramallama.ai>', // Update this with your verified domain
+      from: 'Drama Llama <onboarding@resend.dev>', // Resend allows using onboarding@resend.dev for testing
       to: params.to,
       subject: params.subject,
       text: params.text || '',
