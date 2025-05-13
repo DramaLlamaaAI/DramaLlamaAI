@@ -92,7 +92,7 @@ export type InsertUserEvent = z.infer<typeof insertUserEventSchema>;
 // Tier information
 export const TIER_LIMITS = {
   free: {
-    monthlyLimit: 1,
+    monthlyLimit: Infinity, // Changed from 1 to unlimited
     features: [
       "overallTone",          // Overall Emotional Tone Summary
       "participantTones",     // Participant Analysis

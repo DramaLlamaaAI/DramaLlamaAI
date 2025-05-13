@@ -55,8 +55,8 @@ const checkUsageLimit = async (req: Request): Promise<boolean> => {
       const anonUsage = await storage.getAnonymousUsage(req.body.deviceId);
       if (!anonUsage) return true; // First time user
       
-      // Anonymous users get 1 free analysis per month
-      return anonUsage.count < 1;
+      // Anonymous users get unlimited free analyses
+      return true;
     }
     return true; // Allow access if we can't determine usage
   } catch (error) {

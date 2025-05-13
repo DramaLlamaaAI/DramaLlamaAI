@@ -334,7 +334,7 @@ export class MemStorage implements IStorage {
       
       return {
         used: 0,
-        limit: user.tier === 'pro' ? Infinity : user.tier === 'personal' ? 10 : 1,
+        limit: user.tier === 'pro' || user.tier === 'free' ? Infinity : user.tier === 'personal' ? 10 : 1,
         tier: user.tier
       };
     }
@@ -350,7 +350,7 @@ export class MemStorage implements IStorage {
     
     return {
       used: usageLimit.monthlyTotal,
-      limit: user.tier === 'pro' ? Infinity : user.tier === 'personal' ? 10 : 1,
+      limit: user.tier === 'pro' || user.tier === 'free' ? Infinity : user.tier === 'personal' ? 10 : 1,
       tier: user.tier
     };
   }
