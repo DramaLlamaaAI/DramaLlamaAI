@@ -91,7 +91,7 @@ export default function ChatAnalysis() {
   });
 
   const detectNamesMutation = useMutation({
-    mutationFn: detectParticipants,
+    mutationFn: (text: string) => detectParticipants(text),
     onSuccess: (data) => {
       setMe(data.me);
       setThem(data.them);
@@ -183,14 +183,15 @@ export default function ChatAnalysis() {
         description: `${file.name} has been loaded successfully.`,
       });
       
+      // Set the conversation text first
+      setConversation(text);
+      
       // If we have text content, try to auto-detect names
       if (text && text.trim().length > 0 && !me && !them) {
-        // Delay calling handleDetectNames to allow conversation state to update
+        // Call the name detection after a short delay to ensure state is updated
         setTimeout(() => {
-          if (text.trim()) {
-            detectNamesMutation.mutate({ conversation: text });
-          }
-        }, 100);
+          detectNamesMutation.mutate(text);
+        }, 10);
       }
     } catch (error) {
       console.error("File upload error:", error);
@@ -237,8 +238,8 @@ export default function ChatAnalysis() {
       return;
     }
     
-    // Pass the conversation as an object with the conversation property
-    detectNamesMutation.mutate({ conversation });
+    // Pass the conversation as a string directly
+    detectNamesMutation.mutate(conversation);
   };
 
   const handleSubmit = () => {
