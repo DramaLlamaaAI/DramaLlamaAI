@@ -152,8 +152,12 @@ export const authController = {
       // Look up the user by username or email
       let user;
       if (validatedData.email && typeof validatedData.email === 'string') {
+        // Get all users to debug email matching issues
+        const allUsers = await storage.getAllUsers();
+        console.log("All emails in system:", allUsers.map(u => u.email).join(", "));
+        
         user = await storage.getUserByEmail(validatedData.email);
-        console.log(`Looking up user by email: ${validatedData.email}, found:`, user?.username);
+        console.log(`Looking up user by email: ${validatedData.email} (normalized to ${validatedData.email.toLowerCase()}), found:`, user?.username);
       } else if (validatedData.username && typeof validatedData.username === 'string') {
         user = await storage.getUserByUsername(validatedData.username);
         console.log(`Looking up user by username: ${validatedData.username}, found:`, user?.username);
