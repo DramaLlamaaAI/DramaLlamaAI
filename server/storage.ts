@@ -20,6 +20,11 @@ export interface IStorage {
   setVerificationCode(userId: number, code: string, expiresIn: number): Promise<User>;
   verifyEmail(userId: number): Promise<User>;
   
+  // Admin Management
+  getAllUsers(): Promise<User[]>;
+  setUserAdmin(userId: number, isAdmin: boolean): Promise<User>;
+  setUserDiscount(userId: number, discountPercentage: number, expiryDays?: number): Promise<User>;
+  
   // Analysis Management
   saveAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
   getUserAnalyses(userId: number): Promise<Analysis[]>;
@@ -91,7 +96,10 @@ export class MemStorage implements IStorage {
       verificationCode: null,
       verificationCodeExpires: null,
       stripeCustomerId: null,
-      stripeSubscriptionId: null 
+      stripeSubscriptionId: null,
+      isAdmin: false,
+      discountPercentage: 0,
+      discountExpiryDate: null
     };
     this.users.set(id, user);
     
@@ -180,6 +188,41 @@ export class MemStorage implements IStorage {
     }
     
     const updatedUser = { ...user, stripeSubscriptionId: subscriptionId };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  // Admin management methods
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+  
+  async setUserAdmin(userId: number, isAdmin: boolean): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+    
+    const updatedUser = { ...user, isAdmin };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async setUserDiscount(userId: number, discountPercentage: number, expiryDays: number = 30): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+    
+    // Calculate expiry date (default to 30 days from now)
+    const discountExpiryDate = new Date();
+    discountExpiryDate.setDate(discountExpiryDate.getDate() + expiryDays);
+    
+    const updatedUser = { 
+      ...user, 
+      discountPercentage: Math.min(Math.max(discountPercentage, 0), 100), // Ensure discount is between 0-100%
+      discountExpiryDate
+    };
     this.users.set(userId, updatedUser);
     return updatedUser;
   }

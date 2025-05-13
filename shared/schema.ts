@@ -14,6 +14,9 @@ export const users = pgTable("users", {
   verificationCodeExpires: timestamp("verification_code_expires"),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
+  isAdmin: boolean("is_admin").notNull().default(false),
+  discountPercentage: integer("discount_percentage").default(0),
+  discountExpiryDate: timestamp("discount_expiry_date"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
