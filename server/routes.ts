@@ -164,6 +164,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/admin/user/admin', isAuthenticated, isAdmin, adminController.makeUserAdmin);
   app.put('/api/admin/user/discount', isAuthenticated, isAdmin, adminController.setUserDiscount);
   
+  // Analytics routes (require admin access)
+  app.get('/api/admin/analytics', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      const analyticsData = await storage.getAnalyticsSummary();
+      res.status(200).json(analyticsData);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || 'Failed to retrieve analytics data' });
+    }
+  });
+  
+  app.get('/api/admin/events', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      const { userId, eventType, startDate, endDate } = req.query;
+      
+      // Create filter object
+      const filter: { 
+        userId?: number;
+        eventType?: string;
+        startDate?: Date;
+        endDate?: Date;
+      } = {};
+      
+      // Add filters if provided
+      if (userId) filter.userId = Number(userId);
+      if (eventType) filter.eventType = eventType as string;
+      if (startDate) filter.startDate = new Date(startDate as string);
+      if (endDate) filter.endDate = new Date(endDate as string);
+      
+      const events = await storage.getUserEvents(filter);
+      res.status(200).json(events);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || 'Failed to retrieve events data' });
+    }
+  });
+  
   // Protected routes that require authentication
   app.get('/api/user/analyses', isAuthenticated, async (req: Request, res: Response) => {
     try {
