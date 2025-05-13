@@ -22,7 +22,7 @@ import CommunicationPatterns from "@/components/communication-patterns";
 import HealthScoreDisplay from "@/components/health-score-display";
 import RedFlags from "@/components/red-flags";
 import ParticipantEmotions from "@/components/participant-emotions";
-import SupportHelplines from "@/components/support-helplines-dialog";
+import SupportHelpLinesLink from "@/components/support-helplines-link";
 import EmotionalState from "@/components/emotional-state";
 import KeyQuotes from "@/components/key-quotes";
 import ParticipantChips from "@/components/participant-chips";
@@ -786,9 +786,9 @@ export default function ChatAnalysis() {
                     </>
                   )}
                   
-                  <SupportHelplines 
-                    redFlags={result.redFlags || []} 
-                    communicationPatterns={result.communication.patterns}
+                  <SupportHelpLinesLink 
+                    variant="secondary" 
+                    size="default"
                   />
                 </div>
               </ScrollArea>

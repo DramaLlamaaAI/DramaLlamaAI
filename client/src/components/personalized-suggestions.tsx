@@ -27,7 +27,7 @@ export default function PersonalizedSuggestions({ me, them, tier, suggestions: p
       </div>
       
       <div className="space-y-3">
-        {suggestions.map((suggestion, idx) => {
+        {suggestions.map((suggestion: string, idx: number) => {
           // Determine if suggestion is specifically for one participant
           const forMe = suggestion.toLowerCase().includes(me.toLowerCase());
           const forThem = suggestion.toLowerCase().includes(them.toLowerCase());
