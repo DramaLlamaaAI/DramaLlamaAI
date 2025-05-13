@@ -230,6 +230,9 @@ export default function ChatAnalysis() {
   };
 
   const handleSubmit = () => {
+    // Clear any previous error message
+    setErrorMessage(null);
+    
     // Basic validation
     if (!conversation.trim()) {
       toast({
@@ -300,7 +303,10 @@ export default function ChatAnalysis() {
               <Tabs
                 defaultValue={tabValue} 
                 value={tabValue}
-                onValueChange={setTabValue}
+                onValueChange={(value) => {
+                  setTabValue(value);
+                  setErrorMessage(null); // Clear error message when switching tabs
+                }}
                 className="mt-6"
               >
                 <TabsList className={`grid ${isDevMode ? 'grid-cols-3' : 'grid-cols-2'}`}>
