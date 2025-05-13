@@ -166,7 +166,7 @@ export default function ChatAnalysis() {
         // Send to OCR API if it's an image
         if (file.type.startsWith('image/')) {
           // Pass the base64 string directly
-          ocrMutation.mutate(base64.split(',')[1]);
+          ocrMutation.mutate({ image: base64.split(',')[1] });
         }
       }
     } catch (error) {
@@ -511,6 +511,35 @@ export default function ChatAnalysis() {
                     </div>
                   </div>
                 </TabsContent>
+                
+                {isDevMode && (
+                  <TabsContent value="debug" className="mt-4">
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+                        <h3 className="text-md font-medium mb-2">Developer Options</h3>
+                        <div className="space-y-2">
+                          <div>
+                            <Label htmlFor="tier-select">Test with tier:</Label>
+                            <Select value={selectedTier} onValueChange={setSelectedTier}>
+                              <SelectTrigger id="tier-select" className="mt-1">
+                                <SelectValue placeholder="Select tier" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="free">Free</SelectItem>
+                                <SelectItem value="personal">Personal</SelectItem>
+                                <SelectItem value="pro">Pro</SelectItem>
+                                <SelectItem value="instant">Instant Deep Dive</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              This will override the user's actual tier for testing purposes only.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
               </Tabs>
 
               {!canUseFeature && (
