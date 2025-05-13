@@ -472,6 +472,10 @@ STRICT RULES:
 - Color must be one of: red, yellow, light-green, green
 - Severity must be number 1-5
 - All scores must be 0-100
+- ALWAYS include at least 2 examples with direct quotes for each red flag
+- Each example must include the exact text from the conversation
+- Set "from" field in examples to either "${me}" or "${them}"
+- Examples must clearly demonstrate the red flag issue
 
 Here's the conversation:
 ${conversation}`;
