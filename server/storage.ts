@@ -1,4 +1,10 @@
-import { users, analyses, usageLimits, type User, type InsertUser, type Analysis, type InsertAnalysis, type UsageLimit, type InsertUsageLimit } from "@shared/schema";
+import { 
+  users, analyses, usageLimits, userEvents,
+  type User, type InsertUser, 
+  type Analysis, type InsertAnalysis, 
+  type UsageLimit, type InsertUsageLimit,
+  type UserEvent, type InsertUserEvent
+} from "@shared/schema";
 
 // Interface for tracking anonymous usage
 interface AnonymousUsage {
@@ -36,6 +42,21 @@ export interface IStorage {
   // Anonymous Usage Tracking
   getAnonymousUsage(deviceId: string): Promise<AnonymousUsage | undefined>;
   incrementAnonymousUsage(deviceId: string): Promise<AnonymousUsage>;
+  
+  // Analytics
+  trackUserEvent(event: InsertUserEvent): Promise<UserEvent>;
+  getUserEvents(filter?: { 
+    userId?: number, 
+    eventType?: string, 
+    startDate?: Date, 
+    endDate?: Date 
+  }): Promise<UserEvent[]>;
+  getAnalyticsSummary(): Promise<{
+    totalUsers: number;
+    usersByTier: { [tier: string]: number };
+    registrationsByDate: { date: string; count: number }[];
+    tierConversionRate: { fromTier: string; toTier: string; count: number }[];
+  }>;
 }
 
 export class MemStorage implements IStorage {
@@ -43,18 +64,22 @@ export class MemStorage implements IStorage {
   private analyses: Map<number, Analysis>;
   private usageLimits: Map<number, UsageLimit>;
   private anonymousUsage: Map<string, AnonymousUsage>;
+  private userEvents: Map<number, UserEvent>;
   private userId: number;
   private analysisId: number;
   private usageLimitId: number;
+  private userEventId: number;
 
   constructor() {
     this.users = new Map();
     this.analyses = new Map();
     this.usageLimits = new Map();
     this.anonymousUsage = new Map();
+    this.userEvents = new Map();
     this.userId = 1;
     this.analysisId = 1;
     this.usageLimitId = 1;
+    this.userEventId = 1;
     
     // Initialize with a demo user
     this.createUser({
@@ -333,6 +358,132 @@ export class MemStorage implements IStorage {
       this.anonymousUsage.set(deviceId, newUsage);
       return newUsage;
     }
+  }
+  
+  // Analytics methods
+  
+  async trackUserEvent(event: InsertUserEvent): Promise<UserEvent> {
+    const id = this.userEventId++;
+    const now = new Date();
+    
+    const newEvent: UserEvent = {
+      ...event,
+      id,
+      createdAt: now
+    };
+    
+    this.userEvents.set(id, newEvent);
+    return newEvent;
+  }
+  
+  async getUserEvents(filter?: { 
+    userId?: number, 
+    eventType?: string, 
+    startDate?: Date, 
+    endDate?: Date 
+  }): Promise<UserEvent[]> {
+    let events = Array.from(this.userEvents.values());
+    
+    // Apply filters if provided
+    if (filter) {
+      if (filter.userId !== undefined) {
+        events = events.filter(event => event.userId === filter.userId);
+      }
+      
+      if (filter.eventType) {
+        events = events.filter(event => event.eventType === filter.eventType);
+      }
+      
+      if (filter.startDate) {
+        events = events.filter(event => event.createdAt >= filter.startDate);
+      }
+      
+      if (filter.endDate) {
+        events = events.filter(event => event.createdAt <= filter.endDate);
+      }
+    }
+    
+    // Sort by creation date, newest first
+    return events.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async getAnalyticsSummary(): Promise<{
+    totalUsers: number;
+    usersByTier: { [tier: string]: number };
+    registrationsByDate: { date: string; count: number }[];
+    tierConversionRate: { fromTier: string; toTier: string; count: number }[];
+  }> {
+    const users = Array.from(this.users.values());
+    const registrationEvents = await this.getUserEvents({ eventType: 'registration' });
+    const tierChangeEvents = await this.getUserEvents({ eventType: 'tier_change' });
+    
+    // Calculate total users
+    const totalUsers = users.length;
+    
+    // Calculate users by tier
+    const usersByTier: { [tier: string]: number } = {};
+    for (const user of users) {
+      const tier = user.tier;
+      usersByTier[tier] = (usersByTier[tier] || 0) + 1;
+    }
+    
+    // Calculate registrations by date (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const registrationsByDate: { date: string; count: number }[] = [];
+    const dateCountMap = new Map<string, number>();
+    
+    // Initialize all dates in the last 30 days with 0 counts
+    for (let i = 0; i < 30; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+      dateCountMap.set(dateString, 0);
+    }
+    
+    // Count registrations for each date
+    for (const event of registrationEvents) {
+      if (event.createdAt >= thirtyDaysAgo) {
+        const dateString = event.createdAt.toISOString().split('T')[0];
+        const count = dateCountMap.get(dateString) || 0;
+        dateCountMap.set(dateString, count + 1);
+      }
+    }
+    
+    // Convert map to array and sort by date
+    for (const [date, count] of dateCountMap.entries()) {
+      registrationsByDate.push({ date, count });
+    }
+    registrationsByDate.sort((a, b) => a.date.localeCompare(b.date));
+    
+    // Calculate tier conversion rates
+    const tierChanges = new Map<string, number>();
+    
+    for (const event of tierChangeEvents) {
+      if (event.oldValue && event.newValue) {
+        const key = `${event.oldValue}:${event.newValue}`;
+        const count = tierChanges.get(key) || 0;
+        tierChanges.set(key, count + 1);
+      }
+    }
+    
+    const tierConversionRate: { fromTier: string; toTier: string; count: number }[] = [];
+    
+    for (const [key, count] of tierChanges.entries()) {
+      const [fromTier, toTier] = key.split(':');
+      tierConversionRate.push({ fromTier, toTier, count });
+    }
+    
+    // Sort by count (highest first)
+    tierConversionRate.sort((a, b) => b.count - a.count);
+    
+    return {
+      totalUsers,
+      usersByTier,
+      registrationsByDate,
+      tierConversionRate
+    };
   }
 }
 

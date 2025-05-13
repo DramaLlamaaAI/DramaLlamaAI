@@ -87,6 +87,14 @@ export const authController = {
         tier: isAdminEmail ? "pro" : "free" // Admin gets pro by default
       });
       
+      // Track registration event for analytics
+      await storage.trackUserEvent({
+        userId: user.id,
+        eventType: 'registration',
+        oldValue: null,
+        newValue: user.tier
+      });
+      
       // If this is the admin email, set admin flag
       if (isAdminEmail) {
         await storage.setUserAdmin(user.id, true);

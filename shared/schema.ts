@@ -57,6 +57,23 @@ export const insertUsageLimitSchema = createInsertSchema(usageLimits).pick({
   lastResetDate: true,
 });
 
+// User events tracking for analytics
+export const userEvents = pgTable("user_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  eventType: text("event_type").notNull(), // 'registration', 'tier_change', 'subscription', etc.
+  oldValue: text("old_value"),
+  newValue: text("new_value"),
+  createdAt: timestamp("created_at").notNull().defaultNow()
+});
+
+export const insertUserEventSchema = createInsertSchema(userEvents).pick({
+  userId: true,
+  eventType: true,
+  oldValue: true,
+  newValue: true
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -66,6 +83,9 @@ export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
 
 export type UsageLimit = typeof usageLimits.$inferSelect;
 export type InsertUsageLimit = z.infer<typeof insertUsageLimitSchema>;
+
+export type UserEvent = typeof userEvents.$inferSelect;
+export type InsertUserEvent = z.infer<typeof insertUserEventSchema>;
 
 // Tier information
 export const TIER_LIMITS = {
