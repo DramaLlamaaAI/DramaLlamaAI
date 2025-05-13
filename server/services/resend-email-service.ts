@@ -74,6 +74,9 @@ export const sendVerificationEmail = async (user: User, verificationCode: string
   
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="data:image/svg+xml;base64,${DRAMA_LLAMA_LOGO_BASE64}" alt="Drama Llama Logo" style="width: 120px; height: auto;" />
+      </div>
       <h2 style="color: #22C9C9;">Welcome to Drama Llama AI!</h2>
       <p>Hi ${user.username},</p>
       <p>Thank you for signing up. Please verify your email address by clicking the button below:</p>
