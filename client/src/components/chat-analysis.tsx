@@ -185,7 +185,12 @@ export default function ChatAnalysis() {
       
       // If we have text content, try to auto-detect names
       if (text && text.trim().length > 0 && !me && !them) {
-        handleDetectNames();
+        // Delay calling handleDetectNames to allow conversation state to update
+        setTimeout(() => {
+          if (text.trim()) {
+            detectNamesMutation.mutate({ conversation: text });
+          }
+        }, 100);
       }
     } catch (error) {
       console.error("File upload error:", error);
@@ -232,8 +237,8 @@ export default function ChatAnalysis() {
       return;
     }
     
-    // Pass the conversation as a string directly
-    detectNamesMutation.mutate(conversation);
+    // Pass the conversation as an object with the conversation property
+    detectNamesMutation.mutate({ conversation });
   };
 
   const handleSubmit = () => {
