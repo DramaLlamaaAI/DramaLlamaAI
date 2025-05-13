@@ -699,7 +699,9 @@ export default function ChatAnalysis() {
                       
                       <HealthScoreDisplay 
                         healthScore={result.healthScore} 
-                        tier={tierLevel} 
+                        tier={tierLevel}
+                        me={me}
+                        them={them}
                       />
                       
                       <Separator />
@@ -719,7 +721,7 @@ export default function ChatAnalysis() {
                       <Separator />
                       
                       <CommunicationPatterns 
-                        patterns={result.communication.patterns} 
+                        patterns={result.communication.patterns || []} 
                         suggestions={result.communication.suggestions} 
                       />
                       
