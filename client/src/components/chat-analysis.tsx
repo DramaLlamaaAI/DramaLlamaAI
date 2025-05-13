@@ -32,6 +32,9 @@ export default function ChatAnalysis() {
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedTier, setSelectedTier] = useState("free");
+  const [focusRecent, setFocusRecent] = useState(false);
+  const [fromDate, setFromDate] = useState<string>("");
+  const [toDate, setToDate] = useState<string>("");
   
   // Get the location for dev mode
   const [location] = useLocation();
