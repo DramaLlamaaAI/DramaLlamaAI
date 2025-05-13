@@ -4,7 +4,8 @@ import { z } from "zod";
 import 'express-session';
 import { 
   generateVerificationCode, 
-  sendVerificationEmail 
+  sendVerificationEmail,
+  sendPasswordResetEmail
 } from '../services/resend-email-service';
 
 // Augment express-session with custom properties
@@ -522,7 +523,7 @@ export const authController = {
       
       // Update the user's password and clear the verification code
       await storage.updateUserPassword(user.id, hashedPassword);
-      await storage.setVerificationCode(user.id, null, 0);
+      await storage.setVerificationCode(user.id, "", 0);
       
       res.status(200).json({ 
         message: "Password has been reset successfully" 

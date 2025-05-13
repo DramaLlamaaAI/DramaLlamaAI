@@ -70,6 +70,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/verify-email', authController.verifyEmail);
   app.post('/api/auth/resend-verification', authController.resendVerification);
   
+  // Password reset routes
+  app.post('/api/auth/forgot-password', authController.forgotPassword);
+  app.post('/api/auth/reset-password', authController.resetPassword);
+  
   // User usage data
   app.get('/api/user/usage', authController.getUserUsage);
   
