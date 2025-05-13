@@ -16,6 +16,7 @@ import SupportHelpLinesLink from "@/components/support-helplines-link";
 import { useLocation } from "wouter";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import JSZip from "jszip";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -131,7 +132,33 @@ export default function ChatAnalysis() {
                    file.type === 'application/x-zip-compressed';
       
       setFileIsZip(isZip);
-      const text = await file.text();
+      
+      let text = "";
+      
+      if (isZip) {
+        // Handle ZIP file using JSZip
+        const fileData = await file.arrayBuffer();
+        const zip = new JSZip();
+        const zipContents = await zip.loadAsync(fileData);
+        
+        // Find the first text file in the ZIP
+        for (const [filename, zipEntry] of Object.entries(zipContents.files)) {
+          if (!zipEntry.dir && filename.endsWith('.txt')) {
+            // Get the text content
+            text = await zipEntry.async('string');
+            break;
+          }
+        }
+        
+        if (!text) {
+          setErrorMessage("No text file found in the ZIP archive.");
+          return;
+        }
+      } else {
+        // Handle regular text file
+        text = await file.text();
+      }
+      
       setConversation(text);
       setFileName(file.name);
       
@@ -148,6 +175,7 @@ export default function ChatAnalysis() {
         handleDetectNames();
       }
     } catch (error) {
+      console.error("File upload error:", error);
       toast({
         title: "Upload Failed",
         description: "Could not read the file. Please check the format and try again.",
@@ -744,11 +772,11 @@ export default function ChatAnalysis() {
                   {/* Communication Patterns */}
                   <div className="bg-muted p-4 rounded-lg">
                     <h4 className="font-medium mb-2">Communication Insights</h4>
-                    {(result.communication.patterns && result.communication.patterns.length > 0) ? (
+                    {(result.communication?.patterns && result.communication.patterns.length > 0) ? (
                       <div className="mb-4">
                         <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
                         <div className="space-y-3">
-                          {result.communication.patterns.map((pattern, idx) => {
+                          {result.communication.patterns.map((pattern: string, idx: number) => {
                             // Check if the pattern contains a quote (text inside quotes)
                             const quoteMatch = pattern.match(/"([^"]+)"/);
                             const hasQuote = quoteMatch && quoteMatch[1];
