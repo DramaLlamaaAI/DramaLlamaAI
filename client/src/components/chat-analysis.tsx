@@ -135,6 +135,9 @@ export default function ChatAnalysis() {
       setConversation(text);
       setFileName(file.name);
       
+      // Clear any previous error messages
+      setErrorMessage(null);
+      
       toast({
         title: isZip ? "ZIP File Processed" : "WhatsApp Export Loaded",
         description: `${file.name} has been loaded successfully.`,
