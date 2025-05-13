@@ -67,6 +67,13 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
     console.log('Raw red flags count:', analysis.redFlags.length);
   }
   
+  // Add red flags for free tier as well (showing the actual red flags)
+  if (tier === 'free' && analysis.redFlags && analysis.redFlags.length > 0) {
+    // Include the actual red flags for the free tier too
+    filteredAnalysis.redFlags = analysis.redFlags;
+    console.log(`Adding ${filteredAnalysis.redFlags.length} red flags to free tier analysis`);
+  }
+  
   // The tier filter itself doesn't add redFlagsCount for free tier
   // This is done in the controller which has access to the personal tier analysis
   if (tier === 'free') {
