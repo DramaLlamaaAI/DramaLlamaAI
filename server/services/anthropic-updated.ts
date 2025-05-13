@@ -395,7 +395,9 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     let enhancedPrompt = '';
     
     if (tier === 'pro' || tier === 'instant') {
-      enhancedPrompt = `Provide a professional analysis of conversation between ${me} and ${them}.
+      enhancedPrompt = `Provide a detailed professional analysis of conversation between ${me} and ${them}.
+
+Focus especially on red flags with SPECIFIC EXAMPLES and QUOTES from the conversation to support your analysis.
 
 Return ONLY a JSON object with this EXACT structure:
 
@@ -412,7 +414,16 @@ Return ONLY a JSON object with this EXACT structure:
     }
   },
   "redFlags": [
-    {"type": "issue", "description": "brief description", "severity": 3}
+    {
+      "type": "issue", 
+      "description": "brief description", 
+      "severity": 3,
+      "participant": "name of participant",
+      "examples": [
+        {"text": "exact quote from conversation", "from": "participant name"},
+        {"text": "another relevant quote", "from": "participant name"}
+      ]
+    }
   ],
   "communication": {
     "patterns": ["key pattern one", "key pattern two"],
