@@ -231,6 +231,8 @@ export const authController = {
         }
       }
       
+      console.log(`Email verified for user ${user.id} (${user.email}), proceeding with login`);
+      
       // Don't return the password
       const { password, ...userWithoutPassword } = user;
       
@@ -244,6 +246,7 @@ export const authController = {
           tier: user.tier, 
           isAdmin: user.isAdmin,
           email: user.email,
+          emailVerified: user.emailVerified,
           sessionId: req.session.id
         });
       }
@@ -431,7 +434,7 @@ export const authController = {
       if (req.session) {
         req.session.userId = user.id;
         req.session.userTier = user.tier || 'free';
-        console.log(`Set session for verified user: ${user.id}, ${user.tier}`);
+        console.log(`Set session for verified user: ${user.id}, ${user.tier}, emailVerified: true`);
       }
       
       // Return updated user info (without password)

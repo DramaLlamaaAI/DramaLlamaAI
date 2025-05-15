@@ -151,10 +151,17 @@ export class MemStorage implements IStorage {
   }
   
   async getUserByEmail(email: string): Promise<User | undefined> {
-    // Case-insensitive email lookup
-    const normalizedEmail = email.toLowerCase();
-    return Array.from(this.users.values()).find(
-      (user) => user.email.toLowerCase() === normalizedEmail
+    // Case-insensitive email lookup with added trim
+    const normalizedEmail = email.toLowerCase().trim();
+    console.log(`Looking up user by normalized email: "${normalizedEmail}"`);
+    
+    // Debug all users to help identify matching issues
+    const allUsers = Array.from(this.users.values());
+    const allEmails = allUsers.map(user => `"${user.email.toLowerCase().trim()}"`).join(", ");
+    console.log(`All normalized emails in system: ${allEmails}`);
+    
+    return allUsers.find(
+      (user) => user.email.toLowerCase().trim() === normalizedEmail
     );
   }
 

@@ -75,9 +75,9 @@ export default function AuthPage() {
         
         // If the server included the verification code directly, pass it in the URL
         if (data.verificationCode) {
-          setLocation(`/verify-email?code=${data.verificationCode}`);
+          setLocation(`/verify-email?code=${data.verificationCode}&email=${encodeURIComponent(data.email)}`);
         } else {
-          setLocation("/verify-email");
+          setLocation(`/verify-email?email=${encodeURIComponent(data.email)}`);
         }
         return;
       }
