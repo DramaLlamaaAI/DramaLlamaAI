@@ -614,7 +614,7 @@ export default function AdminDashboardEnhanced() {
                     ) : analyticsData ? (
                       <div className="space-y-8">
                         {/* User Stats Cards */}
-                        <UserStatsCards data={analyticsData} />
+                        <UserStatsCards data={analyticsData} isLoading={false} />
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                           {/* Users By Tier Chart */}
@@ -624,7 +624,7 @@ export default function AdminDashboardEnhanced() {
                               <CardDescription>Distribution of users across subscription tiers</CardDescription>
                             </CardHeader>
                             <CardContent>
-                              <UsersByTierChart data={analyticsData.usersByTier} />
+                              <UsersByTierChart data={analyticsData.usersByTier} isLoading={false} />
                             </CardContent>
                           </Card>
                           
@@ -635,7 +635,7 @@ export default function AdminDashboardEnhanced() {
                               <CardDescription>New user registrations over time</CardDescription>
                             </CardHeader>
                             <CardContent>
-                              <RegistrationsChart data={analyticsData.registrationsByDate} />
+                              <RegistrationsChart data={analyticsData.registrationsByDate} isLoading={false} />
                             </CardContent>
                           </Card>
                         </div>
@@ -647,7 +647,7 @@ export default function AdminDashboardEnhanced() {
                             <CardDescription>User movements between subscription tiers</CardDescription>
                           </CardHeader>
                           <CardContent>
-                            <TierConversionChart data={analyticsData.tierConversionRate} />
+                            <TierConversionChart data={analyticsData.tierConversionRate} isLoading={false} />
                           </CardContent>
                         </Card>
                       </div>

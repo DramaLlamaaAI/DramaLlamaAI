@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import DisclaimerModal from "./components/disclaimer-modal";
 import { hasAcceptedDisclaimer, saveDisclaimerAcceptance } from "./lib/utils";
-import { DevModeToggle } from "./components/dev-mode-toggle";
+// DevModeToggle component removed as requested
 import { TierSwitcher } from "./components/tier-switcher";
 import DevModeFloating from "./components/developer/dev-mode-floating";
 import Home from "./pages/home";
@@ -68,7 +68,6 @@ function App() {
         )}
         <Router />
         <DevModeFloating />
-        <DevModeToggle />
         <TierSwitcher />
       </TooltipProvider>
     </QueryClientProvider>
