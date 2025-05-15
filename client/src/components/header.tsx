@@ -27,7 +27,7 @@ export default function Header() {
 
   return (
     <header className="bg-primary text-white shadow-md sticky top-0 z-10">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3 flex justify-between items-center">
         <Link href="/">
           <div className="flex items-center cursor-pointer">
             <div className="w-10 h-10 rounded-full overflow-hidden">
@@ -57,51 +57,54 @@ export default function Header() {
             </Link>
           </nav>
           
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="mr-4 text-sm bg-white/10 px-3 py-1 rounded-full flex items-center">
-                  <span className="text-white/80 mr-1">{getTierDisplayName(tier)}</span>
-                  
-                  {/* Visual progress indicator */}
-                  {!isInfinite && (
-                    <div className="relative w-16 h-4 bg-white/20 rounded-full overflow-hidden mr-2">
-                      <div 
-                        className="absolute left-0 top-0 h-full bg-white/60 rounded-full" 
-                        style={{width: `${Math.min(100, (displayUsed / limit) * 100)}%`}}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
-                        {remaining} left
+          {/* Usage meter - only visible on desktop */}
+          <div className="hidden md:block">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="mr-4 text-sm bg-white/10 px-3 py-1 rounded-full flex items-center">
+                    <span className="text-white/80 mr-1">{getTierDisplayName(tier)}</span>
+                    
+                    {/* Visual progress indicator */}
+                    {!isInfinite && (
+                      <div className="relative w-16 h-4 bg-white/20 rounded-full overflow-hidden mr-2">
+                        <div 
+                          className="absolute left-0 top-0 h-full bg-white/60 rounded-full" 
+                          style={{width: `${Math.min(100, (displayUsed / limit) * 100)}%`}}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
+                          {remaining} left
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  <span className="text-white font-semibold">
-                    {displayUsed}/{isInfinite ? '∞' : limit}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>You have {remaining} analysis{remaining !== 1 ? 'es' : ''} remaining this month</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                    )}
+                    
+                    <span className="text-white font-semibold">
+                      {displayUsed}/{isInfinite ? '∞' : limit}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>You have {remaining} analysis{remaining !== 1 ? 'es' : ''} remaining this month</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           
           <div className="flex items-center space-x-2">
             {/* Admin navigation option - only visible to admin users */}
             <AdminNavItem />
             
-            {/* Main user actions - better aligned for mobile */}
-            <div className="flex">
+            {/* Main user actions - optimized for mobile */}
+            <div className="flex items-center">
               <Link href="/auth">
-                <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10">
+                <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10 whitespace-nowrap">
                   Sign up / Log in
                 </Button>
               </Link>
               
               {tier === 'free' && (
-                <Link href="/subscription">
-                  <Button variant="secondary" size="sm" className="ml-2">
+                <Link href="/subscription" className="ml-2">
+                  <Button variant="secondary" size="sm" className="whitespace-nowrap">
                     Upgrade
                   </Button>
                 </Link>
