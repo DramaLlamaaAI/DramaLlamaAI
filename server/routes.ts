@@ -62,11 +62,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(session({
     secret: process.env.SESSION_SECRET || 'drama-llama-secret',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Changed to true to ensure session is created
     cookie: { 
       secure: false, // Allow cookies over HTTP and HTTPS
       sameSite: 'lax', // Allows cookies to work across domains
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 30 * 24 * 60 * 60 * 1000, // Extended to 30 days
+      httpOnly: true, // Only accessible via HTTP, not JavaScript
+      path: '/' // Available across the entire site
     },
     store: new MemoryStore({
       checkPeriod: 86400000 // Prune expired entries every 24h

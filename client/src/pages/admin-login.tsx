@@ -48,6 +48,15 @@ export default function AdminLoginPage() {
     try {
       console.log('Attempting admin login with:', { email });
       
+      // First, make sure we're logged out
+      try {
+        await apiRequest('POST', '/api/auth/logout');
+        console.log('Successfully logged out any existing sessions');
+      } catch (logoutError) {
+        console.log('No active session to log out from');
+      }
+      
+      // Then perform the login with a clean session
       const response = await apiRequest('POST', '/api/auth/login', {
         email,
         password: password || 'Drama11ama#2025' // Use default if empty
@@ -56,20 +65,32 @@ export default function AdminLoginPage() {
       const data = await response.json();
       console.log('Login response:', data);
       
-      // Invalidate the user query to refresh authentication state
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      // Immediately fetch the user data to verify login success
+      const userResponse = await apiRequest('GET', '/api/auth/user');
+      const userData = await userResponse.json();
+      console.log('User data after login:', userData);
+      
+      if (!userData || !userData.isAdmin) {
+        throw new Error('Login succeeded but user is not an admin');
+      }
+      
+      // Invalidate all queries to refresh application state
+      queryClient.invalidateQueries();
       
       toast({
         title: 'Admin Login Successful',
         description: 'You have been logged in as an admin user.',
       });
       
-      setLocation('/admin');
+      // Redirect to admin page after a brief delay to allow state to update
+      setTimeout(() => {
+        setLocation('/admin');
+      }, 500);
     } catch (error) {
       console.error('Admin login error:', error);
       toast({
         title: 'Login Failed',
-        description: 'Unable to log in with the provided credentials.',
+        description: 'Unable to log in with the provided admin credentials. Please check your email and password.',
         variant: 'destructive',
       });
     } finally {
