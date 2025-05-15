@@ -19,6 +19,33 @@ export const users = pgTable("users", {
   discountExpiryDate: timestamp("discount_expiry_date"),
 });
 
+// Promotional codes schema
+export const promoCodes = pgTable("promo_codes", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  description: text("description"),
+  discountPercentage: integer("discount_percentage").notNull(),
+  maxUses: integer("max_uses").default(100),
+  usedCount: integer("used_count").default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  startDate: timestamp("start_date").notNull().defaultNow(),
+  expiryDate: timestamp("expiry_date"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdById: integer("created_by_id").notNull(),
+  targetTier: text("target_tier"), // Which tier this promo applies to (null for all)
+  applyToFirstMonth: boolean("apply_to_first_month").default(true),
+});
+
+// Promo code usage tracking
+export const promoUsage = pgTable("promo_usage", {
+  id: serial("id").primaryKey(),
+  promoCodeId: integer("promo_code_id").notNull(),
+  userId: integer("user_id").notNull(),
+  usedAt: timestamp("used_at").notNull().defaultNow(),
+  appliedDiscount: integer("applied_discount").notNull(),
+  targetTier: text("target_tier").notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -26,6 +53,26 @@ export const insertUserSchema = createInsertSchema(users).pick({
   tier: true,
   isAdmin: true,
   emailVerified: true,
+});
+
+export const insertPromoCodeSchema = createInsertSchema(promoCodes).pick({
+  code: true,
+  description: true,
+  discountPercentage: true,
+  maxUses: true,
+  isActive: true,
+  startDate: true,
+  expiryDate: true,
+  createdById: true,
+  targetTier: true,
+  applyToFirstMonth: true,
+});
+
+export const insertPromoUsageSchema = createInsertSchema(promoUsage).pick({
+  promoCodeId: true,
+  userId: true,
+  appliedDiscount: true,
+  targetTier: true,
 });
 
 // Analysis schema
