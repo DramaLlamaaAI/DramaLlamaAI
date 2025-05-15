@@ -652,7 +652,7 @@ export class MemStorage implements IStorage {
     }
     
     // Check usage limits
-    if (promo.usedCount >= promo.maxUses) {
+    if (promo.usedCount && promo.maxUses && promo.usedCount >= promo.maxUses) {
       return { success: false, message: "This promotion code has reached its usage limit" };
     }
     
@@ -689,7 +689,7 @@ export class MemStorage implements IStorage {
     // Update promo code usage count
     const updatedPromo: PromoCode = {
       ...promo,
-      usedCount: promo.usedCount + 1
+      usedCount: (promo.usedCount || 0) + 1
     };
     
     this.promoCodes.set(promo.id, updatedPromo);
