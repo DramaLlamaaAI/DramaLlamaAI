@@ -310,3 +310,8 @@ export const deEscalateResultSchema = z.object({
 export type ChatAnalysisResult = z.infer<typeof chatAnalysisResultSchema>;
 export type MessageAnalysisResult = z.infer<typeof messageAnalysisResultSchema>;
 export type DeEscalateResult = z.infer<typeof deEscalateResultSchema>;
+
+export type PromoCode = typeof promoCodes.$inferSelect;
+export type InsertPromoCode = z.infer<typeof insertPromoCodeSchema>;
+export type PromoUsage = typeof promoUsage.$inferSelect;
+export type InsertPromoUsage = z.infer<typeof insertPromoUsageSchema>;

@@ -1,9 +1,11 @@
 import { 
-  users, analyses, usageLimits, userEvents,
+  users, analyses, usageLimits, userEvents, promoCodes, promoUsage,
   type User, type InsertUser, 
   type Analysis, type InsertAnalysis, 
   type UsageLimit, type InsertUsageLimit,
-  type UserEvent, type InsertUserEvent
+  type UserEvent, type InsertUserEvent,
+  type PromoCode, type InsertPromoCode,
+  type PromoUsage, type InsertPromoUsage
 } from "@shared/schema";
 
 // Interface for tracking anonymous usage
@@ -43,6 +45,20 @@ export interface IStorage {
   // Anonymous Usage Tracking
   getAnonymousUsage(deviceId: string): Promise<AnonymousUsage | undefined>;
   incrementAnonymousUsage(deviceId: string): Promise<AnonymousUsage>;
+
+  // Promo Codes Management
+  createPromoCode(promoCode: InsertPromoCode): Promise<PromoCode>;
+  getPromoCode(id: number): Promise<PromoCode | undefined>;
+  getPromoCodeByCode(code: string): Promise<PromoCode | undefined>;
+  updatePromoCode(id: number, updates: Partial<PromoCode>): Promise<PromoCode>;
+  getAllPromoCodes(): Promise<PromoCode[]>;
+  getActivePromoCodes(): Promise<PromoCode[]>;
+  usePromoCode(code: string, userId: number, tier: string): Promise<{ 
+    success: boolean, 
+    discountPercentage?: number, 
+    message?: string 
+  }>;
+  getPromoUsageByUser(userId: number): Promise<PromoUsage[]>;
   
   // Analytics
   trackUserEvent(event: InsertUserEvent): Promise<UserEvent>;
@@ -66,10 +82,14 @@ export class MemStorage implements IStorage {
   private usageLimits: Map<number, UsageLimit>;
   private anonymousUsage: Map<string, AnonymousUsage>;
   private userEvents: Map<number, UserEvent>;
+  private promoCodes: Map<number, PromoCode>;
+  private promoUsages: Map<number, PromoUsage>;
   private userId: number;
   private analysisId: number;
   private usageLimitId: number;
   private userEventId: number;
+  private promoCodeId: number;
+  private promoUsageId: number;
 
   constructor() {
     this.users = new Map();
@@ -77,10 +97,14 @@ export class MemStorage implements IStorage {
     this.usageLimits = new Map();
     this.anonymousUsage = new Map();
     this.userEvents = new Map();
+    this.promoCodes = new Map();
+    this.promoUsages = new Map();
     this.userId = 1;
     this.analysisId = 1;
     this.usageLimitId = 1;
     this.userEventId = 1;
+    this.promoCodeId = 1;
+    this.promoUsageId = 1;
     
     // Initialize with a demo user - using proper password format (salt:hash)
     // This is a pre-hashed representation of "password123"
