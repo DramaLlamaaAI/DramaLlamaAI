@@ -129,11 +129,8 @@ export const authController = {
       // Don't return the password
       const { password, ...userWithoutPassword } = user;
       
-      // Set user in session
-      if (req.session) {
-        req.session.userId = user.id;
-        req.session.userTier = user.tier || 'free';
-      }
+      // Do NOT set user in session automatically after registration
+      // Users must verify their email first
       
       // Check if we have Resend API key configured
       const hasEmailService = !!process.env.RESEND_API_KEY;
@@ -145,7 +142,8 @@ export const authController = {
         verificationNeeded: true,
         verificationCode: (!emailSent || !hasEmailService) ? verificationCode : undefined,
         emailSent,
-        emailServiceConfigured: hasEmailService
+        emailServiceConfigured: hasEmailService,
+        message: "Please check your email and verify your account before logging in."
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -197,14 +195,15 @@ export const authController = {
         return res.status(401).json({ error: "Invalid credentials (password format error)" });
       }
       
-      // Check if email is verified (skip this check if no verification system is in place)
-      if (user.emailVerified !== undefined && !user.emailVerified) {
-        // If email is not verified, but there's an active verification code
+      // Email verification is REQUIRED - always enforce this
+      if (!user.emailVerified) {
+        // If there's an active verification code
         if (user.verificationCode && user.verificationCodeExpires && user.verificationCodeExpires > new Date()) {
           return res.status(403).json({ 
             error: "Email not verified", 
             message: "Please verify your email address before logging in.",
-            needsVerification: true
+            needsVerification: true,
+            email: user.email
           });
         } else {
           // Generate a new verification code
@@ -214,12 +213,16 @@ export const authController = {
           // Try to send verification email
           const emailSent = await sendVerificationEmail(user, verificationCode);
           
+          // Check if we have Resend API key configured
+          const hasEmailService = !!process.env.RESEND_API_KEY;
+          
           return res.status(403).json({ 
             error: "Email not verified", 
             message: "A new verification email has been sent to your email address.",
-            verificationCode: !emailSent ? verificationCode : undefined,
+            verificationCode: (!emailSent || !hasEmailService) ? verificationCode : undefined,
             emailSent,
-            needsVerification: true
+            needsVerification: true,
+            email: user.email
           });
         }
       }
@@ -402,22 +405,29 @@ export const authController = {
     try {
       const { code } = verifyEmailSchema.parse(req.body);
       
+      console.log(`Verifying email with code: ${code}`);
+      
       // Check if the verification code is valid
       const user = await storage.getUserByVerificationCode(code);
       if (!user) {
+        console.log('Invalid verification code');
         return res.status(400).json({ 
           error: "Invalid verification code",
           message: "The verification code is invalid or has expired."
         });
       }
       
+      console.log(`Found user for verification: ${user.username} (${user.email})`);
+      
       // Mark the email as verified
       await storage.verifyEmail(user.id);
+      console.log(`Verified email for user: ${user.id}`);
       
-      // If user is not already logged in, log them in
-      if (req.session && !req.session.userId) {
+      // Always log the user in after successful verification
+      if (req.session) {
         req.session.userId = user.id;
         req.session.userTier = user.tier || 'free';
+        console.log(`Set session for verified user: ${user.id}, ${user.tier}`);
       }
       
       // Return updated user info (without password)
@@ -426,11 +436,12 @@ export const authController = {
         return res.status(404).json({ error: "User not found" });
       }
       
+      console.log(`Email verified successfully for: ${updatedUser.email}`);
       const { password, ...userWithoutPassword } = updatedUser;
       
       res.status(200).json({
         ...userWithoutPassword,
-        message: "Email verified successfully!"
+        message: "Email verified successfully! You are now logged in."
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
