@@ -18,6 +18,11 @@ export default function Footer() {
             <p className="mt-2 text-sm text-white/80">© 2025 Drama Llama AI Ltd</p>
             <p className="text-sm text-white/80">Company number: 16428423 – England & Wales</p>
             <p className="mt-2 font-medium text-secondary">"They gaslight. We spotlight."</p>
+            <div className="mt-2">
+              <Link href="/admin-login">
+                <span className="text-xs text-white/50 hover:text-white/80 transition cursor-pointer">Admin Access</span>
+              </Link>
+            </div>
           </div>
           
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">

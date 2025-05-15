@@ -91,26 +91,22 @@ export default function Header() {
             {/* Admin navigation option - only visible to admin users */}
             <AdminNavItem />
             
-            {/* Admin login link for direct access - visible on all devices */}
-            <Link href="/admin-login">
-              <Button variant="ghost" size="sm" className="flex items-center text-white hover:bg-white/10">
-                Admin Login
-              </Button>
-            </Link>
-            
-            <Link href="/auth">
-              <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10">
-                Sign up / Log in
-              </Button>
-            </Link>
-            
-            {tier === 'free' && (
-              <Link href="/subscription">
-                <Button variant="secondary" size="sm">
-                  Upgrade
+            {/* Main user actions - better aligned for mobile */}
+            <div className="flex">
+              <Link href="/auth">
+                <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10">
+                  Sign up / Log in
                 </Button>
               </Link>
-            )}
+              
+              {tier === 'free' && (
+                <Link href="/subscription">
+                  <Button variant="secondary" size="sm" className="ml-2">
+                    Upgrade
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
