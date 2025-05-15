@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
 import { PromoCodeInput } from '@/components/promo-code-input';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
@@ -289,6 +289,15 @@ export default function Checkout() {
             {/* Promo code input */}
             {!discountInfo?.hasDiscount && (
               <div className="mb-6">
+                {promoCode && (
+                  <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4 flex items-center">
+                    <CheckCircle className="text-green-500 mr-2 h-5 w-5" />
+                    <div>
+                      <p className="font-medium">Promo code <span className="font-bold">{promoCode}</span> applied!</p>
+                      <p className="text-sm text-muted-foreground">Promo code successfully applied</p>
+                    </div>
+                  </div>
+                )}
                 <PromoCodeInput
                   onApply={(discountPercentage) => {
                     if (discountPercentage > 0) {
