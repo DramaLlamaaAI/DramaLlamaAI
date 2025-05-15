@@ -177,7 +177,23 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 mr-2" />
-                <span>Instant access to Pro features:</span>
+                <span><strong>No subscription required</strong></span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 mr-2" />
+                <span>Instant access to Pro Plan features:</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Conversation Dynamics</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Behavioural Patterns Detection</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
+                <span className="text-muted-foreground">Advanced Communication Trend Lines</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
@@ -198,18 +214,6 @@ export default function SubscriptionPage() {
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
                 <span className="text-muted-foreground">Red Flags Timeline</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Historical Pattern Recognition</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Anonymized Peer Benchmarks</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-purple-600 mr-2" />
-                <span><strong>No subscription required</strong></span>
               </li>
             </ul>
           </CardContent>
@@ -248,19 +252,27 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 mt-6">
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span><strong>Everything in Free plan, plus:</strong></span>
+                <span>5 uploads a month</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>10 chat analyses per month</span>
+                <span>Overall Emotional Tone Summary</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Advanced Emotional Tone Analysis</span>
+                <span>Conversation Health Meter</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Individual Contributions to Tension</span>
+                <span>Basic Communication Insights - participants named</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-primary mr-2" />
+                <span>Advanced Emotional Tone Analysis - participants named</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-primary mr-2" />
+                <span>Individual Contributions to Tension - participants named</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
@@ -268,27 +280,15 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>🚩 Red Flags Detection & Red Flag Meters</span>
+                <span>🚩 Red Flags Detection & Meters - participants named</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Communication Styles Breakdown</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-primary ml-6 mr-2" />
-                <span className="text-muted-foreground">Your Style vs Their Style</span>
+                <span>Communication Styles Breakdown - Your Style vs Their Style</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Accountability Indicators</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Emotion Tracking Per Participant</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Mood Trends Over Time</span>
+                <span>Accountability Indicators - participants named</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
@@ -341,15 +341,11 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Behavioural Patterns Detection</span>
+                <span>Behavioural Patterns Detection - participants named</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Advanced Communication Trend Lines</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
-                <span className="text-muted-foreground">Red Flags, Gaslighting</span>
+                <span>Advanced Communication Trend Lines - Red Flags/Gaslighting</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
@@ -357,11 +353,7 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Message Dominance Analysis</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
-                <span className="text-muted-foreground">Conversational Control Insights</span>
+                <span>Message Dominance Analysis – Conversational Control</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
@@ -374,14 +366,6 @@ export default function SubscriptionPage() {
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
                 <span>Red Flags Timeline – Progressive Tracking</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Historical Pattern Recognition</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Anonymized Peer Comparison Benchmarks</span>
               </li>
             </ul>
           </CardContent>
