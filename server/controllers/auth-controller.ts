@@ -421,14 +421,16 @@ export const authController = {
   // Verify email with code
   verifyEmail: async (req: Request, res: Response) => {
     try {
-      const { code } = verifyEmailSchema.parse(req.body);
+      const parsedBody = verifyEmailSchema.parse(req.body);
+      const code = parsedBody.code.toUpperCase().trim(); // Normalize the code
       
-      console.log(`Verifying email with code: ${code}`);
+      console.log(`Verifying email with normalized code: "${code}"`);
+      console.log(`Full request body:`, req.body);
       
       // Check if the verification code is valid
       const user = await storage.getUserByVerificationCode(code);
       if (!user) {
-        console.log('Invalid verification code');
+        console.log('Invalid verification code, no matching user found');
         return res.status(400).json({ 
           error: "Invalid verification code",
           message: "The verification code is invalid or has expired."

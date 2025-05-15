@@ -172,5 +172,16 @@ export const sendVerificationEmail = async (user: User, verificationCode: string
 
 // Generate a random verification code
 export const generateVerificationCode = (): string => {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  // Use a more predictable and visible format: 6 uppercase alphanumeric characters
+  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing characters like 0/O, 1/I
+  let result = '';
+  
+  // Generate 6 random characters
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters.charAt(randomIndex);
+  }
+  
+  console.log(`Generated verification code: "${result}"`);
+  return result;
 };

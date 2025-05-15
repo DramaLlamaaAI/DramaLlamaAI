@@ -206,7 +206,18 @@ export class MemStorage implements IStorage {
   
   async getUserByVerificationCode(code: string): Promise<User | undefined> {
     const now = new Date();
-    return Array.from(this.users.values()).find(
+    console.log(`Looking for user with verification code: ${code}`);
+    
+    // Debug all verification codes
+    const allUsers = Array.from(this.users.values());
+    const allCodes = allUsers.map(user => {
+      const isValid = user.verificationCodeExpires && user.verificationCodeExpires > now;
+      return `${user.username}: "${user.verificationCode}" (valid: ${isValid})`;
+    }).join(", ");
+    
+    console.log(`All verification codes: ${allCodes}`);
+    
+    return allUsers.find(
       (user) => user.verificationCode === code && 
                 user.verificationCodeExpires && 
                 user.verificationCodeExpires > now
@@ -222,6 +233,8 @@ export class MemStorage implements IStorage {
     // Set expiration time (default: 24 hours)
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + expiresInMinutes);
+    
+    console.log(`Setting verification code for user ${user.username} (${user.email}): "${code}", expires: ${expiresAt}`);
     
     const updatedUser = { 
       ...user, 
