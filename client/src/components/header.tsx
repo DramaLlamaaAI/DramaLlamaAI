@@ -91,10 +91,10 @@ export default function Header() {
             {/* Admin navigation option - only visible to admin users */}
             <AdminNavItem />
             
-            {/* Direct admin dashboard link - for testing */}
-            <Link href="/admin">
+            {/* Admin login link for direct access */}
+            <Link href="/admin-login">
               <Button variant="ghost" size="sm" className="hidden md:flex items-center text-white hover:bg-white/10">
-                Admin Dashboard
+                Admin Login
               </Button>
             </Link>
             

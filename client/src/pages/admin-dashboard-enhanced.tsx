@@ -251,7 +251,11 @@ export default function AdminDashboardEnhanced() {
           {!currentUser ? (
             <div>
               <p className="mb-4">You need to log in with an admin account to access this page.</p>
-              <AdminLoginHelper />
+              <div className="mt-4">
+                <Link href="/admin-login">
+                  <Button className="bg-primary hover:bg-primary/90">Go to Admin Login</Button>
+                </Link>
+              </div>
             </div>
           ) : (
             <div>
@@ -259,7 +263,11 @@ export default function AdminDashboardEnhanced() {
                 You are logged in as <span className="font-semibold">{currentUser.email}</span>, 
                 but this account does not have admin privileges.
               </p>
-              <AdminLoginHelper />
+              <div className="mt-4">
+                <Link href="/admin-login">
+                  <Button className="bg-primary hover:bg-primary/90">Go to Admin Login</Button>
+                </Link>
+              </div>
             </div>
           )}
         </div>
