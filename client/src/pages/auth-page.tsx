@@ -21,7 +21,6 @@ const loginSchema = z.object({
 
 // Registration Form Schema
 const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string().min(1, "Please confirm your password"),
@@ -53,7 +52,6 @@ export default function AuthPage() {
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -110,7 +108,13 @@ export default function AuthPage() {
       // Remove confirmPassword before sending to API
       const { confirmPassword, ...registerData } = values;
       
-      const response = await apiRequest("POST", "/api/auth/register", registerData);
+      // Auto-generate a username from the email (everything before the @ symbol)
+      const username = values.email.split('@')[0] + '_' + Math.floor(Math.random() * 1000).toString();
+      
+      const response = await apiRequest("POST", "/api/auth/register", {
+        ...registerData,
+        username
+      });
       const data = await response.json();
       
       if (!response.ok) {
@@ -224,19 +228,7 @@ export default function AuthPage() {
               <CardContent className="pt-4">
                 <Form {...registerForm}>
                   <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                    <FormField
-                      control={registerForm.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Username</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Choose a username" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+{/* Username field removed - Using email as username */}
                     
                     <FormField
                       control={registerForm.control}
