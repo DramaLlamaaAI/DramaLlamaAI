@@ -59,6 +59,7 @@ export interface IStorage {
     message?: string 
   }>;
   getPromoUsageByUser(userId: number): Promise<PromoUsage[]>;
+  getAllPromoUsages(): Promise<PromoUsage[]>;
   
   // Analytics
   trackUserEvent(event: InsertUserEvent): Promise<UserEvent>;
@@ -713,6 +714,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.promoUsages.values()).filter(
       usage => usage.userId === userId
     );
+  }
+  
+  async getAllPromoUsages(): Promise<PromoUsage[]> {
+    return Array.from(this.promoUsages.values());
   }
 }
 

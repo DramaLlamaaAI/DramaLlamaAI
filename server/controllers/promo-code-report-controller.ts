@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { storage } from "../storage";
+import { PromoCode, PromoUsage } from "@shared/schema";
 
 // Controller for promo code analytics and reporting
 export const promoCodeReportController = {
@@ -13,22 +14,21 @@ export const promoCodeReportController = {
       const allPromoUsages = await storage.getAllPromoUsages();
       
       // Calculate metrics for each promo code
-      const report = allPromoCodes.map(promoCode => {
+      const report = allPromoCodes.map((promoCode: PromoCode) => {
         // Filter usages for this code
-        const codeUsages = allPromoUsages.filter(usage => usage.promoCodeId === promoCode.id);
+        const codeUsages = allPromoUsages.filter((usage: PromoUsage) => usage.promoCodeId === promoCode.id);
         
         // Count usages
         const usageCount = codeUsages.length;
         
         // Calculate conversion rate (simplified example)
         // In a real app, you'd need to track impressions vs. redemptions
-        const conversionRate = promoCode.maxUses > 0 ? usageCount / promoCode.maxUses : 0;
+        const conversionRate = promoCode.maxUses && promoCode.maxUses > 0 ? usageCount / promoCode.maxUses : 0;
         
         // Calculate total discount amount
-        const discountAmount = codeUsages.reduce((total, usage) => {
-          // This is a simplified calculation
-          // In a real app, you'd have the actual discount amount saved per usage
-          return total + (usage.discountAmount || 0);
+        const discountAmount = codeUsages.reduce((total: number, usage: PromoUsage) => {
+          // Use the appliedDiscount field from the PromoUsage schema
+          return total + usage.appliedDiscount;
         }, 0);
         
         return {
@@ -38,7 +38,7 @@ export const promoCodeReportController = {
           discountAmount,
           isActive: promoCode.isActive,
           createdAt: promoCode.createdAt,
-          expiresAt: promoCode.expiresAt,
+          expiresAt: promoCode.expiryDate,
         };
       });
       
