@@ -38,6 +38,7 @@ import { BulkDiscountActions } from '@/components/admin/bulk-discount-actions';
 import { EmailNotifications } from '@/components/admin/email-notifications';
 import { AdvancedDiscountManager } from '@/components/admin/advanced-discount-manager';
 import { DevTierTester } from '@/components/developer/dev-tier-tester';
+import { PromoCodeManager } from '@/components/admin/promo-code-manager';
 
 // Interface for user data
 interface User {
@@ -376,6 +377,7 @@ export default function AdminDashboardEnhanced() {
                 <TabsList>
                   <TabsTrigger value="users">User Management</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                  <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
                   <TabsTrigger value="devtools">Developer Tools</TabsTrigger>
                 </TabsList>
                 
@@ -588,6 +590,10 @@ export default function AdminDashboardEnhanced() {
                 </Card>
               </TabsContent>
               
+              <TabsContent value="promo-codes" className="mt-6">
+                <PromoCodeManager />
+              </TabsContent>
+
               <TabsContent value="analytics" className="mt-6">
                 <Card className="mb-8">
                   <CardHeader className="flex flex-row items-center justify-between">

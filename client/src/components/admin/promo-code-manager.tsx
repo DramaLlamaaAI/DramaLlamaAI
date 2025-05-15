@@ -44,7 +44,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Trash } from "lucide-react";
-import { DataTable } from "./data-table";
+import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 
 // Types for promo codes
