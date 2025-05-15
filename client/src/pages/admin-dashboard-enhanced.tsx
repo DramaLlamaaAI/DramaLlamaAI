@@ -371,263 +371,310 @@ export default function AdminDashboardEnhanced() {
         // Main dashboard view
         <div>
           <div className="flex items-center justify-between mb-6">
-            <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab} className="flex-1">
-              <TabsList>
-                <TabsTrigger value="users">User Management</TabsTrigger>
-                <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                <TabsTrigger value="devtools">Developer Tools</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Link href="/">
-              <Button variant="outline" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
-          
-          <TabsContent value="users">
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>
-                  Manage users, tiers, and discounts for Drama Llama.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* User search and filters */}
-                <UserManagementFilters 
-                  onSearch={handleSearch}
-                  onFilterTier={handleFilterTier}
-                  onFilterVerified={handleFilterVerified}
-                  onReset={resetFilters}
-                />
+            <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <div className="flex justify-between items-center">
+                <TabsList>
+                  <TabsTrigger value="users">User Management</TabsTrigger>
+                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                  <TabsTrigger value="devtools">Developer Tools</TabsTrigger>
+                </TabsList>
                 
-                {/* Bulk actions */}
-                {selectedUsers.length > 0 && (
-                  <div className="mb-6 p-4 border rounded-md bg-muted/20">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <CheckSquare className="h-5 w-5 text-primary mr-2" />
-                        <span>
-                          <strong>{selectedUsers.length}</strong> users selected
-                        </span>
+                <Link href="/">
+                  <Button variant="outline" className="gap-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Home
+                  </Button>
+                </Link>
+              </div>
+              
+              <TabsContent value="users" className="mt-6">
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle>User Management</CardTitle>
+                    <CardDescription>
+                      Manage users, tiers, and discounts for Drama Llama.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {/* User search and filters */}
+                    <UserManagementFilters 
+                      onSearch={handleSearch}
+                      onFilterTier={handleFilterTier}
+                      onFilterVerified={handleFilterVerified}
+                      onReset={resetFilters}
+                    />
+                    
+                    {/* Bulk actions */}
+                    {selectedUsers.length > 0 && (
+                      <div className="mb-6 p-4 border rounded-md bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <CheckSquare className="h-5 w-5 text-primary mr-2" />
+                            <span>
+                              <strong>{selectedUsers.length}</strong> users selected
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <BulkDiscountActions 
+                              selectedUsers={selectedUsers}
+                              onComplete={handleBulkActionComplete}
+                            />
+                            <EmailNotifications 
+                              selectedUsers={selectedUsers}
+                              onComplete={handleBulkActionComplete}
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={clearSelections}
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Clear Selection
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <BulkDiscountActions 
-                          selectedUsers={selectedUsers}
-                          onComplete={handleBulkActionComplete}
-                        />
-                        <EmailNotifications 
-                          selectedUsers={selectedUsers}
-                          onComplete={handleBulkActionComplete}
-                        />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={clearSelections}
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Clear Selection
-                        </Button>
-                      </div>
+                    )}
+                    
+                    {/* Advanced discount manager */}
+                    <div className="flex justify-end mb-4">
+                      <AdvancedDiscountManager />
                     </div>
-                  </div>
-                )}
-                
-                {/* Advanced discount manager */}
-                <div className="flex justify-end mb-4">
-                  <AdvancedDiscountManager />
-                </div>
-                
-                {/* Users table */}
-                <div className="space-y-4">
-                  {usersLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                  ) : (
-                    <>
-                      <div className="rounded-md border">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-[50px]">
-                                <Checkbox 
-                                  checked={selectAll} 
-                                  onCheckedChange={toggleSelectAll} 
-                                />
-                              </TableHead>
-                              <TableHead>ID</TableHead>
-                              <TableHead>Username</TableHead>
-                              <TableHead>Email</TableHead>
-                              <TableHead>Tier</TableHead>
-                              <TableHead>Verified</TableHead>
-                              <TableHead>Discount</TableHead>
-                              <TableHead>Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {currentUsers.map((user) => (
-                              <TableRow key={user.id}>
-                                <TableCell>
-                                  <Checkbox 
-                                    checked={selectedUsers.some(u => u.id === user.id)}
-                                    onCheckedChange={() => toggleSelectUser(user)}
+                    
+                    {/* Users table */}
+                    <div className="space-y-4">
+                      {usersLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                      ) : (
+                        <>
+                          <div className="rounded-md border">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="w-[50px]">
+                                    <Checkbox 
+                                      checked={selectAll} 
+                                      onCheckedChange={toggleSelectAll} 
+                                    />
+                                  </TableHead>
+                                  <TableHead>ID</TableHead>
+                                  <TableHead>Username</TableHead>
+                                  <TableHead>Email</TableHead>
+                                  <TableHead>Tier</TableHead>
+                                  <TableHead>Verified</TableHead>
+                                  <TableHead>Discount</TableHead>
+                                  <TableHead>Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {currentUsers.length === 0 ? (
+                                  <TableRow>
+                                    <TableCell colSpan={8} className="text-center py-4">
+                                      No users found.
+                                    </TableCell>
+                                  </TableRow>
+                                ) : (
+                                  currentUsers.map((user) => (
+                                    <TableRow key={user.id}>
+                                      <TableCell>
+                                        <Checkbox 
+                                          checked={selectedUsers.some(u => u.id === user.id)}
+                                          onCheckedChange={() => toggleSelectUser(user)}
+                                        />
+                                      </TableCell>
+                                      <TableCell>{user.id}</TableCell>
+                                      <TableCell>{user.username}</TableCell>
+                                      <TableCell>{user.email}</TableCell>
+                                      <TableCell>
+                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                          user.tier === 'pro' ? 'bg-green-100 text-green-800' :
+                                          user.tier === 'personal' ? 'bg-blue-100 text-blue-800' : 
+                                          'bg-gray-100 text-gray-800'
+                                        }`}>
+                                          {user.tier}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell>
+                                        {user.emailVerified ? (
+                                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                            Verified
+                                          </span>
+                                        ) : (
+                                          <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                                            Pending
+                                          </span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        {user.discountPercentage > 0 ? (
+                                          <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                                            {user.discountPercentage}% off
+                                            {user.discountExpiryDate && (
+                                              <span className="ml-1">
+                                                until {formatDate(user.discountExpiryDate)}
+                                              </span>
+                                            )}
+                                          </span>
+                                        ) : (
+                                          <span className="text-gray-500">None</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setSelectedUser(user)}
+                                        >
+                                          <UserIcon className="h-4 w-4 mr-2" />
+                                          Details
+                                        </Button>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))
+                                )}
+                              </TableBody>
+                            </Table>
+                          </div>
+                          
+                          {/* Pagination */}
+                          {filteredUsers.length > usersPerPage && (
+                            <Pagination>
+                              <PaginationContent>
+                                <PaginationItem>
+                                  <PaginationPrevious 
+                                    onClick={() => paginate(Math.max(1, currentPage - 1))}
+                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                                   />
-                                </TableCell>
-                                <TableCell>{user.id}</TableCell>
-                                <TableCell>{user.username}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                  <div className="inline-block font-medium px-2 py-1 rounded-full text-xs text-white bg-opacity-80 whitespace-nowrap
-                                    ${user.tier === 'free' ? 'bg-gray-500' : 
-                                    user.tier === 'personal' ? 'bg-blue-500' : 
-                                    user.tier === 'pro' ? 'bg-purple-500' : 
-                                    'bg-amber-500'}"
-                                  >
-                                    {user.tier.charAt(0).toUpperCase() + user.tier.slice(1)}
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  {user.emailVerified ? (
-                                    <span className="text-green-500">Verified</span>
-                                  ) : (
-                                    <span className="text-red-500">Not Verified</span>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  {user.discountPercentage > 0 ? (
-                                    <div className="flex flex-col">
-                                      <span className="text-green-500">{user.discountPercentage}%</span>
-                                      <span className="text-xs text-gray-500">
-                                        Expires: {formatDate(user.discountExpiryDate)}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <span>None</span>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => setSelectedUser(user)}
-                                  >
-                                    <UserIcon className="h-4 w-4 mr-2" />
-                                    Manage
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                      
-                      {/* Pagination */}
-                      {totalPages > 1 && (
-                        <Pagination>
-                          <PaginationContent>
-                            <PaginationItem>
-                              <PaginationPrevious 
-                                onClick={() => currentPage > 1 && paginate(currentPage - 1)}
-                                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                              />
-                            </PaginationItem>
-                            
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                              <PaginationItem key={page}>
-                                <PaginationLink
-                                  isActive={page === currentPage}
-                                  onClick={() => paginate(page)}
-                                >
-                                  {page}
-                                </PaginationLink>
-                              </PaginationItem>
-                            ))}
-                            
-                            <PaginationItem>
-                              <PaginationNext 
-                                onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
-                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                              />
-                            </PaginationItem>
-                          </PaginationContent>
-                        </Pagination>
+                                </PaginationItem>
+                                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+                                  // Show pages around current page
+                                  let pageNum;
+                                  if (totalPages <= 5) {
+                                    pageNum = i + 1;
+                                  } else if (currentPage <= 3) {
+                                    pageNum = i + 1;
+                                  } else if (currentPage >= totalPages - 2) {
+                                    pageNum = totalPages - 4 + i;
+                                  } else {
+                                    pageNum = currentPage - 2 + i;
+                                  }
+                                  
+                                  return (
+                                    <PaginationItem key={i}>
+                                      <PaginationLink
+                                        onClick={() => paginate(pageNum)}
+                                        isActive={currentPage === pageNum}
+                                      >
+                                        {pageNum}
+                                      </PaginationLink>
+                                    </PaginationItem>
+                                  );
+                                })}
+                                <PaginationItem>
+                                  <PaginationNext 
+                                    onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                                  />
+                                </PaginationItem>
+                              </PaginationContent>
+                            </Pagination>
+                          )}
+                        </>
                       )}
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="analytics">
-            <Card className="mb-8">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Analytics Dashboard</CardTitle>
-                  <CardDescription>
-                    View user statistics and engagement metrics for Drama Llama.
-                  </CardDescription>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => refetchAnalytics()}
-                  disabled={analyticsLoading}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${analyticsLoading ? 'animate-spin' : ''}`} />
-                  Refresh Data
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-8">
-                {/* Analytics Cards */}
-                <UserStatsCards 
-                  data={analyticsData || {
-                    totalUsers: 0,
-                    usersByTier: {},
-                    registrationsByDate: [],
-                    tierConversionRate: []
-                  }} 
-                  isLoading={analyticsLoading} 
-                />
-                
-                {/* Charts */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                  <UsersByTierChart 
-                    data={analyticsData?.usersByTier || {}} 
-                    isLoading={analyticsLoading} 
-                  />
-                  
-                  <RegistrationsChart 
-                    data={analyticsData?.registrationsByDate || []} 
-                    isLoading={analyticsLoading}
-                  />
-                </div>
-                
-                <TierConversionChart 
-                  data={analyticsData?.tierConversionRate || []} 
-                  isLoading={analyticsLoading}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Developer Tools Tab */}
-          <TabsContent value="devtools">
-            <Card>
-              <CardHeader>
-                <CardTitle>Developer Tools</CardTitle>
-                <CardDescription>
-                  Tools for testing and development purposes.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DevTierTester />
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="analytics" className="mt-6">
+                <Card className="mb-8">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Analytics Dashboard</CardTitle>
+                      <CardDescription>
+                        View user statistics and engagement metrics for Drama Llama.
+                      </CardDescription>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => refetchAnalytics()}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh Data
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {analyticsLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : analyticsData ? (
+                      <div className="space-y-8">
+                        {/* User Stats Cards */}
+                        <UserStatsCards data={analyticsData} />
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          {/* Users By Tier Chart */}
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Users by Tier</CardTitle>
+                              <CardDescription>Distribution of users across subscription tiers</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <UsersByTierChart data={analyticsData.usersByTier} />
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Registrations Chart */}
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>User Registrations</CardTitle>
+                              <CardDescription>New user registrations over time</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <RegistrationsChart data={analyticsData.registrationsByDate} />
+                            </CardContent>
+                          </Card>
+                        </div>
+                        
+                        {/* Tier Conversion Chart */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Tier Conversions</CardTitle>
+                            <CardDescription>User movements between subscription tiers</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <TierConversionChart data={analyticsData.tierConversionRate} />
+                          </CardContent>
+                        </Card>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No analytics data available.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="devtools" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Developer Tools</CardTitle>
+                    <CardDescription>
+                      Tools for testing and development purposes.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DevTierTester />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       )}
     </div>
