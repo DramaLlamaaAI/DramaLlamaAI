@@ -36,6 +36,7 @@ import { UserDetailView } from '@/components/admin/user-detail-view';
 import { BulkDiscountActions } from '@/components/admin/bulk-discount-actions';
 import { EmailNotifications } from '@/components/admin/email-notifications';
 import { AdvancedDiscountManager } from '@/components/admin/advanced-discount-manager';
+import { DevTierTester } from '@/components/developer/dev-tier-tester';
 
 // Interface for user data
 interface User {
@@ -291,6 +292,7 @@ export default function AdminDashboardEnhanced() {
               <TabsList>
                 <TabsTrigger value="users">User Management</TabsTrigger>
                 <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                <TabsTrigger value="devtools">Developer Tools</TabsTrigger>
               </TabsList>
             </Tabs>
             <Link href="/">
