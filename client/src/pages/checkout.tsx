@@ -230,6 +230,16 @@ export default function Checkout() {
               Please enter your payment details to continue
             </CardDescription>
             
+            {/* Back to subscription page button */}
+            <Button 
+              variant="ghost" 
+              className="p-0 mt-2 text-muted-foreground flex items-center hover:bg-transparent hover:text-foreground" 
+              onClick={() => navigate('/subscription')}
+            >
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              Back to subscription options
+            </Button>
+            
             {/* Display discount information if available */}
             {discountInfo?.hasDiscount && (
               <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
@@ -250,6 +260,23 @@ export default function Checkout() {
             )}
           </CardHeader>
           <CardContent>
+            {/* Promo code input */}
+            {!discountInfo?.hasDiscount && (
+              <div className="mb-6">
+                <PromoCodeInput
+                  onApply={(discountPercentage) => {
+                    if (discountPercentage > 0) {
+                      toast({
+                        title: "Verifying Promotion",
+                        description: "Please wait while we apply your discount...",
+                      });
+                    }
+                    handleApplyPromoCode(discountPercentage);
+                  }}
+                />
+              </div>
+            )}
+            
             <Elements stripe={stripePromise} options={{ clientSecret }}>
               <CheckoutForm plan={plan} />
             </Elements>

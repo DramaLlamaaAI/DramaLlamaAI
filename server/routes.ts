@@ -221,16 +221,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Email notifications
   app.post('/api/admin/email/send', isAuthenticated, isAdmin, adminEmailController.sendBulkEmails);
   
-  // Promo code management
-  app.get('/api/admin/promo-codes', isAuthenticated, isAdmin, promoCodeController.getAllPromoCodes);
-  app.post('/api/admin/promo-codes', isAuthenticated, isAdmin, promoCodeController.createPromoCode);
-  app.get('/api/admin/promo-codes/:id', isAuthenticated, isAdmin, promoCodeController.getPromoCode);
-  app.patch('/api/admin/promo-codes/:id', isAuthenticated, isAdmin, promoCodeController.updatePromoCode);
-  app.delete('/api/admin/promo-codes/:id', isAuthenticated, isAdmin, promoCodeController.deletePromoCode);
+  // Promo code management - commented out for now until admin controller is fully implemented
+  // Will be implemented in the admin controller
   
   // Public promo code routes
-  app.get('/api/promo-codes/active', promoCodeController.getActivePromoCodes);
-  app.post('/api/promo-codes/redeem', isAuthenticated, promoCodeController.redeemPromoCode);
+  app.get('/api/promo-codes/active', isAuthenticated, isAdmin, promoCodeController.getAllActive);
+  app.post('/api/promo-codes/redeem', promoCodeController.redeemCode);
   
   // Analytics routes (require admin access)
   app.get('/api/admin/analytics', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
@@ -277,6 +273,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching analyses:", error);
       res.status(500).json({ error: "Failed to fetch analyses" });
+    }
+  });
+  
+  // Promo code routes
+  app.post('/api/promo-codes/redeem', promoCodeController.redeemCode);
+  app.get('/api/promo-codes/active', isAuthenticated, isAdmin, promoCodeController.getAllActive);
+  app.get('/api/user/promo-usage', isAuthenticated, promoCodeController.getUserPromoUsage);
+  
+  // Update create-subscription endpoint to handle promo codes (called from checkout page)
+  app.post('/api/create-subscription', async (req: Request, res: Response) => {
+    try {
+      const { plan, promoCode } = req.body;
+      
+      // Get base price for the plan
+      const prices = {
+        'free': 0,
+        'personal': 499,  // £4.99
+        'pro': 999,       // £9.99
+        'deepdive': 1999  // £19.99
+      };
+      
+      const selectedPlan = plan?.toLowerCase() || 'personal';
+      const baseAmount = prices[selectedPlan as keyof typeof prices] || prices.personal;
+      
+      // Initialize response with original price
+      const response: any = {
+        originalAmount: baseAmount,
+        finalAmount: baseAmount,
+        hasDiscount: false,
+        clientSecret: "mock_client_secret_" + Date.now()
+      };
+      
+      // If user is authenticated and promo code provided, apply discount
+      if (req.session?.userId && promoCode) {
+        const userId = req.session.userId;
+        const tier = selectedPlan;
+        
+        const discountResult = await storage.usePromoCode(promoCode, userId, tier);
+        
+        if (discountResult.success && discountResult.discountPercentage) {
+          // Calculate discounted amount
+          const discountAmount = Math.round(baseAmount * (discountResult.discountPercentage / 100));
+          const finalAmount = baseAmount - discountAmount;
+          
+          // Update response with discount info
+          response.hasDiscount = true;
+          response.discountPercentage = discountResult.discountPercentage;
+          response.finalAmount = finalAmount;
+          
+          // In a real implementation, we would create a Stripe Payment Intent here
+          // with the discounted amount
+        }
+      }
+      
+      res.json(response);
+    } catch (error: any) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ error: error.message });
     }
   });
   
