@@ -45,9 +45,17 @@ export default function VerifyEmailPage() {
   const [resendEmail, setResendEmail] = useState("");
   const { toast } = useToast();
   
-  // Get code from URL params if available
+  // Get code and email from URL params if available
   const searchParams = new URLSearchParams(window.location.search);
   const codeFromUrl = searchParams.get("code");
+  const emailFromUrl = searchParams.get("email");
+  
+  // Set the resend email from URL if available
+  useEffect(() => {
+    if (emailFromUrl) {
+      setResendEmail(emailFromUrl);
+    }
+  }, [emailFromUrl]);
   
   const form = useForm<VerificationFormValues>({
     resolver: zodResolver(verificationSchema),
