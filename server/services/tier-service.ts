@@ -89,14 +89,11 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
       // Make sure we always add redFlags to the filtered analysis, even if empty array
       const redFlags = analysis.redFlags || [];
       
-      // For personal tier, enhance red flags with participant information
+      // For personal tier, ensure red flags ALWAYS have participant information
       if (tier === 'personal') {
         filteredAnalysis.redFlags = redFlags.map(flag => {
           // Add participant info based on the flag type if not already present
           if (!flag.participant) {
-            // Try to determine participant based on flag type
-            const flagType = flag.type.toLowerCase();
-            
             // Get participant names from participantTones if available
             const participantNames = analysis.toneAnalysis?.participantTones ? 
               Object.keys(analysis.toneAnalysis.participantTones) : [];
@@ -104,11 +101,71 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
             const participant1 = participantNames.length > 0 ? participantNames[0] : '';
             const participant2 = participantNames.length > 1 ? participantNames[1] : '';
             
-            const participantInfo = 
-              flagType.includes('both participants') ? 'Both' :
-              (participant1 && flagType.includes(participant1.toLowerCase())) ? participant1 :
-              (participant2 && flagType.includes(participant2.toLowerCase())) ? participant2 :
-              'Both participants';
+            // Perform more detailed analysis of flag type to determine which participant
+            const flagType = flag.type.toLowerCase();
+            const flagDesc = flag.description.toLowerCase();
+
+            // Check if description or type contains participant names
+            const isParticipant1 = 
+              (participant1 && (flagType.includes(participant1.toLowerCase()) || 
+              flagDesc.includes(participant1.toLowerCase())));
+              
+            const isParticipant2 = 
+              (participant2 && (flagType.includes(participant2.toLowerCase()) || 
+              flagDesc.includes(participant2.toLowerCase())));
+
+            // More specific checks for common behaviors 
+            const narcissism = ['narcissism', 'self-centered', 'self-importance', 'grandiose'];
+            const defensiveness = ['defensive', 'deflection', 'blame-shifting'];
+            const stonewalling = ['stonewalling', 'withdrawal', 'silence', 'avoiding'];
+            const criticism = ['criticism', 'contempt', 'insult', 'belittling'];
+            const gaslighting = ['gaslighting', 'manipulation', 'invalidating'];
+            
+            // Check if specific behaviors are mentioned in relation to participants
+            let participantInfo = 'Both participants';
+            
+            // More detailed linguistic analysis of the flag
+            if (isParticipant1 && !isParticipant2) {
+              participantInfo = participant1;
+            } else if (isParticipant2 && !isParticipant1) {
+              participantInfo = participant2;
+            } else {
+              // Fall back to analyzing the full context to determine participant
+              // This helps with accuracy when participant names aren't directly mentioned
+              const flagContext = (flag.type + ' ' + flag.description).toLowerCase();
+              
+              // If we have key quotes, they provide the most reliable attribution
+              if (analysis.keyQuotes && analysis.keyQuotes.length > 0) {
+                // Find quotes that may relate to this flag
+                const relevantQuotes = analysis.keyQuotes.filter(quote => {
+                  const quoteText = quote.quote.toLowerCase();
+                  const quoteAnalysis = quote.analysis.toLowerCase();
+                  
+                  // Check if quote relates to this flag type
+                  return narcissism.some(term => quoteAnalysis.includes(term) && flagType.includes(term)) ||
+                         defensiveness.some(term => quoteAnalysis.includes(term) && flagType.includes(term)) ||
+                         stonewalling.some(term => quoteAnalysis.includes(term) && flagType.includes(term)) ||
+                         criticism.some(term => quoteAnalysis.includes(term) && flagType.includes(term)) ||
+                         gaslighting.some(term => quoteAnalysis.includes(term) && flagType.includes(term));
+                });
+                
+                if (relevantQuotes.length > 0) {
+                  // Count attribution to each participant
+                  const speakerCounts: Record<string, number> = {};
+                  relevantQuotes.forEach(quote => {
+                    speakerCounts[quote.speaker] = (speakerCounts[quote.speaker] || 0) + 1;
+                  });
+                  
+                  // Assign to the participant with the most relevant quotes
+                  const maxSpeaker = Object.entries(speakerCounts).reduce((max: [string, number], [speaker, count]) => 
+                    count > max[1] ? [speaker, count] : max, ['', 0])[0];
+                    
+                  if (maxSpeaker) {
+                    participantInfo = maxSpeaker;
+                  }
+                }
+              }
+            }
             
             return {
               ...flag,

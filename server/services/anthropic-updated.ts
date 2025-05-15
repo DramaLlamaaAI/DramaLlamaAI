@@ -105,16 +105,21 @@ const prompts = {
     {conversation}`,
 
     personal: `Analyze this conversation between {me} and {them}. 
-    Return a JSON object with the following structure:
+
+Carefully distinguish between participants and their behaviors. Be precise about which participant exhibits which behaviors.
+EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specific participant who exhibits the behavior.
+DO NOT label a behavior as present in both participants unless you have clear evidence from multiple messages.
+
+Return a JSON object with the following structure:
     {
       "toneAnalysis": {
         "overallTone": "string describing the conversation's overall tone",
         "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-        "participantTones": {"participant name": "tone description"}
+        "participantTones": {"participant name": "tone description that clearly distinguishes between participants"}
       },
-      "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
+      "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5, "participant": "name of participant showing this behavior"}],
       "communication": {
-        "patterns": ["string describing patterns observed"],
+        "patterns": ["string describing specific patterns observed for each participant"],
         "suggestions": ["string with suggestions for improvement"]
       },
       "healthScore": {
@@ -122,7 +127,7 @@ const prompts = {
         "label": "Troubled/Needs Work/Good/Excellent",
         "color": "red/yellow/light-green/green"
       },
-      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for how to reword this statement to be more constructive"}],
+      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation that identifies specific behaviors", "improvement": "suggestion for how to reword this statement to be more constructive"}],
       "highTensionFactors": ["string with reason"],
       "participantConflictScores": {
         "participant name": {
@@ -137,16 +142,22 @@ const prompts = {
     {conversation}`,
 
     pro: `Perform a comprehensive analysis of this conversation between {me} and {them}.
-    Return a JSON object with the following structure:
+
+Carefully distinguish between participants and their behaviors. Be precise and accurate.
+EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specific participant who exhibits the behavior.
+DO NOT label a behavior as present in both participants unless you have clear evidence from multiple messages.
+Analyze quotes and exact wording to determine which participant is exhibiting each behavior.
+
+Return a JSON object with the following structure:
     {
       "toneAnalysis": {
         "overallTone": "string describing the conversation's overall tone",
         "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-        "participantTones": {"participant name": "tone description"}
+        "participantTones": {"participant name": "tone description that clearly distinguishes from other participant"}
       },
-      "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
+      "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5, "participant": "name of participant showing this behavior"}],
       "communication": {
-        "patterns": ["string describing patterns observed"],
+        "patterns": ["string describing specific patterns observed for each participant"],
         "suggestions": ["string with suggestions for improvement"]
       },
       "healthScore": {
@@ -154,8 +165,8 @@ const prompts = {
         "label": "Troubled/Needs Work/Good/Excellent",
         "color": "red/yellow/light-green/green"
       },
-      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for improvement"}],
-      "highTensionFactors": ["string with reason"],
+      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation that identifies specific behaviors", "improvement": "suggestion for improvement"}],
+      "highTensionFactors": ["string with reason and which participant contributes more to this factor"],
       "participantConflictScores": {
         "participant name": {
           "score": number between 0-100,
@@ -397,7 +408,11 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     if (tier === 'pro' || tier === 'instant') {
       enhancedPrompt = `Provide a detailed professional analysis of conversation between ${me} and ${them}.
 
-Focus especially on red flags with SPECIFIC EXAMPLES and QUOTES from the conversation to support your analysis.
+Pay very close attention to clearly distinguishing between participants and attributing behaviors correctly.
+EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specific participant who exhibits the behavior.
+DO NOT label a behavior as present in both participants unless you have clear evidence from multiple messages.
+
+Focus on SPECIFIC EXAMPLES and QUOTES from the conversation to support your analysis.
 
 Return ONLY a JSON object with this EXACT structure:
 
