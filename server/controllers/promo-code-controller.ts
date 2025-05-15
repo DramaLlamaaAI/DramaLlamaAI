@@ -24,7 +24,7 @@ export const promoCodeController = {
       const validatedData = promoCodeCreateSchema.parse(req.body);
       
       // Set the creator ID to the current user
-      const createdById = req.user?.id;
+      const createdById = req.session?.userId;
       if (!createdById) {
         return res.status(401).json({ error: "Not authenticated" });
       }
@@ -140,11 +140,17 @@ export const promoCodeController = {
     try {
       const { code } = promoCodeRedeemSchema.parse(req.body);
       
-      if (!req.user) {
+      if (!req.session?.userId) {
         return res.status(401).json({ error: "You must be logged in to redeem a promo code" });
       }
       
-      const result = await storage.usePromoCode(code, req.user.id, req.user.tier);
+      // Get user from storage
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const result = await storage.usePromoCode(code, user.id, user.tier);
       
       if (!result.success) {
         return res.status(400).json({ 

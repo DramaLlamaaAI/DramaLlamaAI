@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import DisclaimerModal from "./components/disclaimer-modal";
 import { hasAcceptedDisclaimer, saveDisclaimerAcceptance } from "./lib/utils";
+import { AuthProvider } from "@/hooks/use-auth";
 // DevModeToggle component removed as requested
 import { TierSwitcher } from "./components/tier-switcher";
 import DevModeFloating from "./components/developer/dev-mode-floating";

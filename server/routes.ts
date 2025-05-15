@@ -221,6 +221,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Email notifications
   app.post('/api/admin/email/send', isAuthenticated, isAdmin, adminEmailController.sendBulkEmails);
   
+  // Promo code management
+  app.get('/api/admin/promo-codes', isAuthenticated, isAdmin, promoCodeController.getAllPromoCodes);
+  app.post('/api/admin/promo-codes', isAuthenticated, isAdmin, promoCodeController.createPromoCode);
+  app.get('/api/admin/promo-codes/:id', isAuthenticated, isAdmin, promoCodeController.getPromoCode);
+  app.patch('/api/admin/promo-codes/:id', isAuthenticated, isAdmin, promoCodeController.updatePromoCode);
+  app.delete('/api/admin/promo-codes/:id', isAuthenticated, isAdmin, promoCodeController.deletePromoCode);
+  
+  // Public promo code routes
+  app.get('/api/promo-codes/active', promoCodeController.getActivePromoCodes);
+  app.post('/api/promo-codes/redeem', isAuthenticated, promoCodeController.redeemPromoCode);
+  
   // Analytics routes (require admin access)
   app.get('/api/admin/analytics', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
     try {
