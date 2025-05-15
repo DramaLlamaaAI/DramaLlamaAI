@@ -26,10 +26,18 @@ export default function AdminNavItem() {
     email: currentUser?.email
   });
 
-  // Only show admin link if user is admin
-  if (!currentUser?.isAdmin) {
+  // If still loading, don't show anything yet
+  if (isLoading) {
     return null;
   }
+
+  // Only show admin link if user exists and has admin privileges
+  if (!currentUser || !currentUser.isAdmin) {
+    return null;
+  }
+  
+  // Force displaying the admin link for debugging purposes
+  console.log("Showing admin nav item for:", currentUser.email);
 
   return (
     <Link href="/admin">

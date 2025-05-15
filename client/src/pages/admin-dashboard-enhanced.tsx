@@ -76,32 +76,16 @@ export default function AdminDashboardEnhanced() {
     retry: false,
   });
   
-  // Check if the user is admin and has the right email
+  // Log admin access check info, but don't redirect yet
   useEffect(() => {
-    if (!currentUserLoading && currentUser) {
-      console.log("Admin access check:", {
-        isAdmin: currentUser.isAdmin,
-        email: currentUser.email,
-        emailLower: currentUser.email.toLowerCase(),
-        emailMatches: currentUser.email.toLowerCase() === 'dramallamaconsultancy@gmail.com'
+    if (!currentUserLoading) {
+      console.log("Admin dashboard page load:", {
+        hasCurrentUser: !!currentUser,
+        isAdmin: currentUser?.isAdmin,
+        email: currentUser?.email
       });
-      
-      if (!currentUser.isAdmin) {
-        toast({
-          title: 'Access Denied',
-          description: 'You must be an admin to access this page.',
-          variant: 'destructive',
-        });
-        setLocation('/');
-      }
-    } else if (!currentUserLoading && !currentUser) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please log in to access this page.',
-      });
-      setLocation('/auth');
     }
-  }, [currentUser, currentUserLoading, setLocation, toast]);
+  }, [currentUser, currentUserLoading]);
 
   // Query to fetch all users
   const { 
