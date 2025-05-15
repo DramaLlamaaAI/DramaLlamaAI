@@ -17,10 +17,12 @@ export default function AdminNavItem() {
     retry: false,
   });
 
-  // Only show admin link if user is admin and has the right email
-  if (!currentUser?.isAdmin || currentUser.email !== 'dramallamaconsultancy@gmail.com') {
+  // Only show admin link if user is admin
+  if (!currentUser?.isAdmin) {
     return null;
   }
+  
+  console.log("Admin check passed:", currentUser);
 
   return (
     <Link href="/admin">

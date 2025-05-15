@@ -79,10 +79,17 @@ export default function AdminDashboardEnhanced() {
   // Check if the user is admin and has the right email
   useEffect(() => {
     if (!currentUserLoading && currentUser) {
-      if (!currentUser.isAdmin || currentUser.email !== 'dramallamaconsultancy@gmail.com') {
+      console.log("Admin access check:", {
+        isAdmin: currentUser.isAdmin,
+        email: currentUser.email,
+        emailLower: currentUser.email.toLowerCase(),
+        emailMatches: currentUser.email.toLowerCase() === 'dramallamaconsultancy@gmail.com'
+      });
+      
+      if (!currentUser.isAdmin) {
         toast({
           title: 'Access Denied',
-          description: 'You do not have permission to access this page.',
+          description: 'You must be an admin to access this page.',
           variant: 'destructive',
         });
         setLocation('/');
