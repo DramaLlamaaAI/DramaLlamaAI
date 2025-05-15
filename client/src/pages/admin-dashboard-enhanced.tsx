@@ -530,6 +530,21 @@ export default function AdminDashboardEnhanced() {
               </CardContent>
             </Card>
           </TabsContent>
+          
+          {/* Developer Tools Tab */}
+          <TabsContent value="devtools">
+            <Card>
+              <CardHeader>
+                <CardTitle>Developer Tools</CardTitle>
+                <CardDescription>
+                  Tools for testing and development purposes.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DevTierTester />
+              </CardContent>
+            </Card>
+          </TabsContent>
         </div>
       )}
     </div>
