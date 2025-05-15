@@ -147,26 +147,29 @@ export const TIER_LIMITS = {
     ],
   },
   instant: {
-    monthlyLimit: 0, // One-time use
+    monthlyLimit: 1, // One-time use (1 Chat Upload)
     features: [
       // Pro tier features for one-time use
       "overallTone",              // Overall Emotional Tone Summary
-      "participantTones",         // Participant Analysis 
       "healthScore",              // Conversation Health Meter
-      "keyQuotes",                // Key Summary Quotes
-      "communicationInsights",    // Basic Communication Insights
       "pdfExport",                // PDF Export function
-      "advancedToneAnalysis",     // Advanced Emotional Tone Analysis
-      "tensionContributions",     // Individual Contributions to Tension
-      "manipulationScore",        // Manipulation scoring in quotes
-      "redFlags",                 // Red flag detection with meters
-      "evasionIdentification",    // Evasion Identification
-      "messageDominance",         // Message Dominance Analysis
-      "emotionalShiftsTimeline",  // Emotional Shifts Timeline
+      "participantTones",         // Participants named
+      "communicationInsights",    // Basic Communication Insights - participants named
+      "advancedToneAnalysis",     // Advanced Emotional Tone Analysis - participants named
+      "tensionContributions",     // Individual Contributions to Tension - participants named
+      "keyQuotes",                // Key Conversation Quotes - participants named 
+      "manipulationScore",        // Manipulation Score - participants named
+      "redFlags",                 // Red Flags Detection & Meters - participants named
+      "communicationStyles",      // Communication Styles Breakdown
+      "accountabilityMeters",     // Accountability Indicators - participants named
+      "conversationDynamics",     // Conversation Dynamics
+      "behaviouralPatterns",      // Behavioural Patterns Detection - participants named
+      "advancedTrendLines",       // Advanced Communication Trend Lines (Red Flags, Gaslighting) - participants named
+      "evasionIdentification",    // Evasion Identification – Avoidance Detection - participants named
+      "messageDominance",         // Message Dominance Analysis – Conversational Control Insights - participants named
+      "emotionalShiftsTimeline",  // Emotional Shifts Timeline (interactive view)
       "powerDynamics",            // Power Dynamics Analysis
-      "redFlagsTimeline",         // Red Flags Timeline
-      "historicalPatterns",       // Historical Pattern Recognition
-      "peerComparison"            // Anonymized Peer Benchmarks
+      "redFlagsTimeline",         // Red Flags Timeline – Progressive Tracking
     ],
     oneTime: true                 // Indicates this is a one-time payment, not a subscription
   },

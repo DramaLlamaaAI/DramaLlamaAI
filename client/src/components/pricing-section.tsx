@@ -42,23 +42,19 @@ export default function PricingSection() {
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Key Summary Quotes</span>
+                <span>Simple PDF Export</span>
               </li>
             </ul>
             
             {showMoreFree && (
               <ul className="mb-3 space-y-3 animate-in fade-in duration-300">
                 <li className="flex items-start">
-                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Basic Communication Insights</span>
+                  <X className="w-5 h-5 mr-2 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground">Basic Communication Insights</span>
                 </li>
                 <li className="flex items-start">
-                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Participant Analysis</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                  <span>PDF Export Function</span>
+                  <X className="w-5 h-5 mr-2 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground">Participant Analysis</span>
                 </li>
                 <li className="flex items-start">
                   <X className="w-5 h-5 mr-2 text-muted-foreground flex-shrink-0 mt-0.5" />
@@ -111,23 +107,39 @@ export default function PricingSection() {
             <ul className="mb-6 space-y-3">
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Everything in Free plan</span>
+                <span>5 uploads a month</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>10 chat analyses per month</span>
+                <span>Conversation Health Meter</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Advanced Emotional Tone Analysis</span>
+                <span>Basic Communication Insights - participants named</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Individual Contributions to Tension</span>
+                <span>Advanced Emotional Tone Analysis - participants named</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>🚩 Red Flags Detection & Meters</span>
+                <span>Individual Contributions to Tension - participants named</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
+                <span>Key Conversation Quotes + Manipulation Score</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
+                <span>🚩 Red Flags Detection & Meters - participants named</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
+                <span>Communication Styles Breakdown</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
+                <span>Accountability Indicators - participants named</span>
               </li>
             </ul>
             
@@ -150,7 +162,7 @@ export default function PricingSection() {
         <Card className={`overflow-hidden border-2 ${currentTier === 'instant' ? 'border-purple-500 shadow-md' : 'border-transparent'} transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 bg-white`}>
           <div className="bg-purple-100 p-4">
             <h3 className="text-xl font-semibold text-purple-700">🦙 Instant Deep Dive</h3>
-            <p className="text-3xl font-bold mb-0 text-purple-700">£2.99<span className="text-base font-normal text-purple-500/70">one-off</span></p>
+            <p className="text-3xl font-bold mb-0 text-purple-700">£1.99<span className="text-base font-normal text-purple-500/70">one-off</span></p>
           </div>
           
           <CardContent className="p-6">
@@ -161,19 +173,27 @@ export default function PricingSection() {
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
-                <span>Instant access to Pro features:</span>
+                <span>No subscription required</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
+                <span>Instant access to Pro Plan features:</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 ml-6 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
-                <span className="text-muted-foreground">Evasion Identification</span>
+                <span className="text-muted-foreground">Conversation Dynamics</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 ml-6 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
                 <span className="text-muted-foreground">Power Dynamics Analysis</span>
               </li>
               <li className="flex items-start">
-                <Check className="w-5 h-5 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
-                <span>No subscription required</span>
+                <Check className="w-5 h-5 ml-6 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
+                <span className="text-muted-foreground">Advanced Communication Trend Lines</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 ml-6 mr-2 text-purple-600 flex-shrink-0 mt-0.5" />
+                <span className="text-muted-foreground">Emotional Shifts Timeline</span>
               </li>
             </ul>
             
@@ -190,14 +210,14 @@ export default function PricingSection() {
         <Card className={`overflow-hidden border-2 ${currentTier === 'pro' ? 'border-primary shadow-md' : 'border-transparent'} transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 bg-white`}>
           <div style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)' }} className="p-4">
             <h3 className="text-xl font-semibold text-white">🦙 🦙 Pro/Relationship</h3>
-            <p className="text-3xl font-bold mb-0 text-white">£8.99<span className="text-base font-normal text-white/80">/month</span></p>
+            <p className="text-3xl font-bold mb-0 text-white">£7.99<span className="text-base font-normal text-white/80">/month</span></p>
           </div>
           
           <CardContent className="p-6">
             <ul className="mb-6 space-y-3">
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Everything in Personal</span>
+                <span>Everything in Personal, plus:</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
@@ -209,11 +229,31 @@ export default function PricingSection() {
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-secondary flex-shrink-0 mt-0.5" />
-                <span>Behavioural Patterns Detection</span>
+                <span>Behavioural Patterns Detection - participants named</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>Advanced Communication Trend Lines</span>
+                <span>Advanced Communication Trend Lines (Red Flags, Gaslighting)</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                <span>Evasion Identification - Avoidance Detection</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                <span>Message Dominance Analysis - Control Insights</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                <span>Emotional Shifts Timeline (interactive view)</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                <span>Power Dynamics Analysis</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
+                <span>Red Flags Timeline - Progressive Tracking</span>
               </li>
             </ul>
             

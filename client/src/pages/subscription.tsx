@@ -135,14 +135,6 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Key Summary Quotes (brief highlights only)</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Basic Communication Insights</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-primary mr-2" />
                 <span>Simple PDF Export</span>
               </li>
             </ul>
