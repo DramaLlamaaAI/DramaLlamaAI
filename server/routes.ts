@@ -8,6 +8,7 @@ import { transcriptionUpload, transcribeAudio } from "./controllers/transcriptio
 import { adminController, isAdmin } from "./controllers/admin-controller";
 import { adminDiscountController } from "./controllers/admin-discount-controller";
 import { adminEmailController } from "./controllers/admin-email-controller";
+import { promoCodeController } from "./controllers/promo-code-controller";
 import session from "express-session";
 import memoryStore from "memorystore";
 

@@ -557,6 +557,163 @@ export class MemStorage implements IStorage {
       tierConversionRate
     };
   }
+
+  // Promo Code Management Methods
+  
+  async createPromoCode(promoCode: InsertPromoCode): Promise<PromoCode> {
+    const id = this.promoCodeId++;
+    
+    const now = new Date();
+    const newPromoCode: PromoCode = {
+      id,
+      code: promoCode.code,
+      description: promoCode.description || "",
+      discountPercentage: promoCode.discountPercentage,
+      maxUses: promoCode.maxUses || 100,
+      usedCount: 0,
+      isActive: promoCode.isActive !== undefined ? promoCode.isActive : true,
+      startDate: promoCode.startDate || now,
+      expiryDate: promoCode.expiryDate || null,
+      createdAt: now,
+      createdById: promoCode.createdById,
+      targetTier: promoCode.targetTier || null,
+      applyToFirstMonth: promoCode.applyToFirstMonth !== undefined ? promoCode.applyToFirstMonth : true,
+    };
+    
+    this.promoCodes.set(id, newPromoCode);
+    return newPromoCode;
+  }
+  
+  async getPromoCode(id: number): Promise<PromoCode | undefined> {
+    return this.promoCodes.get(id);
+  }
+  
+  async getPromoCodeByCode(code: string): Promise<PromoCode | undefined> {
+    const normalizedCode = code.toUpperCase();
+    return Array.from(this.promoCodes.values()).find(
+      promo => promo.code.toUpperCase() === normalizedCode
+    );
+  }
+  
+  async updatePromoCode(id: number, updates: Partial<PromoCode>): Promise<PromoCode> {
+    const existingPromo = this.promoCodes.get(id);
+    if (!existingPromo) {
+      throw new Error(`Promo code with ID ${id} not found`);
+    }
+    
+    const updatedPromo: PromoCode = {
+      ...existingPromo,
+      ...updates,
+    };
+    
+    this.promoCodes.set(id, updatedPromo);
+    return updatedPromo;
+  }
+  
+  async getAllPromoCodes(): Promise<PromoCode[]> {
+    return Array.from(this.promoCodes.values());
+  }
+  
+  async getActivePromoCodes(): Promise<PromoCode[]> {
+    const now = new Date();
+    return Array.from(this.promoCodes.values()).filter(promo => 
+      promo.isActive && 
+      promo.startDate <= now && 
+      (!promo.expiryDate || promo.expiryDate >= now) &&
+      promo.usedCount < promo.maxUses
+    );
+  }
+  
+  async usePromoCode(code: string, userId: number, tier: string): Promise<{ 
+    success: boolean, 
+    discountPercentage?: number, 
+    message?: string 
+  }> {
+    const promo = await this.getPromoCodeByCode(code);
+    
+    if (!promo) {
+      return { success: false, message: "Invalid promotion code" };
+    }
+    
+    // Check if code is active
+    if (!promo.isActive) {
+      return { success: false, message: "This promotion code is no longer active" };
+    }
+    
+    // Check dates
+    const now = new Date();
+    if (promo.startDate > now) {
+      return { success: false, message: "This promotion code is not yet valid" };
+    }
+    
+    if (promo.expiryDate && promo.expiryDate < now) {
+      return { success: false, message: "This promotion code has expired" };
+    }
+    
+    // Check usage limits
+    if (promo.usedCount >= promo.maxUses) {
+      return { success: false, message: "This promotion code has reached its usage limit" };
+    }
+    
+    // Check if user already used this code
+    const existingUsage = Array.from(this.promoUsages.values()).find(
+      usage => usage.promoCodeId === promo.id && usage.userId === userId
+    );
+    
+    if (existingUsage) {
+      return { success: false, message: "You have already used this promotion code" };
+    }
+    
+    // Check if the tier matches target tier (if specified)
+    if (promo.targetTier && promo.targetTier !== tier) {
+      return { 
+        success: false, 
+        message: `This promotion code is only valid for ${promo.targetTier} tier subscriptions` 
+      };
+    }
+    
+    // All checks passed, record the usage
+    const usageId = this.promoUsageId++;
+    const promoUsage: PromoUsage = {
+      id: usageId,
+      promoCodeId: promo.id,
+      userId,
+      usedAt: now,
+      appliedDiscount: promo.discountPercentage,
+      targetTier: tier,
+    };
+    
+    this.promoUsages.set(usageId, promoUsage);
+    
+    // Update promo code usage count
+    const updatedPromo: PromoCode = {
+      ...promo,
+      usedCount: promo.usedCount + 1
+    };
+    
+    this.promoCodes.set(promo.id, updatedPromo);
+    
+    // Apply discount to user
+    const user = await this.getUser(userId);
+    if (user) {
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+      const expiryDate = new Date(now.getTime() + thirtyDays);
+      
+      await this.setUserDiscount(userId, promo.discountPercentage, 30);
+    }
+    
+    return { 
+      success: true, 
+      discountPercentage: promo.discountPercentage,
+      message: `Successfully applied ${promo.discountPercentage}% discount` 
+    };
+  }
+  
+  async getPromoUsageByUser(userId: number): Promise<PromoUsage[]> {
+    return Array.from(this.promoUsages.values()).filter(
+      usage => usage.userId === userId
+    );
+  }
 }
 
 export const storage = new MemStorage();
