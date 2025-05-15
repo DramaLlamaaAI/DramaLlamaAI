@@ -32,6 +32,16 @@ export default function AdminLoginPage() {
       setLocation('/admin');
     }
   }, [currentUser, setLocation, toast]);
+  
+  // Log authentication attempts for debugging
+  useEffect(() => {
+    console.log('Admin login page - Auth state:', {
+      isLoading: userLoading,
+      hasUser: !!currentUser,
+      isAdmin: currentUser?.isAdmin,
+      email: currentUser?.email
+    });
+  }, [currentUser, userLoading]);
 
   const handleLoginAsAdmin = async () => {
     setIsLoading(true);

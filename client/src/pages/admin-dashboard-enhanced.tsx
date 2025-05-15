@@ -7,7 +7,8 @@ import {
   CardContent, 
   CardDescription, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UsersByTierChart from '@/components/analytics/users-by-tier-chart';
@@ -93,6 +94,7 @@ export default function AdminDashboardEnhanced() {
   const { 
     data: users = [], 
     isLoading: usersLoading,
+    error: usersError,
     refetch: refetchUsers
   } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
@@ -103,6 +105,7 @@ export default function AdminDashboardEnhanced() {
   const { 
     data: analyticsData, 
     isLoading: analyticsLoading,
+    error: analyticsError,
     refetch: refetchAnalytics 
   } = useQuery<AnalyticsSummary>({
     queryKey: ['/api/admin/analytics'],
@@ -272,6 +275,86 @@ export default function AdminDashboardEnhanced() {
             </div>
           )}
         </div>
+      </div>
+    );
+  }
+
+  // Check for authentication errors
+  const hasAuthError = !currentUser?.isAdmin && !currentUserLoading;
+  const hasDataError = (usersError || analyticsError) && !usersLoading && !analyticsLoading;
+
+  // Function to handle login redirect
+  const goToLogin = () => {
+    setLocation('/admin-login');
+  };
+
+  // If there are API errors, show error message
+  if (hasDataError) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Error Loading Admin Data</CardTitle>
+            <CardDescription>
+              There was a problem retrieving admin data
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-red-500">
+              {usersError ? (
+                <span>User data error: {usersError.message || 'Unknown error'}</span>
+              ) : analyticsError ? (
+                <span>Analytics error: {analyticsError.message || 'Unknown error'}</span>
+              ) : (
+                'Unknown error occurred'
+              )}
+            </p>
+            <p className="mt-4">
+              You might need to log in again or check your admin permissions.
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button onClick={goToLogin} variant="outline">
+              Log in Again
+            </Button>
+            <Button 
+              onClick={() => {
+                refetchUsers();
+                refetchAnalytics();
+              }}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Retry
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+  
+  // If not admin, show login prompt
+  if (hasAuthError) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Admin Access Required</CardTitle>
+            <CardDescription>
+              You need to log in as an admin to access this dashboard
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>
+              Please log in with your admin credentials to view and manage users, 
+              discounts, and other admin features.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={goToLogin} className="w-full">
+              Go to Admin Login
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
