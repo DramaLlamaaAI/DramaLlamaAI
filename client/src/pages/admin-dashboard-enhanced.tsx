@@ -39,6 +39,7 @@ import { EmailNotifications } from '@/components/admin/email-notifications';
 import { AdvancedDiscountManager } from '@/components/admin/advanced-discount-manager';
 import { DevTierTester } from '@/components/developer/dev-tier-tester';
 import { PromoCodeManager } from '@/components/admin/promo-code-manager';
+import { PromoCodeReport } from '@/components/admin/promo-code-report';
 
 // Interface for user data
 interface User {
@@ -378,6 +379,7 @@ export default function AdminDashboardEnhanced() {
                   <TabsTrigger value="users">User Management</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
                   <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
+                  <TabsTrigger value="promo-reports">Promo Reports</TabsTrigger>
                   <TabsTrigger value="devtools">Developer Tools</TabsTrigger>
                 </TabsList>
                 
@@ -592,6 +594,20 @@ export default function AdminDashboardEnhanced() {
               
               <TabsContent value="promo-codes" className="mt-6">
                 <PromoCodeManager />
+              </TabsContent>
+              
+              <TabsContent value="promo-reports" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Promotional Code Analytics</CardTitle>
+                    <CardDescription>
+                      Track and analyze the performance of promotional codes
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <PromoCodeReport />
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="analytics" className="mt-6">

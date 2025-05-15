@@ -621,7 +621,7 @@ export class MemStorage implements IStorage {
       promo.isActive && 
       promo.startDate <= now && 
       (!promo.expiryDate || promo.expiryDate >= now) &&
-      promo.usedCount < promo.maxUses
+      (!promo.usedCount || !promo.maxUses || promo.usedCount < promo.maxUses)
     );
   }
   
