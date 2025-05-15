@@ -47,6 +47,8 @@ export function PromoCodeInput({ onApply, className }: PromoCodeInputProps) {
       toast({
         title: "Promo Code Applied",
         description: `${data.discountPercentage}% discount has been applied to your order`,
+        variant: "default",
+        className: "bg-green-50 border-green-200",
       });
       
       // Clear input

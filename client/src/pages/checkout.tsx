@@ -92,12 +92,21 @@ export default function Checkout() {
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   
-  // Get plan from URL parameters
+  // Get plan and promo code from URL parameters
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    
+    // Handle plan parameter
     const planParam = params.get('plan');
     if (planParam) {
       setPlan(planParam.charAt(0).toUpperCase() + planParam.slice(1).toLowerCase());
+    }
+    
+    // Handle promo code parameter
+    const promoParam = params.get('promo');
+    if (promoParam) {
+      setPromoCode(promoParam.toUpperCase());
+      // Note: We'll apply this promo code after the subscription intent is created
     }
   }, []);
 
@@ -164,8 +173,25 @@ export default function Checkout() {
 
   // Initial subscription creation
   useEffect(() => {
-    createOrUpdateSubscription();
-  }, [toast]);
+    const initializeSubscription = async () => {
+      // First create the subscription without promo code
+      await createOrUpdateSubscription();
+      
+      // If promo code was provided in URL, apply it
+      if (promoCode) {
+        await createOrUpdateSubscription(promoCode);
+        
+        // Show success message for pre-filled promo code
+        toast({
+          title: "Promo Code Applied",
+          description: `Promotional code ${promoCode} has been applied to your order.`,
+          variant: "default",
+        });
+      }
+    };
+    
+    initializeSubscription();
+  }, [toast, promoCode]);
 
   if (loading) {
     return (
