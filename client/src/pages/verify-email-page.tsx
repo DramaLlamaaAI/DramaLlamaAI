@@ -71,6 +71,7 @@ export default function VerifyEmailPage() {
       setErrorMsg("");
       
       try {
+        console.log("Auto-verifying with code from URL:", code);
         const response = await apiRequest("POST", "/api/auth/verify-email", { code });
         
         if (!response.ok) {
@@ -83,14 +84,17 @@ export default function VerifyEmailPage() {
         
         toast({
           title: "Email Verified",
-          description: "Your email has been successfully verified!",
+          description: data.message || "Your email has been successfully verified! You are now logged in.",
+          duration: 5000,
         });
         
         // Redirect to home after 3 seconds
         setTimeout(() => {
-          setLocation("/");
+          // Force reload the page to ensure session is refreshed
+          window.location.href = "/";
         }, 3000);
       } catch (error: any) {
+        console.error("Verification error from URL code:", error);
         setErrorMsg(error.message || "Verification failed. Please try again.");
       } finally {
         setIsVerifying(false);
@@ -107,6 +111,7 @@ export default function VerifyEmailPage() {
     setErrorMsg("");
     
     try {
+      console.log("Submitting verification code:", values.code);
       const response = await apiRequest("POST", "/api/auth/verify-email", values);
       
       if (!response.ok) {
@@ -119,14 +124,17 @@ export default function VerifyEmailPage() {
       
       toast({
         title: "Email Verified",
-        description: "Your email has been successfully verified!",
+        description: data.message || "Your email has been successfully verified! You are now logged in.",
+        duration: 5000,
       });
       
       // Redirect to home after 3 seconds
       setTimeout(() => {
-        setLocation("/");
+        // Force reload the page to ensure session is refreshed
+        window.location.href = "/";
       }, 3000);
     } catch (error: any) {
+      console.error("Verification error:", error);
       setErrorMsg(error.message || "Verification failed. Please try again.");
     } finally {
       setIsVerifying(false);
@@ -148,7 +156,14 @@ export default function VerifyEmailPage() {
     setResendLoading(true);
     
     try {
+      console.log("Resending verification for:", resendEmail);
       const response = await apiRequest("POST", "/api/auth/resend-verification", { email: resendEmail });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to resend verification email");
+      }
+      
       const data = await response.json();
       
       if (data.verificationCode) {
@@ -157,11 +172,13 @@ export default function VerifyEmailPage() {
         toast({
           title: "Verification Code Generated",
           description: "Please use the code provided in the form below.",
+          duration: 5000,
         });
       } else {
         toast({
           title: "Verification Email Sent",
           description: "Please check your email for the verification link.",
+          duration: 5000,
         });
       }
     } catch (error: any) {

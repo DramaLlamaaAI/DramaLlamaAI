@@ -126,14 +126,15 @@ export default function AuthPage() {
         toast({
           title: "Registration successful",
           description: "Please check your email to verify your account.",
+          duration: 5000,
         });
         
         // Redirect to the verification page
         // If the server included the verification code directly, pass it in the URL
         if (data.verificationCode) {
-          setLocation(`/verify-email?code=${data.verificationCode}`);
+          setLocation(`/verify-email?code=${data.verificationCode}&email=${encodeURIComponent(values.email)}`);
         } else {
-          setLocation("/verify-email");
+          setLocation(`/verify-email?email=${encodeURIComponent(values.email)}`);
         }
       } else {
         toast({
