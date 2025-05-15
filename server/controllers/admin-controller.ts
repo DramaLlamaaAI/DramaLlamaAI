@@ -4,18 +4,40 @@ import { z } from "zod";
 
 // Admin middleware that checks if user is an admin
 export const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Admin middleware - Session data:", { 
+    hasSession: !!req.session, 
+    sessionId: req.session?.id,
+    userId: req.session?.userId,
+    userTier: req.session?.userTier,
+    cookieData: req.headers.cookie
+  });
+  
   const userId = (req.session as any).userId;
   
   if (!userId) {
+    console.log("Admin access denied: No user ID in session");
     return res.status(401).json({ error: "Unauthorized" });
   }
   
   const user = await storage.getUser(userId);
+  console.log("Admin check - User from DB:", { 
+    userId,
+    foundUser: !!user,
+    isAdmin: user?.isAdmin,
+    email: user?.email
+  });
   
-  if (!user?.isAdmin) {
+  if (!user) {
+    console.log("Admin access denied: User not found in database");
+    return res.status(404).json({ error: "User not found" });
+  }
+  
+  if (!user.isAdmin) {
+    console.log("Admin access denied: User is not an admin");
     return res.status(403).json({ error: "Forbidden: Admin access required" });
   }
   
+  console.log("Admin access granted for user:", user.email);
   next();
 };
 

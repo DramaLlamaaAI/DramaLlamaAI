@@ -58,10 +58,30 @@ export default function AuthModal({
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
-      const response = await apiRequest("POST", "/api/auth/login", credentials);
-      return response.json();
+      // Debug login attempt
+      console.log("Login attempt with credentials:", {
+        email: credentials.email,
+        passwordLength: credentials.password.length
+      });
+      
+      // The API expects either username or email
+      const loginData = {
+        email: credentials.email,
+        password: credentials.password
+      };
+      
+      try {
+        const response = await apiRequest("POST", "/api/auth/login", loginData);
+        const jsonData = await response.json();
+        console.log("Login response:", { status: response.status, jsonData });
+        return jsonData;
+      } catch (error) {
+        console.error("Login fetch error:", error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Login successful:", data);
       toast({
         title: "Login successful",
         description: "Welcome back to Drama Llama!",
@@ -74,6 +94,7 @@ export default function AuthModal({
       onSuccess();
     },
     onError: (error: any) => {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message || "Invalid credentials. Please try again.",
