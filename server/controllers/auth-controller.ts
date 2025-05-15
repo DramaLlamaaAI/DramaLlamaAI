@@ -297,8 +297,19 @@ export const authController = {
         userId: req.session.userId,
         foundUser: !!user,
         isAdmin: user?.isAdmin,
-        email: user?.email
+        email: user?.email,
+        emailVerified: user?.emailVerified
       });
+      
+      // Ensure user email is verified before allowing authenticated access
+      if (user && !user.emailVerified) {
+        console.log(`Access attempt with unverified email: ${user.email}`);
+        req.session.destroy(() => {});
+        return res.status(403).json({ 
+          error: "Email not verified", 
+          message: "Please verify your email address before accessing this resource."
+        });
+      }
       
       if (!user) {
         return res.status(404).json({ error: "User not found" });
@@ -465,9 +476,14 @@ export const authController = {
     try {
       const { email } = resendVerificationSchema.parse(req.body);
       
+      // Normalize email
+      const normalizedEmail = email.toLowerCase().trim();
+      console.log(`Resend verification request for: ${normalizedEmail}`);
+      
       // Check if the email exists
-      const user = await storage.getUserByEmail(email);
+      const user = await storage.getUserByEmail(normalizedEmail);
       if (!user) {
+        console.log(`Email not found for verification resend: ${normalizedEmail}`);
         // For security, don't reveal that the email doesn't exist
         return res.status(200).json({ 
           message: "If your email is registered, a verification link has been sent."
@@ -476,12 +492,14 @@ export const authController = {
       
       // Check if the email is already verified
       if (user.emailVerified) {
+        console.log(`Email already verified: ${normalizedEmail}`);
         return res.status(400).json({ 
           error: "Email already verified",
           message: "Your email is already verified."
         });
       }
       
+      console.log(`Generating new verification code for: ${normalizedEmail}`);
       // Generate new verification code
       const verificationCode = generateVerificationCode();
       

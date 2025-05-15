@@ -168,12 +168,16 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userId++;
     
+    // Normalize email to lowercase and trim whitespace
+    const normalizedEmail = insertUser.email.toLowerCase().trim();
+    console.log(`Creating user with normalized email: "${normalizedEmail}"`);
+    
     // Apply defaults while preserving provided values
     const user: User = { 
       id,
       username: insertUser.username,
       password: insertUser.password,
-      email: insertUser.email.toLowerCase(), // Normalize email to lowercase
+      email: normalizedEmail,
       tier: insertUser.tier || "free",
       emailVerified: insertUser.emailVerified !== undefined ? insertUser.emailVerified : false,
       verificationCode: null,

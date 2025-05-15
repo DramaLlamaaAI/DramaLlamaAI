@@ -121,7 +121,7 @@ export const sendPasswordResetEmail = async (user: User, resetCode: string): Pro
 
 // Send a verification email to a user
 export const sendVerificationEmail = async (user: User, verificationCode: string): Promise<boolean> => {
-  const verificationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/verify-email?code=${verificationCode}`;
+  const verificationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/verify-email?code=${verificationCode}&email=${encodeURIComponent(user.email)}`;
   
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
