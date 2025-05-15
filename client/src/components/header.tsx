@@ -6,6 +6,7 @@ import { getTierDisplayName } from "@/lib/utils";
 import { Link } from "wouter";
 import llamaImage from "@assets/FB Profile Pic.png";
 import AdminNavItem from "./admin-nav-item";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Header() {
   const { data: usage } = useQuery({
@@ -96,19 +97,70 @@ export default function Header() {
             
             {/* Main user actions - optimized for mobile */}
             <div className="flex items-center">
-              <Link href="/auth">
-                <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10 whitespace-nowrap">
-                  Sign up / Log in
-                </Button>
-              </Link>
-              
-              {tier === 'free' && (
-                <Link href="/subscription" className="ml-2">
-                  <Button variant="secondary" size="sm" className="whitespace-nowrap">
-                    Upgrade
-                  </Button>
-                </Link>
-              )}
+              {/* Query to fetch current user */}
+              {(() => {
+                const { data: currentUser } = useQuery<any>({
+                  queryKey: ['/api/auth/user'],
+                  retry: false,
+                });
+                
+                return currentUser ? (
+                  // Show user profile and logout when logged in
+                  <div className="flex items-center">
+                    <div className="relative group">
+                      <Button variant="ghost" size="sm" className="bg-white/10 text-white whitespace-nowrap">
+                        <span className="mr-1">👤</span> {currentUser.email.split('@')[0]}
+                      </Button>
+                      
+                      {/* Logout dropdown */}
+                      <div className="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg z-50 hidden group-hover:block">
+                        <div className="py-1">
+                          <a 
+                            href="#" 
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              try {
+                                await apiRequest("POST", "/api/auth/logout");
+                                window.location.href = "/";
+                              } catch (error) {
+                                console.error("Logout failed:", error);
+                              }
+                            }}
+                          >
+                            Log out
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {tier === 'free' && (
+                      <Link href="/subscription" className="ml-2">
+                        <Button variant="secondary" size="sm" className="whitespace-nowrap">
+                          Upgrade
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  // Show login button when not logged in
+                  <div className="flex items-center">
+                    <Link href="/auth">
+                      <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10 whitespace-nowrap">
+                        Sign up / Log in
+                      </Button>
+                    </Link>
+                    
+                    {tier === 'free' && (
+                      <Link href="/subscription" className="ml-2">
+                        <Button variant="secondary" size="sm" className="whitespace-nowrap">
+                          Upgrade
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
