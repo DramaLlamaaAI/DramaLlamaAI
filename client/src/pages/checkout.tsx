@@ -6,7 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { PromoCodeInput } from '@/components/promo-code-input';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -81,6 +82,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState('Personal');
+  const [promoCode, setPromoCode] = useState<string | null>(null);
   const [discountInfo, setDiscountInfo] = useState<{
     originalAmount: number;
     finalAmount: number;
@@ -99,46 +101,70 @@ export default function Checkout() {
     }
   }, []);
 
-  useEffect(() => {
-    // Create subscription intent on page load
-    const createSubscription = async () => {
-      try {
-        setLoading(true);
-        const params = new URLSearchParams(window.location.search);
-        const planParam = params.get('plan')?.toLowerCase() || 'personal';
-        
-        const response = await apiRequest('POST', '/api/create-subscription', { plan: planParam });
-        
-        if (!response.ok) {
-          throw new Error('Failed to create subscription');
-        }
-        
-        const data = await response.json();
-        setClientSecret(data.clientSecret);
-        
-        // Set discount info if available
-        if (data.hasDiscount) {
-          setDiscountInfo({
-            originalAmount: data.originalAmount,
-            finalAmount: data.finalAmount,
-            discountPercentage: data.discountPercentage,
-            hasDiscount: data.hasDiscount
-          });
-        }
-      } catch (err: any) {
-        console.error('Error creating subscription:', err);
-        setError(err.message || 'Something went wrong. Please try again.');
-        toast({
-          title: "Error",
-          description: "Could not initialize the payment system. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+  // Function to create or update subscription intent
+  const createOrUpdateSubscription = async (promoCodeToApply: string | null = null) => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams(window.location.search);
+      const planParam = params.get('plan')?.toLowerCase() || 'personal';
+      
+      // Include promo code in request if available
+      const payload: any = { plan: planParam };
+      if (promoCodeToApply) {
+        payload.promoCode = promoCodeToApply;
       }
-    };
+      
+      const response = await apiRequest('POST', '/api/create-subscription', payload);
+      
+      if (!response.ok) {
+        throw new Error('Failed to create subscription');
+      }
+      
+      const data = await response.json();
+      setClientSecret(data.clientSecret);
+      
+      // Set discount info if available
+      if (data.hasDiscount) {
+        setDiscountInfo({
+          originalAmount: data.originalAmount,
+          finalAmount: data.finalAmount,
+          discountPercentage: data.discountPercentage,
+          hasDiscount: data.hasDiscount
+        });
+      } else {
+        setDiscountInfo(null);
+      }
+      
+      return true;
+    } catch (err: any) {
+      console.error('Error with subscription:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
+      toast({
+        title: "Error",
+        description: "Could not initialize the payment system. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    createSubscription();
+  // Handle promo code application
+  const handleApplyPromoCode = async (discountPercentage: number) => {
+    if (discountPercentage > 0) {
+      // Re-fetch subscription with promo code applied
+      await createOrUpdateSubscription(promoCode);
+    } else {
+      // Remove promo code and refresh
+      setPromoCode(null);
+      await createOrUpdateSubscription(null);
+    }
+  };
+
+  // Initial subscription creation
+  useEffect(() => {
+    createOrUpdateSubscription();
   }, [toast]);
 
   if (loading) {

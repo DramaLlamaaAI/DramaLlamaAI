@@ -62,15 +62,17 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        {showDisclaimer && (
-          <DisclaimerModal onAccept={handleAcceptDisclaimer} />
-        )}
-        <Router />
-        <DevModeFloating />
-        <TierSwitcher />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          {showDisclaimer && (
+            <DisclaimerModal onAccept={handleAcceptDisclaimer} />
+          )}
+          <Router />
+          <DevModeFloating />
+          <TierSwitcher />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
