@@ -9,6 +9,7 @@ import { adminController, isAdmin } from "./controllers/admin-controller";
 import { adminDiscountController } from "./controllers/admin-discount-controller";
 import { adminEmailController } from "./controllers/admin-email-controller";
 import { promoCodeController } from "./controllers/promo-code-controller";
+import { promoCodeReportController } from "./controllers/promo-code-report-controller";
 import session from "express-session";
 import memoryStore from "memorystore";
 
@@ -227,6 +228,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public promo code routes
   app.get('/api/promo-codes/active', isAuthenticated, isAdmin, promoCodeController.getAllActive);
   app.post('/api/promo-codes/redeem', promoCodeController.redeemCode);
+  
+  // Promo code reporting
+  app.get('/api/admin/promo-codes/report', isAuthenticated, isAdmin, promoCodeReportController.getPromoCodeUsageReport);
   
   // Analytics routes (require admin access)
   app.get('/api/admin/analytics', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
