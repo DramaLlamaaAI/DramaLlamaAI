@@ -163,12 +163,14 @@ export const authController = {
       // Look up the user by username or email
       let user;
       if (validatedData.email && typeof validatedData.email === 'string') {
+        const normalizedEmail = validatedData.email.toLowerCase().trim();
+        
         // Get all users to debug email matching issues
         const allUsers = await storage.getAllUsers();
         console.log("All emails in system:", allUsers.map(u => u.email).join(", "));
         
-        user = await storage.getUserByEmail(validatedData.email);
-        console.log(`Looking up user by email: ${validatedData.email} (normalized to ${validatedData.email.toLowerCase()}), found:`, user?.username);
+        user = await storage.getUserByEmail(normalizedEmail);
+        console.log(`Looking up user by email: ${validatedData.email} (normalized to ${normalizedEmail}), found:`, user?.username);
       } else if (validatedData.username && typeof validatedData.username === 'string') {
         user = await storage.getUserByUsername(validatedData.username);
         console.log(`Looking up user by username: ${validatedData.username}, found:`, user?.username);
@@ -197,6 +199,8 @@ export const authController = {
       
       // Email verification is REQUIRED - always enforce this
       if (!user.emailVerified) {
+        console.log(`Login attempt blocked - Email not verified for user ${user.id} (${user.email})`);
+
         // If there's an active verification code
         if (user.verificationCode && user.verificationCodeExpires && user.verificationCodeExpires > new Date()) {
           return res.status(403).json({ 
