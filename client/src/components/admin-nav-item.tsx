@@ -12,17 +12,24 @@ interface CurrentUser {
 
 export default function AdminNavItem() {
   // Query to fetch current user
-  const { data: currentUser } = useQuery<CurrentUser | null>({
+  const { data: currentUser, isLoading, error } = useQuery<CurrentUser | null>({
     queryKey: ['/api/auth/user'],
     retry: false,
+  });
+
+  // Debug info to troubleshoot admin visibility
+  console.log("Admin nav item check:", { 
+    currentUser, 
+    isLoading, 
+    error, 
+    isAdmin: currentUser?.isAdmin,
+    email: currentUser?.email
   });
 
   // Only show admin link if user is admin
   if (!currentUser?.isAdmin) {
     return null;
   }
-  
-  console.log("Admin check passed:", currentUser);
 
   return (
     <Link href="/admin">

@@ -231,6 +231,14 @@ export const authController = {
       if (req.session) {
         req.session.userId = user.id;
         req.session.userTier = user.tier || 'free';
+        
+        console.log("Login successful - Setting session:", { 
+          userId: user.id, 
+          tier: user.tier, 
+          isAdmin: user.isAdmin,
+          email: user.email,
+          sessionId: req.session.id
+        });
       }
       
       res.status(200).json(userWithoutPassword);
@@ -262,11 +270,26 @@ export const authController = {
   // Get current user
   getCurrentUser: async (req: Request, res: Response) => {
     try {
+      console.log("Get current user - Session data:", { 
+        hasSession: !!req.session, 
+        sessionId: req.session?.id,
+        userId: req.session?.userId,
+        userTier: req.session?.userTier,
+        cookieData: req.headers.cookie
+      });
+      
       if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: "Not authenticated" });
       }
       
       const user = await storage.getUser(req.session.userId);
+      console.log("Get current user - User from DB:", { 
+        userId: req.session.userId,
+        foundUser: !!user,
+        isAdmin: user?.isAdmin,
+        email: user?.email
+      });
+      
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }

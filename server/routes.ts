@@ -51,11 +51,23 @@ const checkTrialEligibility = async (req: Request, res: Response, next: NextFunc
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up session middleware
   const MemoryStore = memoryStore(session);
+  
+  // Debug current environment
+  console.log("Environment setup:", {
+    nodeEnv: process.env.NODE_ENV,
+    isDevelopment: process.env.NODE_ENV === 'development',
+    isProduction: process.env.NODE_ENV === 'production'
+  });
+  
   app.use(session({
     secret: process.env.SESSION_SECRET || 'drama-llama-secret',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === 'production' },
+    cookie: { 
+      secure: false, // Allow cookies over HTTP and HTTPS
+      sameSite: 'lax', // Allows cookies to work across domains
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    },
     store: new MemoryStore({
       checkPeriod: 86400000 // Prune expired entries every 24h
     })
