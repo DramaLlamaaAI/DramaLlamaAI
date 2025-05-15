@@ -19,6 +19,7 @@ import PrivacyPolicy from "@/pages/privacy-policy";
 import PricingPage from "@/pages/pricing";
 import InstantDeepDivePage from "@/pages/instant-deep-dive";
 import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
+import AdminLoginPage from "@/pages/admin-login";
 // Support helplines converted to dialog component
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";

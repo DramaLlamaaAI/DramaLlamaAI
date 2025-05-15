@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import AdminLoginHelper from '@/components/admin-login-helper';
 import { 
   Card, 
   CardContent, 
@@ -240,8 +241,30 @@ export default function AdminDashboardEnhanced() {
     );
   }
 
-  if (!currentUser?.isAdmin || currentUser.email !== 'dramallamaconsultancy@gmail.com') {
-    return null; // Redirect happens via useEffect
+  // Show authentication status and login helper instead of blocking access
+  if (!currentUser || !currentUser.isAdmin) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-bold text-red-800 mb-4">Admin Access Required</h2>
+          
+          {!currentUser ? (
+            <div>
+              <p className="mb-4">You need to log in with an admin account to access this page.</p>
+              <AdminLoginHelper />
+            </div>
+          ) : (
+            <div>
+              <p className="mb-4">
+                You are logged in as <span className="font-semibold">{currentUser.email}</span>, 
+                but this account does not have admin privileges.
+              </p>
+              <AdminLoginHelper />
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
