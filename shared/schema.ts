@@ -139,14 +139,11 @@ export type InsertUserEvent = z.infer<typeof insertUserEventSchema>;
 // Tier information
 export const TIER_LIMITS = {
   free: {
-    monthlyLimit: 2, // Changed to 2 analyses per month
+    monthlyLimit: 1, // 1 chat analysis per month
     features: [
       "overallTone",          // Overall Emotional Tone Summary
-      "participantTones",     // Participant Analysis
       "healthScore",          // Conversation Health Meter
-      "keyQuotes",            // Brief highlight quotes
-      "communicationInsights", // Basic Communication Insights
-      "pdfExport"             // PDF Export function
+      "pdfExport"             // Simple PDF Export
     ],
   },
   instant: {
@@ -174,59 +171,52 @@ export const TIER_LIMITS = {
     oneTime: true                 // Indicates this is a one-time payment, not a subscription
   },
   personal: {
-    monthlyLimit: 10,
+    monthlyLimit: 5, // 5 uploads a month
     features: [
       // Free tier features
       "overallTone",            // Overall Emotional Tone Summary
-      "participantTones",       // Participant Analysis 
       "healthScore",            // Conversation Health Meter
-      "keyQuotes",              // Key Summary Quotes
-      "communicationInsights",  // Basic Communication Insights
       "pdfExport",              // PDF Export function
       
       // Personal tier specific features
-      "advancedToneAnalysis",   // Advanced Emotional Tone Analysis
-      "tensionContributions",   // Individual Contributions to Tension
-      "manipulationScore",      // Manipulation scoring in quotes
-      "redFlags",               // Red flag detection with meters
-      "communicationStyles",    // Communication Styles Breakdown
-      "accountabilityMeters",   // Accountability Indicators
-      "emotionTracking",        // Emotion Tracking Per Participant
-      "moodTrends"              // Mood Trends Over Time
+      "participantTones",       // Participants named
+      "communicationInsights",  // Basic Communication Insights - participants named
+      "advancedToneAnalysis",   // Advanced Emotional Tone Analysis - participants named
+      "tensionContributions",   // Individual Contributions to Tension - participants named
+      "keyQuotes",              // Key Conversation Quotes - participants named 
+      "manipulationScore",      // Manipulation Score - participants named
+      "redFlags",               // Red Flags Detection & Red Flag Meters - participants named
+      "communicationStyles",    // Communication Styles Breakdown - Your Style vs Their Style
+      "accountabilityMeters",   // Accountability Indicators - participants named
     ],
   },
   pro: {
-    monthlyLimit: Infinity,
+    monthlyLimit: Infinity, // Unlimited chat uploads
     features: [
-      // Include all Personal tier features
+      // Personal tier features
       "overallTone",              // Overall Emotional Tone Summary
-      "participantTones",         // Participant Analysis 
       "healthScore",              // Conversation Health Meter
-      "keyQuotes",                // Key Summary Quotes
-      "communicationInsights",    // Basic Communication Insights
       "pdfExport",                // PDF Export function
-      "advancedToneAnalysis",     // Advanced Emotional Tone Analysis
-      "tensionContributions",     // Individual Contributions to Tension
-      "manipulationScore",        // Manipulation scoring in quotes
-      "redFlags",                 // Red flag detection with meters
+      "participantTones",         // Participants named
+      "communicationInsights",    // Basic Communication Insights - participants named
+      "advancedToneAnalysis",     // Advanced Emotional Tone Analysis - participants named
+      "tensionContributions",     // Individual Contributions to Tension - participants named
+      "keyQuotes",                // Key Conversation Quotes - participants named 
+      "manipulationScore",        // Manipulation Score - participants named
+      "redFlags",                 // Red Flags Detection & Meters - participants named
       "communicationStyles",      // Communication Styles Breakdown
-      "accountabilityMeters",     // Accountability Indicators
-      "emotionTracking",          // Emotion Tracking Per Participant
-      "moodTrends",               // Mood Trends Over Time
+      "accountabilityMeters",     // Accountability Indicators - participants named
       
       // Pro tier specific features
       "unlimitedUploads",         // Unlimited chat uploads
-      "conversationDynamics",     // Conversation Dynamics 
-      "behaviouralPatterns",      // Behavioural Patterns Detection
-      "advancedTrendLines",       // Advanced Communication Trend Lines
-      "evasionIdentification",    // Evasion Identification – Avoidance Detection
-      "messageDominance",         // Message Dominance Analysis
-      "emotionalShiftsTimeline",  // Emotional Shifts Timeline (interactive)
+      "conversationDynamics",     // Conversation Dynamics
+      "behaviouralPatterns",      // Behavioural Patterns Detection - participants named
+      "advancedTrendLines",       // Advanced Communication Trend Lines (Red Flags, Gaslighting) - participants named
+      "evasionIdentification",    // Evasion Identification – Avoidance Detection - participants named
+      "messageDominance",         // Message Dominance Analysis – Conversational Control Insights - participants named
+      "emotionalShiftsTimeline",  // Emotional Shifts Timeline (interactive view)
       "powerDynamics",            // Power Dynamics Analysis
       "redFlagsTimeline",         // Red Flags Timeline – Progressive Tracking
-      "historicalPatterns",       // Historical Pattern Recognition
-      "peerComparison",           // Anonymized Peer Comparison Benchmarks
-      "gaslightingDetection"      // Gaslighting Detection (part of trend lines)
     ],
   },
 };
