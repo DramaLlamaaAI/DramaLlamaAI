@@ -64,6 +64,10 @@ export default function ChatAnalysis() {
       setErrorMessage(null);
       console.log("Analysis result:", data);
       console.log("Health Score:", data.healthScore);
+      
+      // Save analysis result to localStorage for helpline recommendations
+      localStorage.setItem('lastAnalysisResult', JSON.stringify(data));
+      
       setResult(data);
       setShowResults(true);
       window.scrollTo({ top: document.getElementById('analysisResults')?.offsetTop || 0, behavior: 'smooth' });

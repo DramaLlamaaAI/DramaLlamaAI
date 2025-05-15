@@ -349,6 +349,9 @@ export default function LiveTalk() {
         them: them
       });
       
+      // Save analysis result to localStorage for helpline recommendations
+      localStorage.setItem('lastAnalysisResult', JSON.stringify(result));
+      
       // Store the analysis in sessionStorage for the chat-analysis component to access
       sessionStorage.setItem('currentAnalysis', JSON.stringify({
         conversation: transcript,

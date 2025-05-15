@@ -39,6 +39,19 @@ export default function MessageAnalysis() {
     mutationFn: analyzeMessage,
     onSuccess: (data) => {
       setResult(data);
+      
+      // Save message analysis result to localStorage for helpline recommendations
+      localStorage.setItem('lastAnalysisResult', JSON.stringify({
+        toneAnalysis: { 
+          overallTone: data.tone,
+          emotionalState: [] 
+        },
+        redFlags: data.intent.map(intent => ({
+          type: 'intent',
+          description: intent,
+          severity: 3
+        }))
+      }));
     },
     onError: (error) => {
       toast({
