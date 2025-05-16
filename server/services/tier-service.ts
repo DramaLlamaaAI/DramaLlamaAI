@@ -5,11 +5,54 @@ import { TIER_LIMITS, ChatAnalysisResult, MessageAnalysisResult, DeEscalateResul
  * This ensures users only see features available in their subscription tier
  */
 export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: string): ChatAnalysisResult {
+  // Define interface for the enhanced filtered analysis with all Pro tier features
+  type EnhancedChatAnalysisResult = ChatAnalysisResult & {
+    communicationPatternComparison?: Record<string, {pattern: string, example: string}[]>;
+    relationshipHealthIndicators?: {
+      currentScore: number;
+      currentLabel: string;
+      primaryConcerns: {
+        issue: string;
+        severity: number;
+        participant: string;
+      }[];
+      patterns: {
+        recurring: string[];
+        escalating: string[];
+        improving: string[];
+      };
+      projectedOutcome: string;
+      recommendedFocus: string[];
+    };
+    personalizedGrowthRecommendations?: Record<string, {
+      area: string;
+      recommendation: string;
+      example?: string;
+    }[]>;
+    redFlagsTimeline?: {
+      overview: string;
+      progression: {
+        position: string;
+        positionIndex: number;
+        quoteIndex: number;
+        type: string;
+        description: string;
+        severity: number;
+        participant: string;
+      }[];
+      escalationPoints: {
+        position: string;
+        description: string;
+        severityJump: number;
+        participant: string;
+      }[];
+    };
+  };
   // If tier doesn't exist, default to free
   const tierFeatures = TIER_LIMITS[tier as keyof typeof TIER_LIMITS]?.features || TIER_LIMITS.free.features;
   
   // Create a filtered copy of the analysis with required fields
-  const filteredAnalysis: ChatAnalysisResult = {
+  const filteredAnalysis: EnhancedChatAnalysisResult = {
     toneAnalysis: {
       overallTone: analysis.toneAnalysis.overallTone,
       emotionalState: analysis.toneAnalysis.emotionalState,
@@ -239,7 +282,6 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
           }
           
           // Add recommended action based on flag type with participant context
-          const participant = enhancedFlag.participant;
           
           // Create personalized action recommendations with specific references
           if (flag.type.toLowerCase().includes('manipulation')) {
@@ -433,6 +475,351 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   
   // PRO TIER & INSTANT DEEP DIVE ADDITIONAL FEATURES:
   if (tier === 'pro' || tier === 'instant') {
+    // Add communication pattern comparison (showing side-by-side patterns of participants)
+    if (tierFeatures.includes('communicationStyles') && analysis.toneAnalysis.participantTones) {
+      const participantNames = Object.keys(analysis.toneAnalysis.participantTones);
+      
+      // Create a comparison of communication patterns if we have key quotes
+      if (participantNames.length >= 2 && analysis.keyQuotes && analysis.keyQuotes.length > 0) {
+        // Initialize communication pattern comparison object
+        filteredAnalysis.communicationPatternComparison = {} as Record<string, {pattern: string, example: string}[]>;
+        
+        // Group quotes by speaker
+        const quotesByParticipant: Record<string, any[]> = {};
+        participantNames.forEach(name => { quotesByParticipant[name] = []; });
+        
+        analysis.keyQuotes.forEach(quote => {
+          if (quotesByParticipant[quote.speaker]) {
+            quotesByParticipant[quote.speaker].push(quote);
+          }
+        });
+        
+        // Analyze patterns for each participant
+        participantNames.forEach(participant => {
+          const quotes = quotesByParticipant[participant] || [];
+          
+          // Skip if no quotes
+          if (quotes.length === 0) return;
+          
+          // Analyze communication patterns
+          const patterns: { pattern: string, example: string }[] = [];
+          
+          // Extract patterns from quote analysis
+          const patternKeywords = [
+            'defensive', 'critical', 'dismissive', 'supportive', 
+            'empathetic', 'direct', 'passive', 'aggressive', 
+            'manipulative', 'open', 'closed', 'honest'
+          ];
+          
+          // Find patterns in quote analysis
+          quotes.forEach(quote => {
+            const analysis = quote.analysis.toLowerCase();
+            
+            patternKeywords.forEach(keyword => {
+              if (analysis.includes(keyword) && 
+                  !patterns.some(p => p.pattern.toLowerCase().includes(keyword))) {
+                patterns.push({
+                  pattern: `${keyword.charAt(0).toUpperCase()}${keyword.slice(1)} communication style`,
+                  example: quote.quote
+                });
+              }
+            });
+          });
+          
+          // Add identified patterns to comparison
+          filteredAnalysis.communicationPatternComparison[participant] = patterns.slice(0, 3);
+        });
+      }
+    }
+    
+    // Add relationship health indicators with trend projections
+    if (analysis.healthScore) {
+      const score = analysis.healthScore.score;
+      const label = analysis.healthScore.label;
+      
+      // Create enhanced health indicators with forward-looking projections
+      filteredAnalysis.relationshipHealthIndicators = {
+        currentScore: score,
+        currentLabel: label,
+        primaryConcerns: [],
+        patterns: {
+          recurring: [],
+          escalating: [],
+          improving: []
+        },
+        projectedOutcome: '',
+        recommendedFocus: []
+      };
+      
+      // Add primary concerns based on red flags
+      if (analysis.redFlags && analysis.redFlags.length > 0) {
+        // Get top 3 most severe red flags
+        const topConcerns = [...analysis.redFlags]
+          .sort((a, b) => b.severity - a.severity)
+          .slice(0, 3);
+        
+        filteredAnalysis.relationshipHealthIndicators.primaryConcerns = 
+          topConcerns.map(flag => ({
+            issue: flag.type,
+            severity: flag.severity,
+            participant: flag.participant || "Both participants"
+          }));
+      }
+      
+      // Add recommendation focus areas based on health score
+      if (score < 40) {
+        filteredAnalysis.relationshipHealthIndicators.projectedOutcome = 
+          "This relationship shows significant strain that may lead to further deterioration without intervention.";
+        filteredAnalysis.relationshipHealthIndicators.recommendedFocus = [
+          "Consider professional counseling to address fundamental communication issues",
+          "Establish clear boundaries and expectations",
+          "Focus on rebuilding core trust and respect"
+        ];
+      } else if (score < 60) {
+        filteredAnalysis.relationshipHealthIndicators.projectedOutcome = 
+          "With consistent effort, this relationship could improve, but current patterns need addressing.";
+        filteredAnalysis.relationshipHealthIndicators.recommendedFocus = [
+          "Practice active listening techniques in difficult conversations",
+          "Develop healthy conflict resolution strategies",
+          "Acknowledge and address recurring tension points"
+        ];
+      } else if (score < 80) {
+        filteredAnalysis.relationshipHealthIndicators.projectedOutcome = 
+          "This relationship has a positive foundation but requires maintenance to address emerging issues.";
+        filteredAnalysis.relationshipHealthIndicators.recommendedFocus = [
+          "Continue building on established communication strengths",
+          "Address minor issues before they become larger problems",
+          "Deepen understanding of each other's communication styles"
+        ];
+      } else {
+        filteredAnalysis.relationshipHealthIndicators.projectedOutcome = 
+          "This relationship shows healthy dynamics with strong potential for continued positive growth.";
+        filteredAnalysis.relationshipHealthIndicators.recommendedFocus = [
+          "Maintain open communication during life transitions",
+          "Continue validating each other's perspectives",
+          "Build resilience by addressing small concerns together"
+        ];
+      }
+      
+      // Add recurring patterns based on communication dynamics
+      if (analysis.communication.patterns) {
+        const patterns = analysis.communication.patterns;
+        
+        // Classify patterns based on content
+        const negativePatterns = patterns.filter(p => 
+          p.toLowerCase().includes('criticism') || 
+          p.toLowerCase().includes('defensive') || 
+          p.toLowerCase().includes('contempt') || 
+          p.toLowerCase().includes('stonewalling')
+        );
+        
+        const positivePatterns = patterns.filter(p => 
+          p.toLowerCase().includes('support') || 
+          p.toLowerCase().includes('validat') || 
+          p.toLowerCase().includes('listen') || 
+          p.toLowerCase().includes('understand')
+        );
+        
+        // Add to appropriate categories
+        if (negativePatterns.length > 0) {
+          filteredAnalysis.relationshipHealthIndicators.patterns.recurring = 
+            negativePatterns.slice(0, 2);
+        }
+        
+        if (positivePatterns.length > 0) {
+          filteredAnalysis.relationshipHealthIndicators.patterns.improving = 
+            positivePatterns.slice(0, 2);
+        }
+      }
+    }
+    
+    // Add personalized growth recommendations for each participant
+    if (analysis.toneAnalysis.participantTones) {
+      const participantNames = Object.keys(analysis.toneAnalysis.participantTones);
+      
+      // Initialize personalized recommendations
+      filteredAnalysis.personalizedGrowthRecommendations = {} as Record<string, {area: string, recommendation: string, example?: string}[]>;
+      
+      // Create recommendations for each participant
+      participantNames.forEach(participant => {
+        // Get participant's tone
+        const tone = analysis.toneAnalysis.participantTones?.[participant] || '';
+        
+        // Create tailored recommendations based on tone and red flags
+        const recommendations: {area: string, recommendation: string, example?: string}[] = [];
+        
+        // Add recommendations based on tone
+        if (tone.toLowerCase().includes('defensive')) {
+          recommendations.push({
+            area: 'Emotional Awareness',
+            recommendation: `${participant}, practice recognizing when you feel defensive and take a pause before responding. This will help you respond rather than react.`,
+            example: 'When feeling criticized, try saying: "I need a moment to think about this" instead of immediately defending yourself.'
+          });
+        } else if (tone.toLowerCase().includes('critical')) {
+          recommendations.push({
+            area: 'Communication Style',
+            recommendation: `${participant}, focus on expressing needs directly rather than through criticism. This shifts conversation from blame to problem-solving.`,
+            example: 'Instead of "You never listen to me," try "I feel unheard when I am interrupted. Could we agree to let each other finish speaking?"'
+          });
+        } else if (tone.toLowerCase().includes('withdraw') || tone.toLowerCase().includes('avoid')) {
+          recommendations.push({
+            area: 'Engagement Patterns',
+            recommendation: `${participant}, practice staying present in difficult conversations by focusing on small timeframes. Commit to staying engaged for just 5 minutes initially.`,
+            example: 'When feeling overwhelmed, say: "This is important to me, but I am feeling overwhelmed. Can we talk for 5 minutes now and then take a short break?"'
+          });
+        }
+        
+        // Add recommendations based on red flags
+        if (analysis.redFlags) {
+          const participantFlags = analysis.redFlags.filter(flag => 
+            flag.participant === participant
+          );
+          
+          // Process participant-specific red flags
+          participantFlags.forEach(flag => {
+            if (flag.type.toLowerCase().includes('manipulation')) {
+              recommendations.push({
+                area: 'Direct Communication',
+                recommendation: `${participant}, practice expressing needs and desires directly rather than through indirect means. This builds trust and clarity.`,
+                example: 'Instead of hinting or using guilt, try: "I would really like to spend time together this weekend. Are you available?"'
+              });
+            } else if (flag.type.toLowerCase().includes('stonewalling')) {
+              recommendations.push({
+                area: 'Emotional Regulation',
+                recommendation: `${participant}, develop a "time-out" signal for when you feel emotionally flooded, with an agreed time to resume the conversation.`,
+                example: 'When feeling overwhelmed: "I am feeling too overwhelmed to continue this conversation productively. Can we take 20 minutes and come back to this?"'
+              });
+            }
+          });
+        }
+        
+        // Ensure we have at least one recommendation
+        if (recommendations.length === 0) {
+          recommendations.push({
+            area: 'Active Listening',
+            recommendation: `${participant}, enhance connection through reflective listening by paraphrasing what you have heard before responding.`,
+            example: 'Try saying: "If I understand correctly, you are saying that... Is that right?"'
+          });
+        }
+        
+        // Limit to 3 recommendations
+        filteredAnalysis.personalizedGrowthRecommendations[participant] = recommendations.slice(0, 3);
+      });
+    }
+    
+    // Add red flags timeline with progressive tracking
+    if (tierFeatures.includes('redFlagsTimeline') && analysis.redFlags && analysis.redFlags.length > 0 && analysis.keyQuotes) {
+      // Create timeline structure
+      filteredAnalysis.redFlagsTimeline = {
+        overview: "Analysis of how concerning behaviors developed during the conversation",
+        progression: [] as {
+          position: string, 
+          positionIndex: number,
+          quoteIndex: number,
+          type: string,
+          description: string,
+          severity: number,
+          participant: string
+        }[],
+        escalationPoints: [] as {
+          position: string,
+          description: string,
+          severityJump: number,
+          participant: string
+        }[]
+      };
+      
+      // Create a timeline mapping of quotes
+      const timelineMap: Record<string, {
+        position: string, 
+        index: number,
+        quotes: any[]
+      }> = {
+        'early': { position: 'Early in conversation', index: 0, quotes: [] },
+        'mid': { position: 'Mid-conversation', index: 1, quotes: [] },
+        'late': { position: 'Late in conversation', index: 2, quotes: [] }
+      };
+      
+      // Determine position of each quote
+      const totalQuotes = analysis.keyQuotes.length;
+      analysis.keyQuotes.forEach((quote, index) => {
+        if (index < totalQuotes / 3) {
+          timelineMap['early'].quotes.push({...quote, index});
+        } else if (index < 2 * totalQuotes / 3) {
+          timelineMap['mid'].quotes.push({...quote, index});
+        } else {
+          timelineMap['late'].quotes.push({...quote, index});
+        }
+      });
+      
+      // Match red flags to timeline positions
+      analysis.redFlags.forEach(flag => {
+        // Default position if we can't determine
+        let position = 'Unknown';
+        let positionIndex = 3;
+        let quoteIndex = -1;
+        
+        // Try to find where this flag appears in the conversation
+        const flagText = flag.description.toLowerCase();
+        
+        // Look through all quotes to find relevant ones
+        for (const [timeKey, timeData] of Object.entries(timelineMap)) {
+          const matchingQuote = timeData.quotes.find(quote => {
+            const quoteText = quote.quote.toLowerCase();
+            const quoteAnalysis = quote.analysis.toLowerCase();
+            
+            return quoteText.includes(flagText) || 
+                   quoteAnalysis.includes(flagText) ||
+                   quoteAnalysis.includes(flag.type.toLowerCase());
+          });
+          
+          if (matchingQuote) {
+            position = timeData.position;
+            positionIndex = timeData.index;
+            quoteIndex = matchingQuote.index;
+            break;
+          }
+        }
+        
+        // Add to progression timeline
+        filteredAnalysis.redFlagsTimeline.progression.push({
+          position,
+          positionIndex,
+          quoteIndex,
+          type: flag.type,
+          description: flag.description,
+          severity: flag.severity,
+          participant: flag.participant || 'Unknown'
+        });
+      });
+      
+      // Sort by position and then by quote index
+      filteredAnalysis.redFlagsTimeline.progression.sort((a, b) => {
+        if (a.positionIndex !== b.positionIndex) {
+          return a.positionIndex - b.positionIndex;
+        }
+        return a.quoteIndex - b.quoteIndex;
+      });
+      
+      // Identify escalation points
+      if (filteredAnalysis.redFlagsTimeline.progression.length > 1) {
+        for (let i = 1; i < filteredAnalysis.redFlagsTimeline.progression.length; i++) {
+          const current = filteredAnalysis.redFlagsTimeline.progression[i];
+          const previous = filteredAnalysis.redFlagsTimeline.progression[i-1];
+          
+          // Check for escalation in severity
+          if (current.severity > previous.severity + 1) {
+            filteredAnalysis.redFlagsTimeline.escalationPoints.push({
+              position: current.position,
+              description: `Significant escalation from "${previous.type}" (${previous.severity}/10) to "${current.type}" (${current.severity}/10)`,
+              severityJump: current.severity - previous.severity,
+              participant: current.participant
+            });
+          }
+        }
+      }
+    }
+    
     // Add conversation dynamics (Conversation Dynamics & Behavioral Patterns)
     if (tierFeatures.includes('conversationDynamics') && analysis.communication.dynamics) {
       // Enhance dynamics with more detailed analysis and examples

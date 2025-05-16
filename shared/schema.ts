@@ -251,6 +251,11 @@ export const chatAnalysisResultSchema = z.object({
       text: z.string(),
       from: z.string()
     })).optional(),
+    // Enhanced Pro tier fields
+    impact: z.string().optional(),
+    recommendedAction: z.string().optional(),
+    behavioralPattern: z.string().optional(),
+    progression: z.string().optional(),
   })).optional(),
   // For free tier, only the count is provided, not the details
   redFlagsCount: z.number().optional(),
@@ -278,6 +283,57 @@ export const chatAnalysisResultSchema = z.object({
   })).optional(),
   tensionContributions: z.record(z.array(z.string())).optional(),
   tensionMeaning: z.string().optional(),
+  
+  // Pro-tier communication pattern comparison
+  communicationPatternComparison: z.record(z.array(z.object({
+    pattern: z.string(),
+    example: z.string()
+  }))).optional(),
+  
+  // Pro-tier relationship health indicators
+  relationshipHealthIndicators: z.object({
+    currentScore: z.number(),
+    currentLabel: z.string(),
+    primaryConcerns: z.array(z.object({
+      issue: z.string(),
+      severity: z.number(),
+      participant: z.string()
+    })),
+    patterns: z.object({
+      recurring: z.array(z.string()),
+      escalating: z.array(z.string()),
+      improving: z.array(z.string())
+    }),
+    projectedOutcome: z.string(),
+    recommendedFocus: z.array(z.string())
+  }).optional(),
+  
+  // Pro-tier personalized growth recommendations
+  personalizedGrowthRecommendations: z.record(z.array(z.object({
+    area: z.string(),
+    recommendation: z.string(),
+    example: z.string().optional()
+  }))).optional(),
+  
+  // Pro-tier red flags timeline
+  redFlagsTimeline: z.object({
+    overview: z.string(),
+    progression: z.array(z.object({
+      position: z.string(),
+      positionIndex: z.number(),
+      quoteIndex: z.number(),
+      type: z.string(),
+      description: z.string(),
+      severity: z.number(),
+      participant: z.string()
+    })),
+    escalationPoints: z.array(z.object({
+      position: z.string(),
+      description: z.string(),
+      severityJump: z.number(),
+      participant: z.string()
+    }))
+  }).optional(),
 });
 
 export const messageAnalysisResultSchema = z.object({
