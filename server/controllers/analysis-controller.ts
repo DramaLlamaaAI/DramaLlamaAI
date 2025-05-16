@@ -216,7 +216,7 @@ export const analysisController = {
             console.log(`Unique red flag types: ${redFlagTypes.length}`);
             console.log('Adding basic red flag types to free tier analysis');
             
-            // Add just a list of red flag types to the free tier results
+            // Add the list of red flag types and set redFlagsDetected flag to the free tier results
             (filteredResults as any).redFlagTypes = redFlagTypes;
             (filteredResults as any).redFlagsDetected = true;
           } else {
