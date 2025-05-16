@@ -201,25 +201,36 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
             `The ${flag.type} behavior exhibited by ${enhancedFlag.participant} may lead to ` +
             `increased tension and communication breakdown if not addressed.`;
           
-          // Add progression analysis based on flag type
-          const progressionMap: Record<string, string> = {
-            'manipulation': 'Often begins subtly and intensifies over time as boundaries are tested.',
-            'gaslighting': 'Typically escalates as the recipient begins to question their own reality and memories.',
-            'stonewalling': 'Usually indicates a pattern of emotional withdrawal that deepens over time.',
-            'criticism': 'Frequently leads to defensiveness and can evolve into contempt if unchecked.',
-            'contempt': 'Often results from unresolved conflicts and represents a serious breakdown in respect.',
-            'defensiveness': 'May develop into more harmful behaviors if accountability is not established.',
-            'power imbalance': 'Tends to worsen as one participant becomes increasingly dominant in conversations.',
-            'respect issues': 'Can gradually erode the foundation of mutual respect necessary for healthy communication.',
-            'emotional abuse': 'Typically follows a cycle of intensity that may worsen without intervention.',
-          };
+          // Add progression analysis based on flag type with participant attribution
+          const participant = enhancedFlag.participant;
           
-          // Find the best matching progression description
-          for (const [key, value] of Object.entries(progressionMap)) {
-            if (flag.type.toLowerCase().includes(key.toLowerCase())) {
-              enhancedFlag.progression = value;
-              break;
-            }
+          // Create participant-specific progression descriptions
+          if (flag.type.toLowerCase().includes('manipulation')) {
+            enhancedFlag.progression = `${participant}'s manipulation often begins subtly and intensifies over time as boundaries are tested.`;
+          }
+          else if (flag.type.toLowerCase().includes('gaslighting')) {
+            enhancedFlag.progression = `${participant}'s gaslighting typically escalates as the recipient begins to question their own reality and memories.`;
+          }
+          else if (flag.type.toLowerCase().includes('stonewalling')) {
+            enhancedFlag.progression = `${participant}'s stonewalling usually indicates a pattern of emotional withdrawal that deepens over time.`;
+          }
+          else if (flag.type.toLowerCase().includes('criticism')) {
+            enhancedFlag.progression = `${participant}'s criticism frequently leads to defensiveness and can evolve into contempt if unchecked.`;
+          }
+          else if (flag.type.toLowerCase().includes('contempt')) {
+            enhancedFlag.progression = `${participant}'s contempt often results from unresolved conflicts and represents a serious breakdown in respect.`;
+          }
+          else if (flag.type.toLowerCase().includes('defensiveness')) {
+            enhancedFlag.progression = `${participant}'s defensiveness may develop into more harmful behaviors if accountability is not established.`;
+          }
+          else if (flag.type.toLowerCase().includes('power imbalance')) {
+            enhancedFlag.progression = `The power imbalance favoring ${participant} tends to worsen as they become increasingly dominant in conversations.`;
+          }
+          else if (flag.type.toLowerCase().includes('respect issues')) {
+            enhancedFlag.progression = `${participant}'s respect issues can gradually erode the foundation of mutual respect necessary for healthy communication.`;
+          }
+          else if (flag.type.toLowerCase().includes('emotional abuse')) {
+            enhancedFlag.progression = `${participant}'s emotional abuse typically follows a cycle of intensity that may worsen without intervention.`;
           }
           
           // If no match was found, use a generic progression
