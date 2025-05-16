@@ -18,6 +18,15 @@ interface ChatAnalysisResponse {
     type: string;
     description: string;
     severity: number;
+    participant?: string;
+    examples?: Array<{
+      text: string;
+      from: string;
+    }>;
+    impact?: string;
+    recommendedAction?: string;
+    behavioralPattern?: string;
+    progression?: string;
   }>;
   communication: {
     patterns: string[];
@@ -414,6 +423,14 @@ DO NOT label a behavior as present in both participants unless you have clear ev
 
 Focus on SPECIFIC EXAMPLES and QUOTES from the conversation to support your analysis.
 
+For each red flag detected:
+1. Include at least 2 direct quotes that demonstrate the issue
+2. Clearly identify which participant (${me} or ${them}) is exhibiting the behavior
+3. Provide impact analysis explaining how this affects the relationship
+4. Recommend specific actions to address the issue
+5. Identify larger behavioral patterns this connects to
+6. Explain how this type of behavior typically progresses over time
+
 Return ONLY a JSON object with this EXACT structure:
 
 {
@@ -437,7 +454,11 @@ Return ONLY a JSON object with this EXACT structure:
       "examples": [
         {"text": "exact quote from conversation", "from": "participant name"},
         {"text": "another relevant quote", "from": "participant name"}
-      ]
+      ],
+      "impact": "how this behavior affects the relationship",
+      "recommendedAction": "specific action to address this issue",
+      "behavioralPattern": "how this connects to larger patterns",
+      "progression": "how this behavior typically develops over time"
     }
   ],
   "communication": {
@@ -490,7 +511,12 @@ STRICT RULES:
 - ALWAYS include at least 2 examples with direct quotes for each red flag
 - Each example must include the exact text from the conversation
 - Set "from" field in examples to either "${me}" or "${them}"
+- Set "participant" field to either "${me}" or "${them}" based on who exhibits the behavior
 - Examples must clearly demonstrate the red flag issue
+- Include specific impact analysis for each red flag
+- Provide actionable recommendations for each issue
+- Connect each red flag to larger behavioral patterns
+- Include progression analysis for each concerning behavior
 
 Here's the conversation:
 ${conversation}`;
