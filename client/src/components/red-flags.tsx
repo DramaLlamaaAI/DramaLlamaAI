@@ -202,10 +202,10 @@ export default function RedFlags({
     
     // Check conversation for toxic patterns
     const toxicPatterns = [
-      'You always', 'You never', 'whatever', 'fine', 'not my problem',
-      'shut up', 'leave me alone', 'I\'m done', 'I don\'t care', 
-      'stop talking', 'whatever', 'I hate', 'sick of this', 'tired of this',
-      'forget it', 'over it', 'don\'t bother'
+      'you always make me feel', 'you never listen', 'whatever you say', 'not my problem',
+      'shut up', 'leave me alone', 'I\'m done with you', 'I don\'t care about you', 
+      'stop talking to me', 'I hate you', 'sick of this relationship', 'tired of your',
+      'forget it, you won\'t understand', 'I\'m over you', 'don\'t bother coming back'
     ];
     
     let hasPatterns = false;
@@ -220,8 +220,16 @@ export default function RedFlags({
       }
     }
     
-    if (hasPatterns) {
-      console.log("Conversation toxic detected: true, Overall tone: defensive and dismissive");
+    // Only show red flags if the health score is below a certain threshold
+    // This prevents false positives in healthy conversations
+    const hasLowHealthScore = overallTone && 
+      (overallTone.toLowerCase().includes('tense') || 
+       overallTone.toLowerCase().includes('conflict') ||
+       overallTone.toLowerCase().includes('hostile') ||
+       overallTone.toLowerCase().includes('defensive'));
+    
+    if (hasPatterns && hasLowHealthScore) {
+      console.log("Conversation toxic detected: true, Overall tone indicates issues");
       flagsToDisplay = [{
         type: 'Communication Breakdown',
         description: 'This conversation shows signs of defensive communication and dismissive language that may be harmful to maintaining healthy dialogue.',
