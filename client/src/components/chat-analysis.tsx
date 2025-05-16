@@ -806,6 +806,8 @@ export default function ChatAnalysis() {
                         conversation={conversation}
                         overallTone={result.toneAnalysis?.overallTone}
                         redFlagsCount={result.redFlagsCount}
+                        redFlagTypes={result.redFlagTypes}
+                        redFlagsDetected={result.redFlagsDetected}
                         me={me}
                         them={them}
                       />

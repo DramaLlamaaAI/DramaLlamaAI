@@ -22,27 +22,80 @@ interface RedFlagsProps {
   conversation?: string;
   overallTone?: string;
   redFlagsCount?: number;
+  redFlagTypes?: string[]; // Added for free tier
+  redFlagsDetected?: boolean; // Added for free tier
   me?: string; // First participant name
   them?: string; // Second participant name
 }
 
-export default function RedFlags({ redFlags, tier, conversation, overallTone, redFlagsCount, me, them }: RedFlagsProps) {
+export default function RedFlags({ 
+  redFlags, 
+  tier, 
+  conversation, 
+  overallTone, 
+  redFlagsCount, 
+  redFlagTypes, 
+  redFlagsDetected, 
+  me, 
+  them 
+}: RedFlagsProps) {
   // Only rely on the red flags from the API response directly
   // This ensures consistency between free tier count and personal tier actual flags
   let flagsToDisplay = redFlags || [];
   
-  // For free tier, we'll only show the count of red flags, not the details
+  // For free tier, we'll only show the types of red flags, not the details
   const isFree = tier === 'free';
   
-  // Determine the number of red flags to display
-  const flagCount = isFree 
-    ? (redFlagsCount || flagsToDisplay.length) 
-    : flagsToDisplay.length;
+  // For free tier with redFlagTypes, we'll use that instead
+  if (isFree && redFlagTypes && redFlagTypes.length > 0) {
+    console.log(`Red flags component received ${flagsToDisplay.length} flags from API, total count: ${redFlagTypes.length}`);
+    
+    return (
+      <div className="mt-6">
+        <div className="flex items-center mb-3">
+          <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+          <h3 className="text-lg font-semibold text-red-600">
+            Potential red flags detected
+          </h3>
+        </div>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="mb-3">
+              <p className="text-gray-700 mb-2">
+                This conversation contains potential signs of:
+              </p>
+              <ul className="list-disc ml-6 space-y-1">
+                {redFlagTypes.map((type, index) => (
+                  <li key={index} className="text-gray-800 font-medium">{type}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                <span className="font-medium text-primary">Upgrade to Personal or Pro</span> for detailed analysis with participant attribution and direct quotes.
+              </p>
+              <div className="mt-3">
+                <Link href="/subscription">
+                  <Button size="sm">Upgrade Now</Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <SupportHelpLinesLink />
+      </div>
+    );
+  }
   
-  console.log(`Red flags component received ${flagsToDisplay.length} flags from API, total count: ${flagCount}`);
-  
-  // For free tier, we'll return early with just the count
+  // For free tier with only redFlagsCount (legacy)
   if (isFree) {
+    // Determine the number of red flags to display
+    const flagCount = redFlagsCount || flagsToDisplay.length;
+    console.log(`Red flags component received ${flagsToDisplay.length} flags from API, total count: ${flagCount}`);
+    
     // Only display if we have red flags
     if (flagCount <= 0) {
       return (
