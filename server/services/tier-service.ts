@@ -238,25 +238,41 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
             enhancedFlag.progression = 'This behavior typically intensifies over time if not addressed directly.';
           }
           
-          // Add recommended action based on flag type
-          const actionMap: Record<string, string> = {
-            'manipulation': 'Establish clear boundaries and request direct communication without hidden agendas.',
-            'gaslighting': 'Document incidents and seek validation from trusted sources about your perceptions.',
-            'stonewalling': 'Request time-outs when emotions run high, with an agreement to revisit the topic later.',
-            'criticism': 'Request specific behaviors rather than criticizing character; use "I" statements.',
-            'contempt': 'Address the underlying issues of disrespect and consider relationship counseling.',
-            'defensiveness': 'Practice active listening and validate concerns before responding.',
-            'power imbalance': 'Establish equal participation guidelines for important conversations.',
-            'respect issues': 'Explicitly discuss expectations around mutual respect and dignity.',
-            'emotional abuse': 'Consider whether professional help is needed and prioritize emotional safety.',
-          };
+          // Add recommended action based on flag type with participant context
+          const participant = enhancedFlag.participant;
           
-          // Find the best matching action recommendation
-          for (const [key, value] of Object.entries(actionMap)) {
-            if (flag.type.toLowerCase().includes(key.toLowerCase())) {
-              enhancedFlag.recommendedAction = value;
-              break;
-            }
+          // Create personalized action recommendations with specific references
+          if (flag.type.toLowerCase().includes('manipulation')) {
+            enhancedFlag.recommendedAction = `When ${participant} uses manipulation tactics, establish clear boundaries and request direct communication without hidden agendas. Example response: "I need you to tell me directly what you want rather than trying to make me feel guilty."`;
+          }
+          else if (flag.type.toLowerCase().includes('gaslighting')) {
+            enhancedFlag.recommendedAction = `To address ${participant}'s gaslighting behavior, document incidents and seek validation from trusted sources about your perceptions. Consider saying: "I know what I experienced, and I'm not willing to question my reality."`;
+          }
+          else if (flag.type.toLowerCase().includes('stonewalling')) {
+            enhancedFlag.recommendedAction = `When ${participant} stonewalls, request time-outs with an agreement to revisit the topic later. Try: "I notice you're shutting down. Let's take 30 minutes to cool off and agree to continue this conversation afterward."`;
+          }
+          else if (flag.type.toLowerCase().includes('criticism')) {
+            enhancedFlag.recommendedAction = `Address ${participant}'s criticism by requesting specific behaviors rather than character judgments. Respond with: "I feel hurt when you criticize who I am instead of discussing specific actions that bother you."`;
+          }
+          else if (flag.type.toLowerCase().includes('contempt')) {
+            enhancedFlag.recommendedAction = `For ${participant}'s contemptuous behavior, address the underlying disrespect directly: "I notice there's a tone of disrespect in our conversations. We need to discuss how we can communicate with more respect."`;
+          }
+          else if (flag.type.toLowerCase().includes('defensiveness')) {
+            enhancedFlag.recommendedAction = `When ${participant} becomes defensive, acknowledge their perspective first: "I understand you may feel criticized. I'm trying to express my feelings, not attack you. Can we both practice listening without immediately defending?"`;
+          }
+          else if (flag.type.toLowerCase().includes('power imbalance')) {
+            enhancedFlag.recommendedAction = `To balance the power dynamic with ${participant}, establish equal conversation guidelines: "I notice one person often dominates our discussions. Can we agree that each of us gets equal time to share our thoughts without interruption?"`;
+          }
+          else if (flag.type.toLowerCase().includes('respect issues')) {
+            enhancedFlag.recommendedAction = `Address respect issues with ${participant} by explicitly discussing expectations: "I need us to agree on what respectful communication looks like. When you [specific behavior], it feels disrespectful to me."`;
+          }
+          else if (flag.type.toLowerCase().includes('emotional abuse')) {
+            enhancedFlag.recommendedAction = `${participant}'s emotionally abusive behavior requires firm boundaries and possibly professional help. Prioritize your emotional safety with statements like: "This type of communication is harmful, and I won't participate in it. I need us to get professional support."`;
+          }
+          
+          // If no specific recommendation was created, use a general one
+          if (!enhancedFlag.recommendedAction) {
+            enhancedFlag.recommendedAction = `Address this behavior from ${participant} directly in a calm moment, using specific examples and focusing on impact rather than intent.`;
           }
           
           // If no match was found, use a generic recommendation
@@ -264,25 +280,40 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
             enhancedFlag.recommendedAction = 'Address this directly in a calm moment, using specific examples and focusing on impact rather than intent.';
           }
           
-          // Add behavioral pattern analysis
-          const patternMap: Record<string, string> = {
-            'manipulation': 'Part of control-seeking behavior that may appear in other contexts.',
-            'gaslighting': 'Connected to a need to maintain control by destabilizing perception.',
-            'stonewalling': 'Reflects avoidance patterns that may stem from anxiety or overwhelm.',
-            'criticism': 'Often indicates perfectionist tendencies or unmet expectations.',
-            'contempt': 'Suggests deep-seated resentment that has built up over time.',
-            'defensiveness': 'Part of self-protection strategies that avoid vulnerability.',
-            'power imbalance': 'Reflects established roles that may exist throughout the relationship.',
-            'respect issues': 'Indicates potential underlying beliefs about relationship hierarchy.',
-            'emotional abuse': 'Part of a larger pattern of control and domination.',
-          };
+          // Add behavioral pattern analysis with specific attribution and context
           
-          // Find the best matching pattern description
-          for (const [key, value] of Object.entries(patternMap)) {
-            if (flag.type.toLowerCase().includes(key.toLowerCase())) {
-              enhancedFlag.behavioralPattern = value;
-              break;
-            }
+          // Create detailed behavioral pattern analysis with participant names
+          if (flag.type.toLowerCase().includes('manipulation')) {
+            enhancedFlag.behavioralPattern = `${participant}'s manipulation is part of a control-seeking behavioral pattern that likely appears in other contexts beyond this conversation. When feeling insecure or threatened, ${participant} may use emotional leverage to maintain control.`;
+          }
+          else if (flag.type.toLowerCase().includes('gaslighting')) {
+            enhancedFlag.behavioralPattern = `${participant}'s gaslighting connects to a deeper need to maintain control by destabilizing your perception of reality. This pattern often emerges when ${participant} feels challenged or when accountability is requested.`;
+          }
+          else if (flag.type.toLowerCase().includes('stonewalling')) {
+            enhancedFlag.behavioralPattern = `${participant}'s stonewalling reflects established avoidance patterns that likely stem from anxiety, overwhelm, or conflict aversion. This is a protective mechanism ${participant} uses when feeling emotionally flooded.`;
+          }
+          else if (flag.type.toLowerCase().includes('criticism')) {
+            enhancedFlag.behavioralPattern = `${participant}'s critical approach often indicates perfectionist tendencies or unmet expectations. This pattern suggests ${participant} may struggle with direct requests and instead expresses needs through criticism.`;
+          }
+          else if (flag.type.toLowerCase().includes('contempt')) {
+            enhancedFlag.behavioralPattern = `The contempt shown by ${participant} suggests deep-seated resentment that has built up over time. This is among the most destructive patterns and indicates ${participant} may be viewing you with a sense of superiority.`;
+          }
+          else if (flag.type.toLowerCase().includes('defensiveness')) {
+            enhancedFlag.behavioralPattern = `${participant}'s defensiveness is part of established self-protection strategies that avoid vulnerability. When ${participant} feels criticized, this pattern activates automatically as a shield against perceived attacks.`;
+          }
+          else if (flag.type.toLowerCase().includes('power imbalance')) {
+            enhancedFlag.behavioralPattern = `This power dynamic favoring ${participant} reflects established roles that likely exist throughout your relationship. The conversation shows how ${participant} maintains control through subtle dominance tactics.`;
+          }
+          else if (flag.type.toLowerCase().includes('respect issues')) {
+            enhancedFlag.behavioralPattern = `${participant}'s respect issues indicate underlying beliefs about relationship hierarchy. This pattern suggests ${participant} may not view the relationship as one between equals.`;
+          }
+          else if (flag.type.toLowerCase().includes('emotional abuse')) {
+            enhancedFlag.behavioralPattern = `${participant}'s emotionally abusive behavior is part of a larger pattern of control and domination. This is not isolated and suggests a concerning pattern that may escalate if not addressed directly.`;
+          }
+          
+          // If no match was found, use a generic pattern with participant attribution
+          if (!enhancedFlag.behavioralPattern) {
+            enhancedFlag.behavioralPattern = `${participant}'s behavior appears to be part of a recurring pattern that may manifest in multiple contexts within your relationship. This is likely not an isolated incident.`;
           }
           
           // If no match was found, use a generic pattern description
