@@ -521,15 +521,32 @@ STRICT RULES:
 Here's the conversation:
 ${conversation}`;
     } else if (tier === 'personal') {
-      enhancedPrompt = `Analyze this conversation between ${me} and ${them} with a personal-level depth. 
-      Return a JSON object with the following structure:
+      enhancedPrompt = `Analyze this conversation between ${me} and ${them} with a personal-level depth.
+      
+Pay close attention to clearly distinguishing between participants and attributing behaviors correctly.
+IMPORTANT: Each red flag should be clearly associated with the specific participant who exhibits the behavior.
+DO NOT label a behavior as present in both participants unless you have clear evidence from multiple messages.
+
+Include SPECIFIC QUOTES from the conversation for each red flag.
+
+Return a JSON object with the following structure:
       {
         "toneAnalysis": {
           "overallTone": "detailed description of the conversation's overall tone",
           "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
           "participantTones": {"participant name": "personalized tone description"}
         },
-        "redFlags": [{"type": "string", "description": "clear description", "severity": number between 1-5}],
+        "redFlags": [
+          {
+            "type": "string", 
+            "description": "clear description", 
+            "severity": number between 1-5,
+            "participant": "name of participant showing this behavior",
+            "examples": [
+              {"text": "exact quote from conversation", "from": "participant name"}
+            ]
+          }
+        ],
         "communication": {
           "patterns": ["specific communication patterns observed"],
           "dynamics": ["analysis of basic relationship dynamics"],
@@ -556,11 +573,20 @@ ${conversation}`;
       }
       
       Include PERSONAL TIER FEATURES such as:
-      - Advanced emotional tone analysis
+      - Advanced emotional tone analysis 
       - Individual contributions to tension
       - Clear communication styles breakdown
       - Accountability indicators
       - Emotion tracking per participant
+      - Participant-specific red flag attribution
+      - Supporting quotes for each red flag
+      
+RULES FOR RED FLAGS:
+- Each red flag must identify the specific participant exhibiting the behavior
+- Include at least one direct quote from the conversation for each red flag
+- Quote text should be exact words from the conversation
+- Set "from" field in examples to either "${me}" or "${them}" 
+- Set "participant" field to either "${me}" or "${them}" based on who exhibits the behavior
       
       Here's the conversation:
       ${conversation}`;
