@@ -207,41 +207,38 @@ export const analysisController = {
           console.log('Has redFlags in raw analysis:', !!personalAnalysis?.redFlags);
           
           if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
-            // Extract just the type and severity from each red flag
-            const redFlagTypes = personalAnalysis.redFlags.map(flag => ({
-              type: flag.type,
-              severity: flag.severity
-            }));
+            // Get unique red flag types using a simple filter approach
+            const redFlagTypes = personalAnalysis.redFlags
+              .map(flag => flag.type)
+              .filter((value, index, self) => self.indexOf(value) === index);
             
-            console.log(`Raw red flags count: ${redFlagTypes.length}`);
-            console.log('Adding red flag types to free tier analysis');
+            console.log(`Raw red flags count: ${personalAnalysis.redFlags.length}`);
+            console.log(`Unique red flag types: ${redFlagTypes.length}`);
+            console.log('Adding basic red flag types to free tier analysis');
             
-            // Add the simplified red flags to the free tier results
-            (filteredResults as any).redFlags = redFlagTypes;
+            // Add just a list of red flag types to the free tier results
+            (filteredResults as any).redFlagTypes = redFlagTypes;
             (filteredResults as any).redFlagsDetected = true;
           } else {
             // Fallback to health score when no personal analysis is available
             console.log('No red flags in personal analysis, using fallback logic');
             
-            const defaultRedFlags = [];
+            const defaultRedFlagTypes = [];
             
             if (analysis.healthScore) {
               // For very low health scores, add potential red flags
               if (analysis.healthScore.score < 40) {
-                defaultRedFlags.push(
-                  { type: 'communication issues', severity: 3 },
-                  { type: 'potential conflict', severity: 4 }
-                );
+                defaultRedFlagTypes.push('communication issues', 'potential conflict');
               }
               // For moderately low health scores
               else if (analysis.healthScore.score < 60) {
-                defaultRedFlags.push({ type: 'communication issues', severity: 2 });
+                defaultRedFlagTypes.push('communication issues');
               }
             }
             
-            if (defaultRedFlags.length > 0) {
+            if (defaultRedFlagTypes.length > 0) {
               console.log('Setting default red flag types based on health score');
-              (filteredResults as any).redFlags = defaultRedFlags;
+              (filteredResults as any).redFlagTypes = defaultRedFlagTypes;
               (filteredResults as any).redFlagsDetected = true;
             } else {
               (filteredResults as any).redFlagsDetected = false;
