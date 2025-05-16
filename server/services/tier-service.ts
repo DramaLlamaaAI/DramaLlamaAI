@@ -47,6 +47,21 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
         participant: string;
       }[];
     };
+    redFlags?: Array<{
+      type: string;
+      description?: string;
+      severity?: number;
+      participant?: string;
+      examples?: Array<{
+        text: string;
+        from: string;
+      }>;
+      impact?: string;
+      recommendedAction?: string;
+      behavioralPattern?: string;
+      progression?: string;
+    }>;
+    redFlagsDetected?: boolean;
   };
   // If tier doesn't exist, default to free
   const tierFeatures = TIER_LIMITS[tier as keyof typeof TIER_LIMITS]?.features || TIER_LIMITS.free.features;
@@ -83,7 +98,7 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   // - Conversation Health Meter (healthScore) - added above
   // - Basic Communication Insights (communication.patterns) - added above
   // - Key Summary Quotes (keyQuotes) - limited version
-  // - Red Flags Count (but not the details) - for conversion optimization
+  // - Red Flag Types (high-level overview of potential issues) - for better user insights
   
   if (tierFeatures.includes('keyQuotes') && analysis.keyQuotes) {
     // For free tier, limit to just 2 quotes without improvement suggestions
@@ -102,27 +117,26 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
     }
   }
   
-  // For free tier, the redFlagsCount should be added by the controller
-  // This ensures data integrity by getting the count from a full personal tier analysis
-  // We don't compute any red flags values in this service
+  // For free tier, show high-level red flag types only
+  // The controller will add these from the personal tier analysis 
+  // For other tiers, show the appropriate level of detail
   console.log('Red flags available in raw analysis:', !!analysis.redFlags);
   if (analysis.redFlags) {
     console.log('Raw red flags count:', analysis.redFlags.length);
   }
   
-  // Add red flags for free tier as well (showing the actual red flags)
-  if (tier === 'free' && analysis.redFlags && analysis.redFlags.length > 0) {
-    // Include the actual red flags for the free tier too
+  // For personal and higher tiers, include the red flags with appropriate details
+  if (tier !== 'free' && analysis.redFlags && analysis.redFlags.length > 0) {
+    // Include the full red flags for paid tiers
     filteredAnalysis.redFlags = analysis.redFlags;
-    console.log(`Adding ${filteredAnalysis.redFlags.length} red flags to free tier analysis`);
+    console.log(`Adding ${analysis.redFlags.length} detailed red flags to ${tier} tier analysis`);
   }
   
-  // The tier filter itself doesn't add redFlagsCount for free tier
-  // This is done in the controller which has access to the personal tier analysis
+  // Note: For free tier, the controller will add just the red flag types
+  // This is done specifically so we can show basic types without detailed quotes/analysis
   if (tier === 'free') {
-    // Note: The controller will add the redFlagsCount property 
-    // based on the actual personal tier analysis
-    console.log('Free tier analysis will have redFlagsCount added by controller');
+    console.log('Free tier will have high-level red flag types added by controller');
+    // The redFlags array with just type and severity will be added by the controller
   }
   
   // PERSONAL TIER FEATURES:

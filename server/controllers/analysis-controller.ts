@@ -202,44 +202,50 @@ export const analysisController = {
         // Filter results based on user's tier
         filteredResults = filterChatAnalysisByTier(analysis, tier);
         
-        // For free tier, add red flags count from personal analysis
+        // For free tier, add red flag types from personal analysis
         if (tier === 'free') {
-          // Get access to the raw API response from the personal tier analysis
-          // This is stored in the _rawResponse property (non-enumerable)
-          const personalRawResponse = personalAnalysis && (personalAnalysis as any)._rawResponse;
+          console.log('Has redFlags in raw analysis:', !!personalAnalysis?.redFlags);
           
-          if (personalRawResponse) {
-            // Extract red flags count directly from the raw response using regex patterns
-            // This avoids JSON parsing issues and ensures we get data from the same source
-            // as the personal tier
-            const redFlagsCount = extractRedFlagsCount(personalRawResponse);
-            console.log(`Extracted red flags count from raw personal tier response: ${redFlagsCount}`);
-            (filteredResults as any).redFlagsCount = redFlagsCount;
-          }
-          // Fallback to health score when no personal analysis is available
-          else if (analysis.healthScore) {
-            let redFlagsCount = 0;
+          if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
+            // Extract just the type and severity from each red flag
+            const redFlagTypes = personalAnalysis.redFlags.map(flag => ({
+              type: flag.type,
+              severity: flag.severity
+            }));
             
-            // For very low health scores, set higher red flag count
-            if (analysis.healthScore.score < 40) {
-              redFlagsCount = 3;
-            }
-            // For moderately low health scores
-            else if (analysis.healthScore.score < 60) {
-              redFlagsCount = 2;
-            }
-            // For mildly concerning health scores
-            else if (analysis.healthScore.score < 75) {
-              redFlagsCount = 1;
+            console.log(`Raw red flags count: ${redFlagTypes.length}`);
+            console.log('Adding red flag types to free tier analysis');
+            
+            // Add the simplified red flags to the free tier results
+            (filteredResults as any).redFlags = redFlagTypes;
+            (filteredResults as any).redFlagsDetected = true;
+          } else {
+            // Fallback to health score when no personal analysis is available
+            console.log('No red flags in personal analysis, using fallback logic');
+            
+            const defaultRedFlags = [];
+            
+            if (analysis.healthScore) {
+              // For very low health scores, add potential red flags
+              if (analysis.healthScore.score < 40) {
+                defaultRedFlags.push(
+                  { type: 'communication issues', severity: 3 },
+                  { type: 'potential conflict', severity: 4 }
+                );
+              }
+              // For moderately low health scores
+              else if (analysis.healthScore.score < 60) {
+                defaultRedFlags.push({ type: 'communication issues', severity: 2 });
+              }
             }
             
-            console.log(`Fallback: Setting red flags count based on health score (${analysis.healthScore.score}): ${redFlagsCount}`);
-            (filteredResults as any).redFlagsCount = redFlagsCount;
-          }
-          // Final fallback
-          else {
-            console.log('No analysis data available, setting default red flags count of 1');
-            (filteredResults as any).redFlagsCount = 1;
+            if (defaultRedFlags.length > 0) {
+              console.log('Setting default red flag types based on health score');
+              (filteredResults as any).redFlags = defaultRedFlags;
+              (filteredResults as any).redFlagsDetected = true;
+            } else {
+              (filteredResults as any).redFlagsDetected = false;
+            }
           }
         }
         
