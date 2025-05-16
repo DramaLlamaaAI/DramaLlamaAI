@@ -808,6 +808,7 @@ export default function ChatAnalysis() {
                         redFlagsCount={result.redFlagsCount}
                         redFlagTypes={result.redFlagTypes}
                         redFlagsDetected={result.redFlagsDetected}
+                        sampleQuotes={result.sampleQuotes}
                         me={me}
                         them={them}
                       />

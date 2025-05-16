@@ -257,10 +257,15 @@ export const chatAnalysisResultSchema = z.object({
     behavioralPattern: z.string().optional(),
     progression: z.string().optional(),
   })).optional(),
-  // For free tier, only the count and types are provided, not the details
+  // For free tier, limited info is provided
   redFlagsCount: z.number().optional(),
   redFlagTypes: z.array(z.string()).optional(),
   redFlagsDetected: z.boolean().optional(),
+  sampleQuotes: z.array(z.object({
+    type: z.string(),
+    quote: z.string(),
+    participant: z.string()
+  })).optional(),
   communication: z.object({
     patterns: z.array(z.string()).optional(),
     dynamics: z.array(z.string()).optional(),

@@ -219,6 +219,39 @@ export const analysisController = {
             // Add the list of red flag types and set redFlagsDetected flag to the free tier results
             (filteredResults as any).redFlagTypes = redFlagTypes;
             (filteredResults as any).redFlagsDetected = true;
+            
+            // Add sample quotes from the personal analysis to show examples (limited for free tier)
+            const sampleQuotes = [];
+            
+            // Extract quotes from different possible sources in the red flags
+            for (const flag of personalAnalysis.redFlags) {
+              // Case 1: Flag has examples array
+              if (flag.examples && flag.examples.length > 0) {
+                sampleQuotes.push({
+                  type: flag.type,
+                  quote: flag.examples[0].text,
+                  participant: flag.examples[0].from || flag.participant || 'Unknown'
+                });
+              } 
+              // Case 2: Try to get a quote from the description
+              else if (flag.description && flag.description.includes('"')) {
+                const quoteMatch = flag.description.match(/"([^"]*)"/);
+                if (quoteMatch && quoteMatch[1]) {
+                  sampleQuotes.push({
+                    type: flag.type,
+                    quote: quoteMatch[1],
+                    participant: flag.participant || 'Unknown'
+                  });
+                }
+              }
+              
+              // Limit to 2 sample quotes
+              if (sampleQuotes.length >= 2) break;
+            }
+              
+            if (sampleQuotes.length > 0) {
+              (filteredResults as any).sampleQuotes = sampleQuotes;
+            }
           } else {
             // Fallback to health score when no personal analysis is available
             console.log('No red flags in personal analysis, using fallback logic');

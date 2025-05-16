@@ -24,6 +24,11 @@ interface RedFlagsProps {
   redFlagsCount?: number;
   redFlagTypes?: string[]; // Added for free tier
   redFlagsDetected?: boolean; // Added for free tier
+  sampleQuotes?: Array<{
+    type: string;
+    quote: string;
+    participant: string;
+  }>; // Sample quotes for free tier preview
   me?: string; // First participant name
   them?: string; // Second participant name
 }
@@ -36,6 +41,7 @@ export default function RedFlags({
   redFlagsCount, 
   redFlagTypes, 
   redFlagsDetected, 
+  sampleQuotes,
   me, 
   them 
 }: RedFlagsProps) {
@@ -70,6 +76,30 @@ export default function RedFlags({
                   <li key={index} className="text-gray-800 font-medium">{type}</li>
                 ))}
               </ul>
+              
+              {/* Show sample quotes if available */}
+              {sampleQuotes && sampleQuotes.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-gray-700 mb-2 font-medium">Sample quotes from conversation:</p>
+                  <div className="space-y-3">
+                    {sampleQuotes.map((sample, index) => (
+                      <div key={index} className="bg-gray-50 rounded-md p-3">
+                        <div className="flex items-center mb-1">
+                          <span className="font-medium text-sm" style={{ 
+                            color: sample.participant === me ? '#22C9C9' : '#FF69B4' 
+                          }}>
+                            {sample.participant}
+                          </span>
+                          <span className="text-xs text-gray-500 ml-2">
+                            ({sample.type})
+                          </span>
+                        </div>
+                        <p className="text-gray-700 italic">"{sample.quote}"</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="mt-4 pt-4 border-t border-gray-200">
