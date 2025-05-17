@@ -27,8 +27,8 @@ export function AdminTierSwitcher() {
   const { toast } = useToast();
   const [visible, setVisible] = useState(false);
   
-  // Only show for the admin@dramallamaconsultancy.com account
-  const isAdminEmail = user?.email === 'dramallamaconsultancy@gmail.com';
+  // Check both isAdmin flag and special admin email
+  const isAdmin = user?.isAdmin === true || user?.email === 'dramallamaconsultancy@gmail.com';
   
   useEffect(() => {
     if (user?.tier) {
@@ -36,10 +36,10 @@ export function AdminTierSwitcher() {
     }
     
     // Auto-show the tier switcher for admin
-    if (isAdminEmail) {
+    if (isAdmin) {
       setVisible(true);
     }
-  }, [user, isAdminEmail]);
+  }, [user, isAdmin]);
   
   // Toggle visibility with the keyboard shortcut (Ctrl+Shift+T)
   useEffect(() => {
@@ -54,7 +54,14 @@ export function AdminTierSwitcher() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
   
-  if (isLoading || !isAdminEmail) return null;
+  // Debug admin controls
+  console.log("Admin tier switcher check:", { 
+    email: user?.email,
+    isAdmin: user?.isAdmin,
+    adminAccess: isAdmin
+  });
+  
+  if (isLoading || !isAdmin) return null;
   
   if (!visible) return null;
   

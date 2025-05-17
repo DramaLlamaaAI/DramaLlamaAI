@@ -31,8 +31,11 @@ export default function AdminNavItem() {
     return null;
   }
 
+  // Check both isAdmin flag and special admin email
+  const isAdmin = currentUser?.isAdmin === true || currentUser?.email === 'dramallamaconsultancy@gmail.com';
+  
   // Only show admin link if user exists and has admin privileges
-  if (!currentUser || !currentUser.isAdmin) {
+  if (!currentUser || !isAdmin) {
     return null;
   }
   
