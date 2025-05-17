@@ -24,6 +24,7 @@ import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
 import DeEscalate from "./components/de-escalate";
 import LiveTalk from "./components/live-talk";
+import { AdminTierSwitcher } from "./components/admin/admin-tier-switcher";
 
 function Router() {
   return (
