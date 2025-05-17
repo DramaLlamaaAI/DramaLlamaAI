@@ -83,31 +83,19 @@ export function useUserTier(): UseTierResult {
   const limit = usageData?.limit || 1;
   const remaining = usageData?.remaining !== undefined ? usageData.remaining : (limit - used);
   
-  // Check if developer mode is enabled
-  const devMode = isDevModeEnabled();
-  
   // Determine if user can use features based on authentication status and usage
   let canUseFeature = true;
   
-  // Developer mode always allows feature usage
-  if (devMode) {
-    canUseFeature = true;
-  }
   // If user is authenticated, check their usage limits
-  else if (isAuthenticated) {
+  if (isAuthenticated) {
     canUseFeature = used < limit;
   } 
-  // If not authenticated, check if they've used their free trial
+  // If not authenticated, check if they've used their free trial (anonymous users get 2 analyses)
   else {
-    canUseFeature = !localTrialUsed || analysisCount < 1;
+    canUseFeature = !localTrialUsed || analysisCount < 2;
   }
   
   const featureEnabled = (feature: string): boolean => {
-    // In developer mode, all features are available
-    if (devMode) {
-      return true;
-    }
-    
     const availableFeatures = FEATURE_MAP[tier] || FEATURE_MAP.free;
     return availableFeatures.includes(feature);
   };
