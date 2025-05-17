@@ -4,6 +4,7 @@ import { TIER_LIMITS } from '@shared/schema';
 import { filterChatAnalysisByTier, filterMessageAnalysisByTier, filterDeEscalateResultByTier } from '../services/tier-service';
 import { storage } from '../storage';
 import { extractRedFlagsCount } from '../services/anthropic-helpers';
+import { enhanceAnalysisWithQuotes } from '../services/analysis-enhancer';
 
 // Get the user's tier from the authenticated session
 const getUserTier = (req: Request): string => {
@@ -199,6 +200,17 @@ export const analysisController = {
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
         // Filter results based on user's tier
         filteredResults = filterChatAnalysisByTier(analysis, tier);
+        
+        // For Pro tier, enhance red flags with conversation-specific insights
+        if (tier === 'pro' || tier === 'instant') {
+          // Pass the entire conversation text to help with context-specific analysis
+          const conversationText = req.body.text || '';
+          
+          // Apply enhanced red flag detection with conversation-specific insights
+          filteredResults = enhanceAnalysisWithQuotes(filteredResults);
+          
+          console.log('Enhanced Pro tier analysis with conversation-specific red flag insights');
+        }
         
         // For free tier, add red flag types from personal analysis
         if (tier === 'free') {
