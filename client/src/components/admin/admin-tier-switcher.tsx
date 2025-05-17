@@ -11,6 +11,12 @@ import type { Tier } from '@/lib/trial-utils';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { Button } from '@/components/ui/button';
+import { 
+  ChevronUpIcon, 
+  ChevronDownIcon,
+  RefreshCwIcon
+} from 'lucide-react';
 
 /**
  * A special tier switcher for the admin user only - for testing purposes
@@ -28,7 +34,12 @@ export function AdminTierSwitcher() {
     if (user?.tier) {
       setCurrentTier(user.tier as Tier);
     }
-  }, [user]);
+    
+    // Auto-show the tier switcher for admin
+    if (isAdminEmail) {
+      setVisible(true);
+    }
+  }, [user, isAdminEmail]);
   
   // Toggle visibility with the keyboard shortcut (Ctrl+Shift+T)
   useEffect(() => {
@@ -78,28 +89,52 @@ export function AdminTierSwitcher() {
   
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <Card className="w-72 shadow-lg border-primary/20">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Admin Tier Testing</CardTitle>
-          <CardDescription className="text-xs">
-            Change your tier for testing purposes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Select 
-            value={currentTier || undefined} 
-            onValueChange={(value) => handleTierChange(value as Tier)}
+      <Card className="w-72 shadow-lg border-primary/20 bg-background/95 backdrop-blur">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-sm">Admin Tier Testing</CardTitle>
+            <CardDescription className="text-xs">
+              Change your tier for testing purposes
+            </CardDescription>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setVisible(prev => !prev)}
+            className="h-8 w-8"
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select tier" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="free">Free</SelectItem>
-              <SelectItem value="personal">Personal</SelectItem>
-              <SelectItem value="pro">Pro</SelectItem>
-              <SelectItem value="instant">Instant</SelectItem>
-            </SelectContent>
-          </Select>
+            <ChevronDownIcon className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Select 
+              value={currentTier || undefined} 
+              onValueChange={(value) => handleTierChange(value as Tier)}
+            >
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Select tier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="free">Free</SelectItem>
+                <SelectItem value="personal">Personal</SelectItem>
+                <SelectItem value="pro">Pro</SelectItem>
+                <SelectItem value="instant">Instant</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              size="icon" 
+              variant="outline"
+              onClick={() => window.location.reload()}
+              title="Refresh page"
+              className="h-9 w-9"
+            >
+              <RefreshCwIcon className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Current email: {user?.email}
+          </div>
         </CardContent>
       </Card>
     </div>
