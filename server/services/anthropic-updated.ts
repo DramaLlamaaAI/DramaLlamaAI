@@ -157,6 +157,17 @@ EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specifi
 DO NOT label a behavior as present in both participants unless you have clear evidence from multiple messages.
 Analyze quotes and exact wording to determine which participant is exhibiting each behavior.
 
+IMPORTANT RED FLAG GUIDANCE:
+1. Only identify GENUINE red flags based on clear patterns of problematic behavior.
+2. Use specific quotes from the conversation as evidence for each red flag.
+3. Do not over-interpret single messages - look for consistent patterns.
+4. Rate severity accurately - don't inflate minor issues to severe red flags.
+5. ONLY identify a red flag if it's clearly demonstrated in multiple messages.
+6. Be extremely discerning - do not label normal communication as red flags.
+7. For each red flag, provide concrete examples from the text.
+8. Never invent red flags that aren't explicitly supported by the conversation text.
+9. When providing "impact" analysis, make it specific to what's in the conversation, not generic.
+
 Return a JSON object with the following structure:
     {
       "toneAnalysis": {
@@ -164,7 +175,17 @@ Return a JSON object with the following structure:
         "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
         "participantTones": {"participant name": "tone description that clearly distinguishes from other participant"}
       },
-      "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5, "participant": "name of participant showing this behavior"}],
+      "redFlags": [
+        {
+          "type": "string - specific name of the red flag",
+          "description": "detailed description with evidence from the conversation",
+          "severity": number between 1-5,
+          "participant": "name of participant showing this behavior",
+          "examples": [{"text": "exact quote from conversation", "from": "participant name"}],
+          "impact": "specific impact seen in THIS conversation, not general consequences",
+          "recommendedAction": "specific action based on the actual conversation context"
+        }
+      ],
       "communication": {
         "patterns": ["string describing specific patterns observed for each participant"],
         "suggestions": ["string with suggestions for improvement"]
