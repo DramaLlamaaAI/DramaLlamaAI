@@ -40,6 +40,13 @@ const checkUsageLimit = async (req: Request): Promise<boolean> => {
     if (req.session && req.session.userId) {
       // Check usage limits for authenticated users
       const usage = await storage.getUserUsage(req.session.userId);
+      
+      // If limit is null or undefined, user has unlimited usage (admin or pro tier)
+      if (usage.limit === null || usage.limit === undefined || usage.limit === Infinity) {
+        return true; // No limit for admin/pro users
+      }
+      
+      // For users with limits, check if they've reached their limit
       return usage.used < usage.limit;
     } else if (req.body.deviceId) {
       // Check usage limits for anonymous users
