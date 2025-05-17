@@ -49,8 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  // Determine if the user is an admin
-  const isAdmin = !!user?.isAdmin;
+  // Determine if the user is an admin (check both flag and special email)
+  const isAdmin = !!user?.isAdmin || user?.email === 'dramallamaconsultancy@gmail.com';
   
   // Provide auth context
   return (

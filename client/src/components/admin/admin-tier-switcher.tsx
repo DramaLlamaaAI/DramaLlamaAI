@@ -22,13 +22,11 @@ import {
  * A special tier switcher for the admin user only - for testing purposes
  */
 export function AdminTierSwitcher() {
-  const { user, isLoading } = useAuth();
+  // Use our centralized auth hook for consistent admin detection
+  const { user, isLoading, isAdmin } = useAuth();
   const [currentTier, setCurrentTier] = useState<Tier | null>(null);
   const { toast } = useToast();
   const [visible, setVisible] = useState(false);
-  
-  // Check both isAdmin flag and special admin email
-  const isAdmin = user?.isAdmin === true || user?.email === 'dramallamaconsultancy@gmail.com';
   
   useEffect(() => {
     if (user?.tier) {
@@ -57,7 +55,7 @@ export function AdminTierSwitcher() {
   // Debug admin controls
   console.log("Admin tier switcher check:", { 
     email: user?.email,
-    isAdmin: user?.isAdmin,
+    isAdmin: isAdmin,
     adminAccess: isAdmin
   });
   

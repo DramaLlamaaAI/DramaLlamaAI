@@ -1,46 +1,31 @@
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
-
-// Interface for current user
-interface CurrentUser {
-  id: number;
-  email: string;
-  isAdmin: boolean;
-}
+import { useAuth } from '@/hooks/use-auth';
 
 export default function AdminNavItem() {
-  // Query to fetch current user
-  const { data: currentUser, isLoading, error } = useQuery<CurrentUser | null>({
-    queryKey: ['/api/auth/user'],
-    retry: false,
-  });
+  // Use our centralized auth hook instead of making a separate query
+  const { user, isLoading, isAdmin } = useAuth();
 
   // Debug info to troubleshoot admin visibility
   console.log("Admin nav item check:", { 
-    currentUser, 
+    email: user?.email, 
     isLoading, 
-    error, 
-    isAdmin: currentUser?.isAdmin,
-    email: currentUser?.email
+    isAdmin
   });
 
   // If still loading, don't show anything yet
   if (isLoading) {
     return null;
   }
-
-  // Check both isAdmin flag and special admin email
-  const isAdmin = currentUser?.isAdmin === true || currentUser?.email === 'dramallamaconsultancy@gmail.com';
   
   // Only show admin link if user exists and has admin privileges
-  if (!currentUser || !isAdmin) {
+  if (!user || !isAdmin) {
     return null;
   }
   
   // Force displaying the admin link for debugging purposes
-  console.log("Showing admin nav item for:", currentUser.email);
+  console.log("Showing admin nav item for:", user.email);
 
   return (
     <Link href="/admin">
