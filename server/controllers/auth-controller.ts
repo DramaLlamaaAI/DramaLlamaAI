@@ -379,32 +379,9 @@ export const authController = {
   // Get user usage stats
   getUserUsage: async (req: Request, res: Response) => {
     try {
-      // Check for dev mode tier in headers
-      const devTier = req.headers['x-dev-tier'] as string;
-      const devMode = req.headers['x-dev-mode'] as string;
-      
-      // If dev mode is enabled and a tier is specified, return that tier's info
-      if (devMode === 'true' && devTier && ['free', 'personal', 'pro', 'instant'].includes(devTier)) {
-        console.log(`Developer mode active: Using tier ${devTier} for testing`);
-        const tierLimits = {
-          free: 2, // Updated to 2 analyses per month
-          personal: 10,
-          pro: 100,
-          instant: 1
-        };
-        
-        return res.status(200).json({ 
-          tier: devTier, 
-          used: 0, 
-          limit: tierLimits[devTier as keyof typeof tierLimits], 
-          remaining: tierLimits[devTier as keyof typeof tierLimits],
-          isDev: true
-        });
-      }
-      
-      // Regular flow for non-dev mode
+      // Regular flow for user authentication
       if (!req.session || !req.session.userId) {
-        // Return free tier info for non-authenticated users
+        // Return free tier info for non-authenticated users (2 free analyses)
         return res.status(200).json({ tier: "free", used: 0, limit: 2, remaining: 2 });
       }
       
