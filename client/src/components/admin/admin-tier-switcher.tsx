@@ -30,8 +30,6 @@ export function AdminTierSwitcher() {
     }
   }, [user]);
   
-  if (isLoading || !isAdminEmail) return null;
-  
   // Toggle visibility with the keyboard shortcut (Ctrl+Shift+T)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,6 +42,8 @@ export function AdminTierSwitcher() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+  
+  if (isLoading || !isAdminEmail) return null;
   
   if (!visible) return null;
   

@@ -66,6 +66,7 @@ function App() {
           {showDisclaimer && (
             <DisclaimerModal onAccept={handleAcceptDisclaimer} />
           )}
+          <AdminTierSwitcher />
           <Router />
         </TooltipProvider>
       </AuthProvider>
