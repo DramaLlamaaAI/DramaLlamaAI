@@ -39,7 +39,7 @@ export interface IStorage {
   getUserAnalyses(userId: number): Promise<Analysis[]>;
   
   // Usage Tracking
-  getUserUsage(userId: number): Promise<{ used: number, limit: number, tier: string }>;
+  getUserUsage(userId: number): Promise<{ used: number, limit: number | null, tier: string }>;
   incrementUserUsage(userId: number): Promise<void>;
   
   // Anonymous Usage Tracking
@@ -364,7 +364,7 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
   
-  async getUserUsage(userId: number): Promise<{ used: number, limit: number, tier: string }> {
+  async getUserUsage(userId: number): Promise<{ used: number, limit: number | null, tier: string }> {
     const user = await this.getUser(userId);
     if (!user) {
       throw new Error(`User with id ${userId} not found`);
@@ -422,9 +422,32 @@ export class MemStorage implements IStorage {
       this.usageLimits.set(userId, usageLimit);
     }
     
+    // Set limits based on tier type and admin status
+    let limit: number | null;
+    
+    // Admin users always get unlimited usage
+    if (user.isAdmin) {
+      return {
+        used: usageLimit.monthlyTotal,
+        limit: null, // null indicates unlimited usage
+        tier: user.tier
+      };
+    }
+    
+    // Set tier-specific limits
+    if (user.tier === 'pro') {
+      limit = null; // unlimited
+    } else if (user.tier === 'personal') {
+      limit = 5; // 5 per month
+    } else if (user.tier === 'instant') {
+      limit = 1; // 1-time use
+    } else {
+      limit = 2; // Free tier (2 per month)
+    }
+    
     return {
       used: usageLimit.monthlyTotal,
-      limit: user.tier === 'pro' ? Infinity : user.tier === 'personal' ? 10 : 2,
+      limit,
       tier: user.tier
     };
   }
