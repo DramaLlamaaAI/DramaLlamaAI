@@ -234,55 +234,113 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
       } 
       // For pro tier, enhance with quotes, context, and detailed analysis
       else if (tier === 'pro' || tier === 'instant') {
+        // Process each flag with more detailed, evidence-based analysis
         filteredAnalysis.redFlags = redFlags.map(flag => {
-          // Create a significantly enhanced flag with detailed information
-          let enhancedFlag = { 
+          // Create a base enhanced flag structure
+          const enhancedFlag = { 
             ...flag,
             participant: flag.participant || 'Both participants',
             examples: [] as {text: string, from: string}[],
-            impact: '', // Added impact analysis
-            progression: '', // Added progression analysis
-            recommendedAction: '', // Added specific recommendations
-            behavioralPattern: '', // Added related behavioral pattern
-            timelinePosition: '' // Added position in communication timeline
+            impact: '', // Will add impact analysis
+            progression: '', // Will add progression analysis
+            recommendedAction: '', // Will add specific recommendations
+            behavioralPattern: '', // Will add behavioral pattern analysis
+            timelinePosition: '' // Will add position in conversation
           };
           
-          // Generate detailed impact analysis based on flag type and severity
+          // Generate severity text based on flag's severity
           const severityLevels = ['minor concern', 'moderate concern', 'significant concern', 
                                  'serious concern', 'critical concern'];
           const severityIndex = Math.min(Math.floor(flag.severity / 2), 4);
           const severityText = severityLevels[severityIndex];
           
-          // Create detailed impact analysis based on actual examples from the conversation
-          // First, let's check if we have examples we can use to make the analysis more specific
-          let hasExamples = false;
-          let exampleText = '';
-          let exampleSpeaker = '';
+          // ---- FIRST: Find relevant quotes from the conversation for this flag ----
+          let relevantQuotes: any[] = [];
+          let primaryQuote = null;
           
-          // Look for examples in keyQuotes that might relate to this flag
           if (analysis.keyQuotes && analysis.keyQuotes.length > 0) {
-            // Find a quote that relates to this flag type
-            const relevantQuote = analysis.keyQuotes.find(quote => {
+            // Create specific keywords to identify quotes related to this flag type
+            const flagType = flag.type.toLowerCase();
+            const flagDesc = flag.description?.toLowerCase() || '';
+            
+            // Create keyword maps for different flag types
+            const keywordMap: Record<string, string[]> = {
+              'manipulation': ['manipulat', 'pressure', 'guilt', 'force', 'insist', 'demand'],
+              'gaslighting': ['reality', 'imagin', 'crazy', 'didn\'t happen', 'exaggerat', 'memory'],
+              'stonewalling': ['silence', 'avoid', 'ignore', 'shut down', 'withdraw', 'talk'],
+              'criticism': ['critic', 'always', 'never', 'wrong', 'fault', 'blame', 'accus'],
+              'contempt': ['disrespect', 'dismissive', 'superior', 'mock', 'sarcas', 'condescend'],
+              'defensiveness': ['defens', 'excuse', 'justify', 'not my fault', 'counter', 'blame'],
+              'love bombing': ['love', 'forever', 'perfect', 'soul mate', 'destiny', 'meant to be'],
+              'financial': ['money', 'loan', 'pay', 'fund', 'afford', 'help', 'invest', 'need'],
+              'urgency': ['urgent', 'emergency', 'immediate', 'right away', 'can\'t wait', 'hurry']
+            };
+            
+            // Find quotes related to this flag in analysis text
+            relevantQuotes = analysis.keyQuotes.filter(quote => {
               const quoteAnalysis = quote.analysis?.toLowerCase() || '';
-              const flagType = flag.type.toLowerCase();
               
-              return quoteAnalysis.includes(flagType) || 
-                (flagType.includes('manipulation') && quoteAnalysis.includes('manipulat')) ||
-                (flagType.includes('criticism') && quoteAnalysis.includes('critic')) ||
-                (flagType.includes('defensive') && quoteAnalysis.includes('defens')) ||
-                (flagType.includes('stonewalling') && quoteAnalysis.includes('avoid')) ||
-                (flagType.includes('contempt') && quoteAnalysis.includes('disrespect'));
+              // Direct match: quote analysis mentions flag type or description
+              if (quoteAnalysis.includes(flagType) || 
+                  flagDesc.split(' ').some(word => word.length > 4 && quoteAnalysis.includes(word))) {
+                return true;
+              }
+              
+              // Keyword match: quote analysis contains keywords associated with this flag type
+              for (const [flagKey, keywords] of Object.entries(keywordMap)) {
+                if (flagType.includes(flagKey)) {
+                  if (keywords.some(keyword => quoteAnalysis.includes(keyword))) {
+                    return true;
+                  }
+                }
+              }
+              
+              // Content match: the quote itself contains keywords associated with this flag type
+              const quoteText = quote.quote?.toLowerCase() || '';
+              for (const [flagKey, keywords] of Object.entries(keywordMap)) {
+                if (flagType.includes(flagKey)) {
+                  if (keywords.some(keyword => quoteText.includes(keyword))) {
+                    return true;
+                  }
+                }
+              }
+              
+              return false;
             });
             
-            if (relevantQuote) {
-              hasExamples = true;
-              exampleText = relevantQuote.quote;
-              exampleSpeaker = relevantQuote.speaker;
+            // If we found relevant quotes, use the first one as primary and add others as examples
+            if (relevantQuotes.length > 0) {
+              primaryQuote = relevantQuotes[0];
+              
+              // Add all relevant quotes to examples array
+              relevantQuotes.forEach(quote => {
+                enhancedFlag.examples.push({
+                  text: quote.quote,
+                  from: quote.speaker
+                });
+              });
+              
+              // Set timeline position based on primary quote position
+              const quoteIndex = analysis.keyQuotes.indexOf(primaryQuote);
+              const totalQuotes = analysis.keyQuotes.length;
+              
+              if (quoteIndex < totalQuotes / 3) {
+                enhancedFlag.timelinePosition = 'Early in conversation';
+              } else if (quoteIndex < 2 * totalQuotes / 3) {
+                enhancedFlag.timelinePosition = 'Mid-conversation';
+              } else {
+                enhancedFlag.timelinePosition = 'Late in conversation';
+              }
             }
           }
           
+          // Flag for whether we have concrete examples
+          const hasExamples = relevantQuotes.length > 0;
+          const primaryExample = hasExamples ? relevantQuotes[0].quote : '';
+          const primarySpeaker = hasExamples ? relevantQuotes[0].speaker : enhancedFlag.participant;
+          
           // If we have a specific example, use it to create a very specific impact analysis
-          if (hasExamples && exampleText) {
+          if (hasExamples && primaryExample) {
             // Create a context-specific impact statement that references the actual quote
             if (flag.type.toLowerCase().includes('manipulation')) {
               enhancedFlag.impact = `When ${exampleSpeaker} says "${exampleText}", it creates emotional pressure and confusion in the conversation. This is a ${severityText} that makes it difficult to maintain clear boundaries.`;
@@ -512,38 +570,118 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
             }
           }
           
-          // If we have key quotes, find all relevant quotes for this flag type
+          // Move this quote finding process earlier, before we try to create contextual analysis
+          // We need to find these examples first, so we can use them in our impact/behavioral analysis
+          
+          // First, find all relevant quotes for this flag type and create detailed examples
           if (analysis.keyQuotes && analysis.keyQuotes.length > 0) {
-            // Find primary relevant quote
-            const relevantQuote = analysis.keyQuotes.find(quote => {
-              const quoteAnalysis = quote.analysis?.toLowerCase() || '';
-              const flagType = flag.type.toLowerCase();
-              
-              return quoteAnalysis.includes(flagType) || 
-                (flagType.includes('manipulation') && quoteAnalysis.includes('manipulat')) ||
-                (flagType.includes('criticism') && quoteAnalysis.includes('critic')) ||
-                (flagType.includes('defensive') && quoteAnalysis.includes('defens')) ||
-                (flagType.includes('stonewalling') && quoteAnalysis.includes('avoid')) ||
-                (flagType.includes('contempt') && quoteAnalysis.includes('disrespect'));
-            });
+            // Define keywords based on flag type to use in multiple detection approaches
+            const keywordMap: Record<string, string[]> = {
+              'manipulation': ['manipulat', 'pressure', 'guilt', 'force', 'insist', 'demand'],
+              'gaslighting': ['reality', 'imagin', 'crazy', 'didn\'t happen', 'exaggerat', 'overreact', 'memory'],
+              'stonewalling': ['silence', 'avoid', 'ignore', 'shut down', 'withdraw', 'refuse', 'talk'],
+              'criticism': ['critic', 'always', 'never', 'wrong', 'fault', 'blame', 'accus', 'shame'],
+              'contempt': ['disrespect', 'dismissive', 'superior', 'eye roll', 'mock', 'sarcas', 'condescend'],
+              'defensiveness': ['defens', 'excuse', 'justify', 'not my fault', 'counter', 'blame', 'deny'],
+              'love bombing': ['love', 'forever', 'perfect', 'soul mate', 'destiny', 'meant to be', 'never felt'],
+              'financial': ['money', 'loan', 'pay', 'fund', 'afford', 'help', 'invest', 'need', 'urgent'],
+              'urgency': ['need now', 'urgent', 'emergency', 'immediate', 'right away', 'can\'t wait', 'hurry']
+            };
             
-            if (relevantQuote) {
-              enhancedFlag.quote = relevantQuote.quote;
-              enhancedFlag.participant = relevantQuote.speaker;
-              enhancedFlag.context = relevantQuote.analysis;
+            // Extract key words from the flag type and description
+            const flagType = flag.type.toLowerCase();
+            const flagDesc = flag.description?.toLowerCase() || '';
+            
+            // Match based on AI-generated keywords first, then add specific keyword matching
+            // This is a two-pass approach for maximum accuracy
+            
+            // ---- PASS 1: Match based on direct flag type & description in quote analysis ----
+            let primaryQuotes = analysis.keyQuotes.filter(quote => {
+              const quoteAnalysis = quote.analysis?.toLowerCase() || '';
               
-              // Expand context with more detailed analysis
-              if (enhancedFlag.context) {
-                enhancedFlag.context = `${enhancedFlag.context} This represents a clear example of ${flag.type.toLowerCase()} behavior, which undermines healthy communication.`;
+              // Direct matches for flag type and description
+              const directMatch = quoteAnalysis.includes(flagType) || 
+                flagDesc.split(' ').some(word => word.length > 4 && quoteAnalysis.includes(word));
+                
+              if (directMatch) return true;
+              
+              // Check for type-specific keywords in the quote analysis
+              // Find the relevant keyword list for this flag type
+              for (const [flagKey, keywords] of Object.entries(keywordMap)) {
+                if (flagType.includes(flagKey)) {
+                  // If any keyword is found in the quote analysis, it's relevant
+                  if (keywords.some(keyword => quoteAnalysis.includes(keyword))) {
+                    return true;
+                  }
+                }
               }
               
-              // Add to examples array
+              return false;
+            });
+            
+            // ---- PASS 2: If we don't have matches yet, do a direct check of message content ----
+            if (primaryQuotes.length === 0) {
+              primaryQuotes = analysis.keyQuotes.filter(quote => {
+                const quoteText = quote.quote?.toLowerCase() || '';
+                
+                // Check for type-specific keywords in the direct quote text
+                for (const [flagKey, keywords] of Object.entries(keywordMap)) {
+                  if (flagType.includes(flagKey)) {
+                    // If any keyword is found in the quote text, it's relevant
+                    if (keywords.some(keyword => quoteText.includes(keyword))) {
+                      return true;
+                    }
+                  }
+                }
+                
+                return false;
+              });
+            }
+            
+            // ---- PASS 3: If still no matches, use flag-specific criteria ----
+            if (primaryQuotes.length === 0) {
+              // Special case for love bombing: look for excessive affection/flattery
+              if (flagType.includes('love bomb') || flagDesc.includes('flattery')) {
+                primaryQuotes = analysis.keyQuotes.filter(quote => {
+                  const quoteText = quote.quote?.toLowerCase() || '';
+                  return quoteText.includes('love') || 
+                         quoteText.includes('beautiful') || 
+                         quoteText.includes('perfect') || 
+                         quoteText.includes('amazing') ||
+                         quoteText.includes('special');
+                });
+              }
+              // Special case for financial manipulation
+              else if (flagType.includes('financial') || flagType.includes('money')) {
+                primaryQuotes = analysis.keyQuotes.filter(quote => {
+                  const quoteText = quote.quote?.toLowerCase() || '';
+                  return quoteText.includes('money') || 
+                         quoteText.includes('pay') || 
+                         quoteText.includes('dollar') || 
+                         quoteText.includes('loan') ||
+                         quoteText.includes('help') ||
+                         quoteText.includes('need');
+                });
+              }
+            }
+            
+            // If we found relevant quotes, add them as examples
+            if (primaryQuotes.length > 0) {
+              // Take the first match as primary for detailed analysis
+              const relevantQuote = primaryQuotes[0];
+              
+              // Use this quote as the main example for our enhanced flag
+              enhancedFlag.quote = relevantQuote.quote;
+              enhancedFlag.participant = relevantQuote.speaker;
+              enhancedFlag.context = relevantQuote.analysis || `This message shows ${flag.type.toLowerCase()} behavior.`;
+              
+              // Add this to our examples array for consistency
               enhancedFlag.examples.push({
                 text: relevantQuote.quote,
                 from: relevantQuote.speaker
               });
               
-              // Set timeline position based on quote position in conversation
+              // Set the timeline position based on where this quote appears
               const quoteIndex = analysis.keyQuotes.indexOf(relevantQuote);
               const totalQuotes = analysis.keyQuotes.length;
               
@@ -554,36 +692,25 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
               } else {
                 enhancedFlag.timelinePosition = 'Late in conversation';
               }
-            }
-            
-            // Find additional supporting quotes (up to 3 more for Pro tier)
-            const additionalQuotes = analysis.keyQuotes
-              .filter(quote => {
-                // Skip the already used primary quote
-                if (relevantQuote && quote.quote === relevantQuote.quote) return false;
+              
+              // Add additional quotes as examples (up to 2 more for Pro tier)
+              const additionalQuotes = primaryQuotes
+                .filter(quote => quote.quote !== relevantQuote.quote)
+                .slice(0, 2);
                 
-                const quoteAnalysis = quote.analysis?.toLowerCase() || '';
-                const flagType = flag.type.toLowerCase();
-                const flagDesc = flag.description.toLowerCase();
-                
-                // More comprehensive matching to find relevant quotes
-                return quoteAnalysis.includes(flagType) || 
-                  flagDesc.split(' ').some(word => word.length > 4 && quoteAnalysis.includes(word)) ||
-                  (flagType.includes('manipulation') && quoteAnalysis.includes('manipulat')) ||
-                  (flagType.includes('criticism') && quoteAnalysis.includes('critic')) ||
-                  (flagType.includes('defensive') && quoteAnalysis.includes('defens')) ||
-                  (flagType.includes('stonewalling') && quoteAnalysis.includes('avoid')) ||
-                  (flagType.includes('contempt') && quoteAnalysis.includes('disrespect'));
-              })
-              .slice(0, 3); // Allow up to 3 additional quotes for Pro tier
-            
-            // Add additional quotes to examples array
-            additionalQuotes.forEach(quote => {
-              enhancedFlag.examples.push({
-                text: quote.quote,
-                from: quote.speaker
+              additionalQuotes.forEach(quote => {
+                enhancedFlag.examples.push({
+                  text: quote.quote,
+                  from: quote.speaker
+                });
               });
-            });
+              
+              // Set our state variables to indicate we found examples
+              // This will be used by the impact and behavioral pattern analysis later
+              hasExamples = true;
+              exampleText = relevantQuote.quote;
+              exampleSpeaker = relevantQuote.speaker;
+            }
           }
           
           return enhancedFlag;
