@@ -2,14 +2,10 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedAdminUser } from "./seed-admin";
-import { checkDevMode } from "./middleware/dev-mode-middleware";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Add developer mode middleware to check for cookies
-app.use(checkDevMode);
 
 app.use((req, res, next) => {
   const start = Date.now();

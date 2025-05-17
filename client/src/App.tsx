@@ -7,9 +7,6 @@ import { useState, useEffect } from "react";
 import DisclaimerModal from "./components/disclaimer-modal";
 import { hasAcceptedDisclaimer, saveDisclaimerAcceptance } from "./lib/utils";
 import { AuthProvider } from "@/hooks/use-auth";
-// DevModeToggle component removed as requested
-import { TierSwitcher } from "./components/tier-switcher";
-import DevModeFloating from "./components/developer/dev-mode-floating";
 import Home from "./pages/home";
 import NotFound from "@/pages/not-found";
 import SubscriptionPage from "@/pages/subscription";
@@ -69,8 +66,6 @@ function App() {
             <DisclaimerModal onAccept={handleAcceptDisclaimer} />
           )}
           <Router />
-          <DevModeFloating />
-          <TierSwitcher />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
