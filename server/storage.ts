@@ -370,6 +370,15 @@ export class MemStorage implements IStorage {
       throw new Error(`User with id ${userId} not found`);
     }
     
+    // Admin users always get unlimited usage regardless of tier
+    if (user.isAdmin) {
+      return {
+        used: 0,
+        limit: null, // null indicates unlimited usage
+        tier: user.tier
+      };
+    }
+    
     const usageLimit = this.usageLimits.get(userId);
     if (!usageLimit) {
       // Create a new usage limit record if it doesn't exist
@@ -381,9 +390,25 @@ export class MemStorage implements IStorage {
       };
       this.usageLimits.set(userId, newUsageLimit);
       
+      // Set limits based on tier:
+      // - Pro: unlimited (null)
+      // - Personal: 5 
+      // - Free: 2
+      // - Instant: 1
+      let limit: number | null;
+      if (user.tier === 'pro') {
+        limit = null; // unlimited
+      } else if (user.tier === 'personal') {
+        limit = 5; // 5 per month
+      } else if (user.tier === 'instant') {
+        limit = 1; // 1-time use
+      } else {
+        limit = 2; // Free tier (2 per month)
+      }
+      
       return {
         used: 0,
-        limit: user.tier === 'pro' ? Infinity : user.tier === 'personal' ? 10 : 2,
+        limit,
         tier: user.tier
       };
     }
