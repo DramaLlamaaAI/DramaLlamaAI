@@ -253,10 +253,65 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
           const severityIndex = Math.min(Math.floor(flag.severity / 2), 4);
           const severityText = severityLevels[severityIndex];
           
-          // Create detailed impact analysis
-          enhancedFlag.impact = `This represents a ${severityText} in the relationship dynamic. ` +
-            `The ${flag.type} behavior exhibited by ${enhancedFlag.participant} may lead to ` +
-            `increased tension and communication breakdown if not addressed.`;
+          // Create detailed impact analysis based on actual examples from the conversation
+          // First, let's check if we have examples we can use to make the analysis more specific
+          let hasExamples = false;
+          let exampleText = '';
+          let exampleSpeaker = '';
+          
+          // Look for examples in keyQuotes that might relate to this flag
+          if (analysis.keyQuotes && analysis.keyQuotes.length > 0) {
+            // Find a quote that relates to this flag type
+            const relevantQuote = analysis.keyQuotes.find(quote => {
+              const quoteAnalysis = quote.analysis?.toLowerCase() || '';
+              const flagType = flag.type.toLowerCase();
+              
+              return quoteAnalysis.includes(flagType) || 
+                (flagType.includes('manipulation') && quoteAnalysis.includes('manipulat')) ||
+                (flagType.includes('criticism') && quoteAnalysis.includes('critic')) ||
+                (flagType.includes('defensive') && quoteAnalysis.includes('defens')) ||
+                (flagType.includes('stonewalling') && quoteAnalysis.includes('avoid')) ||
+                (flagType.includes('contempt') && quoteAnalysis.includes('disrespect'));
+            });
+            
+            if (relevantQuote) {
+              hasExamples = true;
+              exampleText = relevantQuote.quote;
+              exampleSpeaker = relevantQuote.speaker;
+            }
+          }
+          
+          // If we have a specific example, use it to create a very specific impact analysis
+          if (hasExamples && exampleText) {
+            // Create a context-specific impact statement that references the actual quote
+            if (flag.type.toLowerCase().includes('manipulation')) {
+              enhancedFlag.impact = `When ${exampleSpeaker} says "${exampleText}", it creates emotional pressure and confusion in the conversation. This is a ${severityText} that makes it difficult to maintain clear boundaries.`;
+            }
+            else if (flag.type.toLowerCase().includes('gaslighting')) {
+              enhancedFlag.impact = `The statement "${exampleText}" from ${exampleSpeaker} makes you question your perception of events, creating self-doubt. This is a ${severityText} that damages trust.`;
+            }
+            else if (flag.type.toLowerCase().includes('stonewalling')) {
+              enhancedFlag.impact = `${exampleSpeaker}'s response "${exampleText}" prevents meaningful resolution of the issue at hand. This is a ${severityText} that leads to unresolved tensions.`;
+            }
+            else if (flag.type.toLowerCase().includes('criticism')) {
+              enhancedFlag.impact = `The criticism in "${exampleText}" from ${exampleSpeaker} creates defensiveness and makes constructive dialogue difficult. This is a ${severityText} that can erode self-esteem.`;
+            } 
+            else if (flag.type.toLowerCase().includes('contempt')) {
+              enhancedFlag.impact = `${exampleSpeaker}'s contemptuous tone in "${exampleText}" shows fundamental disrespect. This is a ${severityText} that can permanently damage relationship foundations.`;
+            }
+            else if (flag.type.toLowerCase().includes('defensiveness')) {
+              enhancedFlag.impact = `When ${exampleSpeaker} responds with "${exampleText}", it blocks productive conversation by deflecting concerns. This is a ${severityText} that prevents genuine understanding.`;
+            }
+            else {
+              // For any other flag type, still use the quote but with a more generic analysis
+              enhancedFlag.impact = `${exampleSpeaker}'s communication in "${exampleText}" illustrates ${flag.type.toLowerCase()} behavior. This is a ${severityText} that creates tension in the relationship dynamic.`;
+            }
+          } else {
+            // If we don't have specific examples, fall back to a more general but still contextual analysis
+            enhancedFlag.impact = `This represents a ${severityText} in the communication dynamic. ` +
+              `The ${flag.type} behavior exhibited by ${enhancedFlag.participant} creates tension and may lead to ` +
+              `miscommunication if not addressed directly.`;
+          }
           
           // Add progression analysis based on flag type with participant attribution
           const participant = enhancedFlag.participant;
@@ -297,84 +352,164 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
           
           // Add recommended action based on flag type with participant context
           
-          // Create personalized action recommendations with specific references
-          if (flag.type.toLowerCase().includes('manipulation')) {
-            enhancedFlag.recommendedAction = `When ${participant} uses manipulation tactics, establish clear boundaries and request direct communication without hidden agendas. Example response: "I need you to tell me directly what you want rather than trying to make me feel guilty."`;
-          }
-          else if (flag.type.toLowerCase().includes('gaslighting')) {
-            enhancedFlag.recommendedAction = `To address ${participant}'s gaslighting behavior, document incidents and seek validation from trusted sources about your perceptions. Consider saying: "I know what I experienced, and I'm not willing to question my reality."`;
-          }
-          else if (flag.type.toLowerCase().includes('stonewalling')) {
-            enhancedFlag.recommendedAction = `When ${participant} stonewalls, request time-outs with an agreement to revisit the topic later. Try: "I notice you're shutting down. Let's take 30 minutes to cool off and agree to continue this conversation afterward."`;
-          }
-          else if (flag.type.toLowerCase().includes('criticism')) {
-            enhancedFlag.recommendedAction = `Address ${participant}'s criticism by requesting specific behaviors rather than character judgments. Respond with: "I feel hurt when you criticize who I am instead of discussing specific actions that bother you."`;
-          }
-          else if (flag.type.toLowerCase().includes('contempt')) {
-            enhancedFlag.recommendedAction = `For ${participant}'s contemptuous behavior, address the underlying disrespect directly: "I notice there's a tone of disrespect in our conversations. We need to discuss how we can communicate with more respect."`;
-          }
-          else if (flag.type.toLowerCase().includes('defensiveness')) {
-            enhancedFlag.recommendedAction = `When ${participant} becomes defensive, acknowledge their perspective first: "I understand you may feel criticized. I'm trying to express my feelings, not attack you. Can we both practice listening without immediately defending?"`;
-          }
-          else if (flag.type.toLowerCase().includes('power imbalance')) {
-            enhancedFlag.recommendedAction = `To balance the power dynamic with ${participant}, establish equal conversation guidelines: "I notice one person often dominates our discussions. Can we agree that each of us gets equal time to share our thoughts without interruption?"`;
-          }
-          else if (flag.type.toLowerCase().includes('respect issues')) {
-            enhancedFlag.recommendedAction = `Address respect issues with ${participant} by explicitly discussing expectations: "I need us to agree on what respectful communication looks like. When you [specific behavior], it feels disrespectful to me."`;
-          }
-          else if (flag.type.toLowerCase().includes('emotional abuse')) {
-            enhancedFlag.recommendedAction = `${participant}'s emotionally abusive behavior requires firm boundaries and possibly professional help. Prioritize your emotional safety with statements like: "This type of communication is harmful, and I won't participate in it. I need us to get professional support."`;
-          }
-          
-          // If no specific recommendation was created, use a general one
-          if (!enhancedFlag.recommendedAction) {
-            enhancedFlag.recommendedAction = `Address this behavior from ${participant} directly in a calm moment, using specific examples and focusing on impact rather than intent.`;
-          }
-          
-          // If no match was found, use a generic recommendation
-          if (!enhancedFlag.recommendedAction) {
-            enhancedFlag.recommendedAction = 'Address this directly in a calm moment, using specific examples and focusing on impact rather than intent.';
+          // Create personalized action recommendations with specific references to the conversation
+          // If we have an example text from the conversation, use it to make the recommendation more specific
+          if (hasExamples && exampleText) {
+            let shortenedExample = exampleText;
+            // If the example is too long, truncate it for a cleaner recommendation
+            if (shortenedExample.length > 40) {
+              shortenedExample = shortenedExample.substring(0, 37) + '...';
+            }
+            
+            if (flag.type.toLowerCase().includes('manipulation')) {
+              enhancedFlag.recommendedAction = `When ${participant} uses manipulation tactics like "${shortenedExample}", establish clear boundaries by responding: "I need you to tell me directly what you want rather than creating emotional pressure."`;
+            }
+            else if (flag.type.toLowerCase().includes('gaslighting')) {
+              enhancedFlag.recommendedAction = `When ${participant} says things like "${shortenedExample}" that make you question your reality, validate your experience: "I know what I experienced, and I'm confident in my perception of events."`;
+            }
+            else if (flag.type.toLowerCase().includes('stonewalling')) {
+              enhancedFlag.recommendedAction = `When ${participant} responds with "${shortenedExample}", acknowledge the withdrawal: "I notice you're shutting down. Let's take a short break and come back to this conversation when we're both ready to engage."`;
+            }
+            else if (flag.type.toLowerCase().includes('criticism')) {
+              enhancedFlag.recommendedAction = `When ${participant} criticizes with statements like "${shortenedExample}", request specific feedback: "I feel hurt by that characterization. Could you focus on specific behaviors that concern you rather than generalizing?"`;
+            }
+            else if (flag.type.toLowerCase().includes('contempt')) {
+              enhancedFlag.recommendedAction = `When ${participant} shows contempt through comments like "${shortenedExample}", address the disrespect: "I find that tone disrespectful. I'd like us to communicate with mutual respect even when we disagree."`;
+            }
+            else if (flag.type.toLowerCase().includes('defensiveness')) {
+              enhancedFlag.recommendedAction = `When ${participant} becomes defensive with "${shortenedExample}", try validating their feelings first: "I can see this feels challenging. I'm trying to share my perspective, not attack you. Can we approach this as a team?"`;
+            }
+            else if (flag.type.toLowerCase().includes('power imbalance')) {
+              enhancedFlag.recommendedAction = `When ${participant} dominates with comments like "${shortenedExample}", establish balance: "I'd like to make sure we both have equal opportunity to express ourselves. Let's take turns sharing our thoughts fully."`;
+            }
+            else if (flag.type.toLowerCase().includes('respect issues')) {
+              enhancedFlag.recommendedAction = `When ${participant} communicates disrespectfully with "${shortenedExample}", set expectations: "I need us to communicate with mutual respect. That comment felt disrespectful to me."`;
+            }
+            else if (flag.type.toLowerCase().includes('emotional abuse')) {
+              enhancedFlag.recommendedAction = `When ${participant} says harmful things like "${shortenedExample}", set firm boundaries: "That type of communication is hurtful. I need us to find healthier ways to discuss our concerns or take a break."`;
+            }
+            else if (flag.type.toLowerCase().includes('love bombing')) {
+              enhancedFlag.recommendedAction = `When ${participant} uses excessive flattery like "${shortenedExample}", slow things down: "I appreciate your enthusiasm, but I prefer to build connection gradually as we get to know each other better."`;
+            }
+            else if (flag.type.toLowerCase().includes('financial')) {
+              enhancedFlag.recommendedAction = `When ${participant} brings up money with "${shortenedExample}", maintain clear boundaries: "I'm not comfortable discussing financial assistance at this stage of our relationship."`;
+            }
+            else {
+              // For other flag types, still reference the specific example
+              enhancedFlag.recommendedAction = `When ${participant} communicates with "${shortenedExample}", address the concern directly: "I notice a pattern that makes me uncomfortable. Can we discuss how to communicate more constructively about this topic?"`;
+            }
+          } else {
+            // If we don't have specific examples, use more general but still tailored recommendations
+            if (flag.type.toLowerCase().includes('manipulation')) {
+              enhancedFlag.recommendedAction = `When ${participant} uses manipulation tactics, establish clear boundaries and request direct communication without hidden agendas. Example response: "I need you to tell me directly what you want rather than trying to make me feel guilty."`;
+            }
+            else if (flag.type.toLowerCase().includes('gaslighting')) {
+              enhancedFlag.recommendedAction = `To address ${participant}'s gaslighting behavior, document incidents and seek validation from trusted sources about your perceptions. Consider saying: "I know what I experienced, and I'm not willing to question my reality."`;
+            }
+            else if (flag.type.toLowerCase().includes('stonewalling')) {
+              enhancedFlag.recommendedAction = `When ${participant} stonewalls, request time-outs with an agreement to revisit the topic later. Try: "I notice you're shutting down. Let's take 30 minutes to cool off and agree to continue this conversation afterward."`;
+            }
+            else if (flag.type.toLowerCase().includes('criticism')) {
+              enhancedFlag.recommendedAction = `Address ${participant}'s criticism by requesting specific behaviors rather than character judgments. Respond with: "I feel hurt when you criticize who I am instead of discussing specific actions that bother you."`;
+            }
+            else if (flag.type.toLowerCase().includes('contempt')) {
+              enhancedFlag.recommendedAction = `For ${participant}'s contemptuous behavior, address the underlying disrespect directly: "I notice there's a tone of disrespect in our conversations. We need to discuss how we can communicate with more respect."`;
+            }
+            else if (flag.type.toLowerCase().includes('defensiveness')) {
+              enhancedFlag.recommendedAction = `When ${participant} becomes defensive, acknowledge their perspective first: "I understand you may feel criticized. I'm trying to express my feelings, not attack you. Can we both practice listening without immediately defending?"`;
+            }
+            else if (flag.type.toLowerCase().includes('power imbalance')) {
+              enhancedFlag.recommendedAction = `To balance the power dynamic with ${participant}, establish equal conversation guidelines: "I notice one person often dominates our discussions. Can we agree that each of us gets equal time to share our thoughts without interruption?"`;
+            }
+            else if (flag.type.toLowerCase().includes('respect issues')) {
+              enhancedFlag.recommendedAction = `Address respect issues with ${participant} by explicitly discussing expectations: "I need us to agree on what respectful communication looks like. When you [specific behavior], it feels disrespectful to me."`;
+            }
+            else if (flag.type.toLowerCase().includes('emotional abuse')) {
+              enhancedFlag.recommendedAction = `${participant}'s emotionally abusive behavior requires firm boundaries and possibly professional help. Prioritize your emotional safety with statements like: "This type of communication is harmful, and I won't participate in it. I need us to get professional support."`;
+            }
+            else {
+              // For any other flag type
+              enhancedFlag.recommendedAction = `Address this behavior from ${participant} directly in a calm moment, using specific examples and focusing on impact rather than intent.`;
+            }
           }
           
           // Add behavioral pattern analysis with specific attribution and context
           
-          // Create detailed behavioral pattern analysis with participant names
-          if (flag.type.toLowerCase().includes('manipulation')) {
-            enhancedFlag.behavioralPattern = `${participant}'s manipulation is part of a control-seeking behavioral pattern that likely appears in other contexts beyond this conversation. When feeling insecure or threatened, ${participant} may use emotional leverage to maintain control.`;
-          }
-          else if (flag.type.toLowerCase().includes('gaslighting')) {
-            enhancedFlag.behavioralPattern = `${participant}'s gaslighting connects to a deeper need to maintain control by destabilizing your perception of reality. This pattern often emerges when ${participant} feels challenged or when accountability is requested.`;
-          }
-          else if (flag.type.toLowerCase().includes('stonewalling')) {
-            enhancedFlag.behavioralPattern = `${participant}'s stonewalling reflects established avoidance patterns that likely stem from anxiety, overwhelm, or conflict aversion. This is a protective mechanism ${participant} uses when feeling emotionally flooded.`;
-          }
-          else if (flag.type.toLowerCase().includes('criticism')) {
-            enhancedFlag.behavioralPattern = `${participant}'s critical approach often indicates perfectionist tendencies or unmet expectations. This pattern suggests ${participant} may struggle with direct requests and instead expresses needs through criticism.`;
-          }
-          else if (flag.type.toLowerCase().includes('contempt')) {
-            enhancedFlag.behavioralPattern = `The contempt shown by ${participant} suggests deep-seated resentment that has built up over time. This is among the most destructive patterns and indicates ${participant} may be viewing you with a sense of superiority.`;
-          }
-          else if (flag.type.toLowerCase().includes('defensiveness')) {
-            enhancedFlag.behavioralPattern = `${participant}'s defensiveness is part of established self-protection strategies that avoid vulnerability. When ${participant} feels criticized, this pattern activates automatically as a shield against perceived attacks.`;
-          }
-          else if (flag.type.toLowerCase().includes('power imbalance')) {
-            enhancedFlag.behavioralPattern = `This power dynamic favoring ${participant} reflects established roles that likely exist throughout your relationship. The conversation shows how ${participant} maintains control through subtle dominance tactics.`;
-          }
-          else if (flag.type.toLowerCase().includes('respect issues')) {
-            enhancedFlag.behavioralPattern = `${participant}'s respect issues indicate underlying beliefs about relationship hierarchy. This pattern suggests ${participant} may not view the relationship as one between equals.`;
-          }
-          else if (flag.type.toLowerCase().includes('emotional abuse')) {
-            enhancedFlag.behavioralPattern = `${participant}'s emotionally abusive behavior is part of a larger pattern of control and domination. This is not isolated and suggests a concerning pattern that may escalate if not addressed directly.`;
-          }
+          // Create detailed behavioral pattern analysis with participant names and examples from the conversation
           
-          // If no match was found, use a generic pattern with participant attribution
-          if (!enhancedFlag.behavioralPattern) {
-            enhancedFlag.behavioralPattern = `${participant}'s behavior appears to be part of a recurring pattern that may manifest in multiple contexts within your relationship. This is likely not an isolated incident.`;
-          }
-          
-          // If no match was found, use a generic pattern description
-          if (!enhancedFlag.behavioralPattern) {
-            enhancedFlag.behavioralPattern = 'This behavior often appears in multiple contexts and may be a recurring pattern.';
+          // If we already have example text from earlier processing, use it for contextual analysis
+          if (hasExamples && exampleText) {
+            // Create specific behavioral pattern analysis using actual conversation examples
+            if (flag.type.toLowerCase().includes('manipulation')) {
+              enhancedFlag.behavioralPattern = `When ${participant} says "${exampleText}", it creates emotional pressure to influence your choices. This manipulation suggests a pattern of using subtle tactics rather than direct requests to get what ${participant} wants.`;
+            }
+            else if (flag.type.toLowerCase().includes('gaslighting')) {
+              enhancedFlag.behavioralPattern = `${participant}'s statement "${exampleText}" makes you question your own perceptions. This reality-distorting pattern reflects a tendency to avoid accountability by making you doubt your judgment.`;
+            }
+            else if (flag.type.toLowerCase().includes('stonewalling')) {
+              enhancedFlag.behavioralPattern = `When ${participant} responds with "${exampleText}", it shuts down meaningful conversation. This avoidance pattern likely emerges whenever difficult topics arise, preventing resolution of issues.`;
+            }
+            else if (flag.type.toLowerCase().includes('criticism')) {
+              enhancedFlag.behavioralPattern = `The criticism in "${exampleText}" from ${participant} attacks character rather than addressing specific behaviors. This pattern suggests a tendency to express dissatisfaction through blame rather than constructive feedback.`;
+            }
+            else if (flag.type.toLowerCase().includes('contempt')) {
+              enhancedFlag.behavioralPattern = `${participant}'s contemptuous tone in "${exampleText}" shows fundamental disrespect. This destructive pattern indicates an underlying negative view of you that influences how ${participant} responds to disagreements.`;
+            }
+            else if (flag.type.toLowerCase().includes('defensiveness')) {
+              enhancedFlag.behavioralPattern = `${participant}'s defensive response "${exampleText}" deflects responsibility. This self-protection pattern emerges when ${participant} feels criticized, blocking productive dialogue about concerns.`;
+            }
+            else if (flag.type.toLowerCase().includes('power imbalance')) {
+              enhancedFlag.behavioralPattern = `The power dynamic shown in "${exampleText}" reveals how ${participant} maintains control in conversations. This pattern suggests an established role distribution that may exist throughout your interactions.`;
+            }
+            else if (flag.type.toLowerCase().includes('respect issues')) {
+              enhancedFlag.behavioralPattern = `${participant}'s disrespectful communication in "${exampleText}" indicates an underlying issue with how ${participant} views your relationship. This suggests a pattern of unequal regard that affects multiple interactions.`;
+            }
+            else if (flag.type.toLowerCase().includes('emotional abuse')) {
+              enhancedFlag.behavioralPattern = `${participant}'s emotionally harmful statement "${exampleText}" is concerning. This abusive pattern can cause lasting psychological impact and may escalate if not addressed directly.`;
+            }
+            else if (flag.type.toLowerCase().includes('love bombing')) {
+              enhancedFlag.behavioralPattern = `${participant}'s excessive flattery in "${exampleText}" artificially accelerates intimacy. This pattern often occurs early in relationships to create quick emotional bonds before showing less positive behavior.`;
+            }
+            else if (flag.type.toLowerCase().includes('financial')) {
+              enhancedFlag.behavioralPattern = `${participant}'s focus on money in "${exampleText}" establishes a concerning dynamic. This pattern can create financial dependence or obligation that complicates the relationship.`;
+            }
+            else {
+              // For any other flag type with an example
+              enhancedFlag.behavioralPattern = `${participant}'s communication pattern shown in "${exampleText}" reflects a potentially problematic dynamic in your interaction. This behavior likely influences other aspects of your relationship as well.`;
+            }
+          } else {
+            // If we don't have specific examples to reference, use these more general patterns
+            if (flag.type.toLowerCase().includes('manipulation')) {
+              enhancedFlag.behavioralPattern = `${participant}'s manipulation is part of a control-seeking behavioral pattern that likely appears in other contexts beyond this conversation. When feeling insecure or threatened, ${participant} may use emotional leverage to maintain control.`;
+            }
+            else if (flag.type.toLowerCase().includes('gaslighting')) {
+              enhancedFlag.behavioralPattern = `${participant}'s gaslighting connects to a deeper need to maintain control by destabilizing your perception of reality. This pattern often emerges when ${participant} feels challenged or when accountability is requested.`;
+            }
+            else if (flag.type.toLowerCase().includes('stonewalling')) {
+              enhancedFlag.behavioralPattern = `${participant}'s stonewalling reflects established avoidance patterns that likely stem from anxiety, overwhelm, or conflict aversion. This is a protective mechanism ${participant} uses when feeling emotionally flooded.`;
+            }
+            else if (flag.type.toLowerCase().includes('criticism')) {
+              enhancedFlag.behavioralPattern = `${participant}'s critical approach often indicates perfectionist tendencies or unmet expectations. This pattern suggests ${participant} may struggle with direct requests and instead expresses needs through criticism.`;
+            }
+            else if (flag.type.toLowerCase().includes('contempt')) {
+              enhancedFlag.behavioralPattern = `The contempt shown by ${participant} suggests deep-seated resentment that has built up over time. This is among the most destructive patterns and indicates ${participant} may be viewing you with a sense of superiority.`;
+            }
+            else if (flag.type.toLowerCase().includes('defensiveness')) {
+              enhancedFlag.behavioralPattern = `${participant}'s defensiveness is part of established self-protection strategies that avoid vulnerability. When ${participant} feels criticized, this pattern activates automatically as a shield against perceived attacks.`;
+            }
+            else if (flag.type.toLowerCase().includes('power imbalance')) {
+              enhancedFlag.behavioralPattern = `This power dynamic favoring ${participant} reflects established roles that likely exist throughout your relationship. The conversation shows how ${participant} maintains control through subtle dominance tactics.`;
+            }
+            else if (flag.type.toLowerCase().includes('respect issues')) {
+              enhancedFlag.behavioralPattern = `${participant}'s respect issues indicate underlying beliefs about relationship hierarchy. This pattern suggests ${participant} may not view the relationship as one between equals.`;
+            }
+            else if (flag.type.toLowerCase().includes('emotional abuse')) {
+              enhancedFlag.behavioralPattern = `${participant}'s emotionally abusive behavior is part of a larger pattern of control and domination. This is not isolated and suggests a concerning pattern that may escalate if not addressed directly.`;
+            }
+            else {
+              // For any other flag type without specific examples
+              enhancedFlag.behavioralPattern = `${participant}'s behavior suggests a pattern that may appear in multiple contexts within your relationship. The specific nature of the communication indicates it's likely not an isolated incident.`;
+            }
           }
           
           // If we have key quotes, find all relevant quotes for this flag type
