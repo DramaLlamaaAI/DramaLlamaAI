@@ -17,14 +17,10 @@ export async function apiRequest(
   // Get device ID for anonymous user tracking
   const deviceId = getDeviceId();
   
-  // Add dev mode headers if enabled
-  const devMode = isDevModeEnabled();
-  
   // Combine default headers with device ID and custom headers if provided
   const defaultHeaders: HeadersInit = {
     ...(data ? { "Content-Type": "application/json" } : {}),
-    "X-Device-ID": deviceId,
-    ...(devMode ? { "X-Dev-Mode": "true" } : {})
+    "X-Device-ID": deviceId
   };
   
   const headers = options?.headers 
@@ -56,14 +52,10 @@ export const getQueryFn: <T>(options: {
     // Get device ID for anonymous user tracking
     const deviceId = getDeviceId();
     
-    // Add dev mode headers if enabled
-    const devMode = isDevModeEnabled();
-    
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
       headers: {
-        "X-Device-ID": deviceId,
-        ...(devMode ? { "X-Dev-Mode": "true" } : {})
+        "X-Device-ID": deviceId
       }
     });
 

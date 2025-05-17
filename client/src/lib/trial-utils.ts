@@ -71,3 +71,11 @@ export function incrementAnalysisCount(): void {
  * Define tier types for consistency
  */
 export type Tier = 'free' | 'personal' | 'pro' | 'instant';
+
+/**
+ * Developer mode has been removed.
+ * This function is maintained for compatibility but always returns false.
+ */
+export function isDevModeEnabled(): boolean {
+  return false;
+}
