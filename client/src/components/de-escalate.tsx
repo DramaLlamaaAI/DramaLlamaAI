@@ -219,25 +219,7 @@ export default function VentMode() {
                 {result.explanation}
               </p>
               
-              <div className="mt-6 flex justify-end">
-                <Button
-                  onClick={exportToPdf}
-                  disabled={isExporting}
-                  className="mr-2"
-                  variant="outline"
-                  size="sm"
-                >
-                  {isExporting ? 'Exporting...' : 'Export as PDF'}
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={exportAsImage}
-                  disabled={isExporting}
-                  size="sm"
-                >
-                  {isExporting ? 'Exporting...' : 'Export as Image'}
-                </Button>
-              </div>
+              {/* Export buttons removed */}
             </div>
           )}
           
