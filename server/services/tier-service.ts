@@ -340,7 +340,11 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
           const primarySpeaker = hasExamples ? relevantQuotes[0].speaker : enhancedFlag.participant;
           
           // If we have a specific example, use it to create a very specific impact analysis
-          if (hasExamples && primaryExample) {
+          if (hasExamples && primaryExample && relevantQuotes && relevantQuotes.length > 0) {
+            // Set speaker and text variables from the example
+            const exampleSpeaker = relevantQuotes[0].speaker;
+            const exampleText = relevantQuotes[0].quote;
+            
             // Create a context-specific impact statement that references the actual quote
             if (flag.type.toLowerCase().includes('manipulation')) {
               enhancedFlag.impact = `When ${exampleSpeaker} says "${exampleText}", it creates emotional pressure and confusion in the conversation. This is a ${severityText} that makes it difficult to maintain clear boundaries.`;

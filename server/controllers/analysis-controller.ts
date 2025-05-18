@@ -4,7 +4,7 @@ import { TIER_LIMITS } from '@shared/schema';
 import { filterChatAnalysisByTier, filterMessageAnalysisByTier, filterDeEscalateResultByTier } from '../services/tier-service';
 import { storage } from '../storage';
 import { extractRedFlagsCount } from '../services/anthropic-helpers';
-import { enhanceAnalysisWithQuotes } from '../services/analysis-enhancer';
+import { enhanceRedFlags } from '../services/red-flag-enhancer';
 import { enhanceWithEvasionDetection } from '../services/evasion-detection';
 import { enhanceWithConflictDynamics } from '../services/conflict-dynamics';
 
@@ -214,16 +214,9 @@ export const analysisController = {
           console.log(`Added ${tier} tier evasion detection`);
         }
         
-        // For Pro tier, enhance red flags with conversation-specific insights
-        if (tier === 'pro' || tier === 'instant') {
-          // Pass the entire conversation text to help with context-specific analysis
-          const conversationText = req.body.text || '';
-          
-          // Apply enhanced red flag detection with conversation-specific insights
-          filteredResults = enhanceAnalysisWithQuotes(filteredResults);
-          
-          console.log('Enhanced Pro tier analysis with conversation-specific red flag insights');
-        }
+        // Enhance red flags with conversation-specific insights based on tier
+        filteredResults = enhanceRedFlags(filteredResults, tier);
+        console.log(`Enhanced ${tier} tier red flag detection`);
         
         // For free tier, add red flag types from personal analysis
         if (tier === 'free') {
