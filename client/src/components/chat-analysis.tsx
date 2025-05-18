@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap, Archive, FileText } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap, Archive, FileText, Home } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse, OcrRequest } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
@@ -311,6 +312,16 @@ export default function ChatAnalysis() {
 
   return (
     <section className="container max-w-5xl py-8">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Chat Analysis</h2>
+        <Link href="/">
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Home className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
+      
       <Card className="mb-6">
         <CardContent className="p-6">
           {errorMessage && (
