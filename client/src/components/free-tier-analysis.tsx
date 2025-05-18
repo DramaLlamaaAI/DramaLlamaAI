@@ -656,11 +656,24 @@ export default function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisP
               </div>
             </div>
             
-            {/* Score display */}
+            {/* Score display with descriptors */}
             <div className="text-center">
               <div className="text-2xl font-bold mb-1">
                 {result.healthScore ? result.healthScore.score : 50}<span className="text-sm font-normal text-gray-500">/100</span>
+                {/* Health score emoji indicator */}
+                <span className="ml-2">
+                  {result.healthScore && result.healthScore.score <= 25 ? '🔴' : 
+                   result.healthScore && result.healthScore.score <= 60 ? '🟠' : 
+                   result.healthScore && result.healthScore.score <= 85 ? '🟡' : '🟢'}
+                </span>
+                {/* Health score text label */}
+                <span className="ml-2 text-sm font-semibold">
+                  {result.healthScore && result.healthScore.score <= 25 ? 'Unhealthy / High Conflict' : 
+                   result.healthScore && result.healthScore.score <= 60 ? 'Moderate Tension / Needs Work' : 
+                   result.healthScore && result.healthScore.score <= 85 ? 'Healthy / Low Conflict' : 'Very Healthy'}
+                </span>
               </div>
+              <p className="text-xs text-gray-500 mt-1">Relationship Health Score measures communication health from 0 (toxic) to 100 (very healthy)</p>
               <p className="text-sm mt-2 text-gray-700">
                 {result.healthScore && result.healthScore.score >= 80 ? 'Healthy communication with mutual respect.' :
                   result.healthScore && result.healthScore.score >= 60 ? 'Generally positive with some areas for improvement.' :
