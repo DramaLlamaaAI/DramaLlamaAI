@@ -753,10 +753,10 @@ export default function ChatAnalysis() {
                     {result.healthScore ? (
                       <div className="space-y-4">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-red-500">Conflict</span>
-                          <span className="font-medium text-yellow-500">Neutral</span>
-                          <span className="font-medium text-green-500">Healthy</span>
-                          <span className="font-medium text-green-700">Very Healthy</span>
+                          <span className="font-medium text-red-500">Unhealthy 🔴<br/>(0-25)</span>
+                          <span className="font-medium text-orange-500">Moderate Tension 🟠<br/>(26-60)</span>
+                          <span className="font-medium text-yellow-500">Healthy 🟡<br/>(61-85)</span>
+                          <span className="font-medium text-green-600">Very Healthy 🟢<br/>(86-100)</span>
                         </div>
                         
                         <div className="h-3 bg-gray-100 rounded-full relative">

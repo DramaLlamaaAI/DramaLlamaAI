@@ -37,12 +37,12 @@ export default function HealthScoreDisplay({ healthScore, me, them, tier }: Heal
   // Prepare the content based on the conversation type
   let cardContent;
   
-  // For toxic conversations, show a health score in the "conflict" range
+  // For toxic conversations, show a health score in the "unhealthy" range
   if (isToxicConversation) {
     cardContent = (
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-3">
-          <h4 className="text-base font-medium text-red-600">Conflict Pattern Detected</h4>
+          <h4 className="text-base font-medium text-red-600">Unhealthy Pattern Detected 🔴</h4>
           <div className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
             Needs Attention
           </div>
