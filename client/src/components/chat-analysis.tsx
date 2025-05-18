@@ -189,15 +189,15 @@ export default function ChatAnalysis() {
         description: `${file.name} has been loaded successfully.`,
       });
       
-      // Set the conversation text first
-      setConversation(text);
+      // Set the conversation text, but avoid redundant state updates
+      // as we already called setConversation earlier in the function
       
       // If we have text content, try to auto-detect names
       if (text && text.trim().length > 0 && !me && !them) {
-        // Call the name detection after a short delay to ensure state is updated
+        // Call the name detection after a longer delay to ensure state is fully updated
         setTimeout(() => {
           detectNamesMutation.mutate(text);
-        }, 10);
+        }, 300);
       }
     } catch (error) {
       console.error("File upload error:", error);
