@@ -28,49 +28,69 @@ function filterInvalidRedFlags(redFlags: any[], conversation: string): any[] {
     allMessages.push({speaker: speakerName, text: messageText});
   });
   
+  // Group messages by participant
+  const messagesByParticipant: { [key: string]: {speaker: string, text: string}[] } = {};
+  allMessages.forEach(msg => {
+    if (!messagesByParticipant[msg.speaker]) {
+      messagesByParticipant[msg.speaker] = [];
+    }
+    messagesByParticipant[msg.speaker].push(msg);
+  });
+  
   return redFlags.filter(flag => {
     // Skip filtering non-stonewalling flags
-    if (flag.type !== 'Stonewalling' && 
-        flag.type !== 'Emotional Withdrawal' && 
-        !flag.description?.toLowerCase().includes('stonewalling')) {
+    if (!flag.type?.toLowerCase().includes('stonewalling') && 
+        !flag.description?.toLowerCase().includes('stonewalling') &&
+        !flag.type?.toLowerCase().includes('withdrawal') && 
+        !flag.description?.toLowerCase().includes('withdrawal')) {
       return true;
     }
     
-    // Get the participant who is supposedly stonewalling
+    // Get the participant who's supposedly stonewalling
     const participant = flag.participant || flag.speaker;
-    if (!participant) return true; // If no participant identified, keep the flag
+    if (!participant) return true;
     
-    // Check if the participant continues to respond
-    let foundParticipant = false;
-    let continuesResponding = false;
+    // BLOCKER #1: Is the participant still responding?
+    const participantMessages = messagesByParticipant[participant] || [];
+    if (participantMessages.length >= 3) {
+      // If they have 3+ messages, they're clearly not stonewalling
+      console.log(`BLOCKER #1: Filtering stonewalling flag for ${participant} who has ${participantMessages.length} messages in the conversation`);
+      return false;
+    }
     
-    for (let i = 0; i < allMessages.length; i++) {
-      const message = allMessages[i];
+    // BLOCKER #2: Is the participant explaining or justifying?
+    const hasExplanatoryContent = participantMessages.some(msg => 
+      msg.text.match(/(that's not what|i didn't mean|i just want to|let me explain|i'm trying to|what i meant|all i said|i was just|i'm just|i've been|i need you to|i want you to)/i)
+    );
+    if (hasExplanatoryContent) {
+      console.log(`BLOCKER #2: Filtering stonewalling flag for ${participant} who is explaining or justifying`);
+      return false;
+    }
+    
+    // BLOCKER #3: Does the conversation end with questions or openness?
+    if (participantMessages.length > 0) {
+      const lastMessage = participantMessages[participantMessages.length - 1];
+      const endsWithQuestion = lastMessage.text.includes('?');
+      const showsOpenness = lastMessage.text.match(/(we can talk|let's discuss|i'm listening|tell me more|i hear you|i understand|maybe you're right|i see your point|can we|should we|could we)/i);
       
-      // If we found a matching message from this participant
-      if (message.speaker === participant) {
-        foundParticipant = true;
-        
-        // Check if the participant's message could be perceived as stonewalling
-        const isPotentialStonewalling = message.text.match(/(not talking|done talking|whatever\.|forget it\.|not discussing this|silent treatment|end of discussion|not having this conversation|walk away|leaving now)/i);
-
-        if (isPotentialStonewalling) {
-          // Check if there are more messages from this person after this one
-          continuesResponding = allMessages.slice(i + 1).some(msg => msg.speaker === participant);
-          
-          if (continuesResponding) {
-            console.log(`Filtering stonewalling flag for ${participant} who says "${message.text}" but continues responding`);
-            return false; // Filter out this flag
-          }
-        }
+      if (endsWithQuestion || showsOpenness) {
+        console.log(`BLOCKER #3: Filtering stonewalling flag for ${participant} whose last message shows openness`);
+        return false;
       }
     }
     
-    // If the participant speaks multiple times, they're probably not stonewalling
-    const messageCount = allMessages.filter(msg => msg.speaker === participant).length;
-    if (messageCount >= 3) {
-      console.log(`Filtering stonewalling flag for ${participant} who speaks ${messageCount} times in the conversation`);
-      return false;
+    // Check if there's a clear conversation-ending message
+    let foundTerminalMessage = false;
+    
+    if (participantMessages.length > 0) {
+      const lastMessage = participantMessages[participantMessages.length - 1];
+      // Only count as stonewalling if there's a clear "end conversation" message
+      foundTerminalMessage = Boolean(lastMessage.text.match(/(not talking|done talking|whatever\.|forget it\.|not discussing this|silent treatment|end of discussion|not having this conversation|walk away|leaving now)/i));
+      
+      if (!foundTerminalMessage) {
+        console.log(`Filtering stonewalling flag for ${participant} who doesn't have any conversation-ending messages`);
+        return false;
+      }
     }
     
     return true;

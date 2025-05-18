@@ -4,6 +4,86 @@ import { TIER_LIMITS, ChatAnalysisResult, MessageAnalysisResult, DeEscalateResul
  * Filter chat analysis results based on user's tier
  * This ensures users only see features available in their subscription tier
  */
+/**
+ * Filter out stonewalling red flags based on conversation context
+ * Using strict explicit blockers to prevent false positives
+ */
+function filterStonewalling(redFlags: any[], conversation?: string): any[] {
+  if (!redFlags || redFlags.length === 0) return redFlags;
+  if (!conversation) return redFlags;
+  
+  // Extract all messages for context analysis
+  const lines = conversation.split('\n');
+  const allMessages: {speaker: string, text: string}[] = [];
+  
+  lines.forEach(line => {
+    if (!line.includes(':')) return;
+    
+    const [speaker, message] = line.split(':', 2);
+    if (!speaker || !message) return;
+    
+    const speakerName = speaker.trim();
+    const messageText = message.trim();
+    
+    allMessages.push({speaker: speakerName, text: messageText});
+  });
+  
+  // Group messages by participant
+  const messagesByParticipant: { [key: string]: {speaker: string, text: string}[] } = {};
+  allMessages.forEach(msg => {
+    if (!messagesByParticipant[msg.speaker]) {
+      messagesByParticipant[msg.speaker] = [];
+    }
+    messagesByParticipant[msg.speaker].push(msg);
+  });
+  
+  // Filter out inaccurate stonewalling flags
+  return redFlags.filter(flag => {
+    // Skip filtering non-stonewalling flags
+    if (!flag.type?.toLowerCase().includes('stonewalling') && 
+        !flag.description?.toLowerCase().includes('stonewalling') &&
+        !flag.type?.toLowerCase().includes('withdrawal') && 
+        !flag.description?.toLowerCase().includes('withdrawal')) {
+      return true;
+    }
+    
+    // Get the participant who's supposedly stonewalling
+    const participant = flag.participant || flag.speaker;
+    if (!participant) return true;
+    
+    // Check BLOCKER #1: Is the participant still responding?
+    const participantMessages = messagesByParticipant[participant] || [];
+    if (participantMessages.length >= 3) {
+      // If they have 3+ messages, they're clearly not stonewalling
+      console.log(`BLOCKER #1: Filtering stonewalling flag for ${participant} who has ${participantMessages.length} messages in the conversation`);
+      return false;
+    }
+    
+    // Check BLOCKER #2: Is the participant explaining or justifying?
+    const hasExplanatoryContent = participantMessages.some(msg => 
+      msg.text.match(/(that's not what|i didn't mean|i just want to|let me explain|i'm trying to|what i meant|all i said)/i)
+    );
+    if (hasExplanatoryContent) {
+      console.log(`BLOCKER #2: Filtering stonewalling flag for ${participant} who is explaining or justifying`);
+      return false;
+    }
+    
+    // Check BLOCKER #3: Does the conversation end with questions or openness?
+    if (participantMessages.length > 0) {
+      const lastMessage = participantMessages[participantMessages.length - 1];
+      const endsWithQuestion = lastMessage.text.includes('?');
+      const showsOpenness = lastMessage.text.match(/(we can talk|let's discuss|i'm listening|tell me more|i hear you|i understand|maybe you're right|i see your point)/i);
+      
+      if (endsWithQuestion || showsOpenness) {
+        console.log(`BLOCKER #3: Filtering stonewalling flag for ${participant} whose last message shows openness`);
+        return false;
+      }
+    }
+    
+    return true;
+  });
+}
+
 export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: string): ChatAnalysisResult {
   // Define interface for the enhanced filtered analysis with all Pro tier features
   type EnhancedChatAnalysisResult = ChatAnalysisResult & {
@@ -127,12 +207,10 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   
   // For personal and higher tiers, include the red flags with appropriate details
   if (tier !== 'free' && analysis.redFlags && analysis.redFlags.length > 0) {
-    // Apply stonewalling detection filter to ensure accuracy
-    const filteredRedFlags = filterStonewalling(analysis.redFlags, analysis.conversation);
-    
-    // Include the filtered red flags for paid tiers
-    filteredAnalysis.redFlags = filteredRedFlags;
-    console.log(`Adding ${filteredRedFlags.length} detailed red flags to ${tier} tier analysis`);
+    // Include the full red flags for paid tiers
+    // We'll filter them later in the controller using the red-flag-enhancer
+    filteredAnalysis.redFlags = analysis.redFlags;
+    console.log(`Adding ${analysis.redFlags.length} detailed red flags to ${tier} tier analysis`);
   }
   
   // Note: For free tier, the controller will add just the red flag types
