@@ -7,6 +7,7 @@ import { extractRedFlagsCount } from '../services/anthropic-helpers';
 import { enhanceRedFlags } from '../services/red-flag-enhancer';
 import { enhanceWithEvasionDetection } from '../services/evasion-detection';
 import { enhanceWithConflictDynamics } from '../services/conflict-dynamics';
+import { enhanceWithDirectRedFlags } from '../services/direct-red-flag-detector';
 
 // Get the user's tier from the authenticated session
 const getUserTier = (req: Request): string => {
@@ -202,6 +203,12 @@ export const analysisController = {
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
         // Filter results based on user's tier
         filteredResults = filterChatAnalysisByTier(analysis, tier);
+        
+        // Apply direct red flag detection to ensure we catch toxic patterns
+        // that might be missed by the AI model
+        const conversationText = req.body.text || '';
+        filteredResults = enhanceWithDirectRedFlags(filteredResults, conversationText);
+        console.log('Added direct red flag detection');
         
         // Add conflict dynamics analysis to all tiers with varying detail levels
         filteredResults = enhanceWithConflictDynamics(filteredResults, tier);
