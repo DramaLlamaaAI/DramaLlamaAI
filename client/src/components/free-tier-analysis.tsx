@@ -752,8 +752,18 @@ export default function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisP
                 {/* Specific pattern indicators based on red flags and health score */}
                 <div className="mt-3 mb-3">
                   <ul className="text-sm text-red-600 space-y-1.5">
-                    {/* More intelligent detection of communication patterns based on overall tone */}
+                    {/* First use redFlagTypes if available from enhanced detection */}
                     {(() => {
+                      // Check if we have redFlagTypes from our enhanced backend detection
+                      if (result.redFlagTypes && result.redFlagTypes.length > 0) {
+                        return result.redFlagTypes.map(flagType => (
+                          <li key={flagType} className="flex items-center">
+                            <span className="mr-1.5">•</span> {flagType}
+                          </li>
+                        ));
+                      }
+                      
+                      // Fallback to tone-based detection if no redFlagTypes
                       // Get the lowercase overall tone for pattern matching
                       const tone = result.toneAnalysis?.overallTone?.toLowerCase() || '';
                       const patterns = result.communication?.patterns || [];
