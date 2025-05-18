@@ -232,6 +232,29 @@ export const analysisController = {
         filteredResults = enhanceRedFlags(filteredResults, tier);
         console.log(`Enhanced ${tier} tier red flag detection`);
         
+        // Post-process to explicitly remove stonewalling references
+        if (filteredResults.redFlags && filteredResults.redFlags.length > 0) {
+          // Filter out ANY references to stonewalling in any form
+          filteredResults.redFlags = filteredResults.redFlags.filter(flag => {
+            const flagType = (flag.type || '').toLowerCase();
+            const flagDesc = (flag.description || '').toLowerCase();
+            
+            const stonewallingTerms = ['stonewalling', 'withdrawal', 'disengaging', 'shutting down', 'silent treatment'];
+            const hasStonewalling = stonewallingTerms.some(term => 
+              flagType.includes(term) || flagDesc.includes(term)
+            );
+            
+            if (hasStonewalling) {
+              console.log(`Post-processing filter: Removing stonewalling flag: ${flag.type}`);
+              return false;
+            }
+            
+            return true;
+          });
+          
+          console.log(`Post-processing filter: ${filteredResults.redFlags.length} flags remain after filtering stonewalling`);
+        }
+        
         // For free tier, add red flag types from personal analysis
         if (tier === 'free') {
           // First check if we detected flags directly from patterns
@@ -251,12 +274,24 @@ export const analysisController = {
           }
           // Otherwise check AI detected flags
           else if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
+            // Filter out any stonewalling flags first
+            const filteredRedFlags = personalAnalysis.redFlags.filter(flag => {
+              const flagType = (flag.type || '').toLowerCase();
+              const flagDesc = (flag.description || '').toLowerCase();
+              
+              const stonewallingTerms = ['stonewalling', 'withdrawal', 'disengaging', 'shutting down', 'silent treatment'];
+              return !stonewallingTerms.some(term => 
+                flagType.includes(term) || flagDesc.includes(term)
+              );
+            });
+            
             // Get unique red flag types using a simple filter approach
-            const redFlagTypes = personalAnalysis.redFlags
+            const redFlagTypes = filteredRedFlags
               .map(flag => flag.type)
               .filter((value, index, self) => self.indexOf(value) === index);
             
             console.log(`Raw red flags count: ${personalAnalysis.redFlags.length}`);
+            console.log(`Filtered red flags count (removed stonewalling): ${filteredRedFlags.length}`);
             console.log(`Unique red flag types: ${redFlagTypes.length}`);
             console.log('Adding basic red flag types to free tier analysis');
             
