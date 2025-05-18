@@ -21,6 +21,7 @@ import JSZip from "jszip";
 import exportToPdf from '@/components/export-document-generator';
 import RedFlags from "@/components/red-flags";
 import RegistrationPrompt from "@/components/registration-prompt";
+import EvasionDetection from "@/components/evasion-detection";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -816,6 +817,14 @@ export default function ChatAnalysis() {
                       <p className="text-gray-600">Analysis not available yet.</p>
                     )}
                   </div>
+                  
+                  {/* Evasion Detection - Only for Personal and Pro tiers */}
+                  {tier !== 'free' && result && (
+                    <EvasionDetection 
+                      tier={tier}
+                      evasionDetection={result.evasionDetection}
+                    />
+                  )}
                   
                   {/* Communication Patterns - Only for paid tiers */}
                   {tier !== 'free' && (
