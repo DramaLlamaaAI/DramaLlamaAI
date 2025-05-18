@@ -14,6 +14,7 @@ interface ConflictDynamicsProps {
         tendency: 'escalates' | 'de-escalates' | 'mixed';
         examples?: string[];
         score?: number;
+        description?: string; // Added new field for behavior description
       };
     };
     interaction?: string;
@@ -47,15 +48,42 @@ const ConflictDynamics: React.FC<ConflictDynamicsProps> = ({ tier, conflictDynam
     }
   };
   
-  // Render label and color based on tendency
-  const getTendencyLabel = (tendency: string) => {
+  // Render label and color based on tendency with detailed descriptions
+  const getTendencyLabel = (tendency: string, participant: any) => {
     switch (tendency) {
       case 'escalates':
-        return <span className="text-red-500">🔴 Escalates</span>;
+        return (
+          <div>
+            <span className="text-red-500 font-medium">⚠️ Escalating</span>
+            {participant.description ? (
+              <p className="text-xs text-red-700 mt-1">({participant.description})</p>
+            ) : (
+              <p className="text-xs text-red-700 mt-1">(Increases tension through blame or dismissiveness)</p>
+            )}
+          </div>
+        );
       case 'de-escalates':
-        return <span className="text-green-500">🟢 De-escalates</span>;
+        return (
+          <div>
+            <span className="text-green-500 font-medium">✅ De-escalating</span>
+            {participant.description ? (
+              <p className="text-xs text-green-700 mt-1">({participant.description})</p>
+            ) : (
+              <p className="text-xs text-green-700 mt-1">(Works to validate feelings and resolve tension)</p>
+            )}
+          </div>
+        );
       default:
-        return <span className="text-amber-500">⚖️ Mixed</span>;
+        return (
+          <div>
+            <span className="text-amber-500 font-medium">⚖️ Mixed</span>
+            {participant.description ? (
+              <p className="text-xs text-amber-700 mt-1">({participant.description})</p>
+            ) : (
+              <p className="text-xs text-amber-700 mt-1">(Shows both escalating and de-escalating behaviors)</p>
+            )}
+          </div>
+        );
     }
   };
   
@@ -75,8 +103,13 @@ const ConflictDynamics: React.FC<ConflictDynamicsProps> = ({ tier, conflictDynam
           <CardTitle className="text-lg">⚖️ Conflict Dynamics Analysis</CardTitle>
         </div>
         <CardDescription>
-          How each participant contributes to escalation or resolution in this conversation
+          For each participant, we analyze whether they escalate tension or help resolve conflicts
         </CardDescription>
+        <div className="mt-2 text-xs text-muted-foreground border-l-2 border-muted pl-2">
+          <p><strong>⚠️ Escalating:</strong> Increases tension, blames others, dismisses feelings, or uses attacking language</p>
+          <p><strong>✅ De-escalating:</strong> Validates feelings, apologizes when appropriate, and maintains calm tone</p>
+          <p><strong>⚖️ Mixed:</strong> Shows both escalating and de-escalating behaviors in different parts of the conversation</p>
+        </div>
       </CardHeader>
       <CardContent>
         <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-4">
@@ -100,7 +133,7 @@ const ConflictDynamics: React.FC<ConflictDynamicsProps> = ({ tier, conflictDynam
                     <div className="flex items-center space-x-2">
                       {getTendencyIcon(participant.tendency)}
                       <span className="font-medium">{participant.name}:</span> 
-                      {getTendencyLabel(participant.tendency)}
+                      {getTendencyLabel(participant.tendency, participant)}
                     </div>
                     
                     {/* Only show score for Personal and Pro tiers */}

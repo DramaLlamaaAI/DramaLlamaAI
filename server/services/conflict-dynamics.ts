@@ -12,6 +12,7 @@ interface ConflictDynamicsResult {
       tendency: 'escalates' | 'de-escalates' | 'mixed';
       examples?: string[];
       score?: number; // 0-100 scale, higher means more de-escalating
+      description?: string; // Description of specific behaviors
     };
   };
   interaction?: string;
@@ -208,6 +209,7 @@ export function analyzeConflictDynamics(
     participantNames.forEach(name => {
       result.participants[name].tendency = 'escalates';
       result.participants[name].score = 20; // Very low score indicating clear escalation
+      result.participants[name].description = 'Uses accusatory language and refuses to acknowledge partner\'s perspective';
     });
     
     // Update the lists
