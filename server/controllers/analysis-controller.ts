@@ -279,9 +279,37 @@ export const analysisController = {
             // Fallback to health score when no personal analysis is available
             console.log('No red flags in personal analysis, using fallback logic');
             
+            // Enhanced free tier red flag detection using conversation content analysis
             const defaultRedFlagTypes = [];
+            const conversationText = req.body.text || '';
             
-            if (analysis.healthScore) {
+            // Check for specific patterns of emotional manipulation
+            if (conversationText.toLowerCase().includes('you don\'t care') || 
+                conversationText.toLowerCase().includes('you never') || 
+                conversationText.toLowerCase().includes('always your excuse')) {
+              defaultRedFlagTypes.push('guilt tripping');
+            }
+            
+            if (conversationText.toLowerCase().includes('tired of explaining') || 
+                conversationText.toLowerCase().includes('feels pointless') || 
+                conversationText.toLowerCase().includes('i don\'t know anymore')) {
+              defaultRedFlagTypes.push('emotional withdrawal');
+            }
+            
+            if (conversationText.toLowerCase().includes('if you really cared') || 
+                conversationText.toLowerCase().includes('if you loved me') || 
+                conversationText.toLowerCase().includes('show me you mean it')) {
+              defaultRedFlagTypes.push('emotional manipulation');
+            }
+            
+            if (conversationText.toLowerCase().includes('invisible') || 
+                conversationText.toLowerCase().includes('i\'m the only one') || 
+                conversationText.toLowerCase().includes('nobody listens')) {
+              defaultRedFlagTypes.push('victim mentality');
+            }
+            
+            // If we didn't detect specific patterns, fall back to health score based flags
+            if (defaultRedFlagTypes.length === 0 && analysis.healthScore) {
               // For very low health scores, add potential red flags
               if (analysis.healthScore.score < 40) {
                 defaultRedFlagTypes.push('communication issues', 'potential conflict');

@@ -20,45 +20,59 @@ interface RedFlag {
 const redFlagPatterns = [
   // Guilt-tripping
   {
-    pattern: /(shouldn['']t have to|too busy for me|make me feel|always .* for you|guess you['']re too)/i,
-    type: 'Emotional Manipulation',
+    pattern: /(shouldn['']t have to|too busy for me|make me feel|always .* for you|guess you['']re too|you didn['']t even notice|you just don['']t care|i guess you just|you should already|if you really cared)/i,
+    type: 'Guilt Tripping',
     description: 'Using guilt to control or manipulate the other person',
     severity: 7
   },
   // Stonewalling
   {
-    pattern: /(not talking|done talking|whatever|forget it|not discussing this|don['']t want to talk)/i,
-    type: 'Stonewalling',
+    pattern: /(not talking|done talking|whatever|forget it|not discussing this|don['']t want to talk|tired of explaining|feels pointless|i don['']t know anymore)/i,
+    type: 'Emotional Withdrawal',
     description: 'Refusing to communicate or engage in discussion',
     severity: 6
   },
   // Blame-shifting
   {
-    pattern: /(blame me|always my fault|make me the problem|always my problem)/i,
+    pattern: /(blame me|always my fault|make me the problem|always my problem|always your excuse|i['']m the only one|nothing changes)/i,
     type: 'Blame Shifting',
     description: 'Avoiding responsibility by blaming the other person',
     severity: 7
   },
   // All-or-nothing statements
   {
-    pattern: /(always|never|nothing ever|everything is)/i,
+    pattern: /(always|never|nothing ever|everything is|you never|you always)/i,
     type: 'All-or-Nothing Thinking',
     description: 'Using absolutes to exaggerate situations',
     severity: 5
   },
   // Love bombing or controlling withdrawal of affection
   {
-    pattern: /(care more than you|care about you|love you more)/i,
-    type: 'Affection Manipulation',
+    pattern: /(care more than you|care about you|love you more|show me you mean|just with words)/i,
+    type: 'Emotional Manipulation',
     description: 'Manipulating through withdrawal or excessive affection claims',
     severity: 6
   },
   // Gaslighting
   {
-    pattern: /(that['']s not true|didn['']t happen|making things up|imagining things|being dramatic)/i,
+    pattern: /(that['']s not true|didn['']t happen|making things up|imagining things|being dramatic|making me feel crazy|like i['']m crazy)/i,
     type: 'Gaslighting',
     description: 'Making someone question their own reality or experiences',
     severity: 8
+  },
+  // Victim mentality
+  {
+    pattern: /(i['']m invisible|nobody listens|nobody understands|always left out|never heard|always ignored|like i['']m invisible)/i,
+    type: 'Victim Mentality',
+    description: 'Constantly positioning oneself as a victim to gain sympathy or control',
+    severity: 6
+  },
+  // Moving the goalposts
+  {
+    pattern: /(never enough|not good enough|do better|try harder|should already know|keep having to tell you)/i,
+    type: 'Moving the Goalposts',
+    description: 'Continuously changing expectations making it impossible to satisfy demands',
+    severity: 7
   }
 ];
 
