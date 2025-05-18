@@ -5,14 +5,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Heart, Copy, Download } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { deEscalateMessage, DeEscalateResponse, getUserUsage } from "@/lib/openai";
+import { ventMessage, DeEscalateResponse, getUserUsage } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import html2pdf from 'html2pdf.js';
 import { toJpeg } from 'html-to-image';
 import BackHomeButton from "@/components/back-home-button";
 import RegistrationPrompt from "@/components/registration-prompt";
 
-export default function DeEscalate() {
+export default function VentMode() {
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<DeEscalateResponse | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -149,7 +149,7 @@ export default function DeEscalate() {
   };
 
   return (
-    <section id="deEscalateMode" className="container py-10">
+    <section id="ventMode" className="container py-10">
       <div className="mb-4">
         <BackHomeButton />
       </div>

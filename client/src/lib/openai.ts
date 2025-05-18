@@ -1,7 +1,7 @@
 import { apiRequest } from './queryClient';
 
 // Analysis types
-export type AnalysisType = 'chat' | 'message' | 'de-escalate';
+export type AnalysisType = 'chat' | 'message' | 'vent-mode';
 
 // Chat analysis interfaces
 export interface DateFilter {
@@ -180,7 +180,7 @@ export async function analyzeMessage(request: MessageAnalysisRequest): Promise<M
   }
 }
 
-export async function deEscalateMessage(request: DeEscalateRequest): Promise<DeEscalateResponse> {
+export async function ventMessage(request: DeEscalateRequest): Promise<DeEscalateResponse> {
   try {
     const response = await apiRequest('POST', '/api/analyze/de-escalate', request);
     if (!response.ok) {
@@ -189,7 +189,7 @@ export async function deEscalateMessage(request: DeEscalateRequest): Promise<DeE
     }
     return await response.json();
   } catch (error: any) {
-    console.error('De-escalate mode error:', error);
+    console.error('Vent mode error:', error);
     throw new Error(error.message || 'Failed to rewrite message. Please try again.');
   }
 }
