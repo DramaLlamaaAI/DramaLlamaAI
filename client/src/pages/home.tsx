@@ -129,8 +129,6 @@ export default function Home() {
           </div>
         </div>
         
-        <HowItWorks />
-        
         <FeaturesSection />
         <PricingSection />
       </main>
