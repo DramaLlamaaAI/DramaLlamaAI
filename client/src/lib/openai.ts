@@ -17,6 +17,13 @@ export interface ChatAnalysisRequest {
   dateFilter?: DateFilter;
 }
 
+export interface EvasionInstance {
+  type: string;
+  participant: string;
+  example: string;
+  context?: string;
+}
+
 export interface ChatAnalysisResponse {
   psychologicalProfile?: {
     [participant: string]: {
@@ -42,6 +49,33 @@ export interface ChatAnalysisResponse {
   }>;
   participantTones?: {
     [key: string]: string;
+  };
+  // Evasion detection
+  evasionDetection?: {
+    detected: boolean;
+    analysisTitle?: string;
+    patterns?: string[];
+    details?: {
+      topicShifting?: EvasionInstance[];
+      questionDodging?: EvasionInstance[];
+      nonCommittal?: EvasionInstance[];
+      deflection?: EvasionInstance[];
+      avoidance?: EvasionInstance[];
+      refusalToEngage?: EvasionInstance[];
+    };
+  };
+  // Conflict dynamics
+  conflictDynamics?: {
+    summary: string;
+    participants: {
+      [name: string]: {
+        tendency: 'escalates' | 'de-escalates' | 'mixed';
+        examples?: string[];
+        score?: number; // 0-100 scale, higher means more de-escalating
+      };
+    };
+    interaction?: string;
+    recommendations?: string[];
   };
   // Red flags and related fields
   redFlags?: Array<{
