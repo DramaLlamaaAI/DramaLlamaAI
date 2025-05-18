@@ -7,7 +7,7 @@ import { extractRedFlagsCount } from '../services/anthropic-helpers';
 import { enhanceRedFlags } from '../services/red-flag-enhancer';
 import { enhanceWithEvasionDetection } from '../services/evasion-detection';
 import { enhanceWithConflictDynamics } from '../services/conflict-dynamics';
-import { enhanceWithDirectRedFlags } from '../services/direct-red-flag-detector';
+import { enhanceWithDirectRedFlags, detectRedFlagsDirectly } from '../services/direct-red-flag-detector';
 
 // Get the user's tier from the authenticated session
 const getUserTier = (req: Request): string => {
@@ -204,9 +204,13 @@ export const analysisController = {
         // Filter results based on user's tier
         filteredResults = filterChatAnalysisByTier(analysis, tier);
         
+        // Get direct red flags from the conversation text
+        const conversationText = filteredConversation;
+        const directRedFlags = detectRedFlagsDirectly(conversationText);
+        console.log(`Directly detected ${directRedFlags.length} red flags from text patterns`);
+        
         // Apply direct red flag detection to ensure we catch toxic patterns
         // that might be missed by the AI model
-        const conversationText = req.body.text || '';
         filteredResults = enhanceWithDirectRedFlags(filteredResults, conversationText);
         console.log('Added direct red flag detection');
         
@@ -227,9 +231,19 @@ export const analysisController = {
         
         // For free tier, add red flag types from personal analysis
         if (tier === 'free') {
-          console.log('Has redFlags in raw analysis:', !!personalAnalysis?.redFlags);
-          
-          if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
+          // First check if we detected flags directly from patterns
+          if (directRedFlags.length > 0) {
+            // Get unique flag types from directly detected flags
+            const redFlagTypes = directRedFlags
+              .map(flag => flag.type)
+              .filter((value, index, self) => self.indexOf(value) === index);
+              
+            console.log(`Using ${redFlagTypes.length} unique red flag types from pattern detection`);
+            (filteredResults as any).redFlagTypes = redFlagTypes;
+            (filteredResults as any).redFlagsDetected = true;
+          }
+          // Otherwise check AI detected flags
+          else if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
             // Get unique red flag types using a simple filter approach
             const redFlagTypes = personalAnalysis.redFlags
               .map(flag => flag.type)
@@ -242,102 +256,24 @@ export const analysisController = {
             // Add the list of red flag types and set redFlagsDetected flag to the free tier results
             (filteredResults as any).redFlagTypes = redFlagTypes;
             (filteredResults as any).redFlagsDetected = true;
-            
-            // Add sample quotes from the personal analysis to show examples (limited for free tier)
-            const sampleQuotes = [];
-            
-            // Extract quotes from different possible sources in the red flags
-            for (const flag of personalAnalysis.redFlags) {
-              // Case 1: Flag has examples array
-              if (flag.examples && flag.examples.length > 0) {
-                sampleQuotes.push({
-                  type: flag.type,
-                  quote: flag.examples[0].text,
-                  participant: flag.examples[0].from || flag.participant || 'Unknown'
-                });
-              } 
-              // Case 2: Try to get a quote from the description
-              else if (flag.description && flag.description.includes('"')) {
-                const quoteMatch = flag.description.match(/"([^"]*)"/);
-                if (quoteMatch && quoteMatch[1]) {
-                  sampleQuotes.push({
-                    type: flag.type,
-                    quote: quoteMatch[1],
-                    participant: flag.participant || 'Unknown'
-                  });
-                }
-              }
-              
-              // Limit to 2 sample quotes
-              if (sampleQuotes.length >= 2) break;
-            }
-              
-            if (sampleQuotes.length > 0) {
-              (filteredResults as any).sampleQuotes = sampleQuotes;
-            }
           } else {
-            // Fallback to health score when no personal analysis is available
+            // Fallback to health score when no red flags detected
             console.log('No red flags in personal analysis, using fallback logic');
             
-            // Enhanced free tier red flag detection using conversation content analysis
-            const defaultRedFlagTypes = [];
-            const conversationText = req.body.text || '';
-            
-            // Check for specific patterns of emotional manipulation
-            if (conversationText.toLowerCase().includes('you don\'t care') || 
-                conversationText.toLowerCase().includes('you never') || 
-                conversationText.toLowerCase().includes('always your excuse')) {
-              defaultRedFlagTypes.push('guilt tripping');
-            }
-            
-            if (conversationText.toLowerCase().includes('tired of explaining') || 
-                conversationText.toLowerCase().includes('feels pointless') || 
-                conversationText.toLowerCase().includes('i don\'t know anymore')) {
-              defaultRedFlagTypes.push('emotional withdrawal');
-            }
-            
-            if (conversationText.toLowerCase().includes('if you really cared') || 
-                conversationText.toLowerCase().includes('if you loved me') || 
-                conversationText.toLowerCase().includes('show me you mean it')) {
-              defaultRedFlagTypes.push('emotional manipulation');
-            }
-            
-            if (conversationText.toLowerCase().includes('invisible') || 
-                conversationText.toLowerCase().includes('i\'m the only one') || 
-                conversationText.toLowerCase().includes('nobody listens')) {
-              defaultRedFlagTypes.push('victim mentality');
-            }
-            
-            // If we didn't detect specific patterns, fall back to health score based flags
-            if (defaultRedFlagTypes.length === 0 && analysis.healthScore) {
-              // For very low health scores, add potential red flags
-              if (analysis.healthScore.score < 40) {
-                defaultRedFlagTypes.push('communication issues', 'potential conflict');
-              }
-              // For moderately low health scores
-              else if (analysis.healthScore.score < 60) {
-                defaultRedFlagTypes.push('communication issues');
-              }
-            }
-            
-            if (defaultRedFlagTypes.length > 0) {
+            // For moderately low health scores, add basic communication issues flag
+            if (analysis.healthScore && analysis.healthScore.score < 60) {
               console.log('Setting default red flag types based on health score');
-              (filteredResults as any).redFlagTypes = defaultRedFlagTypes;
+              (filteredResults as any).redFlagTypes = ['communication issues'];
               (filteredResults as any).redFlagsDetected = true;
             } else {
               (filteredResults as any).redFlagsDetected = false;
             }
           }
         }
-        
-        // Log some info about what we're returning
-        console.log(`Returning chat analysis with overall tone: "${filteredResults.toneAnalysis.overallTone.substring(0, 30)}..."`);
-        console.log('Has redFlagsCount in results:', 'redFlagsCount' in filteredResults);
-        console.log('Filtered results structure:', Object.keys(filteredResults));
       } catch (analysisError) {
         console.error('Error in analysis controller layer:', analysisError);
         
-        // Instead of fallback data, return a proper error response
+        // Return a proper error response
         return res.status(422).json({
           error: "We couldn't analyze your conversation. Please try submitting again with a clearer conversation format. If the problem persists, please contact support via Facebook."
         });
@@ -371,7 +307,7 @@ export const analysisController = {
       // Track usage
       await trackUsage(req);
       
-      // Process analysis
+      // Analyze message
       const analysis = await analyzeMessage(message, author, tier);
       
       // Filter results based on user's tier
@@ -384,7 +320,7 @@ export const analysisController = {
     }
   },
   
-  // De-escalate mode - rewrite emotional message
+  // De-escalate a potentially heated message (now called Vent Mode)
   deEscalateMessage: async (req: Request, res: Response) => {
     try {
       const { message } = req.body;
@@ -393,31 +329,25 @@ export const analysisController = {
         return res.status(400).json({ message: 'Missing required parameters' });
       }
       
-      // Check if user has reached usage limit
-      const canUseFeature = await checkUsageLimit(req);
-      if (!canUseFeature) {
-        return res.status(403).json({ message: 'Usage limit reached' });
-      }
-      
       // Get user tier
       const tier = getUserTier(req);
       
-      // Track usage
-      await trackUsage(req);
+      // No need to track usage for de-escalation as it's a free feature for all users
       
-      // Process de-escalation with tier-specific features
-      const result = await deEscalateMessage(message, tier);
+      // De-escalate message
+      const analysis = await deEscalateMessage(message, tier);
       
-      // Filter results based on user tier
-      const filteredResult = filterDeEscalateResultByTier(result, tier);
-      res.json(filteredResult);
+      // Filter results based on user's tier
+      const filteredResults = filterDeEscalateResultByTier(analysis, tier);
+      
+      res.json(filteredResults);
     } catch (error: any) {
       console.error(error);
       res.status(500).json({ message: error.message || 'Internal server error' });
     }
   },
   
-  // Detect participant names
+  // Detect participant names from conversation
   detectNames: async (req: Request, res: Response) => {
     try {
       const { conversation } = req.body;
@@ -426,30 +356,32 @@ export const analysisController = {
         return res.status(400).json({ message: 'Missing required parameters' });
       }
       
-      // Process name detection
-      const result = await detectParticipants(conversation);
-      res.json(result);
+      // Detect participants
+      const participants = await detectParticipants(conversation);
+      
+      res.json(participants);
     } catch (error: any) {
       console.error(error);
       res.status(500).json({ message: error.message || 'Internal server error' });
     }
   },
   
-  // Process OCR on uploaded image
+  // Process image OCR
   processOcr: async (req: Request, res: Response) => {
     try {
-      const { image } = req.body;
+      const { imageData } = req.body;
       
-      if (!image) {
-        return res.status(400).json({ message: 'Missing image data' });
+      if (!imageData) {
+        return res.status(400).json({ message: 'Missing required parameters' });
       }
       
-      // Process OCR using Anthropic
-      const text = await processImageOcr(image);
-      res.json({ text });
+      // Process image OCR
+      const ocrResult = await processImageOcr(imageData);
+      
+      res.json(ocrResult);
     } catch (error: any) {
       console.error(error);
-      res.status(500).json({ message: error.message || 'Failed to process image' });
+      res.status(500).json({ message: error.message || 'Internal server error' });
     }
   }
 };
