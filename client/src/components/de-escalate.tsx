@@ -30,7 +30,7 @@ export default function VentMode() {
   const canUseFeature = usedAnalyses < limit;
 
   const ventModeMutation = useMutation({
-    mutationFn: deEscalateMessage,
+    mutationFn: ventMessage,
     onSuccess: (data) => {
       setResult(data);
     },
