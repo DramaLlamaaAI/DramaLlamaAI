@@ -6,6 +6,78 @@
  */
 
 /**
+ * Apply strict verification criteria to filter out invalid red flags
+ * based on the conversation context
+ */
+function filterInvalidRedFlags(redFlags: any[], conversation: string): any[] {
+  if (!redFlags || !conversation) return redFlags;
+  
+  // Extract all messages for context analysis
+  const lines = conversation.split('\n');
+  const allMessages: {speaker: string, text: string}[] = [];
+  
+  lines.forEach(line => {
+    if (!line.includes(':')) return;
+    
+    const [speaker, message] = line.split(':', 2);
+    if (!speaker || !message) return;
+    
+    const speakerName = speaker.trim();
+    const messageText = message.trim();
+    
+    allMessages.push({speaker: speakerName, text: messageText});
+  });
+  
+  return redFlags.filter(flag => {
+    // Skip filtering non-stonewalling flags
+    if (flag.type !== 'Stonewalling' && 
+        flag.type !== 'Emotional Withdrawal' && 
+        !flag.description?.toLowerCase().includes('stonewalling')) {
+      return true;
+    }
+    
+    // Get the participant who is supposedly stonewalling
+    const participant = flag.participant || flag.speaker;
+    if (!participant) return true; // If no participant identified, keep the flag
+    
+    // Check if the participant continues to respond
+    let foundParticipant = false;
+    let continuesResponding = false;
+    
+    for (let i = 0; i < allMessages.length; i++) {
+      const message = allMessages[i];
+      
+      // If we found a matching message from this participant
+      if (message.speaker === participant) {
+        foundParticipant = true;
+        
+        // Check if the participant's message could be perceived as stonewalling
+        const isPotentialStonewalling = message.text.match(/(not talking|done talking|whatever\.|forget it\.|not discussing this|silent treatment|end of discussion|not having this conversation|walk away|leaving now)/i);
+
+        if (isPotentialStonewalling) {
+          // Check if there are more messages from this person after this one
+          continuesResponding = allMessages.slice(i + 1).some(msg => msg.speaker === participant);
+          
+          if (continuesResponding) {
+            console.log(`Filtering stonewalling flag for ${participant} who says "${message.text}" but continues responding`);
+            return false; // Filter out this flag
+          }
+        }
+      }
+    }
+    
+    // If the participant speaks multiple times, they're probably not stonewalling
+    const messageCount = allMessages.filter(msg => msg.speaker === participant).length;
+    if (messageCount >= 3) {
+      console.log(`Filtering stonewalling flag for ${participant} who speaks ${messageCount} times in the conversation`);
+      return false;
+    }
+    
+    return true;
+  });
+}
+
+/**
  * Enhances red flags with quotes from the conversation
  */
 export function enhanceRedFlags(analysis: any, tier: string): any {
@@ -24,6 +96,11 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
   
   // Create deep copy of the analysis to avoid mutations
   const enhancedAnalysis = JSON.parse(JSON.stringify(analysis));
+  
+  // Filter out any invalid stonewalling red flags
+  if (analysis.conversation) {
+    enhancedAnalysis.redFlags = filterInvalidRedFlags(enhancedAnalysis.redFlags, analysis.conversation);
+  }
   
   // Process each red flag
   enhancedAnalysis.redFlags = enhancedAnalysis.redFlags.map((flag: any) => {

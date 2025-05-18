@@ -225,6 +225,9 @@ export const analysisController = {
           console.log(`Added ${tier} tier evasion detection`);
         }
         
+        // Add the raw conversation to the analysis for our red flag filters
+        filteredResults.conversation = filteredConversation;
+        
         // Enhance red flags with conversation-specific insights based on tier
         filteredResults = enhanceRedFlags(filteredResults, tier);
         console.log(`Enhanced ${tier} tier red flag detection`);
