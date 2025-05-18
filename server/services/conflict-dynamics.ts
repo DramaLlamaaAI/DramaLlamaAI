@@ -141,10 +141,25 @@ export function analyzeConflictDynamics(
       // Update tendency based on score with improved thresholds and greater sensitivity to escalation
       if (newScore < 40) {
         result.participants[speaker].tendency = 'escalates';
+        // Add specific behavior description based on the types of escalation indicators found
+        if (realityDistortionCount > 2) {
+          result.participants[speaker].description = 'Distorts facts and dismisses partner\'s feelings';
+        } else if (escalationCount > 5) {
+          result.participants[speaker].description = 'Uses hostile language and increases conflict intensity';
+        } else {
+          result.participants[speaker].description = 'Introduces blame and negative framing to the conversation';
+        }
       } else if (newScore > 65) {
         result.participants[speaker].tendency = 'de-escalates';
+        // Add specific behavior description based on the de-escalation indicators found
+        if (deEscalationCount > 5) {
+          result.participants[speaker].description = 'Actively validates feelings and offers solutions';
+        } else {
+          result.participants[speaker].description = 'Maintains calm tone and acknowledges partner\'s perspective';
+        }
       } else {
         result.participants[speaker].tendency = 'mixed';
+        result.participants[speaker].description = 'Shows both escalating and calming behaviors in different moments';
       }
     }
   });
@@ -226,6 +241,7 @@ export function analyzeConflictDynamics(
     participantNames.forEach(name => {
       result.participants[name].tendency = 'de-escalates';
       result.participants[name].score = 85; // Very high score indicating healthy communication
+      result.participants[name].description = 'Expresses feelings respectfully and listens to partner\'s perspective';
     });
     
     // Update the lists
@@ -270,6 +286,7 @@ export function analyzeConflictDynamics(
       participantNames.forEach(name => {
         result.participants[name].tendency = 'escalates';
         result.participants[name].score = Math.min(result.participants[name].score || 50, 30); // Ensure low score
+        result.participants[name].description = 'Uses exaggerated language and contributes to increasing tension';
       });
       
       // Update our participant lists

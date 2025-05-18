@@ -130,10 +130,19 @@ const ConflictDynamics: React.FC<ConflictDynamicsProps> = ({ tier, conflictDynam
               {participants.map((participant) => (
                 <div key={participant.name} className="border rounded-md p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      {getTendencyIcon(participant.tendency)}
-                      <span className="font-medium">{participant.name}:</span> 
-                      {getTendencyLabel(participant.tendency, participant)}
+                    <div className="flex flex-col">
+                      <div className="flex items-center space-x-2">
+                        {getTendencyIcon(participant.tendency)}
+                        <span className="font-medium">{participant.name}:</span> 
+                        {getTendencyLabel(participant.tendency, participant)}
+                      </div>
+                      
+                      {/* Display the behavioral description more prominently */}
+                      {participant.description && (
+                        <div className="mt-1 ml-7 text-sm text-muted-foreground">
+                          <span className="italic">{participant.description}</span>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Only show score for Personal and Pro tiers */}
