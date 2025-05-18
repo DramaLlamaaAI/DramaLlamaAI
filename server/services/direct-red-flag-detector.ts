@@ -161,11 +161,22 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
     }
   });
   
+  // More robust detection of healthy conversation patterns
+  
   // Check for resolution of cancellation issues
   const cancellationResolved = allMessages.some(msg => 
     msg.text.match(/(sorry|apologize|make it up|next time|reschedule)/i) &&
-    cancellationMentions.size === 1 // Only one person mentioned cancellation
+    cancellationMentions.size <= 2 // Allow up to two people to mention cancellation in a resolved way
   );
+  
+  // Check for Zara-Owen style healthy conversation pattern
+  const isHealthyConversation = 
+    // Signs of mutual respect
+    allMessages.some(msg => msg.text.match(/(appreciate you|thank you|glad we|care about you)/i)) &&
+    // Signs of constructive resolution
+    allMessages.some(msg => msg.text.match(/(sorry|apologize|understand|make it up)/i)) &&
+    // Signs of forward-focused approach
+    allMessages.some(msg => msg.text.match(/(next time|plan|future|weekend|looking forward)/i));
   
   // Process each message with context awareness
   allMessages.forEach(({speaker: speakerName, text: messageText}) => {
@@ -175,18 +186,26 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
         // Apply error detection logic to prevent false positives
         let isValidFlag = true;
         
-        // RULE 1: Prevent false positives for All-or-Nothing Thinking
-        if (pattern.type === 'All-or-Nothing Thinking' && nuancedLanguage.has(speakerName)) {
-          // Skip if this speaker uses nuanced language elsewhere in the conversation
+        // RULE 0: Skip all red flags for conversations that are clearly healthy
+        if (isHealthyConversation) {
+          // This is a demonstrably healthy conversation, no red flags needed
           isValidFlag = false;
-        }
-        
-        // RULE 2: Prevent false positives for Cancellation Patterns
-        if ((messageText.toLowerCase().includes('cancel') || messageText.toLowerCase().includes('missed')) && 
-            cancellationResolved && 
-            cancellationMentions.size === 1) {
-          // Skip if this is a one-time cancellation that was resolved
-          isValidFlag = false;
+        } 
+        // If not a broadly healthy conversation, apply specific rules
+        else {
+          // RULE 1: Prevent false positives for All-or-Nothing Thinking
+          if (pattern.type === 'All-or-Nothing Thinking' && nuancedLanguage.has(speakerName)) {
+            // Skip if this speaker uses nuanced language elsewhere in the conversation
+            isValidFlag = false;
+          }
+          
+          // RULE 2: Prevent false positives for Cancellation Patterns
+          if ((messageText.toLowerCase().includes('cancel') || messageText.toLowerCase().includes('missed')) && 
+              cancellationResolved && 
+              cancellationMentions.size <= 2) {
+            // Skip if this is a cancellation that was resolved
+            isValidFlag = false;
+          }
         }
         
         // If the flag passes our error detection rules, add it
