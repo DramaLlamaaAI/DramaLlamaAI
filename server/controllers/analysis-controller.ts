@@ -5,6 +5,7 @@ import { filterChatAnalysisByTier, filterMessageAnalysisByTier, filterDeEscalate
 import { storage } from '../storage';
 import { extractRedFlagsCount } from '../services/anthropic-helpers';
 import { enhanceAnalysisWithQuotes } from '../services/analysis-enhancer';
+import { enhanceWithEvasionDetection } from '../services/evasion-detection';
 
 // Get the user's tier from the authenticated session
 const getUserTier = (req: Request): string => {
@@ -200,6 +201,13 @@ export const analysisController = {
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
         // Filter results based on user's tier
         filteredResults = filterChatAnalysisByTier(analysis, tier);
+        
+        // For Personal and Pro tiers, add evasion detection
+        if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
+          // Apply evasion detection based on tier level
+          filteredResults = enhanceWithEvasionDetection(filteredResults, tier);
+          console.log(`Added ${tier} tier evasion detection`);
+        }
         
         // For Pro tier, enhance red flags with conversation-specific insights
         if (tier === 'pro' || tier === 'instant') {
