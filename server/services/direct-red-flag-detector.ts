@@ -25,9 +25,9 @@ const redFlagPatterns = [
     description: 'Using guilt to control or manipulate the other person',
     severity: 7
   },
-  // Stonewalling
+  // Stonewalling - with improved pattern detection
   {
-    pattern: /(not talking|done talking|whatever|forget it|not discussing this|don['']t want to talk|tired of explaining|feels pointless|i don['']t know anymore|silent treatment|shutting down|ignoring your|stop talking)/i,
+    pattern: /(not talking|done talking|whatever\.|forget it\.|not discussing this|silent treatment|shutting down completely|ignoring you|stop talking about this|i['']m done\.|talk to the hand|end of discussion|not having this conversation|walk away|leaving now)/i,
     type: 'Emotional Withdrawal',
     description: 'Refusing to communicate or engage in discussion',
     severity: 6
@@ -205,6 +205,39 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
               cancellationMentions.size <= 2) {
             // Skip if this is a cancellation that was resolved
             isValidFlag = false;
+          }
+          
+          // RULE 3: Prevent false positives for Stonewalling/Emotional Withdrawal
+          if (pattern.type === 'Emotional Withdrawal') {
+            // Check if this speaker continues to engage in the conversation after this message
+            const speakerIndex = allMessages.findIndex(msg => msg.speaker === speakerName && msg.text === messageText);
+            const laterMessages = allMessages.slice(speakerIndex + 1);
+            
+            // Count how many more times this speaker responds after the potential stonewalling message
+            const laterResponses = laterMessages.filter(msg => msg.speaker === speakerName);
+            const continuesResponding = laterResponses.length > 0;
+            
+            console.log(`Checking stonewalling for "${messageText}" by ${speakerName}: continues responding? ${continuesResponding} (${laterResponses.length} later messages)`);
+            
+            // If they continue responding, this isn't true stonewalling
+            if (continuesResponding) {
+              console.log(`Preventing stonewalling false positive: ${speakerName} continues conversation after "${messageText}"`);
+              isValidFlag = false;
+            }
+            
+            // Also check if the message actually indicates disengagement rather than just expressing frustration
+            const isExpressionOfFrustration = messageText.match(/(don't have the energy|exhausting|tired of explaining)/i);
+            const isStillEngaging = messageText.match(/(not trying to|want us to|understand each other)/i);
+            
+            if (isExpressionOfFrustration && !messageText.match(/(not talking|done talking|whatever\.|forget it\.)/i)) {
+              console.log(`Preventing stonewalling false positive: "${messageText}" expresses frustration but not disengagement`);
+              isValidFlag = false;
+            }
+            
+            if (isStillEngaging) {
+              console.log(`Preventing stonewalling false positive: "${messageText}" shows continuing engagement`);
+              isValidFlag = false;
+            }
           }
         }
         
