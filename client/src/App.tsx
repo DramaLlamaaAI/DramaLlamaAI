@@ -22,7 +22,7 @@ import AdminLoginPage from "@/pages/admin-login";
 // Support helplines converted to dialog component
 import ChatAnalysis from "./components/chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
-import DeEscalate from "./components/de-escalate";
+import VentMode from "./components/de-escalate";
 import LiveTalk from "./components/live-talk";
 import { AdminTierSwitcher } from "./components/admin/admin-tier-switcher";
 
@@ -32,7 +32,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/chat-analysis" component={ChatAnalysis} />
       <Route path="/message-analysis" component={MessageAnalysis} />
-      <Route path="/de-escalate" component={DeEscalate} />
+      <Route path="/de-escalate" component={VentMode} />
       <Route path="/live-talk" component={LiveTalk} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/checkout" component={CheckoutPage} />
