@@ -86,13 +86,16 @@ export function useUserTier(): UseTierResult {
   // Determine if user can use features based on authentication status and usage
   let canUseFeature = true;
   
-  // If user is authenticated, check their usage limits
+  // If user is authenticated, they should have unlimited usage
   if (isAuthenticated) {
-    canUseFeature = used < limit;
+    // For all tiers except 'instant', canUseFeature will be true if limit is null
+    canUseFeature = limit === null || used < limit;
   } 
-  // If not authenticated, check if they've used their free trial (anonymous users get 2 analyses)
+  // If not authenticated, anonymous users are limited to 2 analyses per month
   else {
-    canUseFeature = !localTrialUsed || analysisCount < 2;
+    // Anonymous users are limited to 2 analyses
+    const ANONYMOUS_LIMIT = 2;
+    canUseFeature = analysisCount < ANONYMOUS_LIMIT;
   }
   
   const featureEnabled = (feature: string): boolean => {
