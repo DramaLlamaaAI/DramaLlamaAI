@@ -712,10 +712,7 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
               });
               
               // Set our state variables to indicate we found examples
-              // This will be used by the impact and behavioral pattern analysis later
               hasExamples = true;
-              exampleText = relevantQuote.quote;
-              exampleSpeaker = relevantQuote.speaker;
             }
           }
           
