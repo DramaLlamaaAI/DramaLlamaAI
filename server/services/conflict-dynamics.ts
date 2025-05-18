@@ -137,8 +137,8 @@ export function analyzeConflictDynamics(
       
       result.participants[speaker].score = newScore;
       
-      // Update tendency based on score with improved thresholds
-      if (newScore < 35) {
+      // Update tendency based on score with improved thresholds and greater sensitivity to escalation
+      if (newScore < 40) {
         result.participants[speaker].tendency = 'escalates';
       } else if (newScore > 65) {
         result.participants[speaker].tendency = 'de-escalates';
@@ -182,6 +182,30 @@ export function analyzeConflictDynamics(
   const mixedParticipants = Object.entries(result.participants)
     .filter(([_, data]) => data.tendency === 'mixed')
     .map(([name, _]) => name);
+    
+  // For two-person conversations with high escalation, check for mutual escalation patterns
+  if (participantNames.length === 2) {
+    // If both have low scores (below 45), they are both escalating
+    const allScoresBelow45 = Object.values(result.participants).every(data => (data.score || 50) < 45);
+    if (allScoresBelow45) {
+      // Force both participants to be classified as escalating
+      participantNames.forEach(name => {
+        result.participants[name].tendency = 'escalates';
+      });
+      
+      // Update our participant lists
+      escalatingParticipants.splice(0, escalatingParticipants.length, ...participantNames);
+      
+      // Remove any participants from mixed list
+      const mixedIndices = mixedParticipants.map(name => participantNames.indexOf(name));
+      mixedIndices.sort((a, b) => b - a); // Sort in descending order
+      mixedIndices.forEach(index => {
+        if (index !== -1) {
+          mixedParticipants.splice(index, 1);
+        }
+      });
+    }
+  }
   
   // Check for severe score imbalance for better summary generation
   let severeImbalance = false;
@@ -247,6 +271,10 @@ export function analyzeConflictDynamics(
       else if (deEscalatingParticipants.length > 1) {
         result.interaction = `This conversation shows a healthy conflict resolution pattern where both participants work to maintain calm communication.`;
       } 
+      // Special check for mutual escalation 
+      else if (Object.values(result.participants).every(data => (data.score || 50) < 45)) {
+        result.interaction = `This conversation shows a clear pattern of mutual escalation where both participants contribute equally to intensifying the conflict.`;
+      }
       else if (mixedParticipants.length > 0) {
         result.interaction = `This conversation shows inconsistent conflict management patterns with mixed contributions from participants.`;
       }
