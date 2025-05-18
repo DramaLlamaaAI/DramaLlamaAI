@@ -808,7 +808,7 @@ export default function ChatAnalysis() {
                   <div className="bg-white p-4 rounded-lg shadow-sm">
                     <div className="flex items-center mb-3">
                       <Flame className="h-5 w-5 text-red-600 mr-2" />
-                      <h3 className="text-lg font-semibold">Potential Red Flags</h3>
+                      <h3 className="text-lg font-semibold">Communication Issues</h3>
                     </div>
                     
                     {/* Using the dedicated RedFlags component with all necessary props */}

@@ -240,7 +240,11 @@ export const analysisController = {
               
             console.log(`Using ${redFlagTypes.length} unique red flag types from pattern detection`);
             (filteredResults as any).redFlagTypes = redFlagTypes;
+            (filteredResults as any).redFlagsCount = directRedFlags.length;
             (filteredResults as any).redFlagsDetected = true;
+            
+            // Log the actual patterns detected for debugging
+            console.log("Directly detected red flag types:", redFlagTypes);
           }
           // Otherwise check AI detected flags
           else if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
