@@ -54,7 +54,7 @@ export default function Header() {
               <span className="text-white hover:text-white/80 transition">Message Analysis</span>
             </Link>
             <Link href="/de-escalate">
-              <span className="text-white hover:text-white/80 transition">De-escalate</span>
+              <span className="text-white hover:text-white/80 transition">Vent Mode</span>
             </Link>
           </nav>
           

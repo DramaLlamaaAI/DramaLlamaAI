@@ -155,7 +155,7 @@ export default function DeEscalate() {
       </div>
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-2xl font-bold mb-4">De-escalate Mode</h2>
+          <h2 className="text-2xl font-bold mb-4">Vent Mode</h2>
           
           <p className="mb-6 text-muted-foreground">
             Type the emotional message you want to send, and we'll help you rewrite it in a calmer, more effective way while preserving your intent.
@@ -179,7 +179,7 @@ export default function DeEscalate() {
                 className="flex items-center pr-12 shadow-md rounded-lg"
                 style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white' }}
               >
-                {deEscalateMutation.isPending ? "De-escalating..." : "De-escalate Message"}
+                {deEscalateMutation.isPending ? "Processing..." : "Vent Message"}
                 <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-lg border border-white">
                   FREE
                 </span>
