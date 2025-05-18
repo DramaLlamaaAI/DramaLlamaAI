@@ -501,7 +501,8 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
           // Create detailed behavioral pattern analysis with participant names and examples from the conversation
           
           // If we already have example text from earlier processing, use it for contextual analysis
-          if (hasExamples && exampleText) {
+          if (hasExamples && flag.examples && flag.examples[0]?.text) {
+            const exampleText = flag.examples[0].text;
             // Create specific behavioral pattern analysis using actual conversation examples
             if (flag.type.toLowerCase().includes('manipulation')) {
               enhancedFlag.behavioralPattern = `When ${participant} says "${exampleText}", it creates emotional pressure to influence your choices. This manipulation suggests a pattern of using subtle tactics rather than direct requests to get what ${participant} wants.`;
