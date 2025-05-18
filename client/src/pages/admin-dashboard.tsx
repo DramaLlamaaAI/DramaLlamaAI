@@ -6,7 +6,8 @@ import {
   CardContent, 
   CardDescription, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UsersByTierChart from '@/components/analytics/users-by-tier-chart';
@@ -256,74 +257,152 @@ export default function AdminDashboard() {
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
                 ) : (
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ID</TableHead>
-                          <TableHead>Username</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Tier</TableHead>
-                          <TableHead>Verified</TableHead>
-                          <TableHead>Discount</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {users?.map((user) => (
-                          <TableRow key={user.id}>
-                            <TableCell>{user.id}</TableCell>
-                            <TableCell>{user.username}</TableCell>
-                            <TableCell>{user.email}</TableCell>
-                            <TableCell>
-                              <Select 
-                                defaultValue={user.tier}
-                                onValueChange={(value) => handleTierChange(user.id, value)}
-                              >
-                                <SelectTrigger className="w-[120px]">
-                                  <SelectValue placeholder="Select tier" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="free">Free</SelectItem>
-                                  <SelectItem value="personal">Personal</SelectItem>
-                                  <SelectItem value="pro">Pro</SelectItem>
-                                  <SelectItem value="instant">Instant</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell>
-                              {user.emailVerified ? (
-                                <span className="text-green-500">Verified</span>
-                              ) : (
-                                <span className="text-red-500">Not Verified</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {user.discountPercentage > 0 ? (
-                                <div className="flex flex-col">
-                                  <span className="text-green-500">{user.discountPercentage}%</span>
-                                  <span className="text-xs text-gray-500">
-                                    Expires: {formatDate(user.discountExpiryDate)}
-                                  </span>
+                  <>
+                    {/* Desktop View - Hidden on Mobile */}
+                    <div className="rounded-md border hidden md:block">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Username</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Tier</TableHead>
+                            <TableHead>Verified</TableHead>
+                            <TableHead>Discount</TableHead>
+                            <TableHead>Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {users?.map((user) => (
+                            <TableRow key={user.id}>
+                              <TableCell>{user.id}</TableCell>
+                              <TableCell>{user.username}</TableCell>
+                              <TableCell>{user.email}</TableCell>
+                              <TableCell>
+                                <Select 
+                                  defaultValue={user.tier}
+                                  onValueChange={(value) => handleTierChange(user.id, value)}
+                                >
+                                  <SelectTrigger className="w-[120px]">
+                                    <SelectValue placeholder="Select tier" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="free">Free</SelectItem>
+                                    <SelectItem value="personal">Personal</SelectItem>
+                                    <SelectItem value="pro">Pro</SelectItem>
+                                    <SelectItem value="instant">Instant</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell>
+                                {user.emailVerified ? (
+                                  <span className="text-green-500">Verified</span>
+                                ) : (
+                                  <span className="text-red-500">Not Verified</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {user.discountPercentage > 0 ? (
+                                  <div className="flex flex-col">
+                                    <span className="text-green-500">{user.discountPercentage}%</span>
+                                    <span className="text-xs text-gray-500">
+                                      Expires: {formatDate(user.discountExpiryDate)}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span>None</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setSelectedUser(user)}
+                                >
+                                  Apply Discount
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    
+                    {/* Mobile View - Only visible on small screens */}
+                    <div className="space-y-4 md:hidden">
+                      <div className="bg-primary/10 p-3 rounded-md mb-4">
+                        <h3 className="font-medium text-center">Registered Users (Mobile View)</h3>
+                      </div>
+                      
+                      {users?.length === 0 ? (
+                        <div className="text-center py-4 border rounded-md">
+                          No users found.
+                        </div>
+                      ) : (
+                        users?.map((user) => (
+                          <Card key={user.id} className="overflow-hidden">
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-center">
+                                <CardTitle className="text-lg">{user.username}</CardTitle>
+                                <div className="text-xs font-medium bg-gray-100 rounded-full px-2 py-1">
+                                  ID: {user.id}
                                 </div>
-                              ) : (
-                                <span>None</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
+                              </div>
+                              <CardDescription className="text-md font-medium text-primary break-all mt-1">
+                                {user.email}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pb-2 text-sm">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium text-muted-foreground">Status:</span>
+                                  {user.emailVerified ? (
+                                    <span className="text-green-500">Verified</span>
+                                  ) : (
+                                    <span className="text-red-500">Not Verified</span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium text-muted-foreground">Discount:</span>
+                                  {user.discountPercentage > 0 ? (
+                                    <span className="text-green-500">{user.discountPercentage}%</span>
+                                  ) : (
+                                    <span className="text-gray-500">None</span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="mt-3">
+                                <span className="font-medium text-muted-foreground">Tier:</span>
+                                <Select 
+                                  defaultValue={user.tier}
+                                  onValueChange={(value) => handleTierChange(user.id, value)}
+                                >
+                                  <SelectTrigger className="w-full mt-1">
+                                    <SelectValue placeholder="Select tier" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="free">Free</SelectItem>
+                                    <SelectItem value="personal">Personal</SelectItem>
+                                    <SelectItem value="pro">Pro</SelectItem>
+                                    <SelectItem value="instant">Instant</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </CardContent>
+                            <CardFooter className="border-t pt-3">
                               <Button 
-                                variant="outline" 
-                                size="sm"
+                                className="w-full"
                                 onClick={() => setSelectedUser(user)}
                               >
                                 Apply Discount
                               </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                            </CardFooter>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </CardContent>
