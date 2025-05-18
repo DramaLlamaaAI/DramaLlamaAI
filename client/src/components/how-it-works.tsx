@@ -7,12 +7,24 @@ import { useQuery } from "@tanstack/react-query";
 import { getUserUsage } from "@/lib/openai";
 
 export default function HowItWorks() {
-  // Get usage data for free tier indicator
+  // Get usage data and authentication status
   const { data: usage } = useQuery({
     queryKey: ['/api/user/usage'],
     queryFn: getUserUsage,
   });
   
+  // Get authentication status
+  const { data: userData } = useQuery({
+    queryKey: ['/api/auth/user'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/user');
+      if (response.status === 401) return null;
+      return response.json();
+    },
+    retry: false,
+  });
+  
+  const isAuthenticated = !!userData;
   const used = usage?.used || 0;
   const limit = usage?.limit || 2;
   const remaining = Math.max(0, limit - used);
@@ -84,8 +96,8 @@ export default function HowItWorks() {
         </div>
       </div>
       
-      {/* Free tier info section */}
-      {tier === 'free' && (
+      {/* Free tier info section - only show for anonymous users */}
+      {!isAuthenticated && (
         <div className="mt-8 max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-md p-6 border-2 border-violet-100">
             <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
