@@ -5,7 +5,8 @@ import 'express-session';
 import { 
   generateVerificationCode, 
   sendVerificationEmail,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendNewUserNotification
 } from '../services/resend-email-service';
 
 // Augment express-session with custom properties
@@ -125,6 +126,15 @@ export const authController = {
       
       // Try to send verification email
       const emailSent = await sendVerificationEmail(user, verificationCode);
+      
+      // Send admin notification about new user registration
+      try {
+        await sendNewUserNotification(user);
+        console.log(`Admin notification sent for new user: ${user.username} (${user.email})`);
+      } catch (notificationError) {
+        console.error('Failed to send admin notification:', notificationError);
+        // Non-critical error, continue with registration
+      }
       
       // Don't return the password
       const { password, ...userWithoutPassword } = user;

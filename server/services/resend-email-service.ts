@@ -185,3 +185,67 @@ export const generateVerificationCode = (): string => {
   console.log(`Generated verification code: "${result}"`);
   return result;
 };
+
+// Send an admin notification when a new user registers
+export const sendNewUserNotification = async (newUser: User): Promise<boolean> => {
+  // Make sure we have an admin email set
+  const adminEmail = process.env.ADMIN_EMAIL || 'dramallamaconsultancy@gmail.com';
+  
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="data:image/svg+xml;base64,${DRAMA_LLAMA_LOGO_BASE64}" alt="Drama Llama Logo" style="width: 120px; height: auto;" />
+      </div>
+      <h2 style="color: #22C9C9;">New User Registration</h2>
+      <p>Hello Admin,</p>
+      <p>A new user has registered on Drama Llama AI:</p>
+      
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Username:</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${newUser.username}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Email:</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${newUser.email}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Tier:</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${newUser.tier}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Registration Time:</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${new Date().toLocaleString()}</td>
+        </tr>
+      </table>
+      
+      <p>You can manage users from the admin dashboard.</p>
+      <p>Thank you,<br>Drama Llama AI System</p>
+    </div>
+  `;
+  
+  const textContent = `
+    New User Registration
+    
+    Hello Admin,
+    
+    A new user has registered on Drama Llama AI:
+    
+    Username: ${newUser.username}
+    Email: ${newUser.email}
+    Tier: ${newUser.tier}
+    Registration Time: ${new Date().toLocaleString()}
+    
+    You can manage users from the admin dashboard.
+    
+    Thank you,
+    Drama Llama AI System
+  `;
+  
+  return sendEmail({
+    to: adminEmail,
+    subject: 'New User Registration - Drama Llama AI',
+    text: textContent,
+    html: htmlContent,
+  });
+};

@@ -416,7 +416,8 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
           
           // Create personalized action recommendations with specific references to the conversation
           // If we have an example text from the conversation, use it to make the recommendation more specific
-          if (hasExamples && exampleText) {
+          if (hasExamples && flag.examples && flag.examples[0]?.text) {
+            let exampleText = flag.examples[0].text;
             let shortenedExample = exampleText;
             // If the example is too long, truncate it for a cleaner recommendation
             if (shortenedExample.length > 40) {
