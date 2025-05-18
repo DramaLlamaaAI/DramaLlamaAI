@@ -232,20 +232,20 @@ export const analysisController = {
         filteredResults = enhanceRedFlags(filteredResults, tier);
         console.log(`Enhanced ${tier} tier red flag detection`);
         
-        // Post-process to explicitly remove stonewalling references
+        // Post-process to precisely remove only stonewalling flags
         if (filteredResults.redFlags && filteredResults.redFlags.length > 0) {
-          // Filter out ANY references to stonewalling in any form
+          // Filter out ONLY exact stonewalling flags while keeping other valid ones
           filteredResults.redFlags = filteredResults.redFlags.filter(flag => {
             const flagType = (flag.type || '').toLowerCase();
-            const flagDesc = (flag.description || '').toLowerCase();
             
-            const stonewallingTerms = ['stonewalling', 'withdrawal', 'disengaging', 'shutting down', 'silent treatment'];
-            const hasStonewalling = stonewallingTerms.some(term => 
-              flagType.includes(term) || flagDesc.includes(term)
-            );
+            // Check only for exact matches to "stonewalling" rather than broad filtering
+            const isStonewallingFlag = 
+              flagType === 'stonewalling' || 
+              flagType === 'emotional withdrawal' ||
+              (flagType.includes('stonewalling') && !flagType.includes('invalidation') && !flagType.includes('contempt'));
             
-            if (hasStonewalling) {
-              console.log(`Post-processing filter: Removing stonewalling flag: ${flag.type}`);
+            if (isStonewallingFlag) {
+              console.log(`Post-processing filter: Removing specific stonewalling flag: ${flag.type}`);
               return false;
             }
             
@@ -274,14 +274,20 @@ export const analysisController = {
           }
           // Otherwise check AI detected flags
           else if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
-            // Filter out any stonewalling flags first
+            // Filter out only stonewalling flags and keep other valid flags
             const filteredRedFlags = personalAnalysis.redFlags.filter(flag => {
               const flagType = (flag.type || '').toLowerCase();
               const flagDesc = (flag.description || '').toLowerCase();
               
-              const stonewallingTerms = ['stonewalling', 'withdrawal', 'disengaging', 'shutting down', 'silent treatment'];
-              return !stonewallingTerms.some(term => 
-                flagType.includes(term) || flagDesc.includes(term)
+              // Check only for exact matches to "stonewalling" type/names
+              // but keep other legitimate flags
+              return !(
+                flagType === 'stonewalling' || 
+                flagType === 'emotional withdrawal' ||
+                (flagType.includes('stonewalling') && 
+                 (flagDesc.includes('stonewalling') || 
+                  flagDesc.includes('silent treatment') ||
+                  flagDesc.includes('shutting down')))
               );
             });
             
