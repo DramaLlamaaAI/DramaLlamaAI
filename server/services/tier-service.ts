@@ -335,7 +335,7 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
           }
           
           // Flag for whether we have concrete examples
-          const hasExamples = relevantQuotes.length > 0;
+          let hasExamples = relevantQuotes.length > 0;
           const primaryExample = hasExamples ? relevantQuotes[0].quote : '';
           const primarySpeaker = hasExamples ? relevantQuotes[0].speaker : enhancedFlag.participant;
           
@@ -711,7 +711,7 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
                 });
               });
               
-              // Set our state variables to indicate we found examples
+              // Update our flag to indicate we found examples
               hasExamples = true;
             }
           }
