@@ -84,6 +84,9 @@ export interface ChatAnalysisResponse {
     severity: number;
   }>;
   redFlagsCount?: number;
+  redFlagTypes?: string[];
+  redFlagsDetected?: boolean;
+  sampleQuotes?: {[key: string]: string[]};
   communication?: {
     patterns?: string[];
     dynamics?: string[];
