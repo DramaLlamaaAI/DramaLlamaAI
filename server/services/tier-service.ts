@@ -127,9 +127,12 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   
   // For personal and higher tiers, include the red flags with appropriate details
   if (tier !== 'free' && analysis.redFlags && analysis.redFlags.length > 0) {
-    // Include the full red flags for paid tiers
-    filteredAnalysis.redFlags = analysis.redFlags;
-    console.log(`Adding ${analysis.redFlags.length} detailed red flags to ${tier} tier analysis`);
+    // Apply stonewalling detection filter to ensure accuracy
+    const filteredRedFlags = filterStonewalling(analysis.redFlags, analysis.conversation);
+    
+    // Include the filtered red flags for paid tiers
+    filteredAnalysis.redFlags = filteredRedFlags;
+    console.log(`Adding ${filteredRedFlags.length} detailed red flags to ${tier} tier analysis`);
   }
   
   // Note: For free tier, the controller will add just the red flag types
