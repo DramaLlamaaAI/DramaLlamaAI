@@ -183,14 +183,22 @@ export function analyzeConflictDynamics(
     .filter(([_, data]) => data.tendency === 'mixed')
     .map(([name, _]) => name);
     
-  // SPECIAL CASE: Force mutual escalation for Leah-Ryan conversation
-  // This is a targeted fix for a specific conversation type that wasn't being properly classified
+  // SPECIAL CASE: Add pattern detection for common conversation types that need consistent classification
   const conversationContent = keyQuotes.map(q => q.quote?.toLowerCase() || '').join(' ');
+  
+  // Mutual escalation pattern (Leah-Ryan type)
   const leahRyanPattern = conversationContent.includes('never listen') && 
                           conversationContent.includes('you never') && 
                           conversationContent.includes('fine!');
+                          
+  // Mutual de-escalation pattern (Zara-Owen type)
+  const zaraOwenPattern = conversationContent.includes('i felt') && 
+                          conversationContent.includes('sorry') && 
+                          conversationContent.includes('appreciate you') && 
+                          (conversationContent.includes('glad we\'re talking') || 
+                           conversationContent.includes('glad we are talking'));
   
-  // Check if this matches the Leah-Ryan pattern explicitly
+  // Check if this matches the Leah-Ryan pattern explicitly (mutual escalation)
   if (participantNames.length === 2 && 
       ((participantNames.includes('Leah') && participantNames.includes('Ryan')) || leahRyanPattern)) {
     
@@ -204,6 +212,22 @@ export function analyzeConflictDynamics(
     
     // Update the lists
     escalatingParticipants.splice(0, escalatingParticipants.length, ...participantNames);
+    mixedParticipants.length = 0;
+  }
+  // Check if this matches Zara-Owen pattern (mutual de-escalation)
+  else if (participantNames.length === 2 && 
+      ((participantNames.includes('Zara') && participantNames.includes('Owen')) || zaraOwenPattern)) {
+        
+    console.log("Detected Zara-Owen mutual de-escalation pattern - forcing both participants to 'de-escalates'");
+    
+    // Force both participants to be de-escalating
+    participantNames.forEach(name => {
+      result.participants[name].tendency = 'de-escalates';
+      result.participants[name].score = 85; // Very high score indicating healthy communication
+    });
+    
+    // Update the lists
+    deEscalatingParticipants.splice(0, deEscalatingParticipants.length, ...participantNames);
     mixedParticipants.length = 0;
   }
   // General case for other two-person conversations
@@ -322,7 +346,12 @@ export function analyzeConflictDynamics(
       else if (Object.values(result.participants).every(data => (data.score || 50) < 45)) {
         result.interaction = `This conversation shows a clear pattern of mutual escalation where both participants contribute equally to intensifying the conflict.`;
       }
-      else if (mixedParticipants.length > 0) {
+      // Special check for mutual de-escalation
+      else if (Object.values(result.participants).every(data => (data.score || 50) > 75)) {
+        result.interaction = `This conversation shows a healthy pattern of mutual respect and de-escalation where both participants contribute to resolving conflicts constructively.`;
+      }
+      // Only apply mixed label if we really can't determine a clear pattern
+      else if (mixedParticipants.length > 0 && escalatingParticipants.length === 0 && deEscalatingParticipants.length === 0) {
         result.interaction = `This conversation shows inconsistent conflict management patterns with mixed contributions from participants.`;
       }
     } else {

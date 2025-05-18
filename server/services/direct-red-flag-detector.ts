@@ -39,9 +39,9 @@ const redFlagPatterns = [
     description: 'Avoiding responsibility by blaming the other person',
     severity: 7
   },
-  // All-or-nothing statements
+  // All-or-nothing statements (with improved false positive prevention)
   {
-    pattern: /(always|never|nothing ever|everything is|you never|you always|every single time|not once have you|absolutely nothing)/i,
+    pattern: /(you never|you always|you don['']t care at all|everything is ruined|nothing ever changes|not once have you|every single time)/i,
     type: 'All-or-Nothing Thinking',
     description: 'Using absolutes to exaggerate situations',
     severity: 5
@@ -131,33 +131,79 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
   const redFlags: RedFlag[] = [];
   const foundPatterns = new Set<string>(); // To avoid duplicate flag types
   
-  // Process each line
+  // Context tracking
+  const cancellationMentions = new Set<string>();
+  const allMessages: {speaker: string, text: string}[] = [];
+  const nuancedLanguage = new Set<string>(); // Track speakers who use nuanced language
+  
+  // Extract all messages first for context analysis
   lines.forEach(line => {
-    // Skip empty lines or non-dialogue lines
     if (!line.includes(':')) return;
     
-    // Extract speaker and message
     const [speaker, message] = line.split(':', 2);
     if (!speaker || !message) return;
     
     const speakerName = speaker.trim();
     const messageText = message.trim();
     
-    // Check for red flag patterns
+    allMessages.push({speaker: speakerName, text: messageText});
+    
+    // Track mentions of cancellations
+    if (messageText.toLowerCase().includes('cancel') || 
+        messageText.toLowerCase().includes('missed') || 
+        messageText.toLowerCase().includes('didn\'t show')) {
+      cancellationMentions.add(speakerName);
+    }
+    
+    // Track nuanced language that indicates non-absolutist thinking
+    if (messageText.match(/(a little|felt like|maybe|try again|i felt|i was hoping|seems like)/i)) {
+      nuancedLanguage.add(speakerName);
+    }
+  });
+  
+  // Check for resolution of cancellation issues
+  const cancellationResolved = allMessages.some(msg => 
+    msg.text.match(/(sorry|apologize|make it up|next time|reschedule)/i) &&
+    cancellationMentions.size === 1 // Only one person mentioned cancellation
+  );
+  
+  // Process each message with context awareness
+  allMessages.forEach(({speaker: speakerName, text: messageText}) => {
+    // Check for red flag patterns with context awareness
     redFlagPatterns.forEach(pattern => {
       if (pattern.pattern.test(messageText) && !foundPatterns.has(pattern.type)) {
-        foundPatterns.add(pattern.type);
+        // Apply error detection logic to prevent false positives
+        let isValidFlag = true;
         
-        redFlags.push({
-          type: pattern.type,
-          description: pattern.description,
-          severity: pattern.severity,
-          examples: [{
-            text: messageText,
-            from: speakerName
-          }],
-          participant: speakerName
-        });
+        // RULE 1: Prevent false positives for All-or-Nothing Thinking
+        if (pattern.type === 'All-or-Nothing Thinking' && nuancedLanguage.has(speakerName)) {
+          // Skip if this speaker uses nuanced language elsewhere in the conversation
+          isValidFlag = false;
+        }
+        
+        // RULE 2: Prevent false positives for Cancellation Patterns
+        if ((messageText.toLowerCase().includes('cancel') || messageText.toLowerCase().includes('missed')) && 
+            cancellationResolved && 
+            cancellationMentions.size === 1) {
+          // Skip if this is a one-time cancellation that was resolved
+          isValidFlag = false;
+        }
+        
+        // If the flag passes our error detection rules, add it
+        if (isValidFlag) {
+          foundPatterns.add(pattern.type);
+          
+          redFlags.push({
+            type: pattern.type,
+            description: pattern.description,
+            severity: pattern.severity,
+            examples: [{
+              text: messageText,
+              from: speakerName
+            }],
+            participant: speakerName
+          });
+        }
       }
     });
   });
