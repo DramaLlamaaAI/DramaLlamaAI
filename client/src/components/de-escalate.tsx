@@ -187,10 +187,7 @@ export default function VentMode() {
             </div>
           </div>
           
-          {/* Registration prompt for anonymous/free tier users */}
-          {result && usage?.tier === 'free' && (
-            <RegistrationPrompt tier={usage.tier} />
-          )}
+          {/* Registration prompt moved to bottom */}
           
           {result && (
             <div className="rounded-lg border border-border p-4 mb-6 bg-muted slide-in" ref={resultsRef}>
@@ -250,12 +247,19 @@ export default function VentMode() {
                 <Heart className="h-4 w-4 fill-red-500 text-white" />
               </div>
               <AlertDescription className="text-gray-700 font-medium">
-                De-escalate Mode helps transform emotional reactions into constructive communication.
+                Vent Mode helps transform emotional reactions into constructive communication.
               </AlertDescription>
             </div>
           </Alert>
         </CardContent>
       </Card>
+      
+      {/* Registration prompt for anonymous/free tier users */}
+      {result && usage?.tier === 'free' && (
+        <div className="mt-6">
+          <RegistrationPrompt tier={usage.tier} />
+        </div>
+      )}
     </section>
   );
 }
