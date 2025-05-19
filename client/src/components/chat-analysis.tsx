@@ -119,6 +119,44 @@ export default function ChatAnalysis() {
   });
   
   const detectGroupParticipantsMutation = useMutation({
+    mutationFn: async (text: string) => {
+      // Local processing for WhatsApp group chat participants
+      const lines = text.split('\n');
+      const participantRegex = /\[.*?\] (.*?):/;
+      const foundParticipants = new Set<string>();
+      
+      for (const line of lines) {
+        const match = line.match(participantRegex);
+        if (match && match[1]) {
+          foundParticipants.add(match[1].trim());
+        }
+      }
+      
+      const participantsList = Array.from(foundParticipants);
+      
+      if (participantsList.length === 0) {
+        throw new Error('No participants detected in the conversation');
+      }
+      
+      return participantsList;
+    },
+    onSuccess: (data) => {
+      setParticipants(data);
+      toast({
+        title: "Group Participants Detected",
+        description: `Found ${data.length} participants in the WhatsApp group chat.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Detection Failed",
+        description: error.message || "Could not detect group participants. Make sure this is a WhatsApp group chat export.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const detectGroupParticipantsMutation = useMutation({
     mutationFn: (text: string) => detectGroupParticipants(text),
     onSuccess: (data) => {
       setParticipants(data);
@@ -267,6 +305,20 @@ export default function ChatAnalysis() {
     
     // Pass the conversation as a string directly
     detectNamesMutation.mutate(conversation);
+  };
+  
+  const handleDetectGroupParticipants = () => {
+    if (!conversation.trim()) {
+      toast({
+        title: "Empty Group Chat",
+        description: "Please paste or upload a WhatsApp group conversation first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Pass the conversation to our group participant detection function
+    detectGroupParticipantsMutation.mutate(conversation);
   };
   
   const handleDetectGroupParticipants = () => {
@@ -743,7 +795,8 @@ export default function ChatAnalysis() {
                                 </Button>
                               </div>
                             )}
-                              
+                            
+                            {conversationType === "two_person" && (
                               <Button
                                 variant="outline"
                                 onClick={handleSwitchNames}
@@ -752,6 +805,7 @@ export default function ChatAnalysis() {
                                 <ArrowLeftRight className="h-4 w-4 mr-2" />
                                 Switch Names
                               </Button>
+                            )}
                             </div>
                             
                             <div className="relative">
