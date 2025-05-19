@@ -815,6 +815,7 @@ export default function ChatAnalysis() {
                             </Button>
                           </div>
                         </div>
+                      )}
                       
                       
                       {imagePreview && (

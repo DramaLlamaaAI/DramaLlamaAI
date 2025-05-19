@@ -31,7 +31,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/chat-analysis" component={ChatAnalysis} />
+      {/* Temporarily disabled until syntax errors are fixed */}
+      {/* <Route path="/chat-analysis" component={ChatAnalysis} /> */}
       <Route path="/group-chat-analysis" component={GroupChatAnalysis} />
       <Route path="/message-analysis" component={MessageAnalysis} />
       <Route path="/de-escalate" component={VentMode} />
