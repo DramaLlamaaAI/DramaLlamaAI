@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -438,28 +438,35 @@ export default function GroupChatAnalysis() {
             {/* Group Dynamics Tab */}
             <TabsContent value="dynamics" className="space-y-6">
               {result.conflictDynamics && (
-                <ConflictDynamics data={result.conflictDynamics} />
+                <ConflictDynamics 
+                  tier={usage?.tier || "free"}
+                  conflictDynamics={result.conflictDynamics} 
+                />
               )}
               
-              {result.messageDominance && (
+              {/* Only show Message Dominance for personal and pro tiers */}
+              {(usage?.tier === "personal" || usage?.tier === "pro" || usage?.tier === "instant") && result.messageDominance && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="pb-4">
                     <CardTitle>Message Dominance</CardTitle>
+                    <CardDescription>
+                      Analysis of messaging patterns and participation levels
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {result.messageDominance.summary && (
-                        <p>{result.messageDominance.summary}</p>
+                        <p className="text-sm">{result.messageDominance.summary}</p>
                       )}
                       
                       {result.messageDominance.participants && (
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
                           {Object.entries(result.messageDominance.participants).map(([name, data]) => (
-                            <div key={name} className="border rounded-md p-4">
+                            <div key={name} className="border rounded-md p-5">
                               <div className="font-medium">{name}</div>
-                              <div className="flex items-center gap-2 mt-1">
+                              <div className="flex items-center gap-3 mt-3">
                                 <div className="text-sm">Message share:</div>
-                                <div className="h-2 bg-gray-200 rounded-full flex-1">
+                                <div className="h-2.5 bg-gray-200 rounded-full flex-1">
                                   <div 
                                     className="h-full bg-primary rounded-full"
                                     style={{ width: `${data.percentage || 0}%` }}
@@ -468,7 +475,7 @@ export default function GroupChatAnalysis() {
                                 <div className="text-sm font-medium">{data.percentage || 0}%</div>
                               </div>
                               {data.assessment && (
-                                <div className="mt-2 text-sm">{data.assessment}</div>
+                                <div className="mt-3 text-sm">{data.assessment}</div>
                               )}
                             </div>
                           ))}
@@ -479,27 +486,31 @@ export default function GroupChatAnalysis() {
                 </Card>
               )}
               
-              {result.powerDynamics && usage?.tier !== "free" && (
+              {/* Only show Power Dynamics for pro and instant tiers */}
+              {(usage?.tier === "pro" || usage?.tier === "instant") && result.powerDynamics && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="pb-4">
                     <CardTitle>Power Dynamics</CardTitle>
+                    <CardDescription>
+                      Analysis of relationship influence and control patterns
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {result.powerDynamics.summary && (
-                        <p>{result.powerDynamics.summary}</p>
+                        <p className="text-sm">{result.powerDynamics.summary}</p>
                       )}
                       
                       {result.powerDynamics.patterns && result.powerDynamics.patterns.length > 0 && (
-                        <div className="mt-4">
-                          <h3 className="text-lg font-medium mb-2">Power Patterns</h3>
-                          <div className="space-y-3">
+                        <div className="mt-5">
+                          <h3 className="text-lg font-medium mb-4">Power Patterns</h3>
+                          <div className="space-y-4">
                             {result.powerDynamics.patterns.map((pattern, i) => (
-                              <div key={i} className="border rounded-md p-3">
+                              <div key={i} className="border rounded-md p-5">
                                 <div className="font-medium">{pattern.type}</div>
-                                <div className="text-sm mt-1">By: {pattern.participant}</div>
+                                <div className="text-sm mt-2">By: {pattern.participant}</div>
                                 {pattern.quote && (
-                                  <div className="mt-2 text-sm text-muted-foreground italic">
+                                  <div className="mt-3 text-sm text-muted-foreground italic">
                                     "{pattern.quote}"
                                   </div>
                                 )}
