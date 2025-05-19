@@ -53,6 +53,7 @@ const analyzeGroupChatConversation = async (conversation: string, participants: 
     
     // Define main participants for prompt structure (needed for API format)
     const me = participants[0] || 'Participant1';
+    // Use all remaining participants 
     const them = participants.slice(1).join(', ') || 'OtherParticipants';
     
     // Create detailed instruction for multi-participant analysis
@@ -61,6 +62,13 @@ This is a GROUP CHAT with ${participants.length} participants: ${participants.jo
 Analyze the dynamics between ALL participants, not just two people.
 For each detected pattern or issue, identify WHICH SPECIFIC PARTICIPANT(S) exhibit the behavior.
 Ensure the analysis accounts for group dynamics, not just one-on-one interactions.
+
+Important instructions for group chat analysis:
+1. Include SEPARATE sections for EACH participant's communication style
+2. For red flags, power dynamics, and other behavioral patterns, attribute them to the SPECIFIC participant
+3. Include quotes from MULTIPLE participants to show group interaction patterns
+4. Analyze how participants respond to each other beyond just one-to-one exchanges
+5. Look for coalition patterns, subgrouping, or outsider dynamics that may be present
 `;
 
     // Get the raw analysis from Anthropic
@@ -80,6 +88,19 @@ Ensure the analysis accounts for group dynamics, not just one-on-one interaction
     // Add group chat specific data for UI rendering
     rawAnalysis.isGroupChat = true;
     rawAnalysis.groupParticipants = participants;
+    
+    // For message dominance and power dynamics in Pro tier
+    if (tier === 'pro' || tier === 'instant') {
+      // Generate message dominance data if not already present
+      if (!rawAnalysis.messageDominance) {
+        rawAnalysis.messageDominance = generateMessageDominanceAnalysis(conversation, participants);
+      }
+      
+      // Generate power dynamics if not already present
+      if (!rawAnalysis.powerDynamics) {
+        rawAnalysis.powerDynamics = generatePowerDynamicsAnalysis(conversation, participants);
+      }
+    }
     
     // Return the full analysis
     return rawAnalysis;
@@ -102,12 +123,159 @@ Ensure the analysis accounts for group dynamics, not just one-on-one interaction
       openAIAnalysis.isGroupChat = true;
       openAIAnalysis.groupParticipants = participants;
       
+      // For message dominance and power dynamics in Pro tier with OpenAI fallback
+      if ((tier === 'pro' || tier === 'instant') && !openAIAnalysis.messageDominance) {
+        openAIAnalysis.messageDominance = generateMessageDominanceAnalysis(conversation, participants);
+      }
+      
+      if ((tier === 'pro' || tier === 'instant') && !openAIAnalysis.powerDynamics) {
+        openAIAnalysis.powerDynamics = generatePowerDynamicsAnalysis(conversation, participants);
+      }
+      
       return openAIAnalysis;
     } catch (fallbackError) {
       console.error('Both Anthropic and OpenAI fallback failed for group chat analysis:', fallbackError);
       throw new Error('Unable to analyze group chat: both primary and fallback analysis engines failed');
     }
   }
+};
+
+// Helper function to generate message dominance analysis for group chats
+const generateMessageDominanceAnalysis = (conversation: string, participants: string[]): any => {
+  const lines = conversation.split('\n');
+  const messageCountByParticipant: {[key: string]: number} = {};
+  const totalWords: {[key: string]: number} = {};
+  
+  // Initialize counts for all participants
+  participants.forEach(participant => {
+    messageCountByParticipant[participant] = 0;
+    totalWords[participant] = 0;
+  });
+  
+  // Count messages and words for each participant
+  for (const line of lines) {
+    // Check for participant patterns in messages
+    for (const participant of participants) {
+      if (line.includes(`${participant}:`) || line.includes(`[`) && line.includes(`] ${participant}:`)) {
+        messageCountByParticipant[participant]++;
+        // Count words in this message
+        const messageContent = line.split(':').slice(1).join(':').trim();
+        totalWords[participant] += messageContent.split(' ').length;
+        break;
+      }
+    }
+  }
+  
+  // Calculate total messages
+  const totalMessages = Object.values(messageCountByParticipant).reduce((sum, count) => sum + count, 0);
+  
+  // Create the message dominance analysis
+  const dominanceAnalysis = {
+    summary: "Analysis of message volume and participation patterns in the group chat",
+    totalMessages,
+    participantData: {} as {[key: string]: any}
+  };
+  
+  // Add data for each participant
+  participants.forEach(participant => {
+    const messageCount = messageCountByParticipant[participant];
+    const wordCount = totalWords[participant];
+    const messagePercentage = totalMessages > 0 ? (messageCount / totalMessages) * 100 : 0;
+    
+    // Determine dominance level
+    let dominanceLevel = "Balanced Participant";
+    if (messagePercentage > 45) dominanceLevel = "Highly Dominant";
+    else if (messagePercentage > 30) dominanceLevel = "Dominant";
+    else if (messagePercentage < 10) dominanceLevel = "Minimal Participation";
+    else if (messagePercentage < 5) dominanceLevel = "Observer";
+    
+    dominanceAnalysis.participantData[participant] = {
+      messageCount,
+      wordCount,
+      messagePercentage: Math.round(messagePercentage),
+      dominanceLevel
+    };
+  });
+  
+  return dominanceAnalysis;
+};
+
+// Helper function to generate power dynamics analysis for group chats
+const generatePowerDynamicsAnalysis = (conversation: string, participants: string[]): any => {
+  // Create a simple power dynamics analysis structure
+  const powerDynamics = {
+    overallDynamics: "Analysis of power distribution and influence in the conversation",
+    patterns: [] as any[],
+    participantRoles: {} as {[key: string]: string}
+  };
+  
+  // Default patterns to look for in group chats
+  const defaultPatterns = [
+    {
+      type: "Topic control",
+      description: "Ability to shift conversation topics and have others follow",
+      primaryIndicator: "Successful topic changes that others engage with"
+    },
+    {
+      type: "Question-answer dynamics",
+      description: "Who asks vs. who answers questions in the group",
+      primaryIndicator: "Frequency of questions vs information provision"
+    },
+    {
+      type: "Conflict mediation",
+      description: "Who steps in to resolve disagreements",
+      primaryIndicator: "De-escalation attempts during tense exchanges"
+    }
+  ];
+  
+  // Add the default patterns
+  powerDynamics.patterns = defaultPatterns;
+  
+  // Assign basic roles based on message frequency
+  const lines = conversation.split('\n');
+  const messageCountByParticipant: {[key: string]: number} = {};
+  
+  // Initialize counts
+  participants.forEach(participant => {
+    messageCountByParticipant[participant] = 0;
+  });
+  
+  // Count messages for each participant
+  for (const line of lines) {
+    // Check for participant patterns in messages
+    for (const participant of participants) {
+      if (line.includes(`${participant}:`) || line.includes(`[`) && line.includes(`] ${participant}:`)) {
+        messageCountByParticipant[participant]++;
+        break;
+      }
+    }
+  }
+  
+  // Assign roles based on participation level
+  const sortedParticipants = [...participants].sort((a, b) => 
+    (messageCountByParticipant[b] || 0) - (messageCountByParticipant[a] || 0)
+  );
+  
+  // Assign lead role to most active participant
+  if (sortedParticipants.length > 0) {
+    powerDynamics.participantRoles[sortedParticipants[0]] = "Conversation Leader";
+  }
+  
+  // Assign other roles
+  for (let i = 1; i < sortedParticipants.length; i++) {
+    const participant = sortedParticipants[i];
+    const messageCount = messageCountByParticipant[participant] || 0;
+    
+    if (i === 1 && sortedParticipants.length > 2) {
+      powerDynamics.participantRoles[participant] = "Active Participant";
+    } else if (messageCount < 3) {
+      powerDynamics.participantRoles[participant] = "Observer";
+    } else {
+      powerDynamics.participantRoles[participant] = "Regular Participant";
+    }
+  }
+  
+  return powerDynamics;
 };
 
 // Check if user has reached their usage limit

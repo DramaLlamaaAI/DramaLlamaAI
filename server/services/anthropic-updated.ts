@@ -3,6 +3,112 @@ import OpenAI from 'openai';
 import { TIER_LIMITS } from "@shared/schema";
 import { getTextFromContentBlock, parseAnthropicJson } from './anthropic-helpers';
 
+// Function for getting tier-specific system prompt
+const getTierSpecificSystemPrompt = (tier: string, me: string, them: string): string => {
+  return `You are a communication expert who analyzes conversations.
+
+For this ${tier.toUpperCase()} tier analysis, examine the conversation between ${me} and ${them}.
+
+IMPORTANT: Return ONLY JSON wrapped in code block markers (\`\`\`json). NEVER include ANY explanatory text outside the JSON code block.
+
+All JSON values MUST be in "double quotes" without special characters. Do NOT use single quotes or line breaks within values.
+
+Your analysis MUST be concise - no field should exceed 25 words.
+
+The JSON structure should include only the required fields for ${tier.toUpperCase()} tier:
+- toneAnalysis (overallTone, emotionalState, participantTones)
+- communication (patterns, dynamics, suggestions) 
+- healthScore (score from 0-100, label, color)
+${tier === 'personal' || tier === 'pro' ? '- redFlags (if applicable)' : ''}
+${tier === 'pro' ? '- keyQuotes, dramaScore, and other advanced analysis components' : ''}`;
+};
+
+// Function for direct group chat analysis with Anthropic
+export async function analyzeChatWithAnthropicAI(conversation: string, me: string, them: string, tier: string, additionalInstructions: string = ''): Promise<any> {
+  // Define Anthropic client
+  const anthropic = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+  });
+  
+  console.log(`Using Anthropic for ${tier} tier analysis with additional context: ${additionalInstructions.slice(0, 50)}...`);
+  
+  // Get the base prompt for this tier
+  const basePrompt = getTierSpecificSystemPrompt(tier, me, them);
+  
+  // Add any additional instructions for special cases like group chats
+  const systemPrompt = additionalInstructions ? 
+    `${basePrompt}\n\n${additionalInstructions}` : 
+    basePrompt;
+  
+  try {
+    // Make the API request
+    const response = await anthropic.messages.create({
+      model: "claude-3-sonnet-20240229",
+      system: systemPrompt,
+      max_tokens: 4000,
+      messages: [
+        { role: "user", content: conversation }
+      ]
+    });
+    
+    // Safely get content text
+    const content = getTextFromContentBlock(response.content);
+    
+    console.log('Successfully received Anthropic response');
+    
+    // Parse the JSON response
+    try {
+      const result = parseAnthropicJson(content);
+      
+      // If this is a group chat (indicated by additionalInstructions),
+      // ensure the result has proper group chat metadata
+      if (additionalInstructions.includes('GROUP CHAT')) {
+        // Extract participant names from the additionalInstructions
+        const participantMatch = additionalInstructions.match(/participants: ([^.]+)/);
+        if (participantMatch && participantMatch[1]) {
+          const participants = participantMatch[1].split(',').map(p => p.trim());
+          
+          // Add group chat metadata
+          result.isGroupChat = true;
+          result.groupParticipants = participants;
+          
+          // Ensure all participants have tone descriptions
+          if (result.toneAnalysis && result.toneAnalysis.participantTones) {
+            for (const participant of participants) {
+              if (!result.toneAnalysis.participantTones[participant]) {
+                result.toneAnalysis.participantTones[participant] = 
+                  "Group participant (tone not individually analyzed)";
+              }
+            }
+          }
+        }
+      }
+      
+      return result;
+    } catch (parseError) {
+      console.error('JSON parsing failed, attempting direct extraction fallback', parseError);
+      
+      // Use specialized extraction for direct parsing
+      const extractedResult = extractRawChatAnalysis(content, me, them);
+      
+      // Add group chat metadata if relevant
+      if (additionalInstructions.includes('GROUP CHAT')) {
+        const participantMatch = additionalInstructions.match(/participants: ([^.]+)/);
+        if (participantMatch && participantMatch[1]) {
+          const participants = participantMatch[1].split(',').map(p => p.trim());
+          extractedResult.isGroupChat = true;
+          extractedResult.groupParticipants = participants;
+        }
+      }
+      
+      return extractedResult;
+    }
+  } catch (error) {
+    console.error('Error in analyzeChatWithAnthropicAI:', error);
+    throw error;
+  }
+}
+
 // Define response types (keeping the same structure as before)
 interface ChatAnalysisResponse {
   toneAnalysis: {

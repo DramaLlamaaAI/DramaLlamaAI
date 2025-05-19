@@ -135,6 +135,110 @@ if (apiKey && apiKey.startsWith('sk-proj-')) {
 // Initialize OpenAI client with the proper configuration
 const openai = new OpenAI(openaiConfig);
 
+// Main function for chat analysis via OpenAI - used as fallback when Anthropic is unavailable
+export async function analyzeChatWithOpenAI(conversation: string, me: string, them: string, tier: string, additionalContext: string = ''): Promise<any> {
+  try {
+    console.log(`Using OpenAI fallback for analysis with tier: ${tier}, ${additionalContext}`);
+    
+    // Get the tier-specific prompt
+    let prompt = prompts.chat[tier as keyof typeof prompts.chat] || prompts.chat.free;
+    
+    // Replace placeholders for participant names
+    prompt = prompt.replace(/\{me\}/g, me).replace(/\{them\}/g, them);
+    
+    // Add any additional context (e.g., for group chats)
+    if (additionalContext) {
+      prompt = `${additionalContext}\n\n${prompt}`;
+    }
+    
+    // For group chats, add specific instructions
+    if (additionalContext.includes('GROUP CHAT')) {
+      prompt = `This is a GROUP CHAT with multiple participants. Analyze interactions between ALL participants, not just two people.\n\n${prompt}`;
+    }
+    
+    // Make the API request
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: "You are an expert conversation analyst specialized in interpersonal dynamics." },
+        { role: "user", content: conversation },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.2,
+      max_tokens: 2500
+    });
+    
+    // Extract and parse the response
+    const content = response.choices[0].message.content;
+    if (!content) {
+      throw new Error("Empty response from OpenAI");
+    }
+    
+    try {
+      // Parse JSON response
+      const result = JSON.parse(content);
+      
+      // For group chats, ensure all participants are included in the analysis
+      if (additionalContext.includes('GROUP CHAT')) {
+        // Extract participant names from the conversation
+        const participants = extractParticipantsFromConversation(conversation);
+        
+        // Ensure all participants have tone descriptions
+        if (result.toneAnalysis && result.toneAnalysis.participantTones) {
+          for (const participant of participants) {
+            if (!result.toneAnalysis.participantTones[participant]) {
+              result.toneAnalysis.participantTones[participant] = 
+                "Group participant (tone not individually analyzed)";
+            }
+          }
+        }
+        
+        // Add group chat metadata
+        result.isGroupChat = true;
+        result.groupParticipants = participants;
+      }
+      
+      return result;
+    } catch (parseError) {
+      console.error("Failed to parse OpenAI response:", parseError);
+      throw new Error("Invalid JSON response from OpenAI");
+    }
+  } catch (error) {
+    console.error("Error using OpenAI for analysis:", error);
+    throw error;
+  }
+}
+
+// Helper function to extract participants from a conversation
+function extractParticipantsFromConversation(conversation: string): string[] {
+  const lines = conversation.split('\n');
+  const participants = new Set<string>();
+  
+  // Basic WhatsApp format pattern: "[Time] Name: Message"
+  const whatsAppPattern = /^\[\d{1,2}:\d{1,2}(:\d{1,2})?(?: [AP]M)?\]\s+([^:]+):/;
+  
+  // Basic chat format: "Name: Message"
+  const chatPattern = /^([^:]+):/;
+  
+  for (const line of lines) {
+    // Try WhatsApp format first
+    const whatsAppMatch = line.match(whatsAppPattern);
+    if (whatsAppMatch && whatsAppMatch[1]) {
+      participants.add(whatsAppMatch[1].trim());
+      continue;
+    }
+    
+    // Try basic chat format
+    const chatMatch = line.match(chatPattern);
+    if (chatMatch && chatMatch[1]) {
+      participants.add(chatMatch[1].trim());
+    }
+  }
+  
+  return Array.from(participants);
+}
+
 // Prompts for different tiers and analysis types
 const prompts = {
   chat: {
