@@ -322,18 +322,14 @@ export default function GroupChatAnalysis() {
     
     try {
       exportToPdf({
-        conversation,
         result,
         me: participants[0] || "", // Use first participant as "me" for PDF export
         them: participants[1] || "", // Use second participant as "them" for PDF export
+        toast,
         tier: selectedTier,
         participants,
-        conversationType: "group_chat"
-      });
-      
-      toast({
-        title: "PDF Generated",
-        description: "Your analysis has been exported to PDF successfully.",
+        conversationType: "group_chat",
+        conversation
       });
     } catch (error) {
       toast({

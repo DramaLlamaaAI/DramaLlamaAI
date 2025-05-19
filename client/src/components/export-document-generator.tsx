@@ -7,11 +7,24 @@ interface ExportDocumentProps {
   me: string;
   them: string;
   tier?: string;
+  participants?: string[];
+  conversationType?: 'two_person' | 'group_chat';
+  conversation?: string;
 }
 
-export function generateExportDocument({ result, me, them, tier = 'free' }: ExportDocumentProps): string {
+export function generateExportDocument({ 
+  result, 
+  me, 
+  them, 
+  tier = 'free', 
+  participants = [], 
+  conversationType = 'two_person'
+}: ExportDocumentProps): string {
   // Create a clean HTML document for exporting based on user's tier
   const userTier = tier || 'free';
+  
+  // Determine if this is a group chat analysis
+  const isGroupChat = conversationType === 'group_chat';
   return `
     <!DOCTYPE html>
     <html>
@@ -408,7 +421,25 @@ export function generateExportDocument({ result, me, them, tier = 'free' }: Expo
   `;
 }
 
-function exportToPdf(result: ChatAnalysisResult, me: string, them: string, toast: any, tier: string = 'free') {
+function exportToPdf({ 
+  result, 
+  me, 
+  them, 
+  toast, 
+  tier = 'free', 
+  participants = [], 
+  conversationType = 'two_person',
+  conversation = ''
+}: {
+  result: ChatAnalysisResult;
+  me: string;
+  them: string;
+  toast: any;
+  tier?: string;
+  participants?: string[];
+  conversationType?: 'two_person' | 'group_chat';
+  conversation?: string;
+}) {
   if (!result) {
     toast({
       title: "Export Failed",
@@ -426,7 +457,15 @@ function exportToPdf(result: ChatAnalysisResult, me: string, them: string, toast
     });
     
     // Create document content with tier information
-    const formalDocumentContent = generateExportDocument({ result, me, them, tier });
+    const formalDocumentContent = generateExportDocument({ 
+      result, 
+      me, 
+      them, 
+      tier, 
+      participants, 
+      conversationType,
+      conversation 
+    });
     
     // Create a temporary container for the formal document
     const tempContainer = document.createElement('div');
