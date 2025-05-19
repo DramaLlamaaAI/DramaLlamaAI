@@ -817,6 +817,7 @@ export default function ChatAnalysis() {
                         </div>
                       )}
                       
+                      
                       {imagePreview && (
                         <div className="mt-4">
                           <h4 className="font-medium mb-2">Image Preview</h4>
@@ -907,7 +908,15 @@ export default function ChatAnalysis() {
                         variant="outline" 
                         onClick={() => {
                           if (result) {
-                            exportToPdf(result as any, me, them, toast, tier);
+                            exportToPdf({
+                              result: result as any, 
+                              me, 
+                              them, 
+                              toast, 
+                              tier,
+                              conversationType: 'two_person',
+                              conversation
+                            });
                           }
                         }}
                         className="self-start"
