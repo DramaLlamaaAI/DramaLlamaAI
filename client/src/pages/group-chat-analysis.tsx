@@ -35,7 +35,7 @@ export default function GroupChatAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Get user usage
-  const { data: usage } = useQuery({
+  const { data: usage = { tier: "free", used: 0, limit: 2 } } = useQuery({
     queryKey: ["/api/user/usage"],
     queryFn: getUserUsage,
   });
@@ -122,8 +122,11 @@ export default function GroupChatAnalysis() {
       conversation,
       me: participants[0],
       them: participants[1],
-      isGroupChat: true,
-      groupParticipants: participants
+      // Pass group chat info in extraData as our API expects
+      extraData: {
+        isGroupChat: true,
+        groupParticipants: participants
+      }
     };
 
     analysisMutation.mutate(requestData);
@@ -136,8 +139,10 @@ export default function GroupChatAnalysis() {
     const filename = fileName ? `${fileName.split('.')[0]}_analysis.pdf` : "group_chat_analysis.pdf";
     
     exportToPdf({
-      analysisResult: result,
+      result: result,
       fileName: filename,
+      me: participants[0],
+      them: participants.length > 1 ? participants[1] : "Other",
       participants: participants,
       tier: usage?.tier || "free",
       isGroupChat: true
@@ -175,14 +180,14 @@ export default function GroupChatAnalysis() {
                 <WhatsAppImporter onConversationImport={handleChatImport} />
                 
                 {/* Usage limit warning */}
-                {usage && usage.remaining !== null && usage.remaining !== undefined && (
+                {usage && (
                   <div className="mt-4">
-                    <Alert className={usage.remaining <= 1 ? "bg-amber-50 border-amber-200" : "bg-blue-50 border-blue-200"}>
+                    <Alert className={(usage.limit - usage.used) <= 1 ? "bg-amber-50 border-amber-200" : "bg-blue-50 border-blue-200"}>
                       <AlertCircle className="h-4 w-4 mr-2 text-foreground" />
                       <AlertTitle>Usage Information</AlertTitle>
                       <AlertDescription>
-                        You have {usage.remaining} out of {usage.limit} free analyses remaining this month.
-                        {usage.remaining <= 1 && (
+                        You have {usage.limit - usage.used} out of {usage.limit} free analyses remaining this month.
+                        {(usage.limit - usage.used) <= 1 && (
                           <p className="mt-1 text-amber-800">
                             ⚠️ You're almost out of free analyses. Consider upgrading for more.
                           </p>
