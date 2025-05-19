@@ -20,7 +20,7 @@ import InstantDeepDivePage from "@/pages/instant-deep-dive";
 import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
 // Support helplines converted to dialog component
-import ChatAnalysis from "./components/chat-analysis";
+import ChatAnalysis from "./components/chat-analysis-with-groups";
 import MessageAnalysis from "./components/message-analysis";
 import VentMode from "./components/de-escalate";
 import LiveTalk from "./components/live-talk";
