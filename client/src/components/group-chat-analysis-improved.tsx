@@ -114,6 +114,7 @@ export default function GroupChatAnalysisImproved() {
   const [tabValue, setTabValue] = useState("paste");
   const [conversation, setConversation] = useState("");
   const [participants, setParticipants] = useState<string[]>([]);
+  const [newParticipant, setNewParticipant] = useState("");
   const [fileName, setFileName] = useState("");
   const [fileIsZip, setFileIsZip] = useState(false);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
@@ -672,31 +673,79 @@ export default function GroupChatAnalysisImproved() {
                     </div>
                   )}
                   
-                  <div>
+                  <div className="mb-4">
                     <div className="flex justify-between mb-1">
-                      <Label htmlFor="participants-upload">Group Chat Participants</Label>
+                      <Label htmlFor="participants-list">Group Chat Participants</Label>
                       <div className="text-xs text-muted-foreground">
                         {participants.length} participants {participants.length > 0 ? 'added' : 'needed'}
                       </div>
                     </div>
-                    <Textarea
-                      id="participants-upload"
-                      placeholder="Enter participant names, one per line (copy exactly as they appear in the chat, including emojis)"
-                      className="mt-1 h-[120px]"
-                      value={participants.join('\n')}
-                      onChange={(e) => {
-                        const lines = e.target.value.split('\n').filter(line => line.trim() !== '');
-                        setParticipants(lines);
-                      }}
-                    />
-                    <Alert variant="outline" className="bg-blue-50 mt-2 mb-4">
+                    
+                    {/* Participant addition form */}
+                    <div className="flex gap-2 mb-3">
+                      <input
+                        type="text"
+                        id="new-participant"
+                        placeholder="Enter participant name including any emojis"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={newParticipant}
+                        onChange={(e) => setNewParticipant(e.target.value)}
+                      />
+                      <Button 
+                        type="button" 
+                        onClick={() => {
+                          if (newParticipant.trim()) {
+                            setParticipants([...participants, newParticipant.trim()]);
+                            setNewParticipant("");
+                          }
+                        }}
+                        disabled={!newParticipant.trim()}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                    
+                    {/* Participant list */}
+                    <div className="border rounded-md mb-3">
+                      <div className="p-3 bg-muted/30 border-b">
+                        <h4 className="font-medium text-sm">Current Participants</h4>
+                      </div>
+                      
+                      {participants.length > 0 ? (
+                        <ul className="p-2">
+                          {participants.map((participant, index) => (
+                            <li key={index} className="flex justify-between items-center p-2 border-b last:border-0">
+                              <span className="font-medium">{participant}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const newParticipants = [...participants];
+                                  newParticipants.splice(index, 1);
+                                  setParticipants(newParticipants);
+                                }}
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          No participants added yet. Add at least 2 participants for analysis.
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Helper information */}
+                    <Alert className="bg-blue-50 border-blue-200">
                       <AlertCircle className="h-4 w-4 mr-2 text-blue-600" />
-                      <AlertTitle className="text-sm font-medium text-blue-800">Important Instructions</AlertTitle>
+                      <AlertTitle className="text-sm font-medium text-blue-800">Important Tips</AlertTitle>
                       <AlertDescription className="text-xs text-blue-700">
                         <ul className="list-disc pl-4 space-y-1 mt-1">
-                          <li>Enter names <strong>exactly as they appear in the chat</strong>, including emojis and special characters</li>
-                          <li>Each participant should be on a separate line (press Enter after each name)</li>
-                          <li>At least 2 participants are required for group chat analysis</li>
+                          <li>Add names <strong>exactly as they appear in the chat</strong>, including any emojis and special characters</li>
+                          <li>At least 2 participants are required for analysis</li>
+                          <li>For accurate results, make sure you've added all active participants from the conversation</li>
                         </ul>
                       </AlertDescription>
                     </Alert>
