@@ -9,7 +9,7 @@ import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, Trendi
 import { Switch } from "@/components/ui/switch";
 import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse, OcrRequest } from "@/lib/openai";
+import { analyzeChatConversation, detectParticipants, detectGroupParticipants, processImageOcr, ChatAnalysisResponse, OcrRequest } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
@@ -113,6 +113,24 @@ export default function ChatAnalysis() {
       toast({
         title: "Detection Failed",
         description: "Could not detect names automatically. Please enter them manually.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const detectGroupParticipantsMutation = useMutation({
+    mutationFn: (text: string) => detectGroupParticipants(text),
+    onSuccess: (data) => {
+      setParticipants(data);
+      toast({
+        title: "Participants Detected",
+        description: `Found ${data.length} participants in the group chat.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Detection Failed",
+        description: "Could not detect participants. Make sure this is a WhatsApp group chat export.",
         variant: "destructive",
       });
     },

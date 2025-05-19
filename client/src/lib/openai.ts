@@ -15,6 +15,8 @@ export interface ChatAnalysisRequest {
   them: string;
   tier?: string;
   dateFilter?: DateFilter;
+  conversationType?: 'two_person' | 'group_chat';
+  participants?: string[];
 }
 
 export interface EvasionInstance {
@@ -219,6 +221,33 @@ export async function detectParticipants(conversation: string): Promise<{me: str
   } catch (error: any) {
     console.error('Name detection error:', error);
     throw new Error(error.message || 'Failed to detect participants. Please enter names manually.');
+  }
+}
+
+export async function detectGroupParticipants(conversation: string): Promise<string[]> {
+  try {
+    // Local participant detection for WhatsApp group chats
+    const lines = conversation.split('\n');
+    const participantRegex = /\[.*?\] (.*?):/;
+    const foundParticipants = new Set<string>();
+    
+    for (const line of lines) {
+      const match = line.match(participantRegex);
+      if (match && match[1]) {
+        foundParticipants.add(match[1].trim());
+      }
+    }
+    
+    const participantsList = Array.from(foundParticipants);
+    
+    if (participantsList.length === 0) {
+      throw new Error('No participants detected in the conversation');
+    }
+    
+    return participantsList;
+  } catch (error: any) {
+    console.error('Group participant detection error:', error);
+    throw new Error(error.message || 'Failed to detect group participants. Please check your conversation format.');
   }
 }
 
