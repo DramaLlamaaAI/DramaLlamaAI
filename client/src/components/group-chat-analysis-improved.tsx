@@ -29,20 +29,54 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-// Helper for detecting participants in WhatsApp group chat
+// Enhanced helper for detecting participants in WhatsApp group chat
 function detectGroupParticipants(conversation: string): string[] {
-  // Process WhatsApp group chat format to detect participants
+  if (!conversation || conversation.trim() === '') {
+    console.log("Empty conversation text, cannot detect participants");
+    return [];
+  }
+  
+  console.log("Detecting participants in conversation text");
   const lines = conversation.split('\n');
-  // WhatsApp format often looks like: [5/19/24, 7:45:12 PM] John: Hey everyone
-  const participantRegex = /\[.*?\] (.*?):/;
+  console.log(`Found ${lines.length} lines in the conversation`);
+  
+  // Support multiple WhatsApp export formats
+  // Format 1: [5/19/24, 7:45:12 PM] John: Hey everyone
+  // Format 2: 5/19/24, 7:45:12 PM - John: Hey everyone
+  // Format 3: 19/05/2024, 19:45 - John: Hey everyone
+  const patterns = [
+    /\[\d+\/\d+\/\d+,\s+\d+:\d+.*?\]\s+(.*?):/,           // [date, time] Name:
+    /\d+\/\d+\/\d+,\s+\d+:\d+.*?-\s+(.*?):/,               // date, time - Name:
+    /\d+\/\d+\/\d+,\s+\d+:\d+\s+-\s+(.*?):/                // date, time - Name:
+  ];
+  
   const foundParticipants = new Set<string>();
+  let matchCount = 0;
   
   for (const line of lines) {
-    const match = line.match(participantRegex);
-    if (match && match[1]) {
-      foundParticipants.add(match[1].trim());
+    for (const pattern of patterns) {
+      const match = line.match(pattern);
+      if (match && match[1]) {
+        // Get the participant name
+        const participant = match[1].trim();
+        matchCount++;
+        
+        // Skip system messages
+        if (participant && 
+            !participant.includes('changed the subject') && 
+            !participant.includes('added') && 
+            !participant.includes('removed') &&
+            !participant.includes('left') &&
+            !participant.includes('joined')) {
+          foundParticipants.add(participant);
+        }
+        break; // Found a match with this pattern, no need to check others
+      }
     }
   }
+  
+  console.log(`Found ${matchCount} matching message lines`);
+  console.log(`Detected ${foundParticipants.size} unique participants:`, Array.from(foundParticipants));
   
   return Array.from(foundParticipants);
 }
@@ -93,206 +127,128 @@ export default function GroupChatAnalysisImproved() {
     },
   });
   
-  // Enhanced file upload handler with improved ZIP handling
+  // Simplified file upload handler
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     // Show loading notification
-    const loadingToast = toast({
+    toast({
       title: "Processing File",
       description: "Please wait while we import your conversation...",
     });
     
     setFileName(file.name);
-    setFileIsZip(file.type === 'application/zip' || file.name.endsWith('.zip'));
     
     try {
       console.log("Processing file:", file.name, "Type:", file.type);
       
-      // Check file extension first, since browser might not report correct mime type
+      // First try the simple approach - read as text file
+      try {
+        const text = await file.text();
+        console.log("Text content length:", text.length, "Sample:", text.substring(0, 50));
+        
+        if (text && text.length > 0) {
+          // Set the conversation text
+          setConversation(text);
+          
+          // Detect participants
+          const detectedParticipants = detectGroupParticipants(text);
+          console.log("Detected participants:", detectedParticipants);
+          
+          if (detectedParticipants.length > 0) {
+            setParticipants(detectedParticipants);
+            toast({
+              title: "Chat Imported Successfully",
+              description: `Found ${detectedParticipants.length} participants in the group chat.`,
+            });
+          } else {
+            toast({
+              title: "Chat Imported",
+              description: "No participants were automatically detected. Please add them manually below.",
+            });
+          }
+          return;
+        }
+      } catch (directReadError) {
+        console.log("Direct text reading failed, trying ZIP approach:", directReadError);
+      }
+      
+      // If direct text reading failed, try as ZIP
       if (file.name.endsWith('.zip') || file.type === 'application/zip' || file.type === '') {
-        // Handle zip file (likely WhatsApp export)
         try {
-          // Convert file to array buffer for JSZip
           const arrayBuffer = await file.arrayBuffer();
-          console.log("File loaded into buffer, size:", arrayBuffer.byteLength);
-          
-          // Load the ZIP file
           const zip = await JSZip.loadAsync(arrayBuffer);
-          console.log("ZIP loaded successfully");
+          const files = Object.values(zip.files);
           
-          // Debug: List all files in the ZIP
-          const fileList = Object.keys(zip.files);
-          console.log("Files in ZIP:", fileList);
+          // Find all text files in the ZIP
+          const textFiles = files.filter(f => !f.dir && 
+            (f.name.endsWith('.txt') || f.name.includes('chat')));
           
-          // Look for chat text files in the ZIP
-          // WhatsApp exports are typically named _chat.txt or have .txt extension
-          let chatFile = null;
+          console.log("Text files in ZIP:", textFiles.map(f => f.name));
           
-          // First try to find WhatsApp chat exports specifically
-          for (const fileName of fileList) {
-            if (!zip.files[fileName].dir && 
-                (fileName.includes('_chat.txt') || 
-                 fileName.endsWith('.txt') || 
-                 fileName.includes('WhatsApp'))
-              ) {
-              chatFile = zip.files[fileName];
-              console.log("Found WhatsApp chat file:", fileName);
-              break;
-            }
+          if (textFiles.length === 0) {
+            toast({
+              title: "No Text Files Found",
+              description: "Could not find any text files in the ZIP. Please try exporting the chat again or upload a .txt file directly.",
+              variant: "destructive",
+            });
+            return;
           }
           
-          // If no specific WhatsApp file found, try any file
-          if (!chatFile) {
-            // Try to find any text file first
-            for (const fileName of fileList) {
-              if (!zip.files[fileName].dir && fileName.endsWith('.txt')) {
-                chatFile = zip.files[fileName];
-                console.log("Found text file:", fileName);
-                break;
-              }
-            }
-            
-            // If still no file found, try any non-directory file
-            if (!chatFile) {
-              for (const fileName of fileList) {
-                if (!zip.files[fileName].dir) {
-                  chatFile = zip.files[fileName];
-                  console.log("Found file to try:", fileName);
-                  break;
-                }
-              }
-            }
-          }
-          
-          // Process the chat file if found
-          if (chatFile) {
+          // Try each text file until we find one with valid content
+          for (const textFile of textFiles) {
             try {
-              // Extract the text content
-              console.log("Extracting text from:", chatFile.name);
-              const content = await chatFile.async('string');
-              console.log("Extracted text length:", content.length);
-              console.log("Text sample:", content.substring(0, 100));
+              const content = await textFile.async('text');
               
               if (content && content.length > 0) {
-                // Set the conversation text
                 setConversation(content);
                 
-                // Attempt to detect participants from the WhatsApp format
                 const detectedParticipants = detectGroupParticipants(content);
-                console.log("Detected participants:", detectedParticipants);
-                
                 if (detectedParticipants.length > 0) {
                   setParticipants(detectedParticipants);
                   toast({
-                    title: "Participants Detected",
-                    description: `Found ${detectedParticipants.length} participants in the group chat.`,
+                    title: "Chat Imported Successfully",
+                    description: `Found ${detectedParticipants.length} participants in the group chat from ${textFile.name}.`,
                   });
-                } else {
-                  toast({
-                    title: "No Participants Detected",
-                    description: "Could not automatically detect chat participants. Please add them manually.",
-                    variant: "destructive",
-                  });
+                  return;
                 }
-                
-                toast({
-                  title: "Chat Imported Successfully",
-                  description: `Imported ${content.length} characters from ${chatFile.name}`,
-                });
-              } else {
-                toast({
-                  title: "Empty Chat File",
-                  description: "The chat file in the ZIP appears to be empty. Please try a different file.",
-                  variant: "destructive",
-                });
               }
-            } catch (readError) {
-              console.error("Error reading chat file:", readError);
-              toast({
-                title: "Chat File Error",
-                description: "Could not read the chat file content. The file may be corrupted.",
-                variant: "destructive",
-              });
+            } catch (err) {
+              console.error("Error reading file from ZIP:", textFile.name, err);
             }
-          } else {
-            console.error("No text files found in ZIP");
+          }
+          
+          // If we got here, we found text files but couldn't detect participants
+          if (textFiles.length > 0) {
+            // Use the first text file
+            const content = await textFiles[0].async('text');
+            setConversation(content);
             toast({
-              title: "No Chat Found",
-              description: "Could not find a text file in the ZIP archive. Please ensure this is a WhatsApp export.",
-              variant: "destructive",
+              title: "Chat Imported",
+              description: "Chat imported, but no participants were detected. Please add them manually below.",
             });
           }
         } catch (zipError) {
-          console.error("ZIP parsing error:", zipError);
+          console.error("ZIP processing error:", zipError);
           toast({
-            title: "Invalid ZIP File",
-            description: "Could not process the ZIP file. It may be corrupted or not a valid WhatsApp export.",
-            variant: "destructive",
-          });
-        }
-      } else if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-        // Handle text file directly
-        try {
-          console.log("Reading text file directly");
-          const text = await file.text();
-          console.log("Text content length:", text.length);
-          
-          if (text && text.length > 0) {
-            // Set the conversation text
-            setConversation(text);
-            
-            // Detect participants from the WhatsApp format
-            const detectedParticipants = detectGroupParticipants(text);
-            console.log("Detected participants:", detectedParticipants);
-            
-            if (detectedParticipants.length > 0) {
-              setParticipants(detectedParticipants);
-              toast({
-                title: "Participants Detected",
-                description: `Found ${detectedParticipants.length} participants in the group chat.`,
-              });
-            } else {
-              toast({
-                title: "No Participants Detected",
-                description: "Could not detect participants automatically. Please add them manually.",
-                variant: "destructive",
-              });
-            }
-            
-            toast({
-              title: "Chat Imported",
-              description: `Imported ${text.length} characters from ${file.name}`,
-            });
-          } else {
-            toast({
-              title: "Empty File",
-              description: "The text file appears to be empty. Please check the file and try again.",
-              variant: "destructive",
-            });
-          }
-        } catch (textError) {
-          console.error("Text file reading error:", textError);
-          toast({
-            title: "Text File Error",
-            description: "Could not read the text file. The file may be corrupted.",
+            title: "ZIP Processing Failed",
+            description: "Could not process the ZIP file. Please try uploading a direct .txt export instead.",
             variant: "destructive",
           });
         }
       } else {
-        console.error("Unsupported file type:", file.type);
         toast({
-          title: "Unsupported File Type",
-          description: "Please upload a text file (.txt) or WhatsApp chat export (.zip)",
+          title: "Unknown File Format",
+          description: "Please upload a WhatsApp chat export as a .txt file or .zip archive.",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("File processing error:", error);
       toast({
-        title: "File Processing Failed",
-        description: "Could not process the file. Please try again with a different file.",
+        title: "Import Failed",
+        description: "Could not process the file. Please try exporting the chat again in a different format.",
         variant: "destructive",
       });
     }
