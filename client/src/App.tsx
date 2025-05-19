@@ -22,6 +22,7 @@ import AdminLoginPage from "@/pages/admin-login";
 // Support helplines converted to dialog component
 import ChatAnalysis from "./components/chat-analysis";
 import GroupChatAnalysis from "./components/group-chat-analysis";
+import GroupChatAnalysisImproved from "./components/group-chat-analysis-improved";
 import MessageAnalysis from "./components/message-analysis";
 import VentMode from "./components/de-escalate";
 import LiveTalk from "./components/live-talk";
@@ -33,7 +34,7 @@ function Router() {
       <Route path="/" component={Home} />
       {/* Temporarily disabled until syntax errors are fixed */}
       {/* <Route path="/chat-analysis" component={ChatAnalysis} /> */}
-      <Route path="/group-chat-analysis" component={GroupChatAnalysis} />
+      <Route path="/group-chat-analysis" component={GroupChatAnalysisImproved} />
       <Route path="/message-analysis" component={MessageAnalysis} />
       <Route path="/de-escalate" component={VentMode} />
       <Route path="/live-talk" component={LiveTalk} />
