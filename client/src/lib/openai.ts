@@ -17,6 +17,11 @@ export interface ChatAnalysisRequest {
   dateFilter?: DateFilter;
   conversationType?: 'two_person' | 'group_chat';
   participants?: string[];
+  extraData?: {
+    isGroupChat?: boolean;
+    groupParticipants?: string[];
+    [key: string]: any;
+  };
 }
 
 export interface EvasionInstance {

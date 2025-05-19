@@ -38,6 +38,78 @@ const trackUsage = async (req: Request): Promise<void> => {
   }
 };
 
+// Function to analyze group chat conversations with multiple participants
+// This specialized version handles WhatsApp group chats
+const analyzeGroupChatConversation = async (conversation: string, participants: string[], tier: string): Promise<any> => {
+  console.log(`Analyzing group chat with ${participants.length} participants using ${tier} tier`);
+  
+  try {
+    // Import the appropriate service based on the tier
+    const { analyzeChatWithAnthropicAI } = await import('../services/anthropic-updated');
+    
+    // Create a specialized prompt to handle group chat dynamics
+    // We'll simulate as if this is a multi-person conversation
+    // The primary participant will be the first one, but all will be analyzed
+    
+    // Define main participants for prompt structure (needed for API format)
+    const me = participants[0] || 'Participant1';
+    const them = participants.slice(1).join(', ') || 'OtherParticipants';
+    
+    // Create detailed instruction for multi-participant analysis
+    const groupChatInstruction = `
+This is a GROUP CHAT with ${participants.length} participants: ${participants.join(', ')}.
+Analyze the dynamics between ALL participants, not just two people.
+For each detected pattern or issue, identify WHICH SPECIFIC PARTICIPANT(S) exhibit the behavior.
+Ensure the analysis accounts for group dynamics, not just one-on-one interactions.
+`;
+
+    // Get the raw analysis from Anthropic
+    const rawAnalysis = await analyzeChatWithAnthropicAI(conversation, me, them, tier, groupChatInstruction);
+    
+    // Ensure the participantTones includes all group members
+    if (rawAnalysis && rawAnalysis.toneAnalysis && rawAnalysis.toneAnalysis.participantTones) {
+      // Make sure all participants have tone descriptions
+      for (const participant of participants) {
+        if (!rawAnalysis.toneAnalysis.participantTones[participant]) {
+          const briefDescription = `Group participant (tone not individually analyzed)`;
+          rawAnalysis.toneAnalysis.participantTones[participant] = briefDescription;
+        }
+      }
+    }
+    
+    // Add group chat specific data for UI rendering
+    rawAnalysis.isGroupChat = true;
+    rawAnalysis.groupParticipants = participants;
+    
+    // Return the full analysis
+    return rawAnalysis;
+  } catch (error) {
+    console.error('Error in group chat analysis with Anthropic:', error);
+    
+    // Fall back to OpenAI for backup analysis if Anthropic fails
+    // This provides redundancy in our system
+    try {
+      console.log('Attempting fallback to OpenAI for group chat analysis');
+      const { analyzeChatWithOpenAI } = await import('../services/openai-service');
+      
+      // Use the same format for OpenAI service
+      const me = participants[0] || 'Participant1';
+      const them = participants.slice(1).join(', ') || 'OtherParticipants';
+      
+      const openAIAnalysis = await analyzeChatWithOpenAI(conversation, me, them, tier, `GROUP CHAT with ${participants.length} participants`);
+      
+      // Add group chat metadata
+      openAIAnalysis.isGroupChat = true;
+      openAIAnalysis.groupParticipants = participants;
+      
+      return openAIAnalysis;
+    } catch (fallbackError) {
+      console.error('Both Anthropic and OpenAI fallback failed for group chat analysis:', fallbackError);
+      throw new Error('Unable to analyze group chat: both primary and fallback analysis engines failed');
+    }
+  }
+};
+
 // Check if user has reached their usage limit
 const checkUsageLimit = async (req: Request): Promise<boolean> => {
   try {
