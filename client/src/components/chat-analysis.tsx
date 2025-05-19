@@ -310,20 +310,6 @@ export default function ChatAnalysis() {
   const handleDetectGroupParticipants = () => {
     if (!conversation.trim()) {
       toast({
-        title: "Empty Group Chat",
-        description: "Please paste or upload a WhatsApp group conversation first.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Pass the conversation to our group participant detection function
-    detectGroupParticipantsMutation.mutate(conversation);
-  };
-  
-  const handleDetectGroupParticipants = () => {
-    if (!conversation.trim()) {
-      toast({
         title: "Empty Conversation",
         description: "Please paste or upload a WhatsApp group conversation first.",
         variant: "destructive",
