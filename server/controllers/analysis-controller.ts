@@ -43,12 +43,9 @@ const trackUsage = async (req: Request): Promise<void> => {
 const analyzeGroupChatConversation = async (conversation: string, participants: string[], tier: string): Promise<any> => {
   console.log(`Analyzing group chat with ${participants.length} participants using ${tier} tier`);
   
-  // Create mock analysis for testing if keys are not available
-  const useMockAnalysis = 
-    !process.env.ANTHROPIC_API_KEY?.startsWith('sk-ant-') && 
-    !process.env.OPENAI_API_KEY?.startsWith('sk-');
-    
-  if (useMockAnalysis) {
+  // Handle missing or invalid API keys
+  if (!process.env.ANTHROPIC_API_KEY?.startsWith('sk-ant-') && 
+      !process.env.OPENAI_API_KEY?.startsWith('sk-')) {
     console.log('API keys missing or invalid - using mock analysis for development');
     // Return mock analysis with basic structure
     return createMockGroupAnalysis(conversation, participants, tier);
@@ -202,7 +199,7 @@ function createMockGroupAnalysis(conversation: string, participants: string[], t
     participantTones[participant] = tone;
   });
   
-  // Create mock analysis structure
+  // Create mock analysis structure with API error notification
   const mockAnalysis = {
     toneAnalysis: {
       overallTone: "Casual and informative group conversation",
@@ -213,6 +210,7 @@ function createMockGroupAnalysis(conversation: string, participants: string[], t
       ],
       participantTones
     },
+    apiErrorMessage: "Our AI analysis service is temporarily unavailable. We've provided a basic analysis instead.",
     communication: {
       patterns: [
         "Regular information sharing",
