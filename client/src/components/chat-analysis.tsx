@@ -268,6 +268,20 @@ export default function ChatAnalysis() {
     // Pass the conversation as a string directly
     detectNamesMutation.mutate(conversation);
   };
+  
+  const handleDetectGroupParticipants = () => {
+    if (!conversation.trim()) {
+      toast({
+        title: "Empty Conversation",
+        description: "Please paste or upload a WhatsApp group conversation first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Pass the conversation to our group participant detection function
+    detectGroupParticipantsMutation.mutate(conversation);
+  };
 
   const handleSubmit = () => {
     // Clear any previous error message
@@ -283,24 +297,45 @@ export default function ChatAnalysis() {
       return;
     }
     
-    if (!me.trim() || !them.trim()) {
-      toast({
-        title: "Missing Names",
-        description: "Please enter names for both participants.",
-        variant: "destructive",
-      });
-      return;
+    // Different validation based on conversation type
+    if (conversationType === "two_person") {
+      if (!me.trim() || !them.trim()) {
+        toast({
+          title: "Missing Names",
+          description: "Please enter names for both participants.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (conversationType === "group_chat") {
+      if (participants.length === 0) {
+        toast({
+          title: "No Participants Detected",
+          description: "Please detect participants for the group chat analysis.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     
     // Reset any previous error
     setErrorMessage(null);
     
-    // Use the selected tier in dev mode
+    // Create request data based on conversation type
     const requestData: any = { 
-      conversation, 
-      me, 
-      them,
+      conversation,
+      conversationType,
     };
+    
+    if (conversationType === "two_person") {
+      requestData.me = me;
+      requestData.them = them;
+    } else {
+      // For group chat, pass participants array and use the first participant as "me" for API compatibility
+      requestData.participants = participants;
+      requestData.me = participants[0] || "";
+      requestData.them = participants.slice(1).join(", ");
+    }
     
     // Add date filtering if enabled
     if (focusRecent && fromDate) {
@@ -479,18 +514,21 @@ export default function ChatAnalysis() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            /* We'll add this function later */
-                            toast({
-                              title: "Detecting Participants",
-                              description: "Scanning conversation for participant names..."
-                            });
-                          }}
-                          disabled={isDetectingNames || !conversation.trim()}
+                          onClick={handleDetectGroupParticipants}
+                          disabled={detectGroupParticipantsMutation.isPending || !conversation.trim()}
                           className="w-full"
                         >
-                          <Search className="h-4 w-4 mr-2" />
-                          Detect Group Participants
+                          {detectGroupParticipantsMutation.isPending ? (
+                            <>
+                              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                              <span>Detecting Participants...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Search className="h-4 w-4 mr-2" />
+                              Detect Group Participants
+                            </>
+                          )}
                         </Button>
                       </div>
                     )}
@@ -549,6 +587,38 @@ export default function ChatAnalysis() {
                 
                 <TabsContent value="upload" className="mt-4">
                   <div className="space-y-6">
+                    {/* Conversation Type Selector (also add to upload tab) */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">Conversation Type:</label>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          type="button"
+                          variant={conversationType === "two_person" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setConversationType("two_person")}
+                          className="flex-1"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          Two-Person Chat
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant={conversationType === "group_chat" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setConversationType("group_chat")}
+                          className="flex-1"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          WhatsApp Group Chat
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {conversationType === "two_person" 
+                          ? "Select 'Two-Person Chat' for a conversation between two people." 
+                          : "Select 'WhatsApp Group Chat' for a conversation with multiple participants."}
+                      </p>
+                    </div>
+                    
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                       <div className="bg-blue-100 inline-block p-4 mb-3 rounded-full">
                         <Archive className="h-8 w-8 text-blue-600" />
@@ -591,46 +661,88 @@ export default function ChatAnalysis() {
                           </p>
                           
                           <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="your-name" className="block mb-1">Your Name</Label>
-                              <Input
-                                id="your-name"
-                                placeholder="Your name in the chat"
-                                value={me}
-                                onChange={(e) => setMe(e.target.value)}
-                              />
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="other-name" className="block mb-1">Other Person's Name</Label>
-                              <Input
-                                id="other-name"
-                                placeholder="Other person's name"
-                                value={them}
-                                onChange={(e) => setThem(e.target.value)}
-                              />
-                            </div>
-                          
-                            <div className="space-y-3">
-                              <Button
-                                variant="outline"
-                                onClick={handleDetectNames}
-                                disabled={isDetectingNames || !conversation}
-                                className="w-full"
-                                size="default"
-                              >
-                                {isDetectingNames ? (
-                                  <>
-                                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                                    Detecting...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Search className="h-4 w-4 mr-2" />
-                                    Auto-Detect Names
-                                  </>
-                                )}
-                              </Button>
+                            {conversationType === "two_person" ? (
+                              <>
+                                <div>
+                                  <Label htmlFor="your-name" className="block mb-1">Your Name</Label>
+                                  <Input
+                                    id="your-name"
+                                    placeholder="Your name in the chat"
+                                    value={me}
+                                    onChange={(e) => setMe(e.target.value)}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label htmlFor="other-name" className="block mb-1">Other Person's Name</Label>
+                                  <Input
+                                    id="other-name"
+                                    placeholder="Other person's name"
+                                    value={them}
+                                    onChange={(e) => setThem(e.target.value)}
+                                  />
+                                </div>
+                              
+                                <div className="space-y-3">
+                                  <Button
+                                    variant="outline"
+                                    onClick={handleDetectNames}
+                                    disabled={isDetectingNames || !conversation}
+                                    className="w-full"
+                                    size="default"
+                                  >
+                                    {isDetectingNames ? (
+                                      <>
+                                        <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                        Detecting...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Search className="h-4 w-4 mr-2" />
+                                        Auto-Detect Names
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </>
+                            ) : (
+                              /* Group chat UI */
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="block text-sm font-medium mb-2">Participants in Group Chat:</label>
+                                  <div className="flex flex-wrap gap-2 bg-muted p-3 rounded-md min-h-[60px]">
+                                    {participants.length > 0 ? (
+                                      participants.map((participant, index) => (
+                                        <div key={index} className="bg-primary/10 rounded-full px-3 py-1 text-sm">
+                                          {participant}
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <p className="text-sm text-muted-foreground">No participants detected yet. Click "Detect Participants" after uploading your WhatsApp group chat export.</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="default"
+                                  onClick={handleDetectGroupParticipants}
+                                  disabled={detectGroupParticipantsMutation.isPending || !conversation}
+                                  className="w-full"
+                                >
+                                  {detectGroupParticipantsMutation.isPending ? (
+                                    <>
+                                      <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                      <span>Detecting Participants...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Search className="h-4 w-4 mr-2" />
+                                      Detect Group Participants
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            )}
                               
                               <Button
                                 variant="outline"
