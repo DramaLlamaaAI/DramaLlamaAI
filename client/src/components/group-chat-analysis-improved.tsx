@@ -326,7 +326,23 @@ export default function GroupChatAnalysisImproved() {
               if (content && content.length > 0) {
                 setConversation(content);
                 
-                const detectedParticipants = detectGroupParticipants(content);
+                // Extract participants using a regex pattern
+                const participants = [];
+                const lines = content.split('\n');
+                const whatsAppPattern = /^\[\d{1,2}:\d{1,2}(:\d{1,2})?(?: [AP]M)?\]\s+([^:]+):/;
+                
+                for (const line of lines) {
+                  const match = line.match(whatsAppPattern);
+                  if (match && match[1]) {
+                    const name = match[1].trim();
+                    if (!participants.includes(name)) {
+                      participants.push(name);
+                    }
+                  }
+                }
+                
+                // Use the extracted participants
+                const detectedParticipants = participants.length > 0 ? participants : [];
                 if (detectedParticipants.length > 0) {
                   setParticipants(detectedParticipants);
                   toast({
@@ -414,8 +430,15 @@ export default function GroupChatAnalysisImproved() {
   const handleSubmit = () => {
     if (!conversation || analysisMutation.isPending || participants.length < 2) return;
     
-    // Reset any previous errors
+    // Reset any previous errors and results
     setErrorMessage(null);
+    setAnalysisComplete(false);
+    
+    // Show loading toast
+    toast({
+      title: "Analyzing Group Chat",
+      description: `Analyzing conversation with ${participants.length} participants...`,
+    });
     
     // Prepare analysis request
     const requestData: ChatAnalysisRequest = {
@@ -430,8 +453,18 @@ export default function GroupChatAnalysisImproved() {
       }
     };
     
-    // Send the analysis request
-    analysisMutation.mutate(requestData);
+    // Try the analysis in a try/catch block for additional error handling
+    try {
+      // Send the analysis request
+      analysisMutation.mutate(requestData);
+    } catch (error) {
+      console.error("Error submitting analysis request:", error);
+      toast({
+        title: "Analysis Failed",
+        description: "There was an error submitting your analysis request. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   // Export to PDF function
