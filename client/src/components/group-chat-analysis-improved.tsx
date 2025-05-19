@@ -202,7 +202,6 @@ export default function GroupChatAnalysisImproved() {
       }
     } catch (error) {
       console.error("File processing error:", error);
-      toast.dismiss(loadingId);
       toast({
         title: "File Processing Failed",
         description: "Could not process the file. Please try again with a different file.",
@@ -224,8 +223,11 @@ export default function GroupChatAnalysisImproved() {
       me: participants[0] || "",
       them: participants[1] || "",
       tier: selectedTier,
-      includeOtherParticipants: true,
-      allParticipants: participants
+      // Pass participant information in an expected field
+      extraData: JSON.stringify({
+        groupChat: true,
+        allParticipants: participants
+      })
     };
     
     // Send the analysis request
@@ -320,16 +322,18 @@ export default function GroupChatAnalysisImproved() {
           {/* Anonymous users see registration prompt */}
           {usage?.tier === 'anonymous' ? (
             <div className="space-y-8">
-              <RedFlags 
-                redFlags={result.redFlags} 
-                tier="free"
-                redFlagsCount={result.redFlagsCount}
-                redFlagTypes={result.redFlagTypes}
-                redFlagsDetected={result.redFlagsDetected}
-                sampleQuotes={result.sampleQuotes}
-                conversation={conversation}
-                overallTone={result.toneAnalysis?.overallTone}
-              />
+              {result.redFlags && (
+                <RedFlags 
+                  redFlags={result.redFlags} 
+                  tier="free"
+                  redFlagsCount={result.redFlagsCount || 0}
+                  redFlagTypes={result.redFlagTypes || []}
+                  redFlagsDetected={result.redFlagsDetected || false}
+                  sampleQuotes={[]}
+                  conversation={conversation}
+                  overallTone={result.toneAnalysis?.overallTone || 'neutral'}
+                />
+              )}
               <RegistrationPrompt tier={usage?.tier || 'anonymous'} />
             </div>
           ) : (
@@ -338,12 +342,12 @@ export default function GroupChatAnalysisImproved() {
                 <RedFlags 
                   redFlags={result.redFlags} 
                   tier={selectedTier}
-                  redFlagsCount={result.redFlagsCount}
-                  redFlagTypes={result.redFlagTypes}
-                  redFlagsDetected={result.redFlagsDetected}
-                  sampleQuotes={result.sampleQuotes}
+                  redFlagsCount={result.redFlagsCount || 0}
+                  redFlagTypes={result.redFlagTypes || []}
+                  redFlagsDetected={result.redFlagsDetected || false}
+                  sampleQuotes={[]}
                   conversation={conversation}
-                  overallTone={result.toneAnalysis?.overallTone}
+                  overallTone={result.toneAnalysis?.overallTone || 'neutral'}
                 />
               )}
               
@@ -377,8 +381,8 @@ export default function GroupChatAnalysisImproved() {
               <div className="text-sm text-muted-foreground">
                 {usage && 
                   `${usage.used}/${usage.limit === null ? '∞' : usage.limit} analyses used${
-                    usage.tier === 'anonymous' 
-                      ? ` - ${usage.remaining} free ${usage.remaining === 1 ? 'analysis' : 'analyses'} remaining` 
+                    usage.tier === 'anonymous' && usage.limit !== null
+                      ? ` - ${Math.max(0, usage.limit - usage.used)} free ${Math.max(0, usage.limit - usage.used) === 1 ? 'analysis' : 'analyses'} remaining` 
                       : ''
                   }`
                 }
