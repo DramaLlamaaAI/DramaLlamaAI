@@ -1219,8 +1219,8 @@ async function openAiFallbackForMessageAnalysis(message: string, author: 'me' | 
 async function openAiFallbackForVentMode(message: string, tier: string = 'free') {
   console.log('Using OpenAI fallback for vent mode');
   
-  // Get the appropriate prompt
-  const prompt = prompts.vent.free.replace('{message}', message);
+  // Get the appropriate prompt - using deEscalate prompt since it's similar functionality
+  const prompt = prompts.deEscalate.free.replace('{message}', message);
   
   try {
     // Call OpenAI with the same parameters

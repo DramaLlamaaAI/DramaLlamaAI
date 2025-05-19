@@ -936,8 +936,8 @@ export default function ChatAnalysis() {
                   {/* Participants section removed as requested */}
                   
                   {/* Overall Tone Analysis */}
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-center mb-3">
+                  <div className="bg-white p-5 rounded-lg shadow-sm">
+                    <div className="flex items-center mb-4">
                       <Activity className="h-5 w-5 text-blue-600 mr-2" />
                       <h3 className="text-lg font-semibold">Overall Tone Analysis</h3>
                     </div>
@@ -967,8 +967,8 @@ export default function ChatAnalysis() {
                   </div>
                   
                   {/* Health Score */}
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-center mb-3">
+                  <div className="bg-white p-5 rounded-lg shadow-sm">
+                    <div className="flex items-center mb-4">
                       <Activity className="h-5 w-5 text-blue-600 mr-2" />
                       <h3 className="text-lg font-semibold">Relationship Health Score</h3>
                     </div>
@@ -1028,8 +1028,8 @@ export default function ChatAnalysis() {
                   </div>
                   
                   {/* Red Flags */}
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex items-center mb-3">
+                  <div className="bg-white p-5 rounded-lg shadow-sm">
+                    <div className="flex items-center mb-4">
                       <Flame className="h-5 w-5 text-red-600 mr-2" />
                       <h3 className="text-lg font-semibold">Communication Issues</h3>
                     </div>

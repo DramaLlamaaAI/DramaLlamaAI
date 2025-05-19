@@ -342,7 +342,7 @@ export default function GroupChatAnalysis() {
           
           {/* Results tabs */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid grid-cols-3 mb-4">
+            <TabsList className="grid grid-cols-3 mb-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="dynamics">Group Dynamics</TabsTrigger>
               <TabsTrigger value="red-flags">Red Flags</TabsTrigger>
