@@ -139,7 +139,11 @@ export const analysisController = {
   // Analyze chat conversation
   analyzeChat: async (req: Request, res: Response) => {
     try {
-      const { conversation, me, them, dateFilter } = req.body;
+      const { conversation, me, them, dateFilter, extraData } = req.body;
+      
+      // Check if this is a group chat analysis
+      const isGroupChat = extraData?.isGroupChat === true;
+      const groupParticipants = extraData?.groupParticipants || [];
       
       if (!conversation || !me || !them) {
         return res.status(400).json({ message: 'Missing required parameters' });
@@ -172,32 +176,63 @@ export const analysisController = {
         let analysis;
         let personalAnalysis = null;
         
-        if (tier === 'free') {
-          console.log('Running additional personal tier analysis to detect red flags for free tier');
+        // Modify the analysis request based on whether it's a group chat
+        if (isGroupChat && groupParticipants.length > 2) {
+          console.log(`Group chat analysis with ${groupParticipants.length} participants`);
           
-          // First get the free tier analysis
-          analysis = await analyzeChatConversation(filteredConversation, me, them, 'free');
-          
-          // Then get a personal tier analysis to extract red flags count
-          // This is critical for data integrity - we need the actual red flags count
-          try {
-            console.log('Running dedicated personal tier analysis to get accurate red flags count');
-            // Make sure we use a clean request for the personal tier analysis
-            personalAnalysis = await analyzeChatConversation(filteredConversation, me, them, 'personal');
-            console.log('Successfully ran personal tier analysis for red flags detection');
+          if (tier === 'free') {
+            console.log('Running group chat analysis with additional personal tier for red flags detection');
             
-            // Verify that we got red flags data
-            if (personalAnalysis && personalAnalysis.redFlags) {
-              console.log(`Found ${personalAnalysis.redFlags.length} red flags in personal tier analysis`);
-            } else {
-              console.log('No red flags found in personal tier analysis');
+            // First get the free tier analysis for group chat
+            analysis = await analyzeGroupChatConversation(filteredConversation, groupParticipants, 'free');
+            
+            // Get personal tier analysis for accurate red flags
+            try {
+              console.log('Running personal tier group analysis for red flags detection');
+              personalAnalysis = await analyzeGroupChatConversation(filteredConversation, groupParticipants, 'personal');
+              console.log('Successfully ran personal tier group analysis for red flags detection');
+              
+              if (personalAnalysis && personalAnalysis.redFlags) {
+                console.log(`Found ${personalAnalysis.redFlags.length} red flags in personal tier group analysis`);
+              } else {
+                console.log('No red flags found in personal tier group analysis');
+              }
+            } catch (personalError) {
+              console.error('Failed to run personal analysis for group chat red flags:', personalError);
             }
-          } catch (personalError) {
-            console.error('Failed to run personal analysis for red flags:', personalError);
+          } else {
+            // Regular analysis for group chat with other tiers
+            analysis = await analyzeGroupChatConversation(filteredConversation, groupParticipants, tier);
           }
         } else {
-          // Regular analysis for other tiers
-          analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
+          // Regular two-person chat analysis
+          if (tier === 'free') {
+            console.log('Running additional personal tier analysis to detect red flags for free tier');
+            
+            // First get the free tier analysis
+            analysis = await analyzeChatConversation(filteredConversation, me, them, 'free');
+            
+            // Then get a personal tier analysis to extract red flags count
+            // This is critical for data integrity - we need the actual red flags count
+            try {
+              console.log('Running dedicated personal tier analysis to get accurate red flags count');
+              // Make sure we use a clean request for the personal tier analysis
+              personalAnalysis = await analyzeChatConversation(filteredConversation, me, them, 'personal');
+              console.log('Successfully ran personal tier analysis for red flags detection');
+              
+              // Verify that we got red flags data
+              if (personalAnalysis && personalAnalysis.redFlags) {
+                console.log(`Found ${personalAnalysis.redFlags.length} red flags in personal tier analysis`);
+              } else {
+                console.log('No red flags found in personal tier analysis');
+              }
+            } catch (personalError) {
+              console.error('Failed to run personal analysis for red flags:', personalError);
+            }
+          } else {
+            // Regular analysis for other tiers
+            analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
+          }
         }
         
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
