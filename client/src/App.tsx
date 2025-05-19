@@ -20,7 +20,8 @@ import InstantDeepDivePage from "@/pages/instant-deep-dive";
 import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
 // Support helplines converted to dialog component
-import ChatAnalysis from "./components/chat-analysis-with-groups";
+import ChatAnalysis from "./components/chat-analysis";
+import GroupChatAnalysis from "./components/group-chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
 import VentMode from "./components/de-escalate";
 import LiveTalk from "./components/live-talk";
@@ -31,6 +32,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/chat-analysis" component={ChatAnalysis} />
+      <Route path="/group-chat-analysis" component={GroupChatAnalysis} />
       <Route path="/message-analysis" component={MessageAnalysis} />
       <Route path="/de-escalate" component={VentMode} />
       <Route path="/live-talk" component={LiveTalk} />
