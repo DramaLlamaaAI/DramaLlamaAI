@@ -289,15 +289,39 @@ export default function GroupChatAnalysisImproved() {
           
           // If we got here, we found text files but couldn't detect participants
           if (textFiles.length > 0) {
-            // Use the first text file
-            const content = await textFiles[0].async('text');
-            setConversation(content);
-            // Set default participant names
-            setParticipants(["Person 1", "Person 2"]);
-            toast({
-              title: "Chat Imported - Please Verify Names",
-              description: "Please update the participant names below before analyzing.",
-            });
+            try {
+              // Use the first text file
+              const content = await textFiles[0].async('text');
+              console.log("Extracted text content (first 100 chars):", content.substring(0, 100));
+              setConversation(content);
+              
+              // Attempt to extract participants from the content using our existing function
+              const extractedParticipants = detectParticipantsFromWhatsApp(content);
+              
+              if (extractedParticipants.length >= 2) {
+                setParticipants(extractedParticipants);
+                toast({
+                  title: "Chat Imported Successfully",
+                  description: `Found ${extractedParticipants.length} participants. Please verify the names below.`,
+                });
+              } else {
+                // Fallback to default participants
+                setParticipants(["Person 1", "Person 2"]);
+                toast({
+                  title: "Chat Imported - Add Participants",
+                  description: "Please add participant names before analyzing.",
+                });
+              }
+            } catch (textError) {
+              console.error("Text extraction error:", textError);
+              setConversation("Failed to read text content from ZIP file.");
+              setParticipants(["Person 1", "Person 2"]);
+              toast({
+                title: "Chat Import Issue",
+                description: "There was a problem reading the text. Please try a different export format.",
+                variant: "destructive",
+              });
+            }
           }
         } catch (zipError) {
           console.error("ZIP processing error:", zipError);
