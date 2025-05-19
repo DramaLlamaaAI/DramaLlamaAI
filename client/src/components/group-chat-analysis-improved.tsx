@@ -110,7 +110,8 @@ export default function GroupChatAnalysisImproved() {
     try {
       console.log("Processing file:", file.name, "Type:", file.type);
       
-      if (file.type === 'application/zip' || file.name.endsWith('.zip')) {
+      // Check file extension first, since browser might not report correct mime type
+      if (file.name.endsWith('.zip') || file.type === 'application/zip' || file.type === '') {
         // Handle zip file (likely WhatsApp export)
         try {
           // Convert file to array buffer for JSZip
@@ -131,23 +132,36 @@ export default function GroupChatAnalysisImproved() {
           
           // First try to find WhatsApp chat exports specifically
           for (const fileName of fileList) {
-            if (!zip.files[fileName].dir && (
-                fileName.includes('_chat.txt') || 
-                fileName.endsWith('.txt') && fileName.includes('WhatsApp')
-              )) {
+            if (!zip.files[fileName].dir && 
+                (fileName.includes('_chat.txt') || 
+                 fileName.endsWith('.txt') || 
+                 fileName.includes('WhatsApp'))
+              ) {
               chatFile = zip.files[fileName];
               console.log("Found WhatsApp chat file:", fileName);
               break;
             }
           }
           
-          // If no specific WhatsApp file found, try any text file
+          // If no specific WhatsApp file found, try any file
           if (!chatFile) {
+            // Try to find any text file first
             for (const fileName of fileList) {
               if (!zip.files[fileName].dir && fileName.endsWith('.txt')) {
                 chatFile = zip.files[fileName];
                 console.log("Found text file:", fileName);
                 break;
+              }
+            }
+            
+            // If still no file found, try any non-directory file
+            if (!chatFile) {
+              for (const fileName of fileList) {
+                if (!zip.files[fileName].dir) {
+                  chatFile = zip.files[fileName];
+                  console.log("Found file to try:", fileName);
+                  break;
+                }
               }
             }
           }
@@ -159,6 +173,7 @@ export default function GroupChatAnalysisImproved() {
               console.log("Extracting text from:", chatFile.name);
               const content = await chatFile.async('string');
               console.log("Extracted text length:", content.length);
+              console.log("Text sample:", content.substring(0, 100));
               
               if (content && content.length > 0) {
                 // Set the conversation text
