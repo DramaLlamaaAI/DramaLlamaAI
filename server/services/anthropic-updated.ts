@@ -86,6 +86,12 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
+// Create OpenAI client for fallback
+// the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
+});
+
 // Prompts (similar structure to OpenAI but adapted for Anthropic)
 const prompts = {
   chat: {
@@ -753,6 +759,70 @@ When analyzing conversations:
   }
 }
 
+/**
+ * Fallback functions to use OpenAI when Anthropic API is overloaded or unavailable
+ * Each function mirrors its Anthropic counterpart but uses OpenAI instead
+ */
+async function openAiFallbackForChatAnalysis(conversation: string, me: string, them: string, tier: string = 'free'): Promise<ChatAnalysisResponse> {
+  console.log('Using OpenAI fallback for chat analysis with tier:', tier);
+  
+  // Select the appropriate prompt based on the tier (using similar structure to Anthropic prompts)
+  const promptTemplate = tier === 'pro' ? prompts.chat.pro : 
+                        tier === 'personal' ? prompts.chat.personal : 
+                        prompts.chat.free;
+  
+  // Replace placeholders in the prompt
+  const prompt = promptTemplate
+    .replace('{conversation}', conversation)
+    .replace(/\{me\}/g, me)
+    .replace(/\{them\}/g, them);
+  
+  try {
+    // Call OpenAI with the same parameters
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // Using the most capable OpenAI model
+      max_tokens: 2000,
+      temperature: 0.1,
+      response_format: { type: "json_object" }, // Ensure we get properly formatted JSON
+      messages: [
+        {
+          role: "system",
+          content: "You are a communication expert who analyzes tone, patterns, and dynamics in conversations. Provide insightful, specific feedback that's helpful but honest. Return your analysis as properly formatted JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+    });
+    
+    // Get the response content and parse it
+    const content = response.choices[0].message.content || '';
+    console.log('Successfully received OpenAI fallback response for chat analysis');
+    
+    try {
+      // Parse the response as JSON
+      const result = JSON.parse(content);
+      
+      // Add a notification that this was processed by the fallback system
+      Object.defineProperty(result, '_processedByFallback', {
+        value: true,
+        enumerable: false,
+        writable: false,
+        configurable: true
+      });
+      
+      return result;
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      throw new Error('Unable to process the analysis results. Please try again or contact support.');
+    }
+  } catch (error) {
+    console.error('OpenAI fallback also failed:', error);
+    throw new Error('Analysis services are currently unavailable. Please try again later or contact support at DramaLlamaConsultancy@gmail.com');
+  }
+}
+
 export async function analyzeMessage(message: string, author: 'me' | 'them', tier: string = 'free') {
   try {
     console.log('Attempting to use Anthropic for message analysis');
@@ -821,7 +891,24 @@ REPEAT: This is not a general conversation. You are generating structured data t
       console.error('Error message:', error.message);
     }
     
-    // Throw error with support information instead of using fallback
+    // Check for specific API overload condition
+    const isOverloaded = error?.error?.error?.type === 'overloaded_error' || 
+                         error?.status === 529;
+    
+    if (isOverloaded) {
+      // Fallback to OpenAI if Anthropic is overloaded
+      try {
+        console.log('Anthropic API overloaded, attempting fallback to OpenAI for message analysis');
+        
+        // Use the OpenAI fallback with the same parameters
+        return await openAiFallbackForMessageAnalysis(message, author, tier);
+      } catch (fallbackError) {
+        console.error('Fallback to OpenAI also failed for message analysis:', fallbackError);
+        throw new Error('We are experiencing high demand. Please try again in a few minutes or contact support at DramaLlamaConsultancy@gmail.com');
+      }
+    }
+    
+    // Throw error with support information for other types of errors
     throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
   }
 }
@@ -922,7 +1009,24 @@ REPEAT: This is not a general conversation. You are generating structured data t
       console.error('Error message:', error.message);
     }
     
-    // Throw error with support information instead of using fallback
+    // Check for specific API overload condition
+    const isOverloaded = error?.error?.error?.type === 'overloaded_error' || 
+                         error?.status === 529;
+    
+    if (isOverloaded) {
+      // Fallback to OpenAI if Anthropic is overloaded
+      try {
+        console.log('Anthropic API overloaded, attempting fallback to OpenAI for vent mode');
+        
+        // Use the OpenAI fallback with the same parameters
+        return await openAiFallbackForVentMode(message, tier);
+      } catch (fallbackError) {
+        console.error('Fallback to OpenAI also failed for vent mode:', fallbackError);
+        throw new Error('We are experiencing high demand. Please try again in a few minutes or contact support at DramaLlamaConsultancy@gmail.com');
+      }
+    }
+    
+    // For all other errors, provide standard error message
     throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
   }
 }
@@ -1038,6 +1142,135 @@ That's it. Nothing else.`,
     
     // Return generic participant names as a failsafe
     return { me: "Me", them: "Them" };
+  }
+}
+
+/**
+ * OpenAI fallback for message analysis when Anthropic is unavailable
+ */
+async function openAiFallbackForMessageAnalysis(message: string, author: 'me' | 'them', tier: string = 'free') {
+  console.log('Using OpenAI fallback for message analysis with tier:', tier);
+  
+  // Select the appropriate prompt based on the tier
+  const promptTemplate = tier === 'pro' ? prompts.message.pro : 
+                        tier === 'personal' ? prompts.message.personal : 
+                        prompts.message.free;
+  
+  // Replace placeholders
+  const prompt = promptTemplate
+    .replace('{message}', message)
+    .replace('{author}', author);
+  
+  try {
+    // Call OpenAI with the same parameters
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      max_tokens: 800,
+      temperature: 0.1,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: "You are a communication expert who analyzes messages to determine tone and intent. Return your analysis as properly formatted JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+    });
+    
+    // Get the response content and parse it
+    const content = response.choices[0].message.content || '';
+    console.log('Successfully received OpenAI fallback response for message analysis');
+    
+    try {
+      // Parse the response as JSON
+      const result = JSON.parse(content);
+      
+      // Add notification that this was processed by the fallback system
+      Object.defineProperty(result, '_processedByFallback', {
+        value: true,
+        enumerable: false,
+        writable: false,
+        configurable: true
+      });
+      
+      return result;
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      
+      // Return a basic response to maintain functionality
+      return {
+        tone: "We couldn't complete the full analysis at this time.",
+        intent: ["Please try again later."],
+        suggestedReply: "I'm sorry, but I'm having trouble understanding right now."
+      };
+    }
+  } catch (error) {
+    console.error('OpenAI fallback failed for message analysis:', error);
+    throw new Error('Analysis services are currently unavailable. Please try again later.');
+  }
+}
+
+/**
+ * OpenAI fallback for vent mode when Anthropic is unavailable
+ */
+async function openAiFallbackForVentMode(message: string, tier: string = 'free') {
+  console.log('Using OpenAI fallback for vent mode');
+  
+  // Get the appropriate prompt
+  const prompt = prompts.vent.free.replace('{message}', message);
+  
+  try {
+    // Call OpenAI with the same parameters
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      max_tokens: 800,
+      temperature: 0.1,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: "You are a communication expert who helps transform emotional messages into grounded, constructive ones that de-escalate conflict. Return your rewrite as properly formatted JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+    });
+    
+    // Get the response content and parse it
+    const content = response.choices[0].message.content || '';
+    console.log('Successfully received OpenAI fallback response for vent mode');
+    
+    try {
+      // Parse the response as JSON
+      const result = JSON.parse(content);
+      
+      // Add notification that this was processed by the fallback system
+      Object.defineProperty(result, '_processedByFallback', {
+        value: true,
+        enumerable: false,
+        writable: false,
+        configurable: true
+      });
+      
+      return result;
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      
+      // Return a basic response to maintain functionality
+      return {
+        original: message,
+        rewritten: "We're sorry, we couldn't complete the rewriting of this message due to service limitations. Please try again later.",
+        explanation: "Our service is experiencing high demand right now."
+      };
+    }
+  } catch (error) {
+    console.error('OpenAI fallback failed for vent mode:', error);
+    throw new Error('Rewriting services are currently unavailable. Please try again later.');
   }
 }
 
