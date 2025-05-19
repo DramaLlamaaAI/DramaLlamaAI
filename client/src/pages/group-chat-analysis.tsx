@@ -390,19 +390,19 @@ export default function GroupChatAnalysis() {
               </Card>
               
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-4">
                   <CardTitle>Emotional Analysis</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {result.toneAnalysis?.emotionalState && (
                       <div>
-                        <h3 className="text-lg font-medium">Emotional States</h3>
-                        <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <h3 className="text-lg font-medium mb-4">Emotional States</h3>
+                        <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-4">
                           {result.toneAnalysis.emotionalState.map((emotion, i) => (
-                            <div key={i} className="border rounded-md p-3 flex flex-col">
+                            <div key={i} className="border rounded-md p-4 flex flex-col">
                               <div className="font-medium">{emotion.emotion}</div>
-                              <div className="mt-1 h-2 bg-gray-200 rounded-full">
+                              <div className="mt-2 h-2.5 bg-gray-200 rounded-full">
                                 <div 
                                   className="h-full bg-primary rounded-full"
                                   style={{ width: `${emotion.intensity * 100}%` }}
@@ -416,11 +416,11 @@ export default function GroupChatAnalysis() {
                     
                     {result.communication?.suggestions && (
                       <div>
-                        <h3 className="text-lg font-medium">Communication Suggestions</h3>
-                        <div className="mt-2 border rounded-md p-4 bg-muted/30">
-                          <ul className="list-disc pl-6 space-y-2">
+                        <h3 className="text-lg font-medium mb-4">Communication Suggestions</h3>
+                        <div className="mt-2 border rounded-md p-5 bg-muted/30">
+                          <ul className="list-disc pl-6 space-y-3">
                             {result.communication.suggestions.map((suggestion, i) => (
-                              <li key={i}>{suggestion}</li>
+                              <li key={i} className="text-sm">{suggestion}</li>
                             ))}
                           </ul>
                         </div>
@@ -517,9 +517,13 @@ export default function GroupChatAnalysis() {
             {/* Red Flags Tab */}
             <TabsContent value="red-flags" className="space-y-6">
               <RedFlags 
-                analysis={result} 
-                participants={participants}
-                tier={usage?.tier || "free"} 
+                redFlags={result.redFlags}
+                redFlagTypes={result.redFlagTypes}
+                redFlagsCount={result.redFlagsCount}
+                redFlagsDetected={result.redFlagsDetected}
+                sampleQuotes={result.sampleQuotes}
+                tier={usage?.tier || "free"}
+                overallTone={result.toneAnalysis?.overallTone}
               />
               
               {usage?.tier === "free" && (
