@@ -113,8 +113,8 @@ const ConflictDynamics: React.FC<ConflictDynamicsProps> = ({ tier, conflictDynam
           <CollapsibleContent className="space-y-4">
             <div className="space-y-3">
               {participants.map((participant) => (
-                <div key={participant.name} className="border rounded-md p-3">
-                  <div className="flex items-center justify-between mb-2">
+                <div key={participant.name} className="border rounded-md p-4">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex flex-col">
                       <div className="flex items-center space-x-2">
                         {getTendencyIcon(participant.tendency)}
@@ -135,9 +135,9 @@ const ConflictDynamics: React.FC<ConflictDynamicsProps> = ({ tier, conflictDynam
                       <div className="w-24">
                         <Progress 
                           value={participant.score} 
-                          className={`h-2 ${getProgressColor(participant.score)}`} 
+                          className={`h-2.5 ${getProgressColor(participant.score)}`} 
                         />
-                        <div className="text-xs text-right mt-1">
+                        <div className="text-xs text-right mt-2">
                           {participant.score}% calming
                         </div>
                       </div>

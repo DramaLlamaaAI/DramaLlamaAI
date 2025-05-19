@@ -86,7 +86,7 @@ const EvasionDetection: React.FC<EvasionDetectionProps> = ({ tier, evasionDetect
     
     return (
       <Card className="mt-6">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-4">
           <div className="flex items-center space-x-2">
             <ShieldAlert className="h-5 w-5 text-yellow-500" />
             <CardTitle className="text-lg">

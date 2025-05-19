@@ -1071,8 +1071,8 @@ export default function ChatAnalysis() {
                   
                   {/* Communication Patterns - Only for paid tiers */}
                   {tier !== 'free' && (
-                    <div className="bg-muted p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Communication Insights</h4>
+                    <div className="bg-muted p-5 rounded-lg">
+                      <h4 className="font-medium mb-3">Communication Insights</h4>
                       {(result.communication?.patterns && result.communication?.patterns.length > 0) ? (
                         <div className="mb-4">
                           <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
