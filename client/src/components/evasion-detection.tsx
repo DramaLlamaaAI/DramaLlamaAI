@@ -131,7 +131,7 @@ const EvasionDetection: React.FC<EvasionDetectionProps> = ({ tier, evasionDetect
                 <div key={category.key} className="space-y-2">
                   <h4 className="font-medium text-sm">{category.label}</h4>
                   {category.instances.map((instance, index) => (
-                    <div key={index} className="border-l-2 border-amber-300 pl-3 py-1 space-y-1 text-sm">
+                    <div key={index} className="border-l-2 border-amber-300 pl-4 py-2 space-y-2 text-sm">
                       <div className="font-medium">{instance.participant}</div>
                       <div className="italic">"{instance.example}"</div>
                       {instance.context && (
