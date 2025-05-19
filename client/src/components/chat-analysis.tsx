@@ -27,9 +27,11 @@ import ConflictDynamics from "@/components/conflict-dynamics";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
+  const [conversationType, setConversationType] = useState<"two_person" | "group_chat">("two_person");
   const [conversation, setConversation] = useState("");
   const [me, setMe] = useState("");
   const [them, setThem] = useState("");
+  const [participants, setParticipants] = useState<string[]>([]);
   const [fileName, setFileName] = useState("");
   const [fileIsZip, setFileIsZip] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
