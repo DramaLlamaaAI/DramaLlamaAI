@@ -371,65 +371,146 @@ export default function ChatAnalysis() {
                 
                 <TabsContent value="paste" className="mt-4">
                   <div className="space-y-4">
+                    {/* Conversation Type Selector */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">Conversation Type:</label>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          type="button"
+                          variant={conversationType === "two_person" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setConversationType("two_person")}
+                          className="flex-1"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          Two-Person Chat
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant={conversationType === "group_chat" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setConversationType("group_chat")}
+                          className="flex-1"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          WhatsApp Group Chat
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {conversationType === "two_person" 
+                          ? "Select 'Two-Person Chat' to analyze a conversation between two participants." 
+                          : "Select 'WhatsApp Group Chat' to analyze a group conversation with multiple participants."}
+                      </p>
+                    </div>
+                    
                     <Textarea
-                      placeholder="Paste your conversation here..."
+                      placeholder={conversationType === "two_person" 
+                        ? "Paste your conversation here..." 
+                        : "Paste your WhatsApp group conversation here..."}
                       value={conversation}
                       onChange={(e) => setConversation(e.target.value)}
                       className="min-h-[200px]"
                     />
                     
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Your name (the gray messages)"
-                          value={me}
-                          onChange={(e) => setMe(e.target.value)}
-                        />
+                    {/* Two-Person Chat UI */}
+                    {conversationType === "two_person" && (
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Your name (the gray messages)"
+                            value={me}
+                            onChange={(e) => setMe(e.target.value)}
+                          />
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          onClick={handleSwitchNames}
+                          className="sm:flex-shrink-0"
+                        >
+                          <ArrowLeftRight className="h-4 w-4 mr-2" />
+                          Switch Names
+                        </Button>
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Their name (the blue messages)"
+                            value={them}
+                            onChange={(e) => setThem(e.target.value)}
+                          />
+                        </div>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        type="button" 
-                        onClick={handleSwitchNames}
-                        className="sm:flex-shrink-0"
-                      >
-                        <ArrowLeftRight className="h-4 w-4 mr-2" />
-                        Switch Names
-                      </Button>
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Their name (the blue messages)"
-                          value={them}
-                          onChange={(e) => setThem(e.target.value)}
-                        />
+                    )}
+                    
+                    {/* Group Chat UI */}
+                    {conversationType === "group_chat" && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Auto-Detected Participants:</label>
+                          <div className="flex flex-wrap gap-2">
+                            {participants.length > 0 ? (
+                              participants.map((participant, index) => (
+                                <div key={index} className="bg-muted rounded-full px-3 py-1 text-sm">
+                                  {participant}
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-sm text-muted-foreground">No participants detected yet. Click "Detect Participants" after pasting your conversation.</p>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            /* We'll add this function later */
+                            toast({
+                              title: "Detecting Participants",
+                              description: "Scanning conversation for participant names..."
+                            });
+                          }}
+                          disabled={isDetectingNames || !conversation.trim()}
+                          className="w-full"
+                        >
+                          <Search className="h-4 w-4 mr-2" />
+                          Detect Group Participants
+                        </Button>
                       </div>
-                    </div>
+                    )}
                     
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={handleDetectNames}
-                        disabled={isDetectingNames || !conversation.trim()}
-                        className="flex-shrink-0"
-                        size="sm"
-                      >
-                        {isDetectingNames ? (
-                          <>
-                            <div className="h-4 w-4 mr-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                            <span className="hidden sm:inline">Detecting...</span>
-                            <span className="sm:hidden">Detect</span>
-                          </>
-                        ) : (
-                          <>
-                            <Search className="h-4 w-4 mr-1" />
-                            <span className="hidden sm:inline">Auto-Detect Names</span>
-                            <span className="sm:hidden">Detect</span>
-                          </>
-                        )}
-                      </Button>
+                      {conversationType === "two_person" && (
+                        <Button
+                          variant="outline"
+                          onClick={handleDetectNames}
+                          disabled={isDetectingNames || !conversation.trim()}
+                          className="flex-shrink-0"
+                          size="sm"
+                        >
+                          {isDetectingNames ? (
+                            <>
+                              <div className="h-4 w-4 mr-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                              <span className="hidden sm:inline">Detecting...</span>
+                              <span className="sm:hidden">Detect</span>
+                            </>
+                          ) : (
+                            <>
+                              <Search className="h-4 w-4 mr-1" />
+                              <span className="hidden sm:inline">Auto-Detect Names</span>
+                              <span className="sm:hidden">Detect</span>
+                            </>
+                          )}
+                        </Button>
+                      )}
                       
                       <Button
                         onClick={handleSubmit}
-                        disabled={!canUseFeature || isSubmitting || !conversation.trim() || !me.trim() || !them.trim()}
+                        disabled={
+                          !canUseFeature || 
+                          isSubmitting || 
+                          !conversation.trim() || 
+                          (conversationType === "two_person" && (!me.trim() || !them.trim())) ||
+                          (conversationType === "group_chat" && participants.length === 0)
+                        }
                         className="flex-grow"
                       >
                         {isSubmitting ? (
