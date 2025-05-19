@@ -320,15 +320,28 @@ export default function GroupChatAnalysis() {
   const handleExportToPdf = () => {
     if (!result) return;
     
-    exportToPdf({
-      conversation,
-      result,
-      me: "", // Not used for group chat
-      them: "", // Not used for group chat
-      tier: selectedTier,
-      participants,
-      conversationType: "group_chat"
-    });
+    try {
+      exportToPdf({
+        conversation,
+        result,
+        me: participants[0] || "", // Use first participant as "me" for PDF export
+        them: participants[1] || "", // Use second participant as "them" for PDF export
+        tier: selectedTier,
+        participants,
+        conversationType: "group_chat"
+      });
+      
+      toast({
+        title: "PDF Generated",
+        description: "Your analysis has been exported to PDF successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "PDF Generation Failed",
+        description: "Could not generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   // Reset form
@@ -419,6 +432,8 @@ export default function GroupChatAnalysis() {
                   redFlagTypes={result.redFlagTypes}
                   redFlagsDetected={result.redFlagsDetected}
                   sampleQuotes={result.sampleQuotes}
+                  conversation={conversation}
+                  overallTone={result.toneAnalysis?.overallTone}
                 />
               )}
               
@@ -426,10 +441,7 @@ export default function GroupChatAnalysis() {
               {(selectedTier === 'personal' || selectedTier === 'pro' || selectedTier === 'instant') && 
                 result.evasionDetection && result.evasionDetection.detected && (
                 <EvasionDetection 
-                  detected={result.evasionDetection.detected}
-                  analysisTitle={result.evasionDetection.analysisTitle}
-                  patterns={result.evasionDetection.patterns}
-                  details={result.evasionDetection.details}
+                  evasionDetection={result.evasionDetection}
                   tier={selectedTier} 
                 />
               )}
@@ -437,10 +449,8 @@ export default function GroupChatAnalysis() {
               {/* Show conflict dynamics for pro tier */}
               {(selectedTier === 'pro' || selectedTier === 'instant') && result.conflictDynamics && (
                 <ConflictDynamics 
-                  summary={result.conflictDynamics.summary}
-                  participants={result.conflictDynamics.participants}
-                  interaction={result.conflictDynamics.interaction}
-                  recommendations={result.conflictDynamics.recommendations}
+                  conflictDynamics={result.conflictDynamics}
+                  tier={selectedTier}
                 />
               )}
             </div>
