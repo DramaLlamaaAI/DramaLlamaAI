@@ -163,9 +163,12 @@ export default function GroupChatAnalysisImproved() {
               description: `Found ${detectedParticipants.length} participants in the group chat.`,
             });
           } else {
+            // If no participants detected, set default ones
+            const defaultParticipants = ["Person 1", "Person 2"];
+            setParticipants(defaultParticipants);
             toast({
-              title: "Chat Imported",
-              description: "No participants were automatically detected. Please add them manually below.",
+              title: "Chat Imported - Names Not Detected",
+              description: "Please update the participant names below before analyzing.",
             });
           }
           return;
@@ -188,11 +191,38 @@ export default function GroupChatAnalysisImproved() {
           console.log("Text files in ZIP:", textFiles.map(f => f.name));
           
           if (textFiles.length === 0) {
-            toast({
-              title: "No Text Files Found",
-              description: "Could not find any text files in the ZIP. Please try exporting the chat again or upload a .txt file directly.",
-              variant: "destructive",
-            });
+            // No text files found, but we can still show the conversation
+            // This allows the user to manually enter participant names
+            
+            // Create some default participants to allow analysis
+            const defaultParticipants = ["Person 1", "Person 2"];
+            setParticipants(defaultParticipants);
+            
+            // Take the first non-directory file as the conversation
+            const anyFile = files.find(f => !f.dir);
+            if (anyFile) {
+              try {
+                const content = await anyFile.async('text');
+                setConversation(content);
+                toast({
+                  title: "Chat Imported - Names Not Detected",
+                  description: "Please verify and edit the participant names below before analyzing.",
+                });
+              } catch (err) {
+                console.error("Error reading file from ZIP:", err);
+                toast({
+                  title: "Import Issue",
+                  description: "Please try exporting your WhatsApp chat as a text file instead of ZIP.",
+                  variant: "destructive",
+                });
+              }
+            } else {
+              toast({
+                title: "Empty ZIP File",
+                description: "The ZIP file appears to be empty. Please try exporting the chat again.",
+                variant: "destructive",
+              });
+            }
             return;
           }
           
@@ -212,6 +242,14 @@ export default function GroupChatAnalysisImproved() {
                     description: `Found ${detectedParticipants.length} participants in the group chat from ${textFile.name}.`,
                   });
                   return;
+                } else {
+                  // If no participants detected, set default ones
+                  setParticipants(["Person 1", "Person 2"]);
+                  toast({
+                    title: "Chat Imported - Names Not Detected",
+                    description: "Please verify and edit the participant names below before analyzing.",
+                  });
+                  return;
                 }
               }
             } catch (err) {
@@ -224,9 +262,11 @@ export default function GroupChatAnalysisImproved() {
             // Use the first text file
             const content = await textFiles[0].async('text');
             setConversation(content);
+            // Set default participant names
+            setParticipants(["Person 1", "Person 2"]);
             toast({
-              title: "Chat Imported",
-              description: "Chat imported, but no participants were detected. Please add them manually below.",
+              title: "Chat Imported - Please Verify Names",
+              description: "Please update the participant names below before analyzing.",
             });
           }
         } catch (zipError) {
