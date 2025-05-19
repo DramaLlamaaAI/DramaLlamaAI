@@ -36,42 +36,71 @@ function detectGroupParticipants(conversation: string): string[] {
     return [];
   }
   
+  // Handle binary data in ZIP files
+  if (conversation.startsWith('PK\u0003\u0004')) {
+    console.log("Binary ZIP data detected, cannot extract participants directly");
+    return [];
+  }
+  
   console.log("Detecting participants in conversation text");
   const lines = conversation.split('\n');
   console.log(`Found ${lines.length} lines in the conversation`);
   
-  // Support multiple WhatsApp export formats
-  // Format 1: [5/19/24, 7:45:12 PM] John: Hey everyone
-  // Format 2: 5/19/24, 7:45:12 PM - John: Hey everyone
-  // Format 3: 19/05/2024, 19:45 - John: Hey everyone
+  // Print a few sample lines to help with debugging
+  if (lines.length > 3) {
+    console.log("Sample lines:");
+    console.log("Line 1:", lines[0]);
+    console.log("Line 2:", lines[1]);
+    console.log("Line 3:", lines[2]);
+  }
+  
+  // WhatsApp format patterns - handling more variations
+  // Note: The patterns below use non-greedy matches .*? and more flexible name capture
+  // to handle emojis, special characters and various formats
   const patterns = [
-    /\[\d+\/\d+\/\d+,\s+\d+:\d+.*?\]\s+(.*?):/,           // [date, time] Name:
-    /\d+\/\d+\/\d+,\s+\d+:\d+.*?-\s+(.*?):/,               // date, time - Name:
-    /\d+\/\d+\/\d+,\s+\d+:\d+\s+-\s+(.*?):/                // date, time - Name:
+    // Pattern for bracketed timestamp: [05/19/24, 7:45:12 PM] Name with 🌟 emoji: Message
+    /\[\d+[\/-]\d+[\/-]\d+,?\s+\d+:\d+.*?\]\s+(.*?):/,
+    
+    // Pattern for hyphenated timestamp: 05/19/24, 7:45:12 PM - Name with 🌟 emoji: Message
+    /\d+[\/-]\d+[\/-]\d+,?\s+\d+:\d+.*?\s+-\s+(.*?):/,
+    
+    // More flexible pattern for various formats
+    /(?:^|\n)(?:\[|\()?\s*(?:\d+[\/-]\d+[\/-]\d+)?(?:,?\s+\d+:\d+.*?)?(?:\]|\))?\s*(?:-\s*)?([\w\s\u00C0-\u017F\u0080-\uFFFF]+?):/
   ];
   
   const foundParticipants = new Set<string>();
   let matchCount = 0;
   
   for (const line of lines) {
+    let matched = false;
+    
     for (const pattern of patterns) {
       const match = line.match(pattern);
       if (match && match[1]) {
-        // Get the participant name
+        // Get the participant name, preserving emojis and special characters
         const participant = match[1].trim();
         matchCount++;
         
-        // Skip system messages
+        // Skip system messages by checking for common WhatsApp notification text
         if (participant && 
             !participant.includes('changed the subject') && 
             !participant.includes('added') && 
             !participant.includes('removed') &&
             !participant.includes('left') &&
-            !participant.includes('joined')) {
+            !participant.includes('joined') &&
+            !participant.includes('created group') &&
+            !participant.includes('changed this group')) {
+          
           foundParticipants.add(participant);
+          matched = true;
+          break; // Found a match with this pattern, no need to check others
         }
-        break; // Found a match with this pattern, no need to check others
       }
+    }
+    
+    // Debug non-matching lines (first 5 only)
+    if (!matched && matchCount < 5) {
+      console.log("Non-matching line sample:", line.substring(0, 100));
     }
   }
   
@@ -647,22 +676,30 @@ export default function GroupChatAnalysisImproved() {
                     <div className="flex justify-between mb-1">
                       <Label htmlFor="participants-upload">Group Chat Participants</Label>
                       <div className="text-xs text-muted-foreground">
-                        {participants.length} participants detected
+                        {participants.length} participants {participants.length > 0 ? 'added' : 'needed'}
                       </div>
                     </div>
                     <Textarea
                       id="participants-upload"
-                      placeholder="Enter participant names, one per line (automatically detected from conversation)"
-                      className="mt-1 h-[100px]"
+                      placeholder="Enter participant names, one per line (copy exactly as they appear in the chat, including emojis)"
+                      className="mt-1 h-[120px]"
                       value={participants.join('\n')}
                       onChange={(e) => {
                         const lines = e.target.value.split('\n').filter(line => line.trim() !== '');
                         setParticipants(lines);
                       }}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Participants are automatically detected. You can add or remove names as needed.
-                    </p>
+                    <Alert variant="outline" className="bg-blue-50 mt-2 mb-4">
+                      <AlertCircle className="h-4 w-4 mr-2 text-blue-600" />
+                      <AlertTitle className="text-sm font-medium text-blue-800">Important Instructions</AlertTitle>
+                      <AlertDescription className="text-xs text-blue-700">
+                        <ul className="list-disc pl-4 space-y-1 mt-1">
+                          <li>Enter names <strong>exactly as they appear in the chat</strong>, including emojis and special characters</li>
+                          <li>Each participant should be on a separate line (press Enter after each name)</li>
+                          <li>At least 2 participants are required for group chat analysis</li>
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
                   </div>
                   
                   <div className="mb-6">
