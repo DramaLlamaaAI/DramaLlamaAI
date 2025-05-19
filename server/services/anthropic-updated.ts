@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { TIER_LIMITS } from "@shared/schema";
 import { getTextFromContentBlock, parseAnthropicJson } from './anthropic-helpers';
 
@@ -730,7 +731,24 @@ When analyzing conversations:
       console.error('Error message:', error.message);
     }
     
-    // Throw error with support information instead of using fallback
+    // Check for specific API overload condition
+    const isOverloaded = error?.error?.error?.type === 'overloaded_error' || 
+                         error?.status === 529;
+    
+    if (isOverloaded) {
+      // Fallback to OpenAI if Anthropic is overloaded
+      try {
+        console.log('Anthropic API overloaded, attempting fallback to OpenAI');
+        
+        // Use the OpenAI fallback with the same parameters
+        return await openAiFallbackForChatAnalysis(conversation, me, them, tier);
+      } catch (fallbackError) {
+        console.error('Fallback to OpenAI also failed:', fallbackError);
+        throw new Error('We are experiencing high demand. Please try again in a few minutes or contact support at DramaLlamaConsultancy@gmail.com');
+      }
+    }
+    
+    // For all other errors, provide standard error message
     throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
   }
 }
