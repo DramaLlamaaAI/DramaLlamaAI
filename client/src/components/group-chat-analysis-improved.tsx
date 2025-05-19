@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, AlertCircle, FileText, XCircle, Brain } from "lucide-react";
+import { Loader2, AlertCircle, FileText, XCircle, Brain, UserPlus, UserMinus } from "lucide-react";
 import { ChatAnalysisRequest, ChatAnalysisResponse, analyzeChatConversation, getUserUsage } from "@/lib/openai";
 import JSZip from "jszip";
 import exportToPdf from '@/components/export-document-generator';
@@ -30,15 +30,15 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 // Enhanced helper for detecting participants in WhatsApp group chat
-function detectGroupParticipants(conversation: string): string[] {
+function detectParticipantsFromWhatsApp(conversation: string): string[] {
   if (!conversation || conversation.trim() === '') {
     console.log("Empty conversation text, cannot detect participants");
     return [];
   }
   
-  // Handle binary data in ZIP files
-  if (conversation.startsWith('PK\u0003\u0004')) {
-    console.log("Binary ZIP data detected, cannot extract participants directly");
+  // Handle binary data in ZIP files - if it's binary data, we won't be able to extract participants
+  if (conversation.startsWith('PK')) {
+    console.log("Binary file data detected, cannot extract participants directly");
     return [];
   }
   
@@ -46,17 +46,7 @@ function detectGroupParticipants(conversation: string): string[] {
   const lines = conversation.split('\n');
   console.log(`Found ${lines.length} lines in the conversation`);
   
-  // Print a few sample lines to help with debugging
-  if (lines.length > 3) {
-    console.log("Sample lines:");
-    console.log("Line 1:", lines[0]);
-    console.log("Line 2:", lines[1]);
-    console.log("Line 3:", lines[2]);
-  }
-  
-  // WhatsApp format patterns - handling more variations
-  // Note: The patterns below use non-greedy matches .*? and more flexible name capture
-  // to handle emojis, special characters and various formats
+  // WhatsApp format patterns for extracting participant names
   const patterns = [
     // Pattern for bracketed timestamp: [05/19/24, 7:45:12 PM] Name with 🌟 emoji: Message
     /\[\d+[\/-]\d+[\/-]\d+,?\s+\d+:\d+.*?\]\s+(.*?):/,
@@ -65,7 +55,7 @@ function detectGroupParticipants(conversation: string): string[] {
     /\d+[\/-]\d+[\/-]\d+,?\s+\d+:\d+.*?\s+-\s+(.*?):/,
     
     // More flexible pattern for various formats
-    /(?:^|\n)(?:\[|\()?\s*(?:\d+[\/-]\d+[\/-]\d+)?(?:,?\s+\d+:\d+.*?)?(?:\]|\))?\s*(?:-\s*)?([\w\s\u00C0-\u017F\u0080-\uFFFF]+?):/
+    /(?:\[|\()?\s*(?:\d+[\/-]\d+[\/-]\d+,?\s+\d+:\d+.*?)?(?:\]|\))?\s*(?:-\s*)?([\w\s\u00C0-\u017F\u0080-\uFFFF]+?):/
   ];
   
   const foundParticipants = new Set<string>();
@@ -157,7 +147,7 @@ export default function GroupChatAnalysisImproved() {
     },
   });
   
-  // Simplified file upload handler
+  // New improved file upload handler
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -169,42 +159,113 @@ export default function GroupChatAnalysisImproved() {
     });
     
     setFileName(file.name);
+    setErrorMessage(null);
     
     try {
       console.log("Processing file:", file.name, "Type:", file.type);
       
-      // First try the simple approach - read as text file
-      try {
-        const text = await file.text();
-        console.log("Text content length:", text.length, "Sample:", text.substring(0, 50));
-        
-        if (text && text.length > 0) {
-          // Set the conversation text
-          setConversation(text);
+      // Check if it's a ZIP file
+      const isZipFile = file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip';
+      setFileIsZip(isZipFile);
+      
+      if (isZipFile) {
+        // Handle ZIP file
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const zip = await JSZip.loadAsync(arrayBuffer);
           
-          // Detect participants
-          const detectedParticipants = detectGroupParticipants(text);
-          console.log("Detected participants:", detectedParticipants);
+          // Find text files in the ZIP
+          const textFileEntries = Object.values(zip.files).filter(
+            zipEntry => !zipEntry.dir && (zipEntry.name.endsWith('.txt') || zipEntry.name.includes('chat'))
+          );
           
-          if (detectedParticipants.length > 0) {
-            setParticipants(detectedParticipants);
+          if (textFileEntries.length === 0) {
+            toast({
+              title: "No Text Files Found",
+              description: "No text files found in the ZIP. Please try a different export format.",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          // Use the first text file
+          const textContent = await textFileEntries[0].async('string');
+          console.log("Extracted text content length:", textContent.length);
+          
+          setConversation(textContent);
+          
+          // Try to extract participants
+          const extractedParticipants = detectParticipantsFromWhatsApp(textContent);
+          
+          if (extractedParticipants.length >= 2) {
+            setParticipants(extractedParticipants);
             toast({
               title: "Chat Imported Successfully",
-              description: `Found ${detectedParticipants.length} participants in the group chat.`,
+              description: `Found ${extractedParticipants.length} participants. Please verify the names.`,
             });
           } else {
-            // If no participants detected, set default ones
-            const defaultParticipants = ["Person 1", "Person 2"];
-            setParticipants(defaultParticipants);
+            // Fallback to default participants
+            setParticipants(["Person 1", "Person 2"]);
             toast({
-              title: "Chat Imported - Names Not Detected",
-              description: "Please update the participant names below before analyzing.",
+              title: "Chat Imported - Add Participants",
+              description: "Please add the participant names manually.",
             });
           }
-          return;
+        } catch (zipError) {
+          console.error("Error processing ZIP file:", zipError);
+          toast({
+            title: "ZIP Processing Failed",
+            description: "Could not process the ZIP file. Please try uploading a text file instead.",
+            variant: "destructive",
+          });
         }
-      } catch (directReadError) {
-        console.log("Direct text reading failed, trying ZIP approach:", directReadError);
+      } else {
+        // Handle regular text file
+        try {
+          const reader = new FileReader();
+          
+          reader.onload = (e) => {
+            const text = e.target?.result as string;
+            if (text) {
+              setConversation(text);
+              
+              // Detect participants
+              const detectedParticipants = detectParticipantsFromWhatsApp(text);
+              
+              if (detectedParticipants.length >= 2) {
+                setParticipants(detectedParticipants);
+                toast({
+                  title: "Chat Imported Successfully",
+                  description: `Found ${detectedParticipants.length} participants in the group chat.`,
+                });
+              } else {
+                // If no participants detected, set default ones
+                setParticipants(["Person 1", "Person 2"]);
+                toast({
+                  title: "Chat Imported - Names Not Detected",
+                  description: "Please add participant names below before analyzing.",
+                });
+              }
+            }
+          };
+          
+          reader.onerror = () => {
+            toast({
+              title: "File Reading Failed",
+              description: "Could not read the file. Please try a different format.",
+              variant: "destructive",
+            });
+          };
+          
+          reader.readAsText(file);
+        } catch (textReadError) {
+          console.error("Error reading text file:", textReadError);
+          toast({
+            title: "File Reading Failed",
+            description: "Could not read the text file. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
       
       // If direct text reading failed, try as ZIP
