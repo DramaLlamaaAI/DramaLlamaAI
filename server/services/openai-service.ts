@@ -133,7 +133,18 @@ if (apiKey && apiKey.startsWith('sk-proj-')) {
 }
 
 // Initialize OpenAI client with the proper configuration
-const openai = new OpenAI(openaiConfig);
+// Validate the API key before initializing
+if (!process.env.OPENAI_API_KEY || 
+    !process.env.OPENAI_API_KEY.startsWith('sk-')) {
+  console.warn('WARNING: OpenAI API key is missing or has invalid format. OpenAI services will not work.');
+}
+
+// Initialize with proper error handling
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  // Default organization if provided
+  organization: process.env.OPENAI_ORG_ID
+});
 
 // Main function for chat analysis via OpenAI - used as fallback when Anthropic is unavailable
 export async function analyzeChatWithOpenAI(conversation: string, me: string, them: string, tier: string, additionalContext: string = ''): Promise<any> {

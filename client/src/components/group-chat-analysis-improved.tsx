@@ -423,11 +423,11 @@ export default function GroupChatAnalysisImproved() {
       me: participants[0] || "",
       them: participants[1] || "",
       tier: selectedTier,
-      // Pass participant information in an expected field
-      extraData: JSON.stringify({
-        groupChat: true,
-        allParticipants: participants
-      })
+      // Pass participant information in the extraData field
+      extraData: {
+        isGroupChat: true,
+        groupParticipants: participants
+      }
     };
     
     // Send the analysis request

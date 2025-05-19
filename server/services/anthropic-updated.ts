@@ -25,6 +25,13 @@ ${tier === 'pro' ? '- keyQuotes, dramaScore, and other advanced analysis compone
 
 // Function for direct group chat analysis with Anthropic
 export async function analyzeChatWithAnthropicAI(conversation: string, me: string, them: string, tier: string, additionalInstructions: string = ''): Promise<any> {
+  // Validate API key format
+  if (!process.env.ANTHROPIC_API_KEY || 
+     !process.env.ANTHROPIC_API_KEY.startsWith('sk-ant-')) {
+    console.error('Invalid Anthropic API key format');
+    throw new Error('Invalid Anthropic API key format. Please check your API key.');
+  }
+  
   // Define Anthropic client
   const anthropic = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
