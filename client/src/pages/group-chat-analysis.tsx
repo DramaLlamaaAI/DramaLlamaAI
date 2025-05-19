@@ -437,6 +437,15 @@ export default function GroupChatAnalysis() {
             
             {/* Group Dynamics Tab */}
             <TabsContent value="dynamics" className="space-y-6">
+              {/* Evasion Detection (personal and pro tiers only) */}
+              {(usage?.tier === "personal" || usage?.tier === "pro" || usage?.tier === "instant") && result.evasionDetection && (
+                <EvasionDetection
+                  tier={usage?.tier || "free"}
+                  evasionDetection={result.evasionDetection}
+                />
+              )}
+              
+              {/* Conflict Dynamics (all tiers) */}
               {result.conflictDynamics && (
                 <ConflictDynamics 
                   tier={usage?.tier || "free"}
