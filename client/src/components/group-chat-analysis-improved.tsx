@@ -18,6 +18,7 @@ import RegistrationPrompt from "@/components/registration-prompt";
 import EvasionDetection from "@/components/evasion-detection";
 import ConflictDynamics from "@/components/conflict-dynamics";
 import BackHomeButton from "@/components/back-home-button";
+import WhatsAppImporter from "@/components/whats-app-importer";
 
 // Helper function to convert file to base64
 function fileToBase64(file: File): Promise<string> {
