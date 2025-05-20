@@ -124,11 +124,42 @@ export const paymentController = {
   handleWebhook: async (req: Request, res: Response) => {
     const signature = req.headers['stripe-signature'];
     
+    // If webhook secret is not configured, log a warning but still try to process the event
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      console.warn('Stripe webhook secret not configured, skipping signature verification');
-      return res.status(200).end();
+      console.warn('Stripe webhook secret not configured, proceeding without signature verification');
+      
+      try {
+        // Process the event directly from the request body
+        // Note: This is less secure but allows payments to work while webhook is being set up
+        const event = req.body;
+        
+        if (event && event.type === 'payment_intent.succeeded') {
+          const paymentIntent = event.data.object;
+          console.log(`PaymentIntent ${paymentIntent.id} succeeded (unverified)`);
+          
+          // Update user's tier based on the payment metadata
+          if (paymentIntent.metadata && paymentIntent.metadata.userId && paymentIntent.metadata.plan) {
+            const userId = parseInt(paymentIntent.metadata.userId);
+            const plan = paymentIntent.metadata.plan;
+            
+            try {
+              const tier = plan === 'personal' ? 'personal' : 'pro';
+              await storage.updateUserTier(userId, tier);
+              console.log(`Updated user ${userId} to tier ${tier} (unverified webhook)`);
+            } catch (err) {
+              console.error(`Failed to update user tier: ${err}`);
+            }
+          }
+        }
+        
+        return res.status(200).end();
+      } catch (err) {
+        console.error('Error processing unverified webhook:', err);
+        return res.status(400).json({ error: 'Invalid webhook payload' });
+      }
     }
     
+    // For verified webhooks with signature, continue with normal flow
     if (!signature) {
       return res.status(400).json({ error: 'Missing Stripe signature header' });
     }

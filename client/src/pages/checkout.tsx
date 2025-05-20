@@ -26,6 +26,16 @@ const CheckoutForm = ({ plan }: { plan: string }) => {
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   
+  // Build absolute URL with all the necessary parameters
+  const getReturnUrl = () => {
+    // Create a full return URL with success parameter
+    const url = new URL('/subscription', window.location.origin);
+    url.searchParams.append('success', 'true');
+    url.searchParams.append('plan', plan);
+    url.searchParams.append('time', Date.now().toString());
+    return url.toString();
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -39,7 +49,7 @@ const CheckoutForm = ({ plan }: { plan: string }) => {
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: window.location.origin + '/subscription?success=true',
+        return_url: getReturnUrl(),
         payment_method_data: {
           billing_details: {
             address: {
