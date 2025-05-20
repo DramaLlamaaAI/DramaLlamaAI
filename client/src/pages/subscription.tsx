@@ -35,13 +35,37 @@ export default function SubscriptionPage() {
     if (success === 'true') {
       toast({
         title: "Subscription Successful!",
-        description: "Thank you for subscribing to Drama Llama!",
+        description: "Thank you for subscribing to Drama Llama! Your payment has been processed.",
+        variant: "default",
+        duration: 5000,
       });
       
       // Clean up the URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [success, toast]);
+  
+  // Show payment confirmation card if redirected from successful payment
+  const PaymentSuccessCard = () => {
+    if (success !== 'true') return null;
+    
+    return (
+      <Card className="mb-8 border-green-100 bg-green-50">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <CardTitle className="text-lg text-green-800">Payment Successful</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-green-700">
+            Your payment has been processed successfully. Your account has been upgraded and 
+            you now have access to all the features of your new plan. A receipt has been sent to your email.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  };
   
   const handleUpgrade = (plan: string) => {
     if (!user) {
@@ -82,6 +106,13 @@ export default function SubscriptionPage() {
 
   return (
     <div className="container max-w-6xl py-12">
+      {/* Display payment success message if user was redirected from checkout */}
+      {success === 'true' && (
+        <div className="max-w-2xl mx-auto mb-8">
+          <PaymentSuccessCard />
+        </div>
+      )}
+      
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-bold mb-4">Choose Your Drama Llama Plan</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">

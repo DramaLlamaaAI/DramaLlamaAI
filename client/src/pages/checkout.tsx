@@ -35,10 +35,18 @@ const CheckoutForm = ({ plan }: { plan: string }) => {
 
     setIsProcessing(true);
 
+    // Add additional information for live payments
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         return_url: window.location.origin + '/subscription?success=true',
+        payment_method_data: {
+          billing_details: {
+            address: {
+              country: 'GB', // Default to UK as payments are in GBP
+            },
+          },
+        },
       },
     });
 
