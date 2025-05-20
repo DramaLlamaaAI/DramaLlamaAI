@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Loader2, AlertCircle, FileText, XCircle, Brain, ArrowLeft, UserPlus, UserMinus, Save, Download, Lock } from "lucide-react";
+import { Loader2, AlertCircle, FileText, XCircle, Brain, ArrowLeft, UserPlus, UserMinus, Save, Download, Lock, Users } from "lucide-react";
 import { ChatAnalysisRequest, ChatAnalysisResponse, analyzeChatConversation, getUserUsage } from "@/lib/openai";
 import JSZip from "jszip";
 import exportToPdf from '@/components/export-document-generator';

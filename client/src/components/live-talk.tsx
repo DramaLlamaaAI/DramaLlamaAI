@@ -21,6 +21,7 @@ export default function LiveTalk() {
   const [showParticipantsPrompt, setShowParticipantsPrompt] = useState(false);
   
   const { tier, canUseFeature } = useUserTier();
+  const isPro = tier === 'pro' || tier === 'instant';
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
   
@@ -34,7 +35,7 @@ export default function LiveTalk() {
 
   // Function to handle starting the recording with enhanced audio quality
   const startRecording = async () => {
-    if (!canUseFeature) {
+    if (!isPro) {
       toast({
         title: "Pro Feature",
         description: "Live Talk recording is only available on the Pro plan. Please upgrade to access this feature.",
@@ -474,7 +475,7 @@ export default function LiveTalk() {
   return (
     <section className="mb-12">
       <Card className="relative overflow-hidden border-2 border-transparent">
-        {!canUseFeature && (
+        {!isPro && (
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
               <Badge className="mb-2 bg-gradient-to-r from-primary to-secondary">PRO ONLY</Badge>
