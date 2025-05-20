@@ -465,7 +465,12 @@ export default function ChatAnalysis() {
                     
                     {result.redFlags && result.redFlags.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="font-semibold mb-2">Potential Issues Detected</h3>
+                        <h3 className="font-semibold mb-2">
+                          Potential Issues Detected 
+                          <span className="ml-2 text-sm bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                            {result.redFlags.length} {result.redFlags.length === 1 ? 'red flag' : 'red flags'}
+                          </span>
+                        </h3>
                         <ul className="list-disc pl-5 space-y-2">
                           {result.redFlags.map((flag, i) => (
                             <li key={i}>
