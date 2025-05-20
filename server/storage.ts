@@ -793,4 +793,580 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Implementation of IStorage using PostgreSQL database
+import { db } from './db';
+import { eq, and, desc, or, gte, lte, sql } from 'drizzle-orm';
+import { createId } from '@paralleldrive/cuid2';
+import connect from 'connect-pg-simple';
+import session from 'express-session';
+import { Pool } from 'pg';
+
+export class DatabaseStorage implements IStorage {
+  private sessionStore: session.Store;
+  
+  constructor() {
+    // Create PostgreSQL session store
+    const PostgresStore = connect(session);
+    this.sessionStore = new PostgresStore({
+      conObject: {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+      },
+      createTableIfMissing: true,
+    });
+  }
+
+  // User Management
+  async getUser(id: number): Promise<User | undefined> {
+    const results = await db.select().from(users).where(eq(users.id, id));
+    return results[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const results = await db.select().from(users).where(eq(users.username, username));
+    return results[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const normalizedEmail = email.toLowerCase().trim();
+    const results = await db.select().from(users).where(eq(users.email, normalizedEmail));
+    return results[0];
+  }
+
+  async getUserByVerificationCode(code: string): Promise<User | undefined> {
+    const results = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.verificationCode, code),
+          gte(users.verificationCodeExpires as any, new Date())
+        )
+      );
+    return results[0];
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    // Normalize email
+    const normalizedEmail = insertUser.email.toLowerCase().trim();
+    
+    const results = await db
+      .insert(users)
+      .values({
+        ...insertUser,
+        email: normalizedEmail,
+      })
+      .returning();
+    
+    // Create usage limits for the new user
+    await db.insert(usageLimits).values({
+      userId: results[0].id,
+      monthlyTotal: 0,
+      lastResetDate: new Date(),
+    });
+    
+    return results[0];
+  }
+
+  async updateUserTier(userId: number, tier: string): Promise<User> {
+    const oldUser = await this.getUser(userId);
+    
+    if (!oldUser) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    // Track tier change event
+    await this.trackUserEvent({
+      userId,
+      eventType: 'tier_change',
+      oldValue: oldUser.tier,
+      newValue: tier
+    });
+    
+    const results = await db
+      .update(users)
+      .set({ tier })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return results[0];
+  }
+
+  async updateUserPassword(userId: number, newPassword: string): Promise<User> {
+    const results = await db
+      .update(users)
+      .set({ password: newPassword })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return results[0];
+  }
+
+  async updateStripeCustomerId(userId: number, customerId: string): Promise<User> {
+    const results = await db
+      .update(users)
+      .set({ stripeCustomerId: customerId })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return results[0];
+  }
+
+  async updateStripeSubscriptionId(userId: number, subscriptionId: string): Promise<User> {
+    const results = await db
+      .update(users)
+      .set({ stripeSubscriptionId: subscriptionId })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return results[0];
+  }
+
+  async setVerificationCode(userId: number, code: string, expiresInMinutes: number): Promise<User> {
+    const expiryDate = new Date();
+    expiryDate.setMinutes(expiryDate.getMinutes() + expiresInMinutes);
+    
+    const results = await db
+      .update(users)
+      .set({
+        verificationCode: code,
+        verificationCodeExpires: expiryDate
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return results[0];
+  }
+
+  async verifyEmail(userId: number): Promise<User> {
+    const results = await db
+      .update(users)
+      .set({
+        emailVerified: true,
+        verificationCode: null,
+        verificationCodeExpires: null
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return results[0];
+  }
+
+  // Admin Management
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users);
+  }
+
+  async setUserAdmin(userId: number, isAdmin: boolean): Promise<User> {
+    const results = await db
+      .update(users)
+      .set({ isAdmin })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return results[0];
+  }
+
+  async setUserDiscount(userId: number, discountPercentage: number, expiryDays: number = 30): Promise<User> {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + expiryDays);
+    
+    const results = await db
+      .update(users)
+      .set({
+        discountPercentage,
+        discountExpiryDate: expiryDate
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return results[0];
+  }
+
+  // Analysis Management
+  async saveAnalysis(analysis: InsertAnalysis): Promise<Analysis> {
+    const results = await db
+      .insert(analyses)
+      .values(analysis)
+      .returning();
+    
+    // Update usage count
+    await this.incrementUserUsage(analysis.userId);
+    
+    return results[0];
+  }
+
+  async getUserAnalyses(userId: number): Promise<Analysis[]> {
+    return db
+      .select()
+      .from(analyses)
+      .where(eq(analyses.userId, userId))
+      .orderBy(desc(analyses.createdAt));
+  }
+
+  // Usage Tracking
+  async getUserUsage(userId: number): Promise<{ used: number, limit: number | null, tier: string }> {
+    const user = await this.getUser(userId);
+    
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    let usageLimit = await db
+      .select()
+      .from(usageLimits)
+      .where(eq(usageLimits.userId, userId))
+      .then(results => results[0]);
+    
+    if (!usageLimit) {
+      // Create usage limit if it doesn't exist
+      usageLimit = await db
+        .insert(usageLimits)
+        .values({
+          userId,
+          monthlyTotal: 0,
+          lastResetDate: new Date()
+        })
+        .returning()
+        .then(results => results[0]);
+    }
+    
+    // Check if we need to reset the monthly usage
+    const now = new Date();
+    const lastReset = usageLimit.lastResetDate;
+    if (lastReset.getMonth() !== now.getMonth() || lastReset.getFullYear() !== now.getFullYear()) {
+      usageLimit = await db
+        .update(usageLimits)
+        .set({
+          monthlyTotal: 0,
+          lastResetDate: now
+        })
+        .where(eq(usageLimits.userId, userId))
+        .returning()
+        .then(results => results[0]);
+    }
+    
+    // Set limits based on tier type and admin status
+    let limit: number | null;
+    
+    // Admin users always get unlimited usage
+    if (user.isAdmin) {
+      return {
+        used: usageLimit.monthlyTotal,
+        limit: null, // null indicates unlimited usage
+        tier: user.tier
+      };
+    }
+    
+    // Set tier-specific limits
+    if (user.tier === 'pro') {
+      limit = null; // unlimited
+    } else if (user.tier === 'personal') {
+      limit = 5; // 5 per month
+    } else if (user.tier === 'instant') {
+      limit = 1; // 1-time use
+    } else {
+      limit = null; // Basic tier (free but logged in) - unlimited analysis
+    }
+    
+    return {
+      used: usageLimit.monthlyTotal,
+      limit,
+      tier: user.tier
+    };
+  }
+
+  async incrementUserUsage(userId: number): Promise<void> {
+    let usageLimit = await db
+      .select()
+      .from(usageLimits)
+      .where(eq(usageLimits.userId, userId))
+      .then(results => results[0]);
+    
+    if (!usageLimit) {
+      // Create usage limit if it doesn't exist
+      await db.insert(usageLimits).values({
+        userId,
+        monthlyTotal: 1,
+        lastResetDate: new Date()
+      });
+    } else {
+      // Update usage count
+      await db
+        .update(usageLimits)
+        .set({ monthlyTotal: usageLimit.monthlyTotal + 1 })
+        .where(eq(usageLimits.userId, userId));
+    }
+  }
+
+  // Anonymous Usage Tracking
+  async getAnonymousUsage(deviceId: string): Promise<AnonymousUsage | undefined> {
+    // For anonymous usage, we'll track it in a server-side cache
+    // In a real production environment, you would use a database table for this
+    return undefined;
+  }
+
+  async incrementAnonymousUsage(deviceId: string): Promise<AnonymousUsage> {
+    // Since we're moving to a database, we should implement this properly
+    // For now, return a dummy value
+    return {
+      deviceId,
+      count: 1,
+      lastUsed: new Date()
+    };
+  }
+
+  // User Events
+  async trackUserEvent(event: InsertUserEvent): Promise<UserEvent> {
+    const results = await db
+      .insert(userEvents)
+      .values(event)
+      .returning();
+    
+    return results[0];
+  }
+
+  async getUserEvents(filter?: { 
+    userId?: number, 
+    eventType?: string, 
+    startDate?: Date, 
+    endDate?: Date 
+  }): Promise<UserEvent[]> {
+    let query = db.select().from(userEvents);
+    
+    if (filter) {
+      const conditions = [];
+      
+      if (filter.userId !== undefined) {
+        conditions.push(eq(userEvents.userId, filter.userId));
+      }
+      
+      if (filter.eventType) {
+        conditions.push(eq(userEvents.eventType, filter.eventType));
+      }
+      
+      if (filter.startDate) {
+        conditions.push(gte(userEvents.createdAt, filter.startDate));
+      }
+      
+      if (filter.endDate) {
+        conditions.push(lte(userEvents.createdAt, filter.endDate));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    return query.orderBy(desc(userEvents.createdAt));
+  }
+
+  async getAnalyticsSummary(): Promise<{
+    totalUsers: number;
+    usersByTier: { [tier: string]: number };
+    registrationsByDate: { date: string; count: number }[];
+    tierConversionRate: { fromTier: string; toTier: string; count: number }[];
+  }> {
+    // Get total users count
+    const totalUsers = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .then(result => result[0].count);
+    
+    // Get users by tier
+    const usersByTierResult = await db
+      .select({
+        tier: users.tier,
+        count: sql<number>`count(*)`
+      })
+      .from(users)
+      .groupBy(users.tier);
+    
+    const usersByTier: { [tier: string]: number } = {};
+    usersByTierResult.forEach(row => {
+      usersByTier[row.tier] = Number(row.count);
+    });
+    
+    // Get registrations by date
+    const registrationEventsResult = await db
+      .select({
+        date: sql<string>`to_char(${userEvents.createdAt}, 'YYYY-MM-DD')`,
+        count: sql<number>`count(*)`
+      })
+      .from(userEvents)
+      .where(eq(userEvents.eventType, 'registration'))
+      .groupBy(sql`to_char(${userEvents.createdAt}, 'YYYY-MM-DD')`)
+      .orderBy(sql`to_char(${userEvents.createdAt}, 'YYYY-MM-DD')`);
+    
+    const registrationsByDate = registrationEventsResult.map(row => ({
+      date: row.date,
+      count: Number(row.count)
+    }));
+    
+    // Get tier conversion rates
+    const tierChangeEventsResult = await db
+      .select({
+        oldTier: userEvents.oldValue,
+        newTier: userEvents.newValue,
+        count: sql<number>`count(*)`
+      })
+      .from(userEvents)
+      .where(eq(userEvents.eventType, 'tier_change'))
+      .groupBy(userEvents.oldValue, userEvents.newValue);
+    
+    const tierConversionRate = tierChangeEventsResult.map(row => ({
+      fromTier: row.oldTier || 'unknown',
+      toTier: row.newTier || 'unknown',
+      count: Number(row.count)
+    }));
+    
+    return {
+      totalUsers: Number(totalUsers),
+      usersByTier,
+      registrationsByDate,
+      tierConversionRate
+    };
+  }
+
+  // Promo Codes
+  async createPromoCode(promoCode: InsertPromoCode): Promise<PromoCode> {
+    const results = await db
+      .insert(promoCodes)
+      .values(promoCode)
+      .returning();
+    
+    return results[0];
+  }
+
+  async getPromoCode(id: number): Promise<PromoCode | undefined> {
+    const results = await db
+      .select()
+      .from(promoCodes)
+      .where(eq(promoCodes.id, id));
+    
+    return results[0];
+  }
+
+  async getPromoCodeByCode(code: string): Promise<PromoCode | undefined> {
+    const results = await db
+      .select()
+      .from(promoCodes)
+      .where(eq(promoCodes.code, code));
+    
+    return results[0];
+  }
+
+  async updatePromoCode(id: number, updates: Partial<PromoCode>): Promise<PromoCode> {
+    const results = await db
+      .update(promoCodes)
+      .set(updates)
+      .where(eq(promoCodes.id, id))
+      .returning();
+    
+    return results[0];
+  }
+
+  async getAllPromoCodes(): Promise<PromoCode[]> {
+    return db.select().from(promoCodes);
+  }
+
+  async getActivePromoCodes(): Promise<PromoCode[]> {
+    const now = new Date();
+    
+    return db
+      .select()
+      .from(promoCodes)
+      .where(
+        and(
+          eq(promoCodes.isActive, true),
+          or(
+            sql`${promoCodes.expiryDate} IS NULL`,
+            gte(promoCodes.expiryDate as any, now)
+          ),
+          lte(promoCodes.startDate, now)
+        )
+      );
+  }
+
+  async usePromoCode(code: string, userId: number, tier: string): Promise<{ 
+    success: boolean, 
+    discountPercentage?: number, 
+    message?: string 
+  }> {
+    const promoCode = await this.getPromoCodeByCode(code);
+    
+    if (!promoCode) {
+      return { success: false, message: "Promo code not found" };
+    }
+    
+    if (!promoCode.isActive) {
+      return { success: false, message: "Promo code is not active" };
+    }
+    
+    const now = new Date();
+    
+    if (promoCode.startDate > now) {
+      return { success: false, message: "Promo code is not yet valid" };
+    }
+    
+    if (promoCode.expiryDate && promoCode.expiryDate < now) {
+      return { success: false, message: "Promo code has expired" };
+    }
+    
+    if (promoCode.maxUses && promoCode.usedCount >= promoCode.maxUses) {
+      return { success: false, message: "Promo code usage limit reached" };
+    }
+    
+    if (promoCode.targetTier && promoCode.targetTier !== tier) {
+      return { success: false, message: `Promo code only valid for ${promoCode.targetTier} tier` };
+    }
+    
+    // Check if user has already used this promo code
+    const existingUsage = await db
+      .select()
+      .from(promoUsage)
+      .where(
+        and(
+          eq(promoUsage.promoCodeId, promoCode.id),
+          eq(promoUsage.userId, userId)
+        )
+      )
+      .then(results => results[0]);
+    
+    if (existingUsage) {
+      return { success: false, message: "You have already used this promo code" };
+    }
+    
+    // Record usage
+    await db.insert(promoUsage).values({
+      promoCodeId: promoCode.id,
+      userId,
+      appliedDiscount: promoCode.discountPercentage,
+      targetTier: tier
+    });
+    
+    // Update promo code usage count
+    await db
+      .update(promoCodes)
+      .set({ usedCount: promoCode.usedCount + 1 })
+      .where(eq(promoCodes.id, promoCode.id));
+    
+    return { 
+      success: true, 
+      discountPercentage: promoCode.discountPercentage 
+    };
+  }
+
+  async getPromoUsageByUser(userId: number): Promise<PromoUsage[]> {
+    return db
+      .select()
+      .from(promoUsage)
+      .where(eq(promoUsage.userId, userId));
+  }
+
+  async getAllPromoUsages(): Promise<PromoUsage[]> {
+    return db.select().from(promoUsage);
+  }
+}
+
+export const storage = new DatabaseStorage();
