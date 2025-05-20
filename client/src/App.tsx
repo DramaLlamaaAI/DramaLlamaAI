@@ -33,7 +33,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      {/* Temporarily disabled until syntax errors are fixed */}
+      {/* Temporarily disabled while fixing */}
       {/* <Route path="/chat-analysis" component={ChatAnalysis} /> */}
       <Route path="/group-chat-analysis" component={GroupChatAnalysisPage} />
       <Route path="/message-analysis" component={MessageAnalysis} />

@@ -814,9 +814,7 @@ export default function ChatAnalysis() {
                               )}
                             </Button>
                           </div>
-                        </div>
-                      
-                      
+                        
                       {imagePreview && (
                         <div className="mt-4">
                           <h4 className="font-medium mb-2">Image Preview</h4>
