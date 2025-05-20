@@ -29,6 +29,8 @@ export interface EvasionInstance {
   participant: string;
   example: string;
   context?: string;
+  text?: string;  // For compatibility with rendering
+  from?: string;   // For compatibility with rendering
 }
 
 export interface ChatAnalysisResponse {
@@ -89,9 +91,60 @@ export interface ChatAnalysisResponse {
     type: string;
     description: string;
     severity: number;
+    participant?: string;
+    quote?: string;
+    context?: string;
+    examples?: Array<{
+      text: string;
+      from: string;
+    }>;
+    impact?: string;
+    recommendedAction?: string;
+    behavioralPattern?: string;
+    progression?: string;
   }>;
   redFlagsCount?: number;
   redFlagTypes?: string[];
+  
+  // Health score - merged with the one defined below to avoid conflicts
+  
+  // Communication styles for Personal tier and above
+  communicationStyles?: {
+    [participant: string]: string;
+  };
+  
+  // Conflict contributions for Personal tier
+  conflictContributions?: {
+    [participant: string]: string;
+  };
+  
+  // Power dynamics analysis for Pro tier
+  powerDynamics?: {
+    summary: string;
+    details?: {
+      [participant: string]: string;
+    };
+  };
+  
+  // Message dominance analysis for Pro tier
+  messageDominance?: {
+    summary: string;
+    participantStats?: {
+      [participant: string]: {
+        messageCount: number;
+        averageLength: number;
+        controlScore: number;
+      };
+    };
+  };
+  
+  // Participant summary cards for Instant Deep Dive tier
+  participantSummary?: {
+    [participant: string]: {
+      style: string;
+      roleInTension: string;
+    };
+  };
   redFlagsDetected?: boolean;
   sampleQuotes?: {[key: string]: string[]};
   communication?: {

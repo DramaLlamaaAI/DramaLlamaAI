@@ -465,13 +465,16 @@ export default function ChatAnalysisFixed() {
               
               {result && (
                 <>
+                  {/* Display analysis results based on user tier */}
                   <div className="bg-gray-50 rounded-lg p-6 mb-6">
                     <h2 className="text-xl font-bold mb-4">Analysis of conversation between {me} and {them}</h2>
                     
+                    {/* Overall Emotional Tone - Available in all tiers */}
                     <div className="mb-6">
                       <h3 className="font-semibold mb-2">Overall Emotional Tone</h3>
                       <p className="mb-4">{result.toneAnalysis?.overallTone}</p>
                       
+                      {/* Health Score - Available in all tiers */}
                       <h3 className="font-semibold mb-3">Conversation Health Score</h3>
                       <div className="flex flex-col md:flex-row items-center gap-4 mb-2">
                         <div className="w-32 h-32">
@@ -531,6 +534,7 @@ export default function ChatAnalysisFixed() {
                       </div>
                     </div>
                     
+                    {/* Red Flags - Limited info for Free tier, more details for higher tiers */}
                     {result.redFlags && result.redFlags.length > 0 && (
                       <div className="mb-6">
                         <h3 className="font-semibold mb-2">
@@ -539,13 +543,288 @@ export default function ChatAnalysisFixed() {
                             {result.redFlags.length} {result.redFlags.length === 1 ? 'red flag' : 'red flags'}
                           </span>
                         </h3>
-                        <ul className="list-disc pl-5 space-y-2">
-                          {result.redFlags.map((flag, i) => (
-                            <li key={i}>
-                              <span className="font-medium">{flag.type}:</span> {flag.description}
-                            </li>
-                          ))}
-                        </ul>
+                        
+                        {/* Free tier only shows types of flags detected as preview */}
+                        {tier === 'free' && result.redFlagTypes && (
+                          <div className="mb-4">
+                            <p className="mb-2">Types of issues detected:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {result.redFlagTypes.map((type, i) => (
+                                <span key={i} className="bg-red-50 text-red-700 px-2 py-1 rounded-md text-sm">
+                                  {type}
+                                </span>
+                              ))}
+                            </div>
+                            <p className="mt-4 text-sm text-gray-500">
+                              <span className="font-medium">Upgrade to Personal or Pro</span> for detailed descriptions of these issues and specific examples.
+                            </p>
+                          </div>
+                        )}
+                        
+                        {/* Personal tier and above show detailed red flags */}
+                        {(tier === 'personal' || tier === 'pro' || tier === 'instant') && (
+                          <ul className="list-disc pl-5 space-y-2">
+                            {result.redFlags.map((flag, i) => (
+                              <li key={i}>
+                                <span className="font-medium">{flag.type}:</span> {flag.description}
+                                
+                                {/* Personal tier and above show behavioral signals with quotes if available */}
+                                {(tier === 'personal' || tier === 'pro' || tier === 'instant') && flag.quote && (
+                                  <div className="mt-2 ml-4 border-l-2 border-gray-200 pl-3">
+                                    <p className="text-sm italic">"{flag.quote}"</p>
+                                    <p className="text-sm font-medium mt-1">👉 {flag.type}</p>
+                                  </div>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Personal tier and above content */}
+                    {(tier === 'personal' || tier === 'pro' || tier === 'instant') && (
+                      <>
+                        {/* Emotional Tone Analysis by participant */}
+                        {result.toneAnalysis?.participantTones && (
+                          <div className="mb-6">
+                            <h3 className="font-semibold mb-2">Emotional Tone Analysis</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {Object.entries(result.toneAnalysis.participantTones).map(([participant, tone]) => (
+                                <div key={participant} className="bg-white rounded-md p-4 shadow-sm">
+                                  <h4 className="font-medium mb-1">{participant}</h4>
+                                  <p>{tone}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Communication Style Comparison */}
+                        <div className="mb-6">
+                          <h3 className="font-semibold mb-2">Communication Style Comparison</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-white rounded-md p-4 shadow-sm">
+                              <h4 className="font-medium mb-1">{me}</h4>
+                              <p>{result.tensionContributions?.[me]?.[0] || result.communicationStyles?.[me] || "Communication style analysis not available"}</p>
+                            </div>
+                            <div className="bg-white rounded-md p-4 shadow-sm">
+                              <h4 className="font-medium mb-1">{them}</h4>
+                              <p>{result.tensionContributions?.[them]?.[0] || result.communicationStyles?.[them] || "Communication style analysis not available"}</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Accountability & Tension Contributions */}
+                        <div className="mb-6">
+                          <h3 className="font-semibold mb-2">Accountability & Tension Contributions</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-white rounded-md p-4 shadow-sm">
+                              <h4 className="font-medium mb-1">{me}</h4>
+                              <p>{result.conflictDynamics?.participants?.[me]?.examples?.[0] || "Conflict contribution analysis not available"}</p>
+                            </div>
+                            <div className="bg-white rounded-md p-4 shadow-sm">
+                              <h4 className="font-medium mb-1">{them}</h4>
+                              <p>{result.conflictDynamics?.participants?.[them]?.examples?.[0] || "Conflict contribution analysis not available"}</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Standout Quotes with Behavioral Signals */}
+                        {result.keyQuotes && result.keyQuotes.length > 0 && (
+                          <div className="mb-6">
+                            <h3 className="font-semibold mb-2">Standout Quotes with Behavioral Signals</h3>
+                            <div className="space-y-4">
+                              {result.keyQuotes.map((quote, i) => (
+                                <div key={i} className="bg-white rounded-md p-4 shadow-sm">
+                                  <p className="italic mb-2">"{quote.quote}"</p>
+                                  <div className="flex items-center">
+                                    <span className="font-medium text-sm mr-2">— {quote.speaker}</span>
+                                    <span className="text-sm bg-gray-100 px-2 py-0.5 rounded-full">
+                                      {quote.analysis}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    
+                    {/* Pro tier content */}
+                    {tier === 'pro' && (
+                      <>
+                        {/* Conversation Dynamics */}
+                        {result.conflictDynamics && (
+                          <div className="mb-6">
+                            <h3 className="font-semibold mb-2">Conversation Dynamics</h3>
+                            <p className="mb-3">{result.conflictDynamics.summary}</p>
+                            
+                            {/* Participant-specific dynamics */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                              {Object.entries(result.conflictDynamics.participants).map(([name, data]) => (
+                                <div key={name} className="bg-white rounded-md p-4 shadow-sm">
+                                  <h4 className="font-medium mb-1">{name}</h4>
+                                  <p className="mb-2">Tendency: 
+                                    <span className={`ml-1 font-medium ${
+                                      data.tendency === 'escalates' ? 'text-red-600' : 
+                                      data.tendency === 'de-escalates' ? 'text-green-600' : 
+                                      'text-amber-600'
+                                    }`}>
+                                      {data.tendency === 'escalates' ? 'Escalates Conflict' : 
+                                       data.tendency === 'de-escalates' ? 'De-escalates Conflict' : 
+                                       'Mixed Patterns'}
+                                    </span>
+                                  </p>
+                                  {data.examples && data.examples.length > 0 && (
+                                    <div className="mt-2">
+                                      <p className="text-sm font-medium mb-1">Examples:</p>
+                                      <ul className="list-disc pl-5 text-sm space-y-1">
+                                        {data.examples.map((example, i) => (
+                                          <li key={i}>{example}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Power Dynamics Analysis */}
+                        <div className="mb-6">
+                          <h3 className="font-semibold mb-2">Power Dynamics Analysis</h3>
+                          <p>{result.conflictDynamics?.summary || "Power dynamics analysis not available"}</p>
+                          
+                          {/* Fallback to conflict dynamics if power dynamics not available */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                            <div className="bg-white rounded-md p-4 shadow-sm">
+                              <h4 className="font-medium mb-1">{me}</h4>
+                              <p>{result.conflictDynamics?.participants?.[me]?.tendency || "No power dynamics data available"}</p>
+                            </div>
+                            <div className="bg-white rounded-md p-4 shadow-sm">
+                              <h4 className="font-medium mb-1">{them}</h4>
+                              <p>{result.conflictDynamics?.participants?.[them]?.tendency || "No power dynamics data available"}</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Evasion Identification */}
+                        {result.evasionDetection && result.evasionDetection.detected && (
+                          <div className="mb-6">
+                            <h3 className="font-semibold mb-2">Evasion & Avoidance Detection</h3>
+                            <p className="mb-3">{result.evasionDetection.analysisTitle || "Evasion patterns were detected in this conversation."}</p>
+                            
+                            {result.evasionDetection.patterns && (
+                              <div className="mb-3">
+                                <p className="font-medium mb-1">Patterns Detected:</p>
+                                <ul className="list-disc pl-5">
+                                  {result.evasionDetection.patterns.map((pattern, i) => (
+                                    <li key={i}>{pattern}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {result.evasionDetection.details && (
+                              <div className="space-y-4 mt-4">
+                                {Object.entries(result.evasionDetection.details).map(([pattern, instances]) => {
+                                  if (!instances || instances.length === 0) return null;
+                                  return (
+                                    <div key={pattern} className="bg-white rounded-md p-4 shadow-sm">
+                                      <h4 className="font-medium mb-2">{pattern.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</h4>
+                                      <div className="space-y-3">
+                                        {instances.map((instance, i) => (
+                                          <div key={i} className="border-l-2 border-gray-200 pl-3">
+                                            <p className="italic text-sm mb-1">"{instance.example || instance.text || "Example not available"}"</p>
+                                            <p className="text-sm font-medium">— {instance.participant || instance.from || "Unknown speaker"}</p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Message Dominance Analysis */}
+                        <div className="mb-6">
+                          <h3 className="font-semibold mb-2">Message Dominance Analysis</h3>
+                          <p className="mb-3">Analysis of conversational control patterns and message dominance.</p>
+                          
+                          {/* Display basic message dominance analysis even if detailed stats aren't available */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                            <div className="bg-white rounded-md p-4 shadow-sm">
+                              <h4 className="font-medium mb-1">{me}</h4>
+                              <div className="space-y-1">
+                                <p>Control Pattern: {result.conflictDynamics?.participants?.[me]?.tendency || "Not available"}</p>
+                                <p>Tension Score: {result.participantConflictScores?.[me]?.score || "N/A"}/100</p>
+                              </div>
+                            </div>
+                            <div className="bg-white rounded-md p-4 shadow-sm">
+                              <h4 className="font-medium mb-1">{them}</h4>
+                              <div className="space-y-1">
+                                <p>Control Pattern: {result.conflictDynamics?.participants?.[them]?.tendency || "Not available"}</p>
+                                <p>Tension Score: {result.participantConflictScores?.[them]?.score || "N/A"}/100</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    
+                    {/* Instant Deep Dive specific content */}
+                    {tier === 'instant' && (
+                      <>
+                        {/* Participant Summary Cards */}
+                        <div className="mb-6">
+                          <h3 className="font-semibold mb-2">Participant Summary Cards</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-white rounded-md p-4 shadow-sm border border-teal-100">
+                              <h4 className="font-medium mb-1 text-teal-700">{me}</h4>
+                              <p className="mb-2">{result.participantSummary?.[me]?.style || "Communication style not available"}</p>
+                              <p className="text-sm">Role in Tension: {result.participantSummary?.[me]?.roleInTension || "Not analyzed"}</p>
+                            </div>
+                            <div className="bg-white rounded-md p-4 shadow-sm border border-pink-100">
+                              <h4 className="font-medium mb-1 text-pink-700">{them}</h4>
+                              <p className="mb-2">{result.participantSummary?.[them]?.style || "Communication style not available"}</p>
+                              <p className="text-sm">Role in Tension: {result.participantSummary?.[them]?.roleInTension || "Not analyzed"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* Display usage information based on tier */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+                    <h3 className="font-medium text-gray-900 mb-2">Your Analysis Usage</h3>
+                    {tier === 'free' && (
+                      <div className="text-sm text-gray-600">
+                        <p>Free Tier: {usedAnalyses}/{limit} analyses used</p>
+                        <p className="mt-1">Upgrade to get more analyses per month and additional features.</p>
+                      </div>
+                    )}
+                    {tier === 'personal' && (
+                      <div className="text-sm text-gray-600">
+                        <p>Personal Plan: {usedAnalyses}/5 analyses used this month</p>
+                        <p className="mt-1">Includes emotional tone analysis, red flag detection, and more.</p>
+                      </div>
+                    )}
+                    {tier === 'pro' && (
+                      <div className="text-sm text-gray-600">
+                        <p>Pro Plan: Unlimited analyses - you've used {usedAnalyses} this month</p>
+                        <p className="mt-1">Includes all features plus group chat analysis and advanced insights.</p>
+                      </div>
+                    )}
+                    {tier === 'instant' && (
+                      <div className="text-sm text-gray-600">
+                        <p>Instant Deep Dive: One-time analysis</p>
+                        <p className="mt-1">Includes enhanced analysis with participant summary cards.</p>
                       </div>
                     )}
                   </div>
