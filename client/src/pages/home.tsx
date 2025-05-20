@@ -37,8 +37,6 @@ export default function Home() {
         <meta property="og:type" content="website" />
       </Helmet>
 
-      <Header />
-      
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <HeroSection />
         
@@ -149,7 +147,6 @@ export default function Home() {
         <PricingSection />
       </main>
       
-      <Footer />
     </>
   );
 }
