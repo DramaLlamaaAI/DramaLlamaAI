@@ -20,7 +20,7 @@ import InstantDeepDivePage from "@/pages/instant-deep-dive";
 import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
 // Support helplines converted to dialog component
-import ChatAnalysis from "./components/chat-analysis";
+import ChatAnalysisFixed from "./components/chat-analysis-fixed";
 import GroupChatAnalysis from "./components/group-chat-analysis";
 import GroupChatAnalysisImproved from "./components/group-chat-analysis-improved";
 import GroupChatAnalysisPage from "./pages/group-chat-analysis";
@@ -33,8 +33,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      {/* Temporarily disabled while fixing */}
-      {/* <Route path="/chat-analysis" component={ChatAnalysis} /> */}
+      {/* Re-enabled using the fixed component */}
+      <Route path="/chat-analysis" component={ChatAnalysisFixed} />
       <Route path="/group-chat-analysis" component={GroupChatAnalysisPage} />
       <Route path="/message-analysis" component={MessageAnalysis} />
       <Route path="/de-escalate" component={VentMode} />
