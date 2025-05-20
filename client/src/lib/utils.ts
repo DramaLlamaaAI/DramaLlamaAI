@@ -42,6 +42,29 @@ export const truncateText = (text: string, maxLength: number): string => {
   return text.slice(0, maxLength) + '...';
 };
 
+// Validate conversation format and structure
+export const validateConversation = (text: string): { isValid: boolean; error: string } => {
+  if (!text || text.trim().length < 20) {
+    return { 
+      isValid: false, 
+      error: "Conversation is too short. Please provide a longer conversation for meaningful analysis." 
+    };
+  }
+  
+  // Check for proper message structure - basic heuristic
+  const hasMessageStructure = text.includes(':') || 
+                             /\[\d{2}\/\d{2}\/\d{2,4},\s\d{1,2}:\d{2}(:\d{2})?\s[APap][Mm]?\]/g.test(text);
+  
+  if (!hasMessageStructure) {
+    return {
+      isValid: false,
+      error: "Conversation format not recognized. Please ensure it follows a chat format with speakers identified."
+    };
+  }
+  
+  return { isValid: true, error: "" };
+};
+
 // Detect and standardize chat log format
 export const preprocessChatLog = (text: string): string => {
   // Clean up extra whitespace and standardize line breaks
@@ -89,25 +112,7 @@ export const preprocessChatLog = (text: string): string => {
   return cleanedText;
 };
 
-// Validate conversation format
-export const validateConversation = (conversation: string): boolean => {
-  // Basic validation - ensure there's some content with likely message patterns
-  
-  // Check if it's long enough to be a real conversation
-  if (conversation.length < 10) return false;
-  
-  // Check for standard chat format with names and colons
-  const hasNameColonFormat = conversation.includes(':');
-  
-  // Check for WhatsApp export format
-  const hasWhatsAppFormat = /\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s\d{1,2}:\d{2}(?::\d{2})?(?:\s[AP]M)?\]/i.test(conversation) ||
-                           /\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}\s-\s/i.test(conversation);
-  
-  // Check for other timestamp formats (iMessage, Discord, etc.)
-  const hasOtherTimestampFormat = /\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}|\d{1,2}:\d{2}\s[AP]M/i.test(conversation);
-  
-  return hasNameColonFormat || hasWhatsAppFormat || hasOtherTimestampFormat;
-};
+// This function has been replaced with an enhanced version above
 
 // Get percentage of usage
 export const getUsagePercentage = (used: number, limit: number): number => {

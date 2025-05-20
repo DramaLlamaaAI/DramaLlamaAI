@@ -9,13 +9,12 @@ import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
-import { validateConversation } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
 import { Label } from "@/components/ui/label";
 import RegistrationPrompt from "@/components/registration-prompt";
 
-export default function ChatAnalysis() {
+export default function ChatAnalysisFixed() {
   const [tabValue, setTabValue] = useState("paste");
   const [conversationType, setConversationType] = useState<"two_person" | "group_chat">("two_person");
   const [conversation, setConversation] = useState("");
@@ -51,51 +50,57 @@ export default function ChatAnalysis() {
       
       setResult(data);
       setShowResults(true);
-      window.scrollTo({ top: document.getElementById('analysisResults')?.offsetTop || 0, behavior: 'smooth' });
+      
+      // Scroll to results
+      setTimeout(() => {
+        const resultsElement = document.getElementById('analysisResults');
+        if (resultsElement) {
+          resultsElement.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     },
     onError: (error: any) => {
-      let errorMsg = error.message || "Could not analyze conversation. Please try again.";
-      
-      // Special handling for potential OpenAI API issues
-      if (errorMsg.includes('API') || errorMsg.includes('key') || errorMsg.includes('OpenAI')) {
-        errorMsg = "AI API error. Please check that your API key is valid and has sufficient credits.";
-      }
-      
+      console.error("Analysis error:", error);
+      const errorMsg = error.message || "Failed to analyze conversation. Please try again.";
       setErrorMessage(errorMsg);
-      console.error("Analysis error details:", error);
-      
       toast({
         title: "Analysis Failed",
         description: errorMsg,
         variant: "destructive",
       });
-    },
+    }
   });
-
+  
   const detectNamesMutation = useMutation({
-    mutationFn: (text: string) => detectParticipants(text),
+    mutationFn: detectParticipants,
     onSuccess: (data) => {
-      setMe(data.me);
-      setThem(data.them);
+      setMe(data.me || "");
+      setThem(data.them || "");
+      
       toast({
         title: "Names Detected",
-        description: `Found participants: ${data.me} and ${data.them}`,
+        description: `Detected names: ${data.me} and ${data.them}`,
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Name detection error:", error);
       toast({
-        title: "Detection Failed",
-        description: "Could not detect names automatically. Please enter them manually.",
+        title: "Name Detection Failed",
+        description: "Could not automatically detect names. Please enter them manually.",
         variant: "destructive",
       });
-    },
+    }
   });
-
+  
+  const isSubmitting = analysisMutation.isPending;
+  const isDetectingNames = detectNamesMutation.isPending;
+  
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     try {
+      // Read file content
       const text = await file.text();
       
       // Make sure we have actual text content
@@ -149,54 +154,121 @@ export default function ChatAnalysis() {
     if (!conversation.trim()) {
       toast({
         title: "Empty Conversation",
-        description: "Please paste or upload a conversation.",
+        description: "Please paste or upload a conversation first.",
         variant: "destructive",
       });
       return;
     }
     
-    // Different validation based on conversation type
-    if (conversationType === "two_person") {
-      if (!me.trim() || !them.trim()) {
-        toast({
-          title: "Missing Names",
-          description: "Please enter names for both participants.",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!me || !them) {
+      toast({
+        title: "Missing Names",
+        description: "Please enter both participant names before analyzing.",
+        variant: "destructive",
+      });
+      return;
     }
     
-    // Reset any previous error
-    setErrorMessage(null);
-    
-    // Create request data based on conversation type
-    const requestData = { 
+    // Submit the request
+    analysisMutation.mutate({
       conversation,
-      conversationType,
       me,
-      them
-    };
-    
-    analysisMutation.mutate(requestData);
+      them,
+      tier,
+      extraData: {
+        conversationType,
+      }
+    });
   };
-
+  
   const handleSwitchNames = () => {
-    setMe(them);
-    setThem(me);
+    const tempMe = me;
+    const tempThem = them;
+    setMe(tempThem);
+    setThem(tempMe);
+    
+    toast({
+      title: "Names Switched",
+      description: `Switched to: You are ${tempThem}, they are ${tempMe}`,
+    });
   };
-
-  const isValidating = validateConversation(conversation);
-  const isSubmitting = analysisMutation.isPending;
-  const isDetectingNames = detectNamesMutation.isPending;
-
+  
+  // Participant Name Form component for reuse
+  const ParticipantNameForm = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="me-name" className="text-sm font-medium">Your Name/Identifier:</Label>
+          <input
+            id="me-name"
+            type="text"
+            value={me}
+            onChange={(e) => setMe(e.target.value)}
+            className="w-full p-2 border rounded mt-1 text-sm"
+            placeholder="Your name in the chat"
+          />
+        </div>
+        <div>
+          <Label htmlFor="them-name" className="text-sm font-medium">Other Person's Name:</Label>
+          <div className="flex gap-2">
+            <input
+              id="them-name"
+              type="text"
+              value={them}
+              onChange={(e) => setThem(e.target.value)}
+              className="w-full p-2 border rounded mt-1 text-sm"
+              placeholder="Their name in the chat"
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSwitchNames}
+              className="mt-1"
+            >
+              Switch
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex justify-between">
+        <Button 
+          type="button" 
+          onClick={handleDetectNames}
+          disabled={!conversation || isDetectingNames}
+          variant="outline"
+        >
+          {isDetectingNames ? 'Detecting...' : 'Auto-Detect Names'}
+        </Button>
+        
+        <Button
+          onClick={handleSubmit}
+          disabled={!canUseFeature || isSubmitting || !conversation || !me || !them}
+          className="bg-teal-500 hover:bg-teal-600"
+        >
+          {isSubmitting ? (
+            <>
+              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+              Analyzing...
+            </>
+          ) : (
+            <>
+              <Brain className="h-4 w-4 mr-2" />
+              {canUseFeature ? 'Analyze Chat' : 'Usage Limit Reached'}
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+  
   return (
-    <section className="container max-w-5xl py-8">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Chat Analysis</h2>
-        <Link href="/">
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <Home className="h-4 w-4" />
+    <div className="container py-6">
+      <div className="flex justify-start mb-4">
+        <Link to="/">
+          <Button variant="outline" size="sm">
+            <Home className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
         </Link>
@@ -248,24 +320,19 @@ export default function ChatAnalysis() {
                       <label className="block text-sm font-medium mb-2">Conversation Type:</label>
                       <div className="flex items-center gap-2">
                         <Button 
-                          type="button"
                           variant={conversationType === "two_person" ? "default" : "outline"}
                           size="sm"
                           onClick={() => setConversationType("two_person")}
-                          className="flex-1"
                         >
-                          <Users className="h-4 w-4 mr-2" />
-                          Two-Person Chat
+                          Two Person
                         </Button>
                         <Button 
-                          type="button"
                           variant={conversationType === "group_chat" ? "default" : "outline"}
                           size="sm"
                           onClick={() => setConversationType("group_chat")}
-                          className="flex-1"
                         >
                           <Users className="h-4 w-4 mr-2" />
-                          WhatsApp Group Chat
+                          Group Chat
                         </Button>
                       </div>
                     </div>
@@ -284,70 +351,8 @@ export default function ChatAnalysis() {
                       </p>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="me" className="text-sm font-medium">Your Name/Identifier:</Label>
-                        <input
-                          id="me"
-                          type="text"
-                          value={me}
-                          onChange={(e) => setMe(e.target.value)}
-                          className="w-full p-2 border rounded mt-1 text-sm"
-                          placeholder="Your name in the chat"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="them" className="text-sm font-medium">Other Person's Name:</Label>
-                        <div className="flex gap-2">
-                          <input
-                            id="them"
-                            type="text"
-                            value={them}
-                            onChange={(e) => setThem(e.target.value)}
-                            className="w-full p-2 border rounded mt-1 text-sm"
-                            placeholder="Their name in the chat"
-                          />
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={handleSwitchNames}
-                            className="mt-1"
-                          >
-                            Switch
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <Button 
-                        type="button" 
-                        onClick={handleDetectNames}
-                        disabled={!conversation || isDetectingNames}
-                        variant="outline"
-                      >
-                        {isDetectingNames ? 'Detecting...' : 'Auto-Detect Names'}
-                      </Button>
-                      
-                      <Button
-                        onClick={handleSubmit}
-                        disabled={!canUseFeature || isSubmitting || !conversation || !me || !them}
-                        className="bg-teal-500 hover:bg-teal-600"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                            Analyzing...
-                          </>
-                        ) : (
-                          <>
-                            <Brain className="h-4 w-4 mr-2" />
-                            {canUseFeature ? 'Analyze Chat' : 'Usage Limit Reached'}
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    {/* Paste tab participant form */}
+                    <ParticipantNameForm />
                     
                     <div className="text-sm text-muted-foreground">
                       <div className="flex items-start mb-2">
@@ -415,76 +420,40 @@ export default function ChatAnalysis() {
                       </ol>
                     </div>
                     
-                    {/* Add participant names section - Always visible */}
-                    <div className="mt-6 space-y-4">
-                        <h3 className="font-medium text-sm">Enter Participant Names:</h3>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="me-upload" className="text-sm font-medium">Your Name/Identifier:</Label>
-                            <input
-                              id="me-upload"
-                              type="text"
-                              value={me}
-                              onChange={(e) => setMe(e.target.value)}
-                              className="w-full p-2 border rounded mt-1 text-sm"
-                              placeholder="Your name in the chat"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="them-upload" className="text-sm font-medium">Other Person's Name:</Label>
-                            <div className="flex gap-2">
-                              <input
-                                id="them-upload"
-                                type="text"
-                                value={them}
-                                onChange={(e) => setThem(e.target.value)}
-                                className="w-full p-2 border rounded mt-1 text-sm"
-                                placeholder="Their name in the chat"
-                              />
-                              <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={handleSwitchNames}
-                                className="mt-1"
-                              >
-                                Switch
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-between mt-4">
-                          <Button 
-                            type="button" 
-                            onClick={handleDetectNames}
-                            disabled={!conversation || isDetectingNames}
-                            variant="outline"
-                          >
-                            {isDetectingNames ? 'Detecting...' : 'Auto-Detect Names'}
-                          </Button>
-                          
-                          <Button
-                            onClick={handleSubmit}
-                            disabled={!canUseFeature || isSubmitting || !conversation || !me || !them}
-                            className="bg-teal-500 hover:bg-teal-600"
-                          >
-                            {isSubmitting ? (
-                              <>
-                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                                Analyzing...
-                              </>
-                            ) : (
-                              <>
-                                <Brain className="h-4 w-4 mr-2" />
-                                {canUseFeature ? 'Analyze Chat' : 'Usage Limit Reached'}
-                              </>
-                            )}
-                          </Button>
-                        </div>
+                    {/* Upload tab participant form - always visible */}
+                    <div className="mt-6">
+                      <h3 className="font-medium text-sm mb-4">Enter Participant Names:</h3>
+                      <ParticipantNameForm />
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      <div className="flex items-start mb-2">
+                        <Info className="h-4 w-4 mr-2 mt-0.5" />
+                        <span>
+                          We don't store your conversation data. All analysis is performed securely.
+                        </span>
                       </div>
-                    )}
+                      
+                      <div className="mt-4">
+                        {usage && (
+                          <div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span>Analyses used this month: {usedAnalyses}{limit !== null && ` of ${limit}`}</span>
+                              <span className="text-xs">
+                                {tier === 'free' && 'Free Tier'}
+                                {tier === 'personal' && 'Personal Tier'}
+                                {tier === 'pro' && 'Pro Tier'}
+                                {tier === 'instant' && 'Instant Deep Dive'}
+                              </span>
+                            </div>
+                            
+                            {limit !== null && (
+                              <Progress value={(usedAnalyses / limit) * 100} className="h-2" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
@@ -561,6 +530,6 @@ export default function ChatAnalysis() {
           )}
         </CardContent>
       </Card>
-    </section>
+    </div>
   );
 }
