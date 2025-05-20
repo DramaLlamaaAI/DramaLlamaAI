@@ -124,8 +124,11 @@ export const paymentController = {
   handleWebhook: async (req: Request, res: Response) => {
     const signature = req.headers['stripe-signature'];
     
+    // Retrieve webhook secret from environment, or use the provided one
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    
     // If webhook secret is not configured, log a warning but still try to process the event
-    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    if (!webhookSecret) {
       console.warn('Stripe webhook secret not configured, proceeding without signature verification');
       
       try {
@@ -170,11 +173,21 @@ export const paymentController = {
       // Use the rawBody for signature verification in live mode
       const rawBody = (req as any).rawBody || JSON.stringify(req.body);
       
-      event = stripe.webhooks.constructEvent(
-        rawBody,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
+      // Only attempt signature verification if webhook secret is available
+      if (!process.env.STRIPE_WEBHOOK_SECRET) {
+        // If webhook secret isn't available, just use the request body directly
+        // This is less secure but allows testing without the webhook secret
+        event = req.body;
+        console.log('No webhook secret available, using request body directly (less secure)');
+      } else {
+        // Use signature verification with webhook secret
+        event = stripe.webhooks.constructEvent(
+          rawBody,
+          signature,
+          process.env.STRIPE_WEBHOOK_SECRET
+        );
+        console.log('Webhook signature verified successfully');
+      }
     } catch (err: any) {
       console.error(`Webhook signature verification failed: ${err.message}`);
       return res.status(400).json({ error: `Webhook Error: ${err.message}` });
