@@ -12,9 +12,7 @@ if (!process.env.STRIPE_PRICE_ID) {
 }
 
 // Initialize Stripe with the secret key in live mode (no test flag)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16', // Use the latest stable API version
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Pricing configuration
 const PRICE_IDS = {
@@ -124,8 +122,59 @@ export const paymentController = {
   },
   
   handleWebhook: async (req: Request, res: Response) => {
-    // This would handle Stripe webhooks for subscription events
-    // We would implement this in a more complete version
+    const signature = req.headers['stripe-signature'];
+    
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      console.warn('Stripe webhook secret not configured, skipping signature verification');
+      return res.status(200).end();
+    }
+    
+    if (!signature) {
+      return res.status(400).json({ error: 'Missing Stripe signature header' });
+    }
+
+    let event;
+    
+    try {
+      // Use the rawBody for signature verification in live mode
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+      
+      event = stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err: any) {
+      console.error(`Webhook signature verification failed: ${err.message}`);
+      return res.status(400).json({ error: `Webhook Error: ${err.message}` });
+    }
+
+    // Handle the event based on its type
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        console.log(`PaymentIntent ${paymentIntent.id} succeeded`);
+        // Update user's tier based on the payment metadata
+        if (paymentIntent.metadata.userId && paymentIntent.metadata.plan) {
+          const userId = parseInt(paymentIntent.metadata.userId);
+          const plan = paymentIntent.metadata.plan;
+          
+          try {
+            const tier = plan === 'personal' ? 'personal' : 'pro';
+            await storage.updateUserTier(userId, tier);
+            console.log(`Updated user ${userId} to tier ${tier}`);
+          } catch (err) {
+            console.error(`Failed to update user tier: ${err}`);
+          }
+        }
+        break;
+      
+      // Add other event types as needed
+      
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
+
     res.status(200).end();
   }
 };

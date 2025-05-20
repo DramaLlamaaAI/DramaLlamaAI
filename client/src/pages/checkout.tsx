@@ -14,7 +14,10 @@ import { PromoCodeInput } from '@/components/promo-code-input';
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
 }
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// Initialize Stripe with the live mode publishable key
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY, {
+  // No additional options needed for live mode
+});
 
 const CheckoutForm = ({ plan }: { plan: string }) => {
   const stripe = useStripe();

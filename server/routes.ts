@@ -1,4 +1,4 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import express, { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analysisController } from "./controllers/analysis-controller";
@@ -201,7 +201,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Payment routes
   app.post('/api/create-subscription', isAuthenticated, paymentController.createSubscription);
-  app.post('/api/webhook', paymentController.handleWebhook);
+  // Stripe webhook endpoint with specialized body parsing for signature verification
+  const stripeWebhookMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    if (req.headers['content-type'] === 'application/json') {
+      let rawBody = '';
+      req.on('data', chunk => { rawBody += chunk; });
+      req.on('end', () => {
+        if (rawBody) {
+          (req as any).rawBody = rawBody;
+          req.body = JSON.parse(rawBody);
+        }
+        next();
+      });
+    } else {
+      next();
+    }
+  };
+
+  app.post('/api/webhook', stripeWebhookMiddleware, paymentController.handleWebhook);
   
   // Admin routes (require admin access)
   app.get('/api/admin/users', isAuthenticated, isAdmin, adminController.getAllUsers);
