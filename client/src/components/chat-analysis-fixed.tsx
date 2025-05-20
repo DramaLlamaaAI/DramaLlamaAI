@@ -474,7 +474,7 @@ export default function ChatAnalysis() {
                   </div>
                   
                   {/* Prompt to register for more features */}
-                  {tier === 'free' && <RegistrationPrompt />}
+                  {tier === 'free' && <RegistrationPrompt tier="free" />}
                 </>
               )}
             </div>
