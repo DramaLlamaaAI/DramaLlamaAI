@@ -7,6 +7,7 @@ import { Link } from "wouter";
 import llamaImage from "@assets/FB Profile Pic.png";
 import AdminNavItem from "./admin-nav-item";
 import { apiRequest } from "@/lib/queryClient";
+import { Home, MessageSquare, Zap, Mic, Users } from "lucide-react";
 
 export default function Header() {
   const { data: usage } = useQuery({
@@ -43,27 +44,27 @@ export default function Header() {
         </Link>
         
         <div className="flex items-center">
-          <nav className="flex items-center mr-6 space-x-4">
+          <nav className="flex items-center mr-6 space-x-2">
             <Link href="/">
               <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
-                Home
+                <Home className="w-4 h-4 mr-2" /> Home
               </Button>
             </Link>
             <div className="hidden md:flex items-center space-x-2">
               <Link href="/chat-analysis">
                 <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
-                  Chat Analysis
+                  <MessageSquare className="w-4 h-4 mr-2" /> Chat Analysis
                 </Button>
               </Link>
               <Link href="/de-escalate">
                 <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
-                  Vent Mode
+                  <Zap className="w-4 h-4 mr-2" /> Vent Mode
                 </Button>
               </Link>
               <Link href="/group-chat-analysis">
                 <div className="relative">
                   <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
-                    Group Chat
+                    <Users className="w-4 h-4 mr-2" /> Group Chat
                   </Button>
                   <span className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-[10px] text-white px-1 rounded">PRO</span>
                 </div>
@@ -71,7 +72,7 @@ export default function Header() {
               <Link href="/live-talk">
                 <div className="relative">
                   <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
-                    Live Talk
+                    <Mic className="w-4 h-4 mr-2" /> Live Talk
                   </Button>
                   <span className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-[10px] text-white px-1 rounded">PRO</span>
                 </div>
