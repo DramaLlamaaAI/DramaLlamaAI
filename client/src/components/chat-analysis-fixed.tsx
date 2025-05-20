@@ -414,6 +414,78 @@ export default function ChatAnalysis() {
                         <li>Save the file and upload it here</li>
                       </ol>
                     </div>
+                    
+                    {/* Add participant names section */}
+                    {conversation && (
+                      <div className="mt-6 space-y-4">
+                        <h3 className="font-medium text-sm">Enter Participant Names:</h3>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="me-upload" className="text-sm font-medium">Your Name/Identifier:</Label>
+                            <input
+                              id="me-upload"
+                              type="text"
+                              value={me}
+                              onChange={(e) => setMe(e.target.value)}
+                              className="w-full p-2 border rounded mt-1 text-sm"
+                              placeholder="Your name in the chat"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="them-upload" className="text-sm font-medium">Other Person's Name:</Label>
+                            <div className="flex gap-2">
+                              <input
+                                id="them-upload"
+                                type="text"
+                                value={them}
+                                onChange={(e) => setThem(e.target.value)}
+                                className="w-full p-2 border rounded mt-1 text-sm"
+                                placeholder="Their name in the chat"
+                              />
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={handleSwitchNames}
+                                className="mt-1"
+                              >
+                                Switch
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-between mt-4">
+                          <Button 
+                            type="button" 
+                            onClick={handleDetectNames}
+                            disabled={!conversation || isDetectingNames}
+                            variant="outline"
+                          >
+                            {isDetectingNames ? 'Detecting...' : 'Auto-Detect Names'}
+                          </Button>
+                          
+                          <Button
+                            onClick={handleSubmit}
+                            disabled={!canUseFeature || isSubmitting || !conversation || !me || !them}
+                            className="bg-teal-500 hover:bg-teal-600"
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                Analyzing...
+                              </>
+                            ) : (
+                              <>
+                                <Brain className="h-4 w-4 mr-2" />
+                                {canUseFeature ? 'Analyze Chat' : 'Usage Limit Reached'}
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>
