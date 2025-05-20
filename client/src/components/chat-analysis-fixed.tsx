@@ -440,21 +440,25 @@ export default function ChatAnalysis() {
                       
                       <h3 className="font-semibold mb-2">Conversation Health Score</h3>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm">{result.healthScore?.score || 0}/10</span>
+                        <span className="text-sm">{result.healthScore?.score || 0}/100</span>
                         <div className="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
                           <div 
                             className={`h-full rounded-full ${
-                              (result.healthScore?.score || 0) >= 7 ? 'bg-green-500' : 
-                              (result.healthScore?.score || 0) >= 4 ? 'bg-yellow-500' : 
+                              (result.healthScore?.score || 0) >= 80 ? 'bg-green-600' : 
+                              (result.healthScore?.score || 0) >= 65 ? 'bg-green-500' : 
+                              (result.healthScore?.score || 0) >= 50 ? 'bg-yellow-500' :
+                              (result.healthScore?.score || 0) >= 35 ? 'bg-orange-500' :
                               'bg-red-500'
                             }`}
-                            style={{ width: `${(result.healthScore?.score || 0) * 10}%` }}
+                            style={{ width: `${result.healthScore?.score || 0}%` }}
                           ></div>
                         </div>
-                        <span className="text-sm">
-                          {(result.healthScore?.score || 0) >= 7 ? 'Healthy' : 
-                           (result.healthScore?.score || 0) >= 4 ? 'Mixed' : 
-                           'Concerning'}
+                        <span className="text-sm font-medium">
+                          {(result.healthScore?.score || 0) >= 80 ? 'Very Healthy' : 
+                           (result.healthScore?.score || 0) >= 65 ? 'Healthy' : 
+                           (result.healthScore?.score || 0) >= 50 ? 'Tension' : 
+                           (result.healthScore?.score || 0) >= 35 ? 'Concerning' :
+                           'Conflict'}
                         </span>
                       </div>
                     </div>
