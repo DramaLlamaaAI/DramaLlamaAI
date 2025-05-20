@@ -15,7 +15,7 @@ import AuthPage from "@/pages/auth-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
 import PrivacyPolicy from "@/pages/privacy-policy";
-import PricingPage from "@/pages/pricing";
+// Removed pricing page import - using subscription page instead
 import InstantDeepDivePage from "@/pages/instant-deep-dive";
 import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
@@ -45,7 +45,16 @@ function Router() {
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
-      <Route path="/pricing" component={PricingPage} />
+      {/* Pricing page now redirects to subscription */}
+      <Route path="/pricing">
+        {() => {
+          const [_, navigate] = useLocation();
+          useEffect(() => {
+            navigate("/subscription");
+          }, [navigate]);
+          return null;
+        }}
+      </Route>
       <Route path="/instant-deep-dive" component={InstantDeepDivePage} />
       <Route path="/admin" component={AdminDashboardEnhanced} />
       <Route path="/admin-login" component={AdminLoginPage} />
