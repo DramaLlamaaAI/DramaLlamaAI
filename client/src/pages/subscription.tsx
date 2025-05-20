@@ -315,9 +315,9 @@ export default function SubscriptionPage() {
           <div className="absolute -top-14 -right-14 bg-gradient-to-bl from-secondary/40 to-secondary/0 w-48 h-48 transform rotate-45"></div>
           <CardHeader className="pb-8">
             <CardTitle className="text-2xl flex items-center">
-              🦙 🦙 Pro/Relationship Plan
+              🦙 Pro Plan
             </CardTitle>
-            <CardDescription>Complete communication analysis system</CardDescription>
+            <CardDescription>For advanced pattern recognition, power analysis, and conflict tracking</CardDescription>
             <div className="mt-2 flex items-baseline justify-center">
               <span className="text-3xl font-bold">£7.99</span>
               <span className="text-muted-foreground ml-1">/month</span>
@@ -336,43 +336,35 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 mt-6">
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span><strong>Everything in Personal, plus:</strong></span>
+                <span>Unlimited Chat Uploads</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Unlimited chat uploads</span>
+                <span><strong>Includes everything in the Personal Plan, plus:</strong></span>
               </li>
               <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Conversation Dynamics</span>
+                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
+                <span>📈 Emotional Shifts Timeline (Visual Tone Tracking)</span>
               </li>
               <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Behavioural Patterns Detection - participants named</span>
+                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
+                <span>🚩 Red Flag Timeline with Escalation Highlights</span>
               </li>
               <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Advanced Communication Trend Lines - Red Flags/Gaslighting</span>
+                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
+                <span>🧠 Behavioral Pattern Detection Across the Conversation</span>
               </li>
               <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Evasion Identification – Avoidance Detection</span>
+                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
+                <span>🎭 Power Dynamics Meter (Dominance vs. Avoidance)</span>
               </li>
               <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Message Dominance Analysis – Conversational Control</span>
+                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
+                <span>💬 Message Dominance & Control Breakdown</span>
               </li>
               <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Emotional Shifts Timeline (interactive view)</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Power Dynamics Analysis</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-secondary mr-2" />
-                <span>Red Flags Timeline – Progressive Tracking</span>
+                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
+                <span>PDF Export</span>
               </li>
             </ul>
           </CardContent>
