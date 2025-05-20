@@ -208,7 +208,7 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 mt-6">
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 mr-2" />
-                <span><strong>1 Chat Upload (Single Use)</strong></span>
+                <span>1 Chat Upload (Single Use)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 mr-2" />
