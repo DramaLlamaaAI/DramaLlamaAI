@@ -11,7 +11,10 @@ if (!process.env.STRIPE_PRICE_ID) {
   throw new Error('Missing required Stripe price ID: STRIPE_PRICE_ID');
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe with the secret key in live mode (no test flag)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2023-10-16', // Use the latest stable API version
+});
 
 // Pricing configuration
 const PRICE_IDS = {
