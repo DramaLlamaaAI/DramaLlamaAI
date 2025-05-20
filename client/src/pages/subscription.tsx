@@ -134,8 +134,8 @@ export default function SubscriptionPage() {
         {/* Free Plan */}
         <Card className="border-2 border-gray-200 relative">
           <CardHeader className="pb-8">
-            <CardTitle className="text-2xl">Free Tier</CardTitle>
-            <CardDescription>Basic analysis for occasional use</CardDescription>
+            <CardTitle className="text-2xl">Free – Basic Tier</CardTitle>
+            <CardDescription>For occasional insight seekers</CardDescription>
             <div className="mt-2 flex items-baseline justify-center">
               <span className="text-3xl font-bold">£0</span>
               <span className="text-muted-foreground ml-1">/forever</span>
@@ -154,7 +154,7 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 mt-6">
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>1 chat analysis per month</span>
+                <span>2 chat analyses per month</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
@@ -162,7 +162,11 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>Conversation Health Meter</span>
+                <span>Conversation Health Score (0–100 gauge)</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-primary mr-2" />
+                <span>🚩 Red Flags Detected (Count & Brief Descriptions)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
