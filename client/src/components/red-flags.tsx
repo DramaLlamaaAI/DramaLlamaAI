@@ -176,7 +176,7 @@ export default function RedFlags({
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/pricing">
+              <Link href="/subscription">
                 <Button className="w-full sm:w-auto" variant="default">
                   <ChevronUpCircle className="h-4 w-4 mr-2" />
                   Upgrade to see details

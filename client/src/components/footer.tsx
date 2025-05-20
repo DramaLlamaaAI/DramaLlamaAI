@@ -38,9 +38,9 @@ export default function Footer() {
             <div>
               <h4 className="font-semibold mb-3 text-white">Plans</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#pricing" className="text-white/80 hover:text-secondary transition">Free</a></li>
-                <li><a href="#pricing" className="text-white/80 hover:text-secondary transition">Personal</a></li>
-                <li><a href="#pricing" className="text-white/80 hover:text-secondary transition">Pro</a></li>
+                <li><a href="/subscription" className="text-white/80 hover:text-secondary transition">Free</a></li>
+                <li><a href="/subscription" className="text-white/80 hover:text-secondary transition">Personal</a></li>
+                <li><a href="/subscription" className="text-white/80 hover:text-secondary transition">Pro</a></li>
               </ul>
             </div>
             

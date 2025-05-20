@@ -72,7 +72,7 @@ export default function RegistrationPrompt({ tier, onClose, showCloseButton = tr
                 </Button>
               </Link>
               
-              <Link href="/pricing">
+              <Link href="/subscription">
                 <Button variant="outline" className="border-violet-400 text-violet-700">
                   <ChevronUpCircle className="h-4 w-4 mr-2" />
                   View plans

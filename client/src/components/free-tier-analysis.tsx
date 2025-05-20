@@ -940,7 +940,7 @@ export default function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisP
                   <Button 
                     variant="outline" 
                     className="bg-red-100 hover:bg-red-200 text-red-800 border-red-300 flex-1"
-                    onClick={() => window.location.href = '/pricing'}
+                    onClick={() => window.location.href = '/subscription'}
                   >
                     Upgrade Here
                   </Button>
