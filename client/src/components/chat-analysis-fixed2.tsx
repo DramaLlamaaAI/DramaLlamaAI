@@ -36,6 +36,7 @@ export default function ChatAnalysisFixed() {
   const tier = usage?.tier || 'free';
   const usedAnalyses = usage?.used || 0;
   const limit = usage?.limit || 1;
+  // Admin users (with null limit) or users within their limits can use the feature
   const canUseFeature = limit === null || usedAnalyses < limit;
 
   const analysisMutation = useMutation({
@@ -255,7 +256,9 @@ export default function ChatAnalysisFixed() {
           ) : (
             <>
               <Brain className="h-4 w-4 mr-2" />
-              {canUseFeature ? 'Analyze Chat' : 'Usage Limit Reached'}
+              {!conversation || !me || !them ? 'Enter All Fields' : 
+               !canUseFeature ? 'Usage Limit Reached' : 
+               'Analyze Chat'}
             </>
           )}
         </Button>
