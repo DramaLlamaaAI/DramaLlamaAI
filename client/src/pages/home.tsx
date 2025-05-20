@@ -62,7 +62,7 @@ export default function Home() {
                   <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white">
                     <MessageSquare className="h-5 w-5 mr-2" /> WhatsApp Group Chat
                   </Button>
-                  <Badge className="absolute -top-2 -right-2 bg-primary text-white text-[10px]">NEW</Badge>
+                  <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
                 </div>
               </Link>
               
@@ -111,7 +111,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-lg font-semibold mb-2 flex items-center justify-center">
                   WhatsApp Group Chat
-                  <Badge className="ml-2 bg-primary text-[10px]">NEW</Badge>
+                  <Badge className="ml-2 bg-gradient-to-r from-primary to-secondary text-[10px]">PRO</Badge>
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Analyze WhatsApp group conversations to understand dynamics between multiple participants.

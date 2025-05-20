@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Loader2, AlertCircle, FileText, XCircle, Brain, ArrowLeft, UserPlus, UserMinus, Save, Download } from "lucide-react";
+import { Loader2, AlertCircle, FileText, XCircle, Brain, ArrowLeft, UserPlus, UserMinus, Save, Download, Lock } from "lucide-react";
 import { ChatAnalysisRequest, ChatAnalysisResponse, analyzeChatConversation, getUserUsage } from "@/lib/openai";
 import JSZip from "jszip";
 import exportToPdf from '@/components/export-document-generator';
@@ -22,13 +23,14 @@ import BackHomeButton from "@/components/back-home-button";
 import WhatsAppImporter from "@/components/whats-app-importer";
 
 export default function GroupChatAnalysis() {
+  const { user, isLoading: authLoading } = useAuth();
+  const [, navigate] = useLocation();
   const [conversation, setConversation] = useState("");
   const [participants, setParticipants] = useState<string[]>([]);
   const [newParticipant, setNewParticipant] = useState("");
   const [fileName, setFileName] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
-  const [, navigate] = useLocation();
   const { toast } = useToast();
 
   // Track if analysis is running
