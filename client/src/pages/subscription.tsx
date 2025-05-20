@@ -317,7 +317,7 @@ export default function SubscriptionPage() {
             <CardTitle className="text-2xl flex items-center">
               🦙 Pro Plan
             </CardTitle>
-            <CardDescription>For advanced pattern recognition, power analysis, and conflict tracking</CardDescription>
+            <CardDescription>Unlimited uploads, deeper patterns, and advanced emotional clarity</CardDescription>
             <div className="mt-2 flex items-baseline justify-center">
               <span className="text-3xl font-bold">£7.99</span>
               <span className="text-muted-foreground ml-1">/month</span>
@@ -344,33 +344,29 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
-                <span>📈 Emotional Shifts Timeline (Visual Tone Tracking)</span>
+                <span>Behavioral Pattern Detection (e.g., repeated avoidance, blame-shifting)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
-                <span>🚩 Red Flag Timeline with Escalation Highlights</span>
+                <span>Escalation Markers: When and how tension rises</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
-                <span>🧠 Behavioral Pattern Detection Across the Conversation</span>
+                <span>Power Balance Overview (Simple Participant Meter)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
-                <span>🎭 Power Dynamics Meter (Dominance vs. Avoidance)</span>
+                <span>Extended Participant Summary Cards (More Detail, More Clarity)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
-                <span>💬 Message Dominance & Control Breakdown</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
-                <span>PDF Export</span>
+                <span>Enhanced PDF Export (With Timeline and Key Insights)</span>
               </li>
             </ul>
           </CardContent>
           <CardFooter className="pt-4 text-center flex flex-col">
             <p className="text-sm text-muted-foreground">
-              For those who want complete clarity in all their communications.
+              Pro gives you unlimited uploads and extended insight. Spot repeated behaviors, detect emotional escalation, and gain clarity in relationships that span more than one conversation.
             </p>
           </CardFooter>
         </Card>
