@@ -32,6 +32,9 @@ export default function GroupChatAnalysis() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const { toast } = useToast();
+  
+  // Check if user can access this Pro feature
+  const isPro = user?.tier === 'pro' || user?.tier === 'instant';
 
   // Track if analysis is running
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -161,6 +164,50 @@ export default function GroupChatAnalysis() {
     navigate("/");
   };
 
+  // If user is not Pro, we'll show a restriction message and prompt to upgrade
+  if (!isPro) {
+    return (
+      <div className="container mx-auto py-8 px-4 md:px-8 max-w-5xl">
+        <BackHomeButton />
+        
+        <h1 className="text-3xl font-bold mb-8 mt-4 text-center">Group Chat Analysis</h1>
+        
+        <Card className="border-2 border-muted-foreground/20 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10">
+            <div className="flex items-center justify-between">
+              <CardTitle>WhatsApp Group Chat Analysis</CardTitle>
+              <Badge className="bg-gradient-to-r from-primary to-secondary border-0">PRO</Badge>
+            </div>
+            <CardDescription>
+              Advanced multi-participant chat analysis with personalized insights for each member
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
+                <Users className="w-12 h-12 text-muted-foreground" />
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-bold mb-3">Pro Plan Feature</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Group chat analysis is exclusively available to Pro tier subscribers. Upgrade your plan to analyze conversations with multiple participants and discover group dynamics.
+            </p>
+            
+            <Button 
+              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white border-0"
+              size="lg"
+              onClick={() => navigate("/subscription")}
+            >
+              Upgrade to Pro
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  // If user is Pro, show the regular interface
   return (
     <div className="container mx-auto py-8 px-4 md:px-8 max-w-5xl">
       <BackHomeButton />
