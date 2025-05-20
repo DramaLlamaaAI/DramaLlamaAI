@@ -189,8 +189,8 @@ export default function SubscriptionPage() {
             </div>
           </div>
           <CardHeader className="pb-8">
-            <CardTitle className="text-2xl">🦙 Instant Deep Dive</CardTitle>
-            <CardDescription>Pro features for a single analysis</CardDescription>
+            <CardTitle className="text-2xl">Instant Deep Dive</CardTitle>
+            <CardDescription>Instant clarity — no subscription, no commitment, just insight when you need it</CardDescription>
             <div className="mt-2 flex items-baseline justify-center">
               <span className="text-3xl font-bold">£1.99</span>
               <span className="text-muted-foreground ml-1">one-time</span>
@@ -208,47 +208,27 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 mt-6">
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 mr-2" />
-                <span><strong>1 Chat Upload (Single Use Only)</strong></span>
+                <span><strong>1 Chat Upload (Single Use)</strong></span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 mr-2" />
-                <span><strong>No subscription required</strong></span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-purple-600 mr-2" />
-                <span>Instant access to Pro Plan features:</span>
+                <span>Includes everything in the Free Tier, plus:</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Conversation Dynamics</span>
+                <span>🚩 Red Flag Count with Key Quotes</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Behavioural Patterns Detection</span>
+                <span>Participant Summary Cards (Style & Role in Tension)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Advanced Communication Trend Lines</span>
+                <span>Conversation Dynamics Overview</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Evasion Identification</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Message Dominance Analysis</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Emotional Shifts Timeline</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Power Dynamics Analysis</span>
-              </li>
-              <li className="flex">
-                <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
-                <span className="text-muted-foreground">Red Flags Timeline</span>
+                <span>PDF Export</span>
               </li>
             </ul>
           </CardContent>
