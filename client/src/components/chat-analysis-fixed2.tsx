@@ -35,7 +35,8 @@ export default function ChatAnalysisFixed() {
   
   const tier = usage?.tier || 'free';
   const usedAnalyses = usage?.used || 0;
-  const limit = usage?.limit || 1;
+  // Set default limit to 2 for free tier, this ensures correct display even if backend returns a different value
+  const limit = usage?.limit === null ? null : (usage?.limit || 2);
   // Admin users (with null limit) or users within their limits can use the feature
   const canUseFeature = limit === null || usedAnalyses < limit;
 
