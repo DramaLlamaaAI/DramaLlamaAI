@@ -75,12 +75,6 @@ export default function Home() {
                 </Button>
               </Link>
               
-              <Link href="/message-analysis">
-                <Button size="lg" className="bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white">
-                  <MessageCircle className="h-5 w-5 mr-2" /> Message Analysis
-                </Button>
-              </Link>
-              
               <Link href="/live-talk">
                 <div className="relative">
                   <Button 
