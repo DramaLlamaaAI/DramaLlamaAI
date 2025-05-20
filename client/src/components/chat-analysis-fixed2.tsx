@@ -786,14 +786,61 @@ export default function ChatAnalysisFixed() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="bg-white rounded-md p-4 shadow-sm border border-teal-100">
                               <h4 className="font-medium mb-1 text-teal-700">{me}</h4>
-                              <p className="mb-2">{result.participantSummary?.[me]?.style || "Communication style not available"}</p>
-                              <p className="text-sm">Role in Tension: {result.participantSummary?.[me]?.roleInTension || "Not analyzed"}</p>
+                              <p className="mb-2">
+                                {result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' 
+                                  ? 'Tends to escalate conflict' 
+                                  : result.conflictDynamics?.participants?.[me]?.tendency === 'de-escalates'
+                                    ? 'Often works to de-escalate tension'
+                                    : 'Shows mixed conflict patterns'}
+                              </p>
+                              <p className="text-sm">
+                                Role in Tension: {
+                                  result.participantConflictScores?.[me]?.isEscalating
+                                    ? 'Primary escalator'
+                                    : result.participantConflictScores?.[me]?.score > 60
+                                      ? 'Moderating influence'
+                                      : 'Contributes to tension'
+                                }
+                              </p>
                             </div>
                             <div className="bg-white rounded-md p-4 shadow-sm border border-pink-100">
                               <h4 className="font-medium mb-1 text-pink-700">{them}</h4>
-                              <p className="mb-2">{result.participantSummary?.[them]?.style || "Communication style not available"}</p>
-                              <p className="text-sm">Role in Tension: {result.participantSummary?.[them]?.roleInTension || "Not analyzed"}</p>
+                              <p className="mb-2">
+                                {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' 
+                                  ? 'Tends to escalate conflict' 
+                                  : result.conflictDynamics?.participants?.[them]?.tendency === 'de-escalates'
+                                    ? 'Often works to de-escalate tension'
+                                    : 'Shows mixed conflict patterns'}
+                              </p>
+                              <p className="text-sm">
+                                Role in Tension: {
+                                  result.participantConflictScores?.[them]?.isEscalating
+                                    ? 'Primary escalator'
+                                    : result.participantConflictScores?.[them]?.score > 60
+                                      ? 'Moderating influence'
+                                      : 'Contributes to tension'
+                                }
+                              </p>
                             </div>
+                          </div>
+                        </div>
+                        
+                        {/* Conversation Dynamics Overview for Instant tier */}
+                        <div className="mb-6">
+                          <h3 className="font-semibold mb-2">Conversation Dynamics Overview</h3>
+                          <div className="bg-white rounded-md p-4 shadow-sm">
+                            <p>{result.conflictDynamics?.summary || "Conversation dynamics analysis not available"}</p>
+                            
+                            {result.conflictDynamics?.recommendations && result.conflictDynamics.recommendations.length > 0 && (
+                              <div className="mt-4">
+                                <p className="font-medium mb-2">Recommendations:</p>
+                                <ul className="list-disc pl-5 space-y-1">
+                                  {result.conflictDynamics.recommendations.map((rec, i) => (
+                                    <li key={i}>{rec}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </>
