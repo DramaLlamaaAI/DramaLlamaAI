@@ -796,10 +796,8 @@ export class MemStorage implements IStorage {
 // Implementation of IStorage using PostgreSQL database
 import { db } from './db';
 import { eq, and, desc, or, gte, lte, sql } from 'drizzle-orm';
-import { createId } from '@paralleldrive/cuid2';
 import connect from 'connect-pg-simple';
 import session from 'express-session';
-import { Pool } from 'pg';
 
 export class DatabaseStorage implements IStorage {
   private sessionStore: session.Store;
