@@ -13,6 +13,8 @@ import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
 import { Label } from "@/components/ui/label";
 import RegistrationPrompt from "@/components/registration-prompt";
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
 export default function ChatAnalysisFixed() {
   const [tabValue, setTabValue] = useState("paste");
@@ -470,28 +472,62 @@ export default function ChatAnalysisFixed() {
                       <h3 className="font-semibold mb-2">Overall Emotional Tone</h3>
                       <p className="mb-4">{result.toneAnalysis?.overallTone}</p>
                       
-                      <h3 className="font-semibold mb-2">Conversation Health Score</h3>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm">{result.healthScore?.score || 0}/100</span>
-                        <div className="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${
-                              (result.healthScore?.score || 0) >= 80 ? 'bg-green-600' : 
-                              (result.healthScore?.score || 0) >= 65 ? 'bg-green-500' : 
-                              (result.healthScore?.score || 0) >= 50 ? 'bg-yellow-500' :
-                              (result.healthScore?.score || 0) >= 35 ? 'bg-orange-500' :
-                              'bg-red-500'
-                            }`}
-                            style={{ width: `${result.healthScore?.score || 0}%` }}
-                          ></div>
+                      <h3 className="font-semibold mb-3">Conversation Health Score</h3>
+                      <div className="flex flex-col md:flex-row items-center gap-4 mb-2">
+                        <div className="w-32 h-32">
+                          <CircularProgressbar
+                            value={result.healthScore?.score || 0}
+                            text={`${result.healthScore?.score || 0}`}
+                            strokeWidth={10}
+                            styles={buildStyles({
+                              // Colors
+                              pathColor: 
+                                (result.healthScore?.score || 0) >= 80 ? '#16a34a' : // green-600
+                                (result.healthScore?.score || 0) >= 65 ? '#22c55e' : // green-500
+                                (result.healthScore?.score || 0) >= 50 ? '#eab308' : // yellow-500
+                                (result.healthScore?.score || 0) >= 35 ? '#f97316' : // orange-500
+                                '#ef4444',                                           // red-500
+                              textColor: '#1f2937', // gray-800
+                              trailColor: '#e5e7eb', // gray-200
+                              backgroundColor: '#f9fafb', // gray-50
+                              textSize: '24px',
+                              // Background circle styling
+                              strokeLinecap: 'round',
+                            })}
+                          />
                         </div>
-                        <span className="text-sm font-medium">
-                          {(result.healthScore?.score || 0) >= 80 ? 'Very Healthy' : 
-                           (result.healthScore?.score || 0) >= 65 ? 'Healthy' : 
-                           (result.healthScore?.score || 0) >= 50 ? 'Tension' : 
-                           (result.healthScore?.score || 0) >= 35 ? 'Concerning' :
-                           'Conflict'}
-                        </span>
+                        <div className="flex flex-col items-center md:items-start">
+                          <div className="text-xl font-semibold mb-1">
+                            {(result.healthScore?.score || 0) >= 80 ? 'Very Healthy' : 
+                             (result.healthScore?.score || 0) >= 65 ? 'Healthy' : 
+                             (result.healthScore?.score || 0) >= 50 ? 'Tension' : 
+                             (result.healthScore?.score || 0) >= 35 ? 'Concerning' :
+                             'Conflict'}
+                          </div>
+                          <div className="text-sm text-gray-600 mb-2">Out of 100 points</div>
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
+                              <span>0-35: Conflict</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-orange-500 mr-1"></div>
+                              <span>36-50: Concerning</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-yellow-500 mr-1"></div>
+                              <span>51-65: Tension</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
+                              <span>66-80: Healthy</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 rounded-full bg-green-600 mr-1"></div>
+                              <span>81-100: Very Healthy</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
