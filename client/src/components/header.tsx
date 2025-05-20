@@ -43,19 +43,40 @@ export default function Header() {
         </Link>
         
         <div className="flex items-center">
-          <nav className="hidden md:flex items-center mr-6 space-x-4">
+          <nav className="flex items-center mr-6 space-x-4">
             <Link href="/">
-              <span className="text-white hover:text-white/80 transition">Home</span>
+              <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
+                Home
+              </Button>
             </Link>
-            <Link href="/chat-analysis">
-              <span className="text-white hover:text-white/80 transition">Chat Analysis</span>
-            </Link>
-            <Link href="/message-analysis">
-              <span className="text-white hover:text-white/80 transition">Message Analysis</span>
-            </Link>
-            <Link href="/de-escalate">
-              <span className="text-white hover:text-white/80 transition">Vent Mode</span>
-            </Link>
+            <div className="hidden md:flex items-center space-x-2">
+              <Link href="/chat-analysis">
+                <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
+                  Chat Analysis
+                </Button>
+              </Link>
+              <Link href="/de-escalate">
+                <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
+                  Vent Mode
+                </Button>
+              </Link>
+              <Link href="/group-chat-analysis">
+                <div className="relative">
+                  <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
+                    Group Chat
+                  </Button>
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-[10px] text-white px-1 rounded">PRO</span>
+                </div>
+              </Link>
+              <Link href="/live-talk">
+                <div className="relative">
+                  <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
+                    Live Talk
+                  </Button>
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-[10px] text-white px-1 rounded">PRO</span>
+                </div>
+              </Link>
+            </div>
           </nav>
           
           {/* Usage meter - only visible on desktop */}
