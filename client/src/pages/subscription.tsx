@@ -212,7 +212,7 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 mr-2" />
-                <span>Includes everything in the Free Tier, plus:</span>
+                <span><strong>Includes everything in the Free Tier, plus:</strong></span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-purple-600 ml-6 mr-2" />
