@@ -315,25 +315,13 @@ export default function ChatAnalysisFixed() {
                 
                 <TabsContent value="paste" className="mt-4">
                   <div className="space-y-4">
-                    {/* Conversation Type Selector */}
+                    {/* Info about chat analysis */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2">Conversation Type:</label>
                       <div className="flex items-center gap-2">
-                        <Button 
-                          variant={conversationType === "two_person" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setConversationType("two_person")}
-                        >
-                          Two Person
-                        </Button>
-                        <Button 
-                          variant={conversationType === "group_chat" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setConversationType("group_chat")}
-                        >
-                          <Users className="h-4 w-4 mr-2" />
-                          Group Chat
-                        </Button>
+                        <Info className="h-4 w-4" />
+                        <p className="text-sm text-muted-foreground">
+                          For group chat analysis, please use the <Link to="/group-chat-analysis" className="text-teal-500 hover:underline">WhatsApp Group Chat Analysis</Link> page
+                        </p>
                       </div>
                     </div>
                     
