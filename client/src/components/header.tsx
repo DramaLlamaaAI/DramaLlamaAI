@@ -28,7 +28,7 @@ export default function Header() {
   const isInfinite = limit === Infinity;
 
   return (
-    <header className="bg-primary text-white shadow-md sticky top-0 z-10">
+    <header className="bg-primary text-white shadow-md fixed top-0 left-0 right-0 z-50 w-full">
       <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3 flex justify-between items-center">
         <Link href="/">
           <div className="flex items-center cursor-pointer">
