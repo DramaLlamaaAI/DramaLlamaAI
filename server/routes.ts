@@ -61,15 +61,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     isProduction: process.env.NODE_ENV === 'production'
   });
   
-  // Configure session based on environment
+  // Add trust proxy to handle cookies properly
+app.set('trust proxy', 1);
+
+// Configure session based on environment
 const isProduction = process.env.NODE_ENV === 'production';
 app.use(session({
     secret: process.env.SESSION_SECRET || 'drama-llama-secret',
-    resave: false,
+    resave: true, // Force session to be saved back to store
     saveUninitialized: true, // Create session for all visitors
     cookie: { 
-      secure: isProduction, // Only require secure in production
-      sameSite: isProduction ? 'none' : 'lax', // Cross-site settings based on environment
+      secure: false, // Allow non-secure cookies for development
+      sameSite: 'lax', // Fix cross-site cookie issues
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true, // Only accessible via HTTP
       path: '/' // Available across the entire site

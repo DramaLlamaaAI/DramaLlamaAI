@@ -87,13 +87,20 @@ export default function AuthPage() {
         throw new Error(data.error || "Login failed");
       }
       
+      // Invalidate queries to refresh user data
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/usage"] });
+      
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
       
-      // Redirect to home page
-      setLocation("/");
+      // Add small delay to ensure session is established
+      setTimeout(() => {
+        // Redirect to home page
+        setLocation("/");
+      }, 500);
     } catch (error: any) {
       setErrorMsg(error.message || "Login failed. Please try again.");
     } finally {
