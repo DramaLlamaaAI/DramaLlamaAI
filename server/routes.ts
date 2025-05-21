@@ -10,6 +10,7 @@ import { adminDiscountController } from "./controllers/admin-discount-controller
 import { adminEmailController } from "./controllers/admin-email-controller";
 import { promoCodeController } from "./controllers/promo-code-controller";
 import { promoCodeReportController } from "./controllers/promo-code-report-controller";
+import { adminPromoCodeController } from "./controllers/admin-promo-code-controller";
 import session from "express-session";
 import memoryStore from "memorystore";
 
@@ -250,6 +251,11 @@ app.use(session({
   // Public promo code routes
   app.get('/api/promo-codes/active', isAuthenticated, isAdmin, promoCodeController.getAllActive);
   app.post('/api/promo-codes/redeem', promoCodeController.redeemCode);
+  
+  // Admin promo code routes
+  app.get('/api/admin/promo-codes', isAuthenticated, isAdmin, adminPromoCodeController.getAllPromoCodes);
+  app.post('/api/admin/promo-codes', isAuthenticated, isAdmin, adminPromoCodeController.createPromoCode);
+  app.put('/api/admin/promo-codes/:id', isAuthenticated, isAdmin, adminPromoCodeController.updatePromoCode);
   
   // Promo code reporting
   app.get('/api/admin/promo-codes/report', isAuthenticated, isAdmin, promoCodeReportController.getPromoCodeUsageReport);

@@ -49,12 +49,11 @@ export const adminPromoCodeController = {
         code: code.toUpperCase(),
         discountPercentage,
         maxUses,
-        usedCount: 0,
         isActive: true,
         startDate: new Date(),
         expiryDate,
         targetTier: targetTier === 'any' ? null : targetTier,
-        createdAt: new Date(),
+        createdById: req.session.userId, // Set creator to current admin user
       };
       
       const newPromoCode = await storage.createPromoCode(promoCode);
