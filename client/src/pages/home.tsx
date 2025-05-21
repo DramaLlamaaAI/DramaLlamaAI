@@ -55,15 +55,6 @@ export default function Home() {
                 </Button>
               </Link>
               
-              <Link href="/group-chat-analysis">
-                <div className="relative">
-                  <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white">
-                    <MessageSquare className="h-5 w-5 mr-2" /> WhatsApp Group Chat
-                  </Button>
-                  <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
-                </div>
-              </Link>
-              
               <Link href="/de-escalate">
                 <Button 
                   size="lg" 
@@ -71,6 +62,15 @@ export default function Home() {
                 >
                   <Zap className="h-5 w-5 mr-2" /> Vent Mode
                 </Button>
+              </Link>
+              
+              <Link href="/group-chat-analysis">
+                <div className="relative">
+                  <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white">
+                    <MessageSquare className="h-5 w-5 mr-2" /> WhatsApp Group Chat
+                  </Button>
+                  <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
+                </div>
               </Link>
               
               <Link href="/live-talk">
@@ -86,7 +86,7 @@ export default function Home() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="text-center">
                 <div className="text-primary mb-3 flex justify-center">
                   <MessageSquare className="h-16 w-16" />
@@ -94,6 +94,16 @@ export default function Home() {
                 <h3 className="text-lg font-semibold mb-2">Chat Analysis</h3>
                 <p className="text-sm text-muted-foreground">
                   Upload or paste a conversation to get detailed insights about communication patterns and emotional tone.
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-[#2CCFCF] mb-3 flex justify-center">
+                  <Zap className="h-16 w-16" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Vent Mode</h3>
+                <p className="text-sm text-muted-foreground">
+                  Rewrite emotional messages into calmer, more effective communication while preserving intent.
                 </p>
               </div>
               
@@ -107,16 +117,6 @@ export default function Home() {
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Analyze WhatsApp group conversations to understand dynamics between multiple participants.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-[#2CCFCF] mb-3 flex justify-center">
-                  <Zap className="h-16 w-16" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Vent Mode</h3>
-                <p className="text-sm text-muted-foreground">
-                  Rewrite emotional messages into calmer, more effective communication while preserving intent.
                 </p>
               </div>
               
