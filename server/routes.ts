@@ -61,15 +61,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     isProduction: process.env.NODE_ENV === 'production'
   });
   
-  app.use(session({
+  // Configure session based on environment
+const isProduction = process.env.NODE_ENV === 'production';
+app.use(session({
     secret: process.env.SESSION_SECRET || 'drama-llama-secret',
     resave: false,
-    saveUninitialized: true, // Changed to true to ensure session is created
+    saveUninitialized: true, // Create session for all visitors
     cookie: { 
-      secure: false, // Allow cookies over HTTP and HTTPS
-      sameSite: 'lax', // Allows cookies to work across domains
-      maxAge: 30 * 24 * 60 * 60 * 1000, // Extended to 30 days
-      httpOnly: true, // Only accessible via HTTP, not JavaScript
+      secure: isProduction, // Only require secure in production
+      sameSite: isProduction ? 'none' : 'lax', // Cross-site settings based on environment
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true, // Only accessible via HTTP
       path: '/' // Available across the entire site
     },
     store: new MemoryStore({
