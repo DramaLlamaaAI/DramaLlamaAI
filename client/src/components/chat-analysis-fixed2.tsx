@@ -544,19 +544,18 @@ export default function ChatAnalysisFixed() {
                           </span>
                         </h3>
                         
-                        {/* Free tier only shows types of flags detected as preview */}
-                        {tier === 'free' && result.redFlagTypes && (
+                        {/* Free tier shows basic descriptions of red flags detected */}
+                        {tier === 'free' && result.redFlags && (
                           <div className="mb-4">
-                            <p className="mb-2">Types of issues detected:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {result.redFlagTypes.map((type, i) => (
-                                <span key={i} className="bg-red-50 text-red-700 px-2 py-1 rounded-md text-sm">
-                                  {type}
-                                </span>
+                            <ul className="list-disc pl-5 space-y-2">
+                              {result.redFlags.map((flag, i) => (
+                                <li key={i}>
+                                  <span className="font-medium">{flag.type}:</span> {flag.description}
+                                </li>
                               ))}
-                            </div>
+                            </ul>
                             <p className="mt-4 text-sm text-gray-500">
-                              <span className="font-medium">Upgrade to Personal or Pro</span> for detailed descriptions of these issues and specific examples.
+                              <span className="font-medium">Upgrade to Personal or Pro</span> for more detailed analysis with specific examples and participant-specific insights.
                             </p>
                           </div>
                         )}
