@@ -83,8 +83,7 @@ const promoFormSchema = z.object({
     .default(30),
   targetTier: z
     .string()
-    .optional()
-    .nullable(),
+    .default('any'),
 });
 
 export function PromoCodeManager() {
