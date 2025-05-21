@@ -29,7 +29,7 @@ export default function Header() {
 
   return (
     <header className="bg-primary text-white shadow-md fixed top-0 left-0 right-0 z-50 w-full">
-      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3 flex justify-between items-center">
+      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3 flex flex-wrap justify-between items-center">
         <Link href="/">
           <div className="flex items-center cursor-pointer">
             <div className="w-10 h-10 rounded-full overflow-hidden">
@@ -43,11 +43,12 @@ export default function Header() {
           </div>
         </Link>
         
-        <div className="flex items-center">
-          <nav className="flex items-center mr-6 space-x-2">
+        <div className="flex flex-wrap items-center justify-end">
+          <nav className="flex items-center mr-2 sm:mr-4 space-x-1 sm:space-x-2">
             <Link href="/">
-              <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
-                <Home className="w-4 h-4 mr-2" /> Home
+              <Button variant="ghost" size="sm" className="text-white hover:text-white/80 hover:bg-white/10 px-2 sm:px-3">
+                <Home className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Home</span>
               </Button>
             </Link>
             <div className="hidden md:flex items-center space-x-2">
@@ -113,7 +114,7 @@ export default function Header() {
             </TooltipProvider>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             {/* Admin navigation option - only visible to admin users */}
             <AdminNavItem />
             
@@ -130,7 +131,7 @@ export default function Header() {
                   // Show user profile and logout when logged in
                   <div className="flex items-center">
                     <div className="relative group">
-                      <Button variant="ghost" size="sm" className="bg-white/10 text-white whitespace-nowrap">
+                      <Button variant="ghost" size="sm" className="bg-white/10 text-white whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
                         <span className="mr-1">👤</span> {currentUser.email.split('@')[0]}
                       </Button>
                       
@@ -157,8 +158,8 @@ export default function Header() {
                     </div>
                     
                     {tier === 'free' && (
-                      <Link href="/subscription" className="ml-2">
-                        <Button variant="secondary" size="sm" className="whitespace-nowrap">
+                      <Link href="/subscription" className="ml-1 sm:ml-2">
+                        <Button variant="secondary" size="sm" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
                           Upgrade
                         </Button>
                       </Link>
@@ -168,14 +169,14 @@ export default function Header() {
                   // Show login button when not logged in
                   <div className="flex items-center">
                     <Link href="/auth">
-                      <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10 whitespace-nowrap">
-                        Sign up / Log in
+                      <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
+                        Sign up
                       </Button>
                     </Link>
                     
                     {tier === 'free' && (
-                      <Link href="/subscription" className="ml-2">
-                        <Button variant="secondary" size="sm" className="whitespace-nowrap">
+                      <Link href="/subscription" className="ml-1 sm:ml-2">
+                        <Button variant="secondary" size="sm" className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
                           Upgrade
                         </Button>
                       </Link>

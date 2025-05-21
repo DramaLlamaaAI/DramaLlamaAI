@@ -38,9 +38,15 @@ export default function HeroSection() {
             <p className="text-lg text-white/80 mb-6">
               Drama Llama AI uses trusted artificial intelligence to analyze your conversations privately — detecting emotional tone, 🚩 red flags, and communication patterns — so you can stop second-guessing and start seeing things clearly.
             </p>
-            <p className="text-md text-white/90 mb-6 flex items-center">
-              <span className="mr-2">🔐</span> <strong>Privacy First:</strong> No one at Drama Llama can view your chats. Nothing is stored. Ever.
-            </p>
+            <div className="mb-6 p-3 bg-white/10 rounded-lg border border-white/20">
+              <p className="text-md text-white flex items-start">
+                <span className="mr-2 mt-1">🔐</span>
+                <span>
+                  <strong className="block md:inline">Privacy First:</strong> 
+                  <span className="text-white/90">No one at Drama Llama can view your chats. Nothing is stored. Ever.</span>
+                </span>
+              </p>
+            </div>
             
             <div className="flex flex-wrap gap-3 mb-8">
               <div className="bg-white/10 rounded-full px-4 py-1 text-sm border border-white/20 flex items-center text-white">
