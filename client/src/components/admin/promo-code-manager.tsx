@@ -129,7 +129,7 @@ export function PromoCodeManager() {
       discountPercentage: 10,
       maxUses: 100,
       expiryDays: 30,
-      targetTier: null,
+      targetTier: 'any',
     },
   });
   
@@ -342,7 +342,7 @@ export function PromoCodeManager() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Any tier</SelectItem>
+                          <SelectItem value="any">Any tier</SelectItem>
                           <SelectItem value="personal">Personal</SelectItem>
                           <SelectItem value="pro">Pro</SelectItem>
                           <SelectItem value="deepdive">Deep Dive</SelectItem>
