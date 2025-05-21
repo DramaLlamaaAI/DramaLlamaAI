@@ -27,7 +27,8 @@ export default function VentMode() {
   
   const usedAnalyses = usage?.used || 0;
   const limit = usage?.limit || 1;
-  const canUseFeature = usedAnalyses < limit;
+  // Vent mode should always be available regardless of usage limits
+  const canUseFeature = true;
 
   const ventModeMutation = useMutation({
     mutationFn: ventMessage,
