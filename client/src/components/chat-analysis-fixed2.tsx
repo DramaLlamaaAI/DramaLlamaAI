@@ -723,22 +723,82 @@ export default function ChatAnalysisFixed() {
                           </div>
                         )}
                         
-                        {/* Power Dynamics Analysis */}
+                        {/* Power Dynamics Analysis - Enhanced Visual Display */}
                         <div className="mb-6">
-                          <h3 className="font-semibold mb-2">Power Dynamics Analysis</h3>
-                          <p>{result.conflictDynamics?.summary || "Power dynamics analysis not available"}</p>
+                          <h3 className="font-semibold mb-2 flex items-center">
+                            <span className="mr-2">Power Dynamics Analysis</span>
+                            <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded">Pro Feature</span>
+                          </h3>
+                          <p className="mb-3">{result.conflictDynamics?.summary || "Power dynamics analysis not available"}</p>
                           
-                          {/* Fallback to conflict dynamics if power dynamics not available */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                            <div className="bg-white rounded-md p-4 shadow-sm">
-                              <h4 className="font-medium mb-1">{me}</h4>
-                              <p>{result.conflictDynamics?.participants?.[me]?.tendency || "No power dynamics data available"}</p>
-                            </div>
-                            <div className="bg-white rounded-md p-4 shadow-sm">
-                              <h4 className="font-medium mb-1">{them}</h4>
-                              <p>{result.conflictDynamics?.participants?.[them]?.tendency || "No power dynamics data available"}</p>
+                          {/* Visualized power dynamics with direction indicator */}
+                          <div className="relative bg-gradient-to-r from-blue-50 to-pink-50 p-6 rounded-lg mb-4">
+                            <div className="flex justify-between items-center">
+                              <div className="w-5/12 bg-blue-100 rounded-lg p-3 shadow-sm border border-blue-200">
+                                <h4 className="font-medium text-blue-800">{me}</h4>
+                                <p className="text-sm mt-1">
+                                  {result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                    'Tends to intensify conflict and emotional tone' :
+                                    'Tends to attempt de-escalation and resolution'}
+                                </p>
+                                <div className="mt-2 bg-white rounded p-2 text-xs">
+                                  <span className="font-semibold">Power Score: </span>
+                                  <span className={`${
+                                    result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                    'text-red-600 font-medium' : 'text-green-600 font-medium'
+                                  }`}>
+                                    {result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 'High' : 'Moderate'}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              {/* Power flow indicator */}
+                              <div className="w-2/12 flex justify-center">
+                                {result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ?
+                                  <div className="text-center">
+                                    <div className="h-1 bg-gradient-to-r from-blue-300 to-pink-500 w-full rounded-full"></div>
+                                    <div className="flex justify-end mt-1">
+                                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13 7L18 12L13 17" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M6 12H18" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      </svg>
+                                    </div>
+                                    <p className="text-xs mt-1 text-gray-500">Power Direction</p>
+                                  </div>
+                                  :
+                                  <div className="text-center">
+                                    <div className="h-1 bg-gradient-to-r from-pink-500 to-blue-300 w-full rounded-full"></div>
+                                    <div className="flex justify-start mt-1">
+                                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M11 17L6 12L11 7" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M6 12H18" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      </svg>
+                                    </div>
+                                    <p className="text-xs mt-1 text-gray-500">Power Direction</p>
+                                  </div>
+                                }
+                              </div>
+                              
+                              <div className="w-5/12 bg-pink-100 rounded-lg p-3 shadow-sm border border-pink-200">
+                                <h4 className="font-medium text-pink-800">{them}</h4>
+                                <p className="text-sm mt-1">
+                                  {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                    'Tends to intensify conflict and emotional tone' : 
+                                    'Tends to attempt de-escalation and resolution'}
+                                </p>
+                                <div className="mt-2 bg-white rounded p-2 text-xs">
+                                  <span className="font-semibold">Power Score: </span>
+                                  <span className={`${
+                                    result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                    'text-red-600 font-medium' : 'text-green-600 font-medium'
+                                  }`}>
+                                    {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 'High' : 'Moderate'}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
+                          
                         </div>
                         
                         {/* Evasion Identification */}
@@ -781,25 +841,114 @@ export default function ChatAnalysisFixed() {
                           </div>
                         )}
                         
-                        {/* Message Dominance Analysis */}
+                        {/* Message Dominance Analysis - Enhanced Visual Version */}
                         <div className="mb-6">
-                          <h3 className="font-semibold mb-2">Message Dominance Analysis</h3>
-                          <p className="mb-3">Analysis of conversational control patterns and message dominance.</p>
+                          <h3 className="font-semibold mb-2 flex items-center">
+                            <span className="mr-2">Message Dominance Analysis</span>
+                            <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded">Pro Feature</span>
+                          </h3>
+                          <p className="mb-3">Analysis of who controls the conversation flow and message pace.</p>
                           
-                          {/* Display basic message dominance analysis even if detailed stats aren't available */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                            <div className="bg-white rounded-md p-4 shadow-sm">
-                              <h4 className="font-medium mb-1">{me}</h4>
-                              <div className="space-y-1">
-                                <p>Control Pattern: {result.conflictDynamics?.participants?.[me]?.tendency || "Not available"}</p>
-                                <p>Tension Score: {result.participantConflictScores?.[me]?.score || "N/A"}/100</p>
+                          {/* Visual bar chart representing message dominance */}
+                          <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                            <div className="flex justify-between items-center mb-4">
+                              <span className="text-sm font-medium text-gray-700">Passive</span>
+                              <span className="text-sm font-medium text-gray-700">Balanced</span>
+                              <span className="text-sm font-medium text-gray-700">Dominant</span>
+                            </div>
+                            
+                            {/* First participant */}
+                            <div className="mb-5">
+                              <div className="flex justify-between mb-1">
+                                <span className="text-sm font-medium">{me}</span>
+                                <span className="text-sm text-gray-500">
+                                  {result.participantConflictScores?.[me]?.score || 50}/100
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                <div 
+                                  className="bg-blue-600 h-2.5 rounded-full" 
+                                  style={{ 
+                                    width: `${result.participantConflictScores?.[me]?.score || 50}%`,
+                                    backgroundColor: result.participantConflictScores?.[me]?.score > 60 ? '#EC4899' : '#3B82F6'
+                                  }}
+                                ></div>
+                              </div>
+                              <div className="mt-2 bg-white rounded p-2 text-sm border border-gray-100">
+                                <p className="flex items-center">
+                                  <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                                    result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                    'bg-red-500' : 'bg-green-500'
+                                  }`}></span>
+                                  {result.conflictDynamics?.participants?.[me]?.dominancePattern || 
+                                    (result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                      'Takes control of conversation direction' : 
+                                      'Tends to follow conversation direction')
+                                  }
+                                </p>
                               </div>
                             </div>
-                            <div className="bg-white rounded-md p-4 shadow-sm">
-                              <h4 className="font-medium mb-1">{them}</h4>
-                              <div className="space-y-1">
-                                <p>Control Pattern: {result.conflictDynamics?.participants?.[them]?.tendency || "Not available"}</p>
-                                <p>Tension Score: {result.participantConflictScores?.[them]?.score || "N/A"}/100</p>
+                            
+                            {/* Second participant */}
+                            <div>
+                              <div className="flex justify-between mb-1">
+                                <span className="text-sm font-medium">{them}</span>
+                                <span className="text-sm text-gray-500">
+                                  {result.participantConflictScores?.[them]?.score || 50}/100
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                <div 
+                                  className="bg-pink-600 h-2.5 rounded-full" 
+                                  style={{ 
+                                    width: `${result.participantConflictScores?.[them]?.score || 50}%`,
+                                    backgroundColor: result.participantConflictScores?.[them]?.score > 60 ? '#EC4899' : '#3B82F6'
+                                  }}
+                                ></div>
+                              </div>
+                              <div className="mt-2 bg-white rounded p-2 text-sm border border-gray-100">
+                                <p className="flex items-center">
+                                  <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                                    result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                    'bg-red-500' : 'bg-green-500'
+                                  }`}></span>
+                                  {result.conflictDynamics?.participants?.[them]?.dominancePattern || 
+                                    (result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                      'Takes control of conversation direction' : 
+                                      'Tends to follow conversation direction')
+                                  }
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {/* Message frequency indicators */}
+                            <div className="mt-5 p-3 bg-white rounded-lg border border-gray-200">
+                              <h4 className="text-sm font-medium mb-2">Conversation Pattern Analysis</h4>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="flex items-center text-sm">
+                                  <svg className="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                                  </svg>
+                                  Initiates topics
+                                </div>
+                                <div className="flex items-center text-sm">
+                                  <svg className="w-4 h-4 mr-1 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                                  </svg>
+                                  Responds to topics
+                                </div>
+                                <div className="flex items-center text-sm">
+                                  <svg className="w-4 h-4 mr-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                  </svg>
+                                  Energy level
+                                </div>
+                                <div className="flex items-center text-sm">
+                                  <svg className="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                  </svg>
+                                  Resolution attempts
+                                </div>
                               </div>
                             </div>
                           </div>
