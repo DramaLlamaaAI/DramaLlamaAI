@@ -236,7 +236,7 @@ export function PromoCodeManager() {
               New Promo Code
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[90vw] sm:max-w-md inset-0 m-auto">
+          <DialogContent className="w-[90vw] sm:max-w-md max-h-[80vh] overflow-y-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 fixed">
             <button 
               className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground" 
               onClick={() => setIsCreateDialogOpen(false)}
