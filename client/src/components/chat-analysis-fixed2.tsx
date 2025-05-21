@@ -562,16 +562,41 @@ export default function ChatAnalysisFixed() {
                         
                         {/* Personal tier and above show detailed red flags */}
                         {(tier === 'personal' || tier === 'pro' || tier === 'instant') && (
-                          <ul className="list-disc pl-5 space-y-2">
+                          <ul className="list-disc pl-5 space-y-4">
                             {result.redFlags.map((flag, i) => (
                               <li key={i}>
-                                <span className="font-medium">{flag.type}:</span> {flag.description}
+                                <div className="mb-1">
+                                  <span className="font-medium">{flag.type}:</span> {flag.description}
+                                  {flag.participant && (
+                                    <span className="ml-2 text-sm bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
+                                      Used by {flag.participant}
+                                    </span>
+                                  )}
+                                </div>
                                 
                                 {/* Personal tier and above show behavioral signals with quotes if available */}
-                                {(tier === 'personal' || tier === 'pro' || tier === 'instant') && flag.quote && (
-                                  <div className="mt-2 ml-4 border-l-2 border-gray-200 pl-3">
+                                {flag.quote && (
+                                  <div className="mt-2 ml-4 border-l-2 border-gray-200 pl-3 pb-1">
                                     <p className="text-sm italic">"{flag.quote}"</p>
-                                    <p className="text-sm font-medium mt-1">👉 {flag.type}</p>
+                                    <div className="flex items-center mt-1">
+                                      <span className="text-sm font-medium mr-2">👉 {flag.type}</span>
+                                      {flag.participant && (
+                                        <span className="text-xs text-gray-500">— {flag.participant}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Show examples if available (particularly for Pro tier) */}
+                                {flag.examples && flag.examples.length > 0 && tier === 'pro' && (
+                                  <div className="mt-3 ml-4 space-y-2">
+                                    <p className="text-sm font-medium">Additional examples:</p>
+                                    {flag.examples.map((example, j) => (
+                                      <div key={j} className="border-l-2 border-gray-100 pl-3">
+                                        <p className="text-sm italic">"{example.text}"</p>
+                                        <p className="text-xs text-gray-500">— {example.from}</p>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </li>
