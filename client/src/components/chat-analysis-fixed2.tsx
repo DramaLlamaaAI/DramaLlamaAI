@@ -593,16 +593,21 @@ export default function ChatAnalysisFixed() {
                                 {/* Show examples if available (particularly for Pro tier) */}
                                 {/* Remove redundant personal tier example display since we're already showing it above */}
                         
-                        {/* Show all examples for pro tier */}
-                        {flag.examples && flag.examples.length > 0 && tier === 'pro' && (
+                        {/* Show all examples for pro tier, avoiding duplicates */}
+                        {flag.examples && flag.examples.length > 1 && tier === 'pro' && (
                           <div className="mt-3 ml-4 space-y-2">
                             <p className="text-sm font-medium">Additional examples:</p>
-                            {flag.examples.map((example, j) => (
-                              <div key={j} className="border-l-2 border-gray-100 pl-3">
-                                <p className="text-sm italic">"{example.text}"</p>
-                                <p className="text-xs text-gray-500">— {example.from}</p>
-                              </div>
-                            ))}
+                            {/* Skip the first example since it's already shown above */}
+                            {flag.examples.slice(1).map((example, j) => {
+                              // Create a unique key for deduplication
+                              const exampleText = example.text || '';
+                              return (
+                                <div key={j} className="border-l-2 border-gray-100 pl-3">
+                                  <p className="text-sm italic">"{exampleText}"</p>
+                                  <p className="text-xs text-gray-500">— {example.from}</p>
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                               </li>
@@ -784,7 +789,7 @@ export default function ChatAnalysisFixed() {
                                 <p className="text-sm mt-1">
                                   {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
                                     'Tends to intensify conflict and emotional tone' : 
-                                    'Tends to attempt de-escalation and resolution'}
+                                    'Shows distress, but remains open to resolution'}
                                 </p>
                                 <div className="mt-2 bg-white rounded p-2 text-xs">
                                   <span className="font-semibold">Power Score: </span>
@@ -792,7 +797,9 @@ export default function ChatAnalysisFixed() {
                                     result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
                                     'text-red-600 font-medium' : 'text-green-600 font-medium'
                                   }`}>
-                                    {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 'High' : 'Moderate'}
+                                    {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                      'High' : 
+                                      'Low (Defensive Posture)'}
                                   </span>
                                 </div>
                               </div>
@@ -880,10 +887,9 @@ export default function ChatAnalysisFixed() {
                                     result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
                                     'bg-red-500' : 'bg-green-500'
                                   }`}></span>
-                                  {result.conflictDynamics?.participants?.[me]?.dominancePattern || 
-                                    (result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
-                                      'Takes control of conversation direction' : 
-                                      'Tends to follow conversation direction')
+                                  {result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                    'Consistently leads and directs conversation flow' : 
+                                    'Tends to follow conversation direction'
                                   }
                                 </p>
                               </div>
@@ -912,10 +918,9 @@ export default function ChatAnalysisFixed() {
                                     result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
                                     'bg-red-500' : 'bg-green-500'
                                   }`}></span>
-                                  {result.conflictDynamics?.participants?.[them]?.dominancePattern || 
-                                    (result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
-                                      'Takes control of conversation direction' : 
-                                      'Tends to follow conversation direction')
+                                  {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                    'Controls conversation pace and topics' : 
+                                    'Responds to topics rather than initiating them'
                                   }
                                 </p>
                               </div>
