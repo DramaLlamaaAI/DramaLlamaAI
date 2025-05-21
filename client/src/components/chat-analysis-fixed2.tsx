@@ -575,28 +575,23 @@ export default function ChatAnalysisFixed() {
                                 </div>
                                 
                                 {/* Personal tier and above show behavioral signals with quotes if available */}
-                                {flag.quote && (
+                                {(flag.quote || (flag.examples && flag.examples.length > 0)) && (
                                   <div className="mt-2 ml-4 border-l-2 border-gray-200 pl-3 pb-1">
-                                    <p className="text-sm italic">"{flag.quote}"</p>
+                                    <p className="text-sm italic">"{flag.quote || (flag.examples && flag.examples[0] ? flag.examples[0].text : '')}"</p>
                                     <div className="flex items-center mt-1">
                                       <span className="text-sm font-medium mr-2">👉 {flag.type}</span>
                                       {flag.participant && (
                                         <span className="text-xs text-gray-500">— {flag.participant}</span>
+                                      )}
+                                      {!flag.participant && flag.examples && flag.examples[0] && (
+                                        <span className="text-xs text-gray-500">— {flag.examples[0].from}</span>
                                       )}
                                     </div>
                                   </div>
                                 )}
                                 
                                 {/* Show examples if available (particularly for Pro tier) */}
-                                {/* Show examples for personal tier - but only the first example */}
-                        {flag.examples && flag.examples.length > 0 && tier === 'personal' && (
-                          <div className="mt-3 ml-4">
-                            <div className="border-l-2 border-gray-100 pl-3">
-                              <p className="text-sm italic">"{flag.examples[0].text}"</p>
-                              <p className="text-xs text-gray-500">— {flag.examples[0].from}</p>
-                            </div>
-                          </div>
-                        )}
+                                {/* Remove redundant personal tier example display since we're already showing it above */}
                         
                         {/* Show all examples for pro tier */}
                         {flag.examples && flag.examples.length > 0 && tier === 'pro' && (
