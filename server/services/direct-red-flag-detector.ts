@@ -46,9 +46,9 @@ const redFlagPatterns = [
     description: 'Using absolutes to exaggerate situations',
     severity: 5
   },
-  // Emotional manipulation
+  // Emotional manipulation - refined to avoid flagging genuine expressions of care or being overwhelmed
   {
-    pattern: /(care more than you|care about you|love you more|show me you mean|just with words|if you loved me|prove it|leave you if|without me you|no one else would|look what you made me do)/i,
+    pattern: /(if you really loved me|show me you mean it|just empty words|if you loved me|prove it|leave you if|without me you|no one else would|look what you made me do|guilt you|you owe me|after everything i did|you should feel bad)/i,
     type: 'Emotional Manipulation',
     description: 'Manipulating through emotional pressure, threats or excessive affection claims',
     severity: 8
@@ -236,6 +236,32 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
             
             if (isStillEngaging) {
               console.log(`Preventing stonewalling false positive: "${messageText}" shows continuing engagement`);
+              isValidFlag = false;
+            }
+          }
+          
+          // RULE 4: Prevent false positives for Emotional Manipulation
+          if (pattern.type === 'Emotional Manipulation') {
+            // Check if this is a genuine expression of being overwhelmed or caring
+            const isReassurance = messageText.match(/(I care about you|I'm just overwhelmed|I didn't mean to upset you|I'm trying my best)/i);
+            const isFollowedByEmotionalLeverage = messageText.match(/(but you|if you|you should|you need to|you always|you never)/i);
+            
+            // If it's a reassurance without emotional leverage, it's not manipulation
+            if (isReassurance && !isFollowedByEmotionalLeverage) {
+              console.log(`Preventing emotional manipulation false positive: "${messageText}" is reassurance without leverage`);
+              isValidFlag = false;
+            }
+            
+            // Check if it's part of a reconciliation attempt
+            const isReconciliationAttempt = messageText.match(/(I'm sorry|let's talk|can we|we can work|I understand)/i);
+            if (isReconciliationAttempt && !messageText.match(/(if you|unless you|you need to prove)/i)) {
+              console.log(`Preventing emotional manipulation false positive: "${messageText}" is a reconciliation attempt`);
+              isValidFlag = false;
+            }
+            
+            // Special case for "I care about you" - this needs context to be manipulative
+            if (messageText.match(/I care about you/i) && !messageText.match(/(if you|but you|you should|after all I've done)/i)) {
+              console.log(`Preventing emotional manipulation false positive: "I care about you" without manipulation context`);
               isValidFlag = false;
             }
           }
