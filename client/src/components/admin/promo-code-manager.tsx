@@ -236,7 +236,7 @@ export function PromoCodeManager() {
               New Promo Code
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-md">
             <DialogHeader>
               <DialogTitle>Create Promo Code</DialogTitle>
               <DialogDescription>
@@ -287,7 +287,7 @@ export function PromoCodeManager() {
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="maxUses"
