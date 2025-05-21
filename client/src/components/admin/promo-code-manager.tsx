@@ -236,7 +236,7 @@ export function PromoCodeManager() {
               New Promo Code
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[80vh] overflow-y-auto w-[90vw] max-w-md sm:max-w-lg md:max-w-xl" style={{ margin: 'auto', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', padding: '1rem' }}>
+          <DialogContent className="absolute top-0 translate-y-0 p-4 w-[95vw] max-w-md" style={{ position: 'fixed', top: '0', transform: 'none', maxHeight: '90vh', overflowY: 'auto' }}>
             <DialogHeader>
               <DialogTitle>Create Promo Code</DialogTitle>
               <DialogDescription>
