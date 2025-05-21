@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import llamaImage from "@assets/FB Profile Pic.png";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import AdminLoginHelper from "@/components/admin-login-helper";
 
 // Login Form Schema
 const loginSchema = z.object({
