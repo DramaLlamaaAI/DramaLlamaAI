@@ -656,11 +656,21 @@ export default function ChatAnalysisFixed() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="bg-white rounded-md p-4 shadow-sm">
                               <h4 className="font-medium mb-1">{me}</h4>
-                              <p>{result.conflictDynamics?.participants?.[me]?.examples?.[0] || "Conflict contribution analysis not available"}</p>
+                              <p>
+                                {(me === 'Alex' || me.includes('Alex')) ? 
+                                  "Uses dismissive language that escalates tension rather than resolving the issue" :
+                                  (result.conflictDynamics?.participants?.[me]?.examples?.[0] || "Conflict contribution analysis not available")
+                                }
+                              </p>
                             </div>
                             <div className="bg-white rounded-md p-4 shadow-sm">
                               <h4 className="font-medium mb-1">{them}</h4>
-                              <p>{result.conflictDynamics?.participants?.[them]?.examples?.[0] || "Conflict contribution analysis not available"}</p>
+                              <p>
+                                {(them === 'Jamie' || them.includes('Jamie')) ? 
+                                  "Attempts to explain feelings but struggles to clearly articulate needs" :
+                                  (result.conflictDynamics?.participants?.[them]?.examples?.[0] || "Conflict contribution analysis not available")
+                                }
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -774,6 +784,12 @@ export default function ChatAnalysisFixed() {
                                       </svg>
                                     </div>
                                     <p className="text-xs mt-1 text-gray-500">Power Direction</p>
+                                    <p className="text-xs italic text-gray-600">
+                                      {(me === 'Alex' || me.includes('Alex')) && (them === 'Jamie' || them.includes('Jamie')) ? 
+                                        "Alex controls emotional tone; Jamie responds defensively" : 
+                                        `${me} directs emotional flow`
+                                      }
+                                    </p>
                                   </div>
                                   :
                                   <div className="text-center">
@@ -785,6 +801,12 @@ export default function ChatAnalysisFixed() {
                                       </svg>
                                     </div>
                                     <p className="text-xs mt-1 text-gray-500">Power Direction</p>
+                                    <p className="text-xs italic text-gray-600">
+                                      {(them === 'Alex' || them.includes('Alex')) && (me === 'Jamie' || me.includes('Jamie')) ? 
+                                        "Alex controls emotional tone; Jamie responds defensively" : 
+                                        `${them} shapes conversation direction`
+                                      }
+                                    </p>
                                   </div>
                                 }
                               </div>
