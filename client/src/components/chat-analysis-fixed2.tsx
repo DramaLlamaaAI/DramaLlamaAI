@@ -588,17 +588,28 @@ export default function ChatAnalysisFixed() {
                                 )}
                                 
                                 {/* Show examples if available (particularly for Pro tier) */}
-                                {flag.examples && flag.examples.length > 0 && tier === 'pro' && (
-                                  <div className="mt-3 ml-4 space-y-2">
-                                    <p className="text-sm font-medium">Additional examples:</p>
-                                    {flag.examples.map((example, j) => (
-                                      <div key={j} className="border-l-2 border-gray-100 pl-3">
-                                        <p className="text-sm italic">"{example.text}"</p>
-                                        <p className="text-xs text-gray-500">— {example.from}</p>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
+                                {/* Show examples for personal tier - but only the first example */}
+                        {flag.examples && flag.examples.length > 0 && tier === 'personal' && (
+                          <div className="mt-3 ml-4">
+                            <div className="border-l-2 border-gray-100 pl-3">
+                              <p className="text-sm italic">"{flag.examples[0].text}"</p>
+                              <p className="text-xs text-gray-500">— {flag.examples[0].from}</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show all examples for pro tier */}
+                        {flag.examples && flag.examples.length > 0 && tier === 'pro' && (
+                          <div className="mt-3 ml-4 space-y-2">
+                            <p className="text-sm font-medium">Additional examples:</p>
+                            {flag.examples.map((example, j) => (
+                              <div key={j} className="border-l-2 border-gray-100 pl-3">
+                                <p className="text-sm italic">"{example.text}"</p>
+                                <p className="text-xs text-gray-500">— {example.from}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                               </li>
                             ))}
                           </ul>

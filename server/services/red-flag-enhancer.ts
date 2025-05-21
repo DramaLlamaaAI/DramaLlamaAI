@@ -135,8 +135,14 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
     // For Personal tier, add basic quote information
     if (tier === 'personal' && relevantQuotes.length > 0) {
       const quote = relevantQuotes[0];
-      flag.exampleQuote = quote.quote;
+      flag.quote = quote.quote;  // Changed from exampleQuote to quote for consistency with the display component
       flag.participant = quote.speaker;
+      
+      // Also ensure there are examples for display in the UI
+      flag.examples = [{ 
+        text: quote.quote,
+        from: quote.speaker
+      }];
     }
     
     // For Pro tier, add detailed information with examples and recommendations
