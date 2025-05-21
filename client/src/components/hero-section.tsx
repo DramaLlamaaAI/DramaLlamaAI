@@ -33,14 +33,14 @@ export default function HeroSection() {
     <div className="mb-10">
       <Card className="rounded-2xl shadow-lg overflow-hidden border-0">
         <div className="grid md:grid-cols-2">
-          <CardContent className="p-6 md:p-10 bg-primary text-white">
+          <CardContent className="p-6 md:p-10 bg-primary text-white text-center">
             <h2 className="text-3xl font-bold mb-4 text-white">AI-powered conversation analysis for emotional clarity</h2>
             <p className="text-lg text-white/80 mb-6">
               Drama Llama AI uses trusted artificial intelligence to analyze your conversations privately — detecting emotional tone, 🚩 red flags, and communication patterns — so you can stop second-guessing and start seeing things clearly.
             </p>
             <div className="mb-6 p-3 bg-white/10 rounded-lg border border-white/20">
-              <p className="text-md text-white flex items-start">
-                <span className="mr-2 mt-1">🔐</span>
+              <p className="text-md text-white flex items-center justify-center">
+                <span className="mr-2">🔐</span>
                 <span>
                   <strong className="block md:inline">Privacy First:</strong> 
                   <span className="text-white/90">No one at Drama Llama can view your chats. Nothing is stored. Ever.</span>
@@ -48,7 +48,7 @@ export default function HeroSection() {
               </p>
             </div>
             
-            <div className="flex flex-wrap gap-3 mb-8">
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
               <div className="bg-white/10 rounded-full px-4 py-1 text-sm border border-white/20 flex items-center text-white">
                 <BadgeInfo className="w-4 h-4 mr-1" /> Emotional tone
               </div>
