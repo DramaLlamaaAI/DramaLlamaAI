@@ -53,7 +53,7 @@ export const adminPromoCodeController = {
         startDate: new Date(),
         expiryDate,
         targetTier: targetTier === 'any' ? null : targetTier,
-        createdById: req.session.userId, // Set creator to current admin user
+        createdById: req.session.userId as number, // Set creator to current admin user
       };
       
       const newPromoCode = await storage.createPromoCode(promoCode);
