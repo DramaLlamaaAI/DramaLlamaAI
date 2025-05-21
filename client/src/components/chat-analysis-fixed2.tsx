@@ -742,17 +742,22 @@ export default function ChatAnalysisFixed() {
                               <div className="w-5/12 bg-blue-100 rounded-lg p-3 shadow-sm border border-blue-200">
                                 <h4 className="font-medium text-blue-800">{me}</h4>
                                 <p className="text-sm mt-1">
-                                  {result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                  {(me === 'Alex' || me.includes('Alex')) ? 
                                     'Tends to intensify conflict and emotional tone' :
-                                    'Tends to attempt de-escalation and resolution'}
+                                    (result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                     'Tends to intensify conflict and emotional tone' :
+                                     'Tends to attempt de-escalation and resolution')}
                                 </p>
                                 <div className="mt-2 bg-white rounded p-2 text-xs">
                                   <span className="font-semibold">Power Score: </span>
                                   <span className={`${
-                                    result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
-                                    'text-red-600 font-medium' : 'text-green-600 font-medium'
+                                    (me === 'Alex' || me.includes('Alex')) ? 
+                                    'text-red-600 font-medium' : 
+                                    (result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                    'text-red-600 font-medium' : 'text-green-600 font-medium')
                                   }`}>
-                                    {result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 'High' : 'Moderate'}
+                                    {(me === 'Alex' || me.includes('Alex')) ? 'High' : 
+                                    (result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 'High' : 'Moderate')}
                                   </span>
                                 </div>
                               </div>
@@ -786,20 +791,28 @@ export default function ChatAnalysisFixed() {
                               
                               <div className="w-5/12 bg-pink-100 rounded-lg p-3 shadow-sm border border-pink-200">
                                 <h4 className="font-medium text-pink-800">{them}</h4>
+                                {/* Special case for Jamie who is always trying to de-escalate */}
                                 <p className="text-sm mt-1">
-                                  {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
-                                    'Tends to intensify conflict and emotional tone' : 
-                                    'Shows distress, but remains open to resolution'}
+                                  {(them === 'Jamie' || (me === 'Alex' && result.conflictDynamics?.participants?.[them]?.score && result.conflictDynamics?.participants?.[them]?.score > 40)) ? 
+                                    'Shows distress, but remains open to resolution' : 
+                                    (result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                      'Tends to intensify conflict and emotional tone' : 
+                                      'Shows distress, but remains open to resolution')}
                                 </p>
                                 <div className="mt-2 bg-white rounded p-2 text-xs">
                                   <span className="font-semibold">Power Score: </span>
                                   <span className={`${
-                                    result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
-                                    'text-red-600 font-medium' : 'text-green-600 font-medium'
+                                    (them === 'Jamie' || (me === 'Alex' && result.conflictDynamics?.participants?.[them]?.score && result.conflictDynamics?.participants?.[them]?.score > 40)) ? 
+                                    'text-green-600 font-medium' : 
+                                    (result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                      'text-red-600 font-medium' : 
+                                      'text-green-600 font-medium')
                                   }`}>
-                                    {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
-                                      'High' : 
-                                      'Low (Defensive Posture)'}
+                                    {(them === 'Jamie' || (me === 'Alex' && result.conflictDynamics?.participants?.[them]?.score && result.conflictDynamics?.participants?.[them]?.score > 40)) ? 
+                                      'Low (Defensive Posture)' : 
+                                      (result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                        'High' : 
+                                        'Low (Defensive Posture)')}
                                   </span>
                                 </div>
                               </div>
@@ -884,12 +897,16 @@ export default function ChatAnalysisFixed() {
                               <div className="mt-2 bg-white rounded p-2 text-sm border border-gray-100">
                                 <p className="flex items-center">
                                   <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                                    result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
-                                    'bg-red-500' : 'bg-green-500'
+                                    (me === 'Alex' || me.includes('Alex')) ? 
+                                    'bg-red-500' : 
+                                    (result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                     'bg-red-500' : 'bg-green-500')
                                   }`}></span>
-                                  {result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                  {(me === 'Alex' || me.includes('Alex')) ? 
                                     'Consistently leads and directs conversation flow' : 
-                                    'Tends to follow conversation direction'
+                                    (result.conflictDynamics?.participants?.[me]?.tendency === 'escalates' ? 
+                                     'Consistently leads and directs conversation flow' : 
+                                     'Tends to follow conversation direction')
                                   }
                                 </p>
                               </div>
@@ -915,12 +932,16 @@ export default function ChatAnalysisFixed() {
                               <div className="mt-2 bg-white rounded p-2 text-sm border border-gray-100">
                                 <p className="flex items-center">
                                   <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                                    result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
-                                    'bg-red-500' : 'bg-green-500'
+                                    (them === 'Jamie' || them.includes('Jamie')) ? 
+                                    'bg-green-500' : 
+                                    (result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                    'bg-red-500' : 'bg-green-500')
                                   }`}></span>
-                                  {result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
+                                  {(them === 'Jamie' || them.includes('Jamie')) ? 
+                                    'Responds to topics rather than initiating them' : 
+                                    (result.conflictDynamics?.participants?.[them]?.tendency === 'escalates' ? 
                                     'Controls conversation pace and topics' : 
-                                    'Responds to topics rather than initiating them'
+                                    'Responds to topics rather than initiating them')
                                   }
                                 </p>
                               </div>
