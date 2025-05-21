@@ -86,7 +86,7 @@ export default function Home() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
               <div className="text-center">
                 <div className="text-primary mb-3 flex justify-center">
                   <MessageSquare className="h-16 w-16" />
@@ -117,16 +117,6 @@ export default function Home() {
                 <h3 className="text-lg font-semibold mb-2">Vent Mode</h3>
                 <p className="text-sm text-muted-foreground">
                   Rewrite emotional messages into calmer, more effective communication while preserving intent.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-[#FF69B4] mb-3 flex justify-center">
-                  <MessageCircle className="h-16 w-16" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Message Analysis</h3>
-                <p className="text-sm text-muted-foreground">
-                  Get quick insights on the tone and intent of a single message without context.
                 </p>
               </div>
               
