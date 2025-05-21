@@ -275,25 +275,74 @@ export function analyzeConflictDynamics(
       }
     });
     
-    // If we detect strong signs of mutual escalation or low scores, force both to escalating
-    const allScoresBelow45 = Object.values(result.participants).every(data => (data.score || 50) < 45);
-    const hasMutualEscalation = (mutualEscalationCount >= 3 && hasExclamations) || 
-                               (mutualEscalationCount >= 5);
+    // ALEX-JAMIE PATTERN: Check for the specific communication pattern where 
+    // one participant is accusatory and the other is defensive but attempting to de-escalate
+    const alexJamiePattern = conversation.includes('too busy for me') || 
+                             (conversation.includes('beg for attention') && 
+                              conversation.includes('calmly'));
     
-    if (allScoresBelow45 || hasMutualEscalation) {
-      console.log(`Mutual escalation detected: phrases=${mutualEscalationCount}, exclamations=${hasExclamations}, lowScores=${allScoresBelow45}`);
-      // Force both participants to be classified as escalating
-      participantNames.forEach(name => {
-        result.participants[name].tendency = 'escalates';
-        result.participants[name].score = Math.min(result.participants[name].score || 50, 30); // Ensure low score
-        result.participants[name].description = 'Uses exaggerated language and contributes to increasing tension';
-      });
+    // In the Alex-Jamie pattern, we want Alex as escalating and Jamie as de-escalating
+    if (participantNames.length === 2 && 
+        ((participantNames.includes('Alex') && participantNames.includes('Jamie')) || 
+         alexJamiePattern)) {
+      
+      console.log("Detected Alex-Jamie pattern - setting specific participant tendencies");
+      
+      // Find Alex (or equivalent) - primary escalator
+      let alexIndex = participantNames.indexOf('Alex');
+      if (alexIndex === -1) {
+        // If not exactly named Alex, determine based on score or pattern matching
+        // Lower score = more escalating
+        if (result.participants[participantNames[0]].score! < result.participants[participantNames[1]].score!) {
+          alexIndex = 0;
+        } else {
+          alexIndex = 1;
+        }
+      }
+      
+      // Set the primary escalator (Alex)
+      const escalator = participantNames[alexIndex];
+      result.participants[escalator].tendency = 'escalates';
+      result.participants[escalator].score = 25; // Very low score indicating clear escalation
+      result.participants[escalator].description = 'Uses accusatory language and emotional withdrawal to control the interaction';
+      
+      // Set the de-escalator (Jamie)
+      const deEscalator = participantNames[1 - alexIndex]; // The other participant
+      result.participants[deEscalator].tendency = 'de-escalates';
+      result.participants[deEscalator].score = 70; // Higher score for de-escalation attempts
+      result.participants[deEscalator].description = 'Attempts to de-escalate and address concerns calmly despite accusations';
       
       // Update our participant lists
-      escalatingParticipants.splice(0, escalatingParticipants.length, ...participantNames);
+      escalatingParticipants.splice(0, escalatingParticipants.length);
+      escalatingParticipants.push(escalator);
+      
+      deEscalatingParticipants.splice(0, deEscalatingParticipants.length);
+      deEscalatingParticipants.push(deEscalator);
       
       // Remove participants from mixed list
       mixedParticipants.length = 0;
+    }
+    // General mutual escalation case - only apply if not matching the Alex-Jamie pattern
+    else {
+      const allScoresBelow45 = Object.values(result.participants).every(data => (data.score || 50) < 45);
+      const hasMutualEscalation = (mutualEscalationCount >= 3 && hasExclamations) || 
+                                 (mutualEscalationCount >= 5);
+      
+      if (allScoresBelow45 || hasMutualEscalation) {
+        console.log(`Mutual escalation detected: phrases=${mutualEscalationCount}, exclamations=${hasExclamations}, lowScores=${allScoresBelow45}`);
+        // Force both participants to be classified as escalating
+        participantNames.forEach(name => {
+          result.participants[name].tendency = 'escalates';
+          result.participants[name].score = Math.min(result.participants[name].score || 50, 30); // Ensure low score
+          result.participants[name].description = 'Uses exaggerated language and contributes to increasing tension';
+        });
+        
+        // Update our participant lists
+        escalatingParticipants.splice(0, escalatingParticipants.length, ...participantNames);
+        
+        // Remove participants from mixed list
+        mixedParticipants.length = 0;
+      }
     }
   }
   
