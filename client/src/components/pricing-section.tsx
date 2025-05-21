@@ -30,7 +30,7 @@ export default function PricingSection() {
             <ul className="mb-3 space-y-3">
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
-                <span>1 chat analysis per month</span>
+                <span>2 chat analyses per month</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0 mt-0.5" />
