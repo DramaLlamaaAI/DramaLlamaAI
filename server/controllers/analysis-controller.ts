@@ -597,6 +597,8 @@ export const analysisController = {
         }
         
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
+        console.log(`BETA TIER CHECK: tier === 'beta'? ${tier === 'beta'}`);
+        console.log(`BETA TIER CHECK: typeof tier: ${typeof tier}, tier value: "${tier}"`);
         
         // Special handling for Beta tier - use dedicated service
         if (tier === 'beta') {
@@ -604,8 +606,13 @@ export const analysisController = {
           const { createBetaTierAnalysis } = require('../services/beta-tier-service');
           filteredResults = createBetaTierAnalysis(analysis, me, them);
           console.log('BETA TIER: Dedicated analysis complete');
+          
+          // Return immediately to skip all other processing
+          res.json(filteredResults);
+          return;
         } else {
           // Filter results based on tier for non-Beta users
+          console.log(`NON-BETA TIER: Using standard filtering for tier: ${tier}`);
           filteredResults = filterChatAnalysisByTier(analysis, tier);
         }
         
