@@ -26,7 +26,7 @@ const discountCampaignSchema = z.object({
   upgradeDiscountPercentage: z.number().min(1).max(100).optional(),
   limitedTimeOffer: z.boolean().default(false),
   limitedTimeHours: z.number().min(1).optional(),
-  appliesTo: z.enum(["all", "free", "personal", "pro"]),
+  appliesTo: z.enum(["all", "free", "personal", "pro", "beta"]),
   autoEmail: z.boolean().default(true),
   emailTemplate: z.string().optional(),
 });
