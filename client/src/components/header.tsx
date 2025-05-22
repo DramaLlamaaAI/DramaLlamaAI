@@ -170,7 +170,7 @@ export default function Header() {
                   <div className="flex items-center">
                     <Link href="/auth">
                       <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3">
-                        Sign up
+                        Log in
                       </Button>
                     </Link>
                     
