@@ -65,7 +65,7 @@ export const adminController = {
     try {
       const schema = z.object({
         userId: z.number(),
-        tier: z.enum(["free", "personal", "pro", "instant"])
+        tier: z.enum(["free", "personal", "pro", "instant", "beta"])
       });
       
       const validatedData = schema.parse(req.body);
