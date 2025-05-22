@@ -553,6 +553,14 @@ export default function ChatAnalysis() {
                     )}
                   </div>
                   
+                  {/* Beta tier exclusive: Accountability Language Signals */}
+                  {tier === 'beta' && result.accountabilityLanguageSignals && (
+                    <AccountabilitySignals 
+                      signals={result.accountabilityLanguageSignals}
+                      participants={{ me, them }}
+                    />
+                  )}
+                  
                   {/* Prompt to register for more features */}
                   {tier === 'free' && <RegistrationPrompt tier="free" />}
                 </>
