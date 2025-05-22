@@ -5,15 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+// No longer using Dialog components
 import {
   Form,
   FormControl,
@@ -87,7 +79,7 @@ const promoFormSchema = z.object({
 });
 
 export function PromoCodeManager() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -108,7 +100,7 @@ export function PromoCodeManager() {
         title: "Promo Code Created",
         description: "Your promo code has been successfully created.",
       });
-      setIsCreateDialogOpen(false);
+      setShowCreateForm(false);
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promo-codes'] });
     },
     onError: (error: any) => {
@@ -203,14 +195,6 @@ export function PromoCodeManager() {
     },
   ];
   
-  // Reset form when dialog opens
-  const handleDialogOpen = (open: boolean) => {
-    if (open) {
-      form.reset();
-    }
-    setIsCreateDialogOpen(open);
-  };
-  
   // Placeholder for not implemented notification
   const showNotImplemented = () => {
     toast({
@@ -229,30 +213,37 @@ export function PromoCodeManager() {
             Create and manage discount promotional codes
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Promo Code
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-[90vw] sm:max-w-md max-h-[80vh] overflow-y-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 fixed">
-            <button 
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground" 
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-              <span className="sr-only">Close</span>
-            </button>
-            <DialogHeader>
-              <DialogTitle>Create Promo Code</DialogTitle>
-              <DialogDescription>
-                Create a new promotional code for user discounts.
-              </DialogDescription>
-            </DialogHeader>
+        <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Promo Code
+        </Button>
+      </div>
+      
+      {showCreateForm && (
+        <Card className="border-2 border-primary/20">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Create Promo Code</CardTitle>
+                <CardDescription>
+                  Create a new promotional code for user discounts.
+                </CardDescription>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setShowCreateForm(false)}
+                className="rounded-full h-8 w-8"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <span className="sr-only">Close</span>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -364,7 +355,7 @@ export function PromoCodeManager() {
                     </FormItem>
                   )}
                 />
-                <DialogFooter>
+                <div className="flex justify-end pt-4">
                   <Button
                     type="submit"
                     disabled={createPromoCode.isPending}
@@ -378,12 +369,12 @@ export function PromoCodeManager() {
                       "Create Promo Code"
                     )}
                   </Button>
-                </DialogFooter>
+                </div>
               </form>
             </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </CardContent>
+        </Card>
+      )}
       
       <Separator />
       
@@ -404,7 +395,7 @@ export function PromoCodeManager() {
                   You haven't created any promo codes yet.
                 </p>
               </div>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Button onClick={() => setShowCreateForm(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Your First Promo Code
               </Button>
