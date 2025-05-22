@@ -242,7 +242,7 @@ export default function AuthPage() {
                         )}
                       />
                       
-                      <div className="flex justify-between my-2">
+                      <div className="flex justify-end gap-4 my-2">
                         <Button 
                           variant="link" 
                           className="p-0 h-auto text-xs text-primary/80 hover:text-primary"
