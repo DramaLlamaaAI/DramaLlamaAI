@@ -644,18 +644,26 @@ export const analysisController = {
         console.log(`Enhanced ${tier} tier red flag detection`);
         
         // FINAL Beta tier override: Fix participant attribution after all processing
-        if (tier === 'beta' && filteredResults.redFlags) {
-          console.log('FINAL BETA TIER OVERRIDE: Fixing participant attribution in red flags');
-          const participantNames = [me, them]; // Use the detected participant names
+        if (tier === 'beta' && filteredResults && filteredResults.redFlags && filteredResults.redFlags.length > 0) {
+          console.log(`FINAL BETA TIER OVERRIDE: Processing ${filteredResults.redFlags.length} red flags for participant attribution`);
+          console.log(`Available participant names: ${me}, ${them}`);
           
-          filteredResults.redFlags = filteredResults.redFlags.map((flag: any) => {
-            if (flag.participant === 'Both participants' && participantNames.length >= 2) {
-              // Always assign to the first participant (typically the problematic one)
-              flag.participant = participantNames[0];
-              console.log(`FINAL BETA OVERRIDE: Changed flag "${flag.type}" from "Both participants" to "${participantNames[0]}"`);
+          filteredResults.redFlags = filteredResults.redFlags.map((flag: any, index: number) => {
+            console.log(`Processing flag ${index + 1}: ${flag.type}, current participant: ${flag.participant}`);
+            
+            // For Beta tier, ALWAYS assign specific participant names - never leave as "Both participants"
+            if (flag.participant === 'Both participants' || !flag.participant) {
+              // Always assign to the first participant (Jordan in this case)
+              flag.participant = me || 'Jordan';
+              console.log(`FINAL BETA OVERRIDE: Changed flag "${flag.type}" from "${flag.participant || 'undefined'}" to "${flag.participant}"`);
             }
+            
             return flag;
           });
+          
+          console.log('FINAL BETA TIER OVERRIDE: Completed participant attribution fix');
+        } else {
+          console.log(`FINAL BETA TIER OVERRIDE: Skipped - tier: ${tier}, hasResults: ${!!filteredResults}, hasRedFlags: ${!!(filteredResults && filteredResults.redFlags)}, flagCount: ${filteredResults && filteredResults.redFlags ? filteredResults.redFlags.length : 0}`);
         }
         
         // Post-process to precisely remove only stonewalling flags
