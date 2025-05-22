@@ -15,7 +15,14 @@ const getUserTier = (req: Request): string => {
   if (req.session && req.session.userId) {
     // For authenticated users, we'll get their tier from storage
     // But we'll return 'free' if we're unable to find it
-    return req.session.userTier || 'free';
+    let tier = req.session.userTier || 'free';
+    
+    // Beta tier users get Pro tier treatment
+    if (tier === 'beta') {
+      tier = 'pro';
+    }
+    
+    return tier;
   } else {
     // For anonymous users
     return 'free';
