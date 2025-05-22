@@ -557,7 +557,9 @@ export const analysisController = {
             }
           } else {
             // Regular analysis for group chat with other tiers
-            analysis = await analyzeGroupChatConversation(filteredConversation, groupParticipants, tier);
+            // Convert Beta tier to Pro for analysis
+            const analysisT = tier === 'beta' ? 'pro' : tier;
+            analysis = await analyzeGroupChatConversation(filteredConversation, groupParticipants, analysisT);
           }
         } else {
           // Regular two-person chat analysis
@@ -586,7 +588,9 @@ export const analysisController = {
             }
           } else {
             // Regular analysis for other tiers
-            analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
+            // Convert Beta tier to Pro for analysis
+            const analysisT = tier === 'beta' ? 'pro' : tier;
+            analysis = await analyzeChatConversation(filteredConversation, me, them, analysisT);
           }
         }
         
