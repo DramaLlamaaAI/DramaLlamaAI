@@ -1644,7 +1644,7 @@ export function filterDeEscalateResultByTier(result: DeEscalateResult, tier: str
   // - Basic explanation (explanation)
   
   // PERSONAL TIER FEATURES:
-  if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
+  if (tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') {
     // Add alternative options (additional approaches)
     if (result.alternativeOptions) {
       filteredResult.alternativeOptions = result.alternativeOptions;
@@ -1652,7 +1652,7 @@ export function filterDeEscalateResultByTier(result: DeEscalateResult, tier: str
   }
   
   // PRO TIER & INSTANT DEEP DIVE ADDITIONAL FEATURES:
-  if (tier === 'pro' || tier === 'instant') {
+  if (tier === 'pro' || tier === 'instant' || tier === 'beta') {
     // Add additional context insights (deeper analysis)
     if (result.additionalContextInsights) {
       filteredResult.additionalContextInsights = result.additionalContextInsights;
