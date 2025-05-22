@@ -580,6 +580,55 @@ export const analysisController = {
         }
         
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
+        
+        // Fix participant attribution for Beta tier BEFORE tier filtering
+        if (tier === 'beta' && analysis.redFlags && analysis.redFlags.length > 0) {
+          const participantNames = analysis.toneAnalysis?.participantTones ? 
+            Object.keys(analysis.toneAnalysis.participantTones) : [me, them];
+          
+          if (participantNames.length >= 2) {
+            analysis.redFlags = analysis.redFlags.map((flag: any) => {
+              if (flag.participant === 'Both participants') {
+                const flagType = flag.type.toLowerCase();
+                const flagDesc = flag.description?.toLowerCase() || '';
+                
+                // Try to attribute to specific participant based on flag type and key quotes
+                if (analysis.keyQuotes && analysis.keyQuotes.length > 0) {
+                  // Count how many quotes from each participant relate to this flag
+                  const participant1Quotes = analysis.keyQuotes.filter((q: any) => 
+                    q.speaker === participantNames[0] && 
+                    (q.analysis?.toLowerCase().includes(flagType) || 
+                     ['narcissism', 'power', 'manipulation', 'control', 'superiority'].some(term => 
+                       flagType.includes(term) && q.analysis?.toLowerCase().includes(term)))
+                  ).length;
+                  
+                  const participant2Quotes = analysis.keyQuotes.filter((q: any) => 
+                    q.speaker === participantNames[1] && 
+                    (q.analysis?.toLowerCase().includes(flagType) ||
+                     ['narcissism', 'power', 'manipulation', 'control', 'superiority'].some(term => 
+                       flagType.includes(term) && q.analysis?.toLowerCase().includes(term)))
+                  ).length;
+                  
+                  // Assign to participant with more relevant quotes
+                  if (participant1Quotes > participant2Quotes) {
+                    flag.participant = participantNames[0];
+                  } else if (participant2Quotes > participant1Quotes) {
+                    flag.participant = participantNames[1];
+                  }
+                  // If equal or no quotes, check for name mentions in description
+                  else if (flagDesc.includes(participantNames[0].toLowerCase())) {
+                    flag.participant = participantNames[0];
+                  } else if (flagDesc.includes(participantNames[1].toLowerCase())) {
+                    flag.participant = participantNames[1];
+                  }
+                }
+              }
+              return flag;
+            });
+          }
+          console.log(`Fixed participant attribution for ${analysis.redFlags.length} Beta tier red flags`);
+        }
+        
         // Filter results based on user's tier
         filteredResults = filterChatAnalysisByTier(analysis, tier);
         
