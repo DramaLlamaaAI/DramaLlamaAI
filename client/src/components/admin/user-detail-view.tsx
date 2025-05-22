@@ -316,6 +316,7 @@ export function UserDetailView({ user, onBack }: UserDetailViewProps) {
                   <SelectItem value="free">Free</SelectItem>
                   <SelectItem value="personal">Personal</SelectItem>
                   <SelectItem value="pro">Pro</SelectItem>
+                  <SelectItem value="beta">🚀 Beta (Full Access)</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground">
