@@ -10,83 +10,154 @@ function generateAccountabilitySignals(rawAnalysis: any, me: string, them: strin
   // Analyze the conversation for accountability language patterns
   const conversation = rawAnalysis.originalConversation || rawAnalysis.conversation || '';
   
-  // Define accountability indicators
-  const ownershipLanguage = [
-    'i should', 'i need to', 'i\'m sorry', 'my fault', 'i made a mistake',
-    'i understand', 'you\'re right', 'i was wrong', 'i take responsibility',
-    'i could have', 'i didn\'t mean to', 'let me fix', 'i\'ll work on'
+  // Enhanced accountability indicators with categories
+  const fullAccountabilityPhrases = [
+    'that\'s on me', 'i was wrong', 'i messed up', 'i take responsibility',
+    'my fault', 'i made a mistake', 'i should have', 'i could have done better',
+    'i\'m responsible for', 'i need to own', 'i failed to', 'i dropped the ball',
+    'i\'m to blame', 'i let you down', 'i didn\'t handle', 'i was out of line'
+  ];
+  
+  const sharedAccountabilityPhrases = [
+    'we both', 'we all', 'both of us', 'all of us', 'we messed up',
+    'we dropped the ball', 'we need to', 'we should have', 'our fault',
+    'we\'re both responsible', 'we both contributed', 'we all played a part'
+  ];
+  
+  const deflectionDisguisedPhrases = [
+    'i\'m sorry, but you', 'i apologize, but you', 'my bad, but you',
+    'i was wrong, but you', 'i messed up, but you', 'yes i did, but you',
+    'i take responsibility, but', 'that\'s on me, but you', 'i\'m at fault, but'
   ];
   
   const deflectionLanguage = [
     'you always', 'you never', 'that\'s not my', 'it\'s your fault',
     'you made me', 'i had to because you', 'if you hadn\'t', 'you\'re the one',
-    'that\'s just how i am', 'you\'re overreacting', 'you\'re being'
+    'that\'s just how i am', 'you\'re overreacting', 'you\'re being',
+    'you started it', 'you did it first', 'you\'re just as bad'
   ];
   
-  const defensiveLanguage = [
-    'but you', 'i was just', 'i only', 'at least i', 'why are you',
-    'that\'s not what i meant', 'you\'re twisting', 'whatever', 'fine'
-  ];
-  
-  // Analyze each participant
+  // Enhanced participant analysis with sophisticated accountability detection
   function analyzeParticipant(participant: string): any {
-    // Extract participant's messages (simplified analysis)
-    const lowerConv = conversation.toLowerCase();
+    // Extract participant's messages
+    const participantMessages = conversation.toLowerCase().split('\n')
+      .filter(line => line.includes(participant.toLowerCase() + ':'))
+      .map(line => line.split(':').slice(1).join(':').trim());
     
-    // Count patterns (simplified scoring)
-    let ownershipCount = 0;
+    const allText = participantMessages.join(' ').toLowerCase();
+    
+    let fullAccountabilityCount = 0;
+    let sharedAccountabilityCount = 0;
+    let deflectionDisguisedCount = 0;
     let deflectionCount = 0;
-    let defensiveCount = 0;
+    const examples = [];
     
-    ownershipLanguage.forEach(phrase => {
-      if (lowerConv.includes(phrase)) ownershipCount++;
+    // Check for full accountability phrases
+    fullAccountabilityPhrases.forEach(phrase => {
+      if (allText.includes(phrase)) {
+        fullAccountabilityCount++;
+        const matchingMessage = participantMessages.find(msg => 
+          msg.toLowerCase().includes(phrase)
+        );
+        if (matchingMessage && examples.length < 3) {
+          examples.push({
+            text: matchingMessage.slice(0, 120) + (matchingMessage.length > 120 ? '...' : ''),
+            behavioral: 'Full accountability',
+            type: 'full_accountability'
+          });
+        }
+      }
     });
     
+    // Check for shared accountability phrases
+    sharedAccountabilityPhrases.forEach(phrase => {
+      if (allText.includes(phrase)) {
+        sharedAccountabilityCount++;
+        const matchingMessage = participantMessages.find(msg => 
+          msg.toLowerCase().includes(phrase)
+        );
+        if (matchingMessage && examples.length < 3) {
+          examples.push({
+            text: matchingMessage.slice(0, 120) + (matchingMessage.length > 120 ? '...' : ''),
+            behavioral: 'Shared responsibility',
+            type: 'shared_accountability'
+          });
+        }
+      }
+    });
+    
+    // Check for deflection disguised as accountability
+    deflectionDisguisedPhrases.forEach(phrase => {
+      if (allText.includes(phrase)) {
+        deflectionDisguisedCount++;
+        const matchingMessage = participantMessages.find(msg => 
+          msg.toLowerCase().includes(phrase)
+        );
+        if (matchingMessage && examples.length < 3) {
+          examples.push({
+            text: matchingMessage.slice(0, 120) + (matchingMessage.length > 120 ? '...' : ''),
+            behavioral: 'Disguised deflection',
+            type: 'deflection_disguised'
+          });
+        }
+      }
+    });
+    
+    // Check for pure deflection
     deflectionLanguage.forEach(phrase => {
-      if (lowerConv.includes(phrase)) deflectionCount++;
+      if (allText.includes(phrase)) {
+        deflectionCount++;
+        const matchingMessage = participantMessages.find(msg => 
+          msg.toLowerCase().includes(phrase)
+        );
+        if (matchingMessage && examples.length < 3) {
+          examples.push({
+            text: matchingMessage.slice(0, 120) + (matchingMessage.length > 120 ? '...' : ''),
+            behavioral: 'Blame deflection',
+            type: 'deflection'
+          });
+        }
+      }
     });
     
-    defensiveLanguage.forEach(phrase => {
-      if (lowerConv.includes(phrase)) defensiveCount++;
-    });
+    // Calculate sophisticated accountability score
+    let score = 'Low';
+    let signal = '❌';
+    let description = 'Limited accountability language detected';
     
-    // Determine score based on patterns
-    let score = 'Moderate';
-    let signal = '⚠️';
-    let description = 'Occasional ownership, mixed with defensiveness';
-    let sampleQuotes = [];
+    const totalSignals = fullAccountabilityCount + sharedAccountabilityCount + deflectionDisguisedCount + deflectionCount;
     
-    if (ownershipCount > deflectionCount + defensiveCount) {
+    if (fullAccountabilityCount >= 2) {
       score = 'High';
       signal = '✅';
-      description = 'Consistently uses ownership language ("I should\'ve," "I\'m sorry," "I understand")';
-      sampleQuotes = [
-        { text: "I should have communicated better", behavioral: "Taking responsibility" },
-        { text: "You're right, I made a mistake", behavioral: "Acknowledging error" }
-      ];
-    } else if (deflectionCount + defensiveCount > ownershipCount * 2) {
+      description = 'Demonstrates clear personal responsibility without deflection';
+    } else if (fullAccountabilityCount === 1 && deflectionCount === 0) {
+      score = 'Moderate';
+      signal = '⚠️';
+      description = 'Shows some personal accountability';
+    } else if (sharedAccountabilityCount > 0 && deflectionCount === 0) {
+      score = 'Moderate';
+      signal = '⚠️';
+      description = 'Prefers shared responsibility approach';
+    } else if (deflectionDisguisedCount > 0) {
       score = 'Low';
       signal = '❌';
-      description = 'Consistent blame shifting, avoidance of responsibility';
-      sampleQuotes = [
-        { text: "You always make me feel like this", behavioral: "Blame deflection" },
-        { text: "It's not my fault you took it that way", behavioral: "Responsibility avoidance" }
-      ];
-    } else {
-      sampleQuotes = [
-        { text: "I guess I could try harder", behavioral: "Hesitant ownership" },
-        { text: "But you did this too", behavioral: "Defensive deflection" }
-      ];
+      description = 'Uses accountability language but deflects blame';
+    } else if (deflectionCount > 0) {
+      score = 'Low';
+      signal = '❌';
+      description = 'Tends to deflect responsibility onto others';
     }
     
     return {
       score,
       signal,
       description,
-      sampleQuotes,
-      ownershipIndicators: ownershipCount,
-      deflectionIndicators: deflectionCount,
-      defensiveIndicators: defensiveCount
+      sampleQuotes: examples.slice(0, 2), // Limit to 2 best examples
+      fullAccountabilityCount,
+      sharedAccountabilityCount,
+      deflectionDisguisedCount,
+      deflectionCount
     };
   }
   
