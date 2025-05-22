@@ -221,7 +221,7 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   }
   
   // PERSONAL TIER FEATURES:
-  if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
+  if (tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') {
     // Add red flags if available 
     if (tierFeatures.includes('redFlags')) {
       // Make sure we always add redFlags to the filtered analysis, even if empty array
