@@ -8,7 +8,7 @@
  */
 function generateAccountabilitySignals(rawAnalysis: any, me: string, them: string) {
   // Analyze the conversation for accountability language patterns
-  const conversation = rawAnalysis.originalConversation || '';
+  const conversation = rawAnalysis.originalConversation || rawAnalysis.conversation || '';
   
   // Define accountability indicators
   const ownershipLanguage = [
@@ -299,5 +299,6 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
   }
   
   console.log('BETA TIER SERVICE: Analysis complete');
+  console.log('BETA TIER SERVICE: Accountability signals included:', !!betaAnalysis.accountabilityLanguageSignals);
   return betaAnalysis;
 }

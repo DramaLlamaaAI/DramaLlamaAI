@@ -555,9 +555,9 @@ export default function ChatAnalysis() {
                   </div>
                   
                   {/* Beta tier exclusive: Accountability Language Signals */}
-                  {tier === 'beta' && result.accountabilityLanguageSignals && (
+                  {tier === 'beta' && (result as any).accountabilityLanguageSignals && (
                     <AccountabilitySignals 
-                      signals={result.accountabilityLanguageSignals}
+                      signals={(result as any).accountabilityLanguageSignals}
                       participants={{ me, them }}
                     />
                   )}
