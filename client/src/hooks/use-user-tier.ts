@@ -27,7 +27,8 @@ interface UseTierResult {
 const FEATURE_MAP: Record<string, string[]> = {
   'free': ['basicTone', 'ventMode'],
   'personal': ['basicTone', 'ventMode', 'redFlags', 'advice', 'patterns', 'replacements'],
-  'pro': ['basicTone', 'ventMode', 'redFlags', 'advice', 'patterns', 'replacements', 'dramaScore', 'historical', 'liveTalk', 'groupChat']
+  'pro': ['basicTone', 'ventMode', 'redFlags', 'advice', 'patterns', 'replacements', 'dramaScore', 'historical', 'liveTalk', 'groupChat'],
+  'beta': ['basicTone', 'ventMode', 'redFlags', 'advice', 'patterns', 'replacements', 'dramaScore', 'historical', 'liveTalk', 'groupChat']
 };
 
 async function getUserUsage(): Promise<UsageData> {
