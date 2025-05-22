@@ -581,52 +581,7 @@ export const analysisController = {
         
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
         
-        // Fix participant attribution for Beta tier BEFORE tier filtering
-        if (tier === 'beta' && analysis.redFlags && analysis.redFlags.length > 0) {
-          const participantNames = analysis.toneAnalysis?.participantTones ? 
-            Object.keys(analysis.toneAnalysis.participantTones) : [me, them];
-          
-          console.log(`Beta tier participant names: ${participantNames.join(', ')}`);
-          
-          if (participantNames.length >= 2) {
-            analysis.redFlags = analysis.redFlags.map((flag: any, index: number) => {
-              console.log(`Processing flag ${index}: ${flag.type}, current participant: ${flag.participant}`);
-              
-              if (flag.participant === 'Both participants' || !flag.participant) {
-                const flagType = flag.type.toLowerCase();
-                const flagDesc = flag.description?.toLowerCase() || '';
-                
-                console.log(`Analyzing flag: ${flagType}, description: ${flagDesc}`);
-                
-                // For power/narcissism flags, assign to Jordan (first participant) as they typically exhibit superiority
-                if (['power', 'narcissism', 'superiority', 'control', 'dominance'].some(term => 
-                    flagType.includes(term) || flagDesc.includes(term))) {
-                  flag.participant = participantNames[0]; // Jordan
-                  console.log(`Assigned power/narcissism flag to ${participantNames[0]}`);
-                }
-                // For manipulation flags, also typically assign to the dominant participant
-                else if (['manipulation', 'blackmail', 'emotional'].some(term => 
-                    flagType.includes(term) || flagDesc.includes(term))) {
-                  flag.participant = participantNames[0]; // Jordan
-                  console.log(`Assigned manipulation flag to ${participantNames[0]}`);
-                }
-                // For respect/demeaning flags, assign to the aggressive participant
-                else if (['respect', 'demeaning', 'dismissive', 'contempt'].some(term => 
-                    flagType.includes(term) || flagDesc.includes(term))) {
-                  flag.participant = participantNames[0]; // Jordan
-                  console.log(`Assigned respect/demeaning flag to ${participantNames[0]}`);
-                }
-                // If we can't determine, assign to first participant (Jordan) as they show hostile tone
-                else {
-                  flag.participant = participantNames[0];
-                  console.log(`Default assignment to ${participantNames[0]}`);
-                }
-              }
-              return flag;
-            });
-          }
-          console.log(`Fixed participant attribution for ${analysis.redFlags.length} Beta tier red flags`);
-        }
+        // Beta tier gets exact same treatment as Pro tier - no special handling needed
         
         // Filter results based on user's tier
         filteredResults = filterChatAnalysisByTier(analysis, tier);
@@ -645,8 +600,8 @@ export const analysisController = {
         filteredResults = enhanceWithConflictDynamics(filteredResults, tier);
         console.log(`Added ${tier} tier conflict dynamics analysis`);
         
-        // For Personal and Pro tiers, add evasion detection
-        if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
+        // For Personal, Pro, and Beta tiers, add evasion detection
+        if (tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') {
           // Apply evasion detection based on tier level
           filteredResults = enhanceWithEvasionDetection(filteredResults, tier);
           console.log(`Added ${tier} tier evasion detection`);
