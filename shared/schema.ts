@@ -166,6 +166,35 @@ export const TIER_LIMITS = {
       "pdfExport"             // Simple PDF Export
     ],
   },
+  beta: {
+    monthlyLimit: null, // Unlimited during beta period
+    features: [
+      // Full Pro tier features during beta
+      "overallTone",              // Overall Emotional Tone Summary
+      "healthScore",              // Conversation Health Meter
+      "pdfExport",                // PDF Export function
+      "participantTones",         // Participants named
+      "communicationInsights",    // Basic Communication Insights - participants named
+      "advancedToneAnalysis",     // Advanced Emotional Tone Analysis - participants named
+      "tensionContributions",     // Individual Contributions to Tension - participants named
+      "keyQuotes",                // Key Conversation Quotes - participants named 
+      "manipulationScore",        // Manipulation Score - participants named
+      "redFlags",                 // Red Flags Detection & Meters - participants named
+      "communicationStyles",      // Communication Styles Breakdown
+      "accountabilityMeters",     // Accountability Indicators - participants named
+      "conversationDynamics",     // Conversation Dynamics
+      "behaviouralPatterns",      // Behavioural Patterns Detection - participants named
+      "advancedTrendLines",       // Advanced Communication Trend Lines (Red Flags, Gaslighting) - participants named
+      "evasionIdentification",    // Evasion Identification – Avoidance Detection - participants named
+      "messageDominance",         // Message Dominance Analysis – Conversational Control Insights - participants named
+      "emotionalShiftsTimeline",  // Emotional Shifts Timeline (interactive view)
+      "powerDynamics",            // Power Dynamics Analysis
+      "relationshipHealthIndicators", // Relationship Health Assessment with future projection
+      "communicationPatternComparison", // Communication Patterns Comparison
+      "personalizedGrowthRecommendations", // Personalized Growth Recommendations for each participant
+      "redFlagsTimeline"          // Red Flags Timeline and Progression Analysis
+    ],
+  },
   instant: {
     monthlyLimit: 1, // One-time use (1 Chat Upload)
     features: [
