@@ -606,7 +606,7 @@ export const analysisController = {
         // Special handling for Beta tier - use dedicated service
         if (originalTier === 'beta') {
           console.log('BETA TIER: Using dedicated Beta tier service');
-          const { createBetaTierAnalysis } = require('../services/beta-tier-service');
+          const { createBetaTierAnalysis } = await import('../services/beta-tier-service');
           filteredResults = createBetaTierAnalysis(analysis, me, them);
           console.log('BETA TIER: Dedicated analysis complete');
           
