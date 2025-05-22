@@ -116,11 +116,28 @@ export const userEvents = pgTable("user_events", {
   createdAt: timestamp("created_at").notNull().defaultNow()
 });
 
+// System settings for beta mode and other global configurations
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  settingKey: text("setting_key").notNull().unique(),
+  settingValue: text("setting_value").notNull(),
+  description: text("description"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedById: integer("updated_by_id")
+});
+
 export const insertUserEventSchema = createInsertSchema(userEvents).pick({
   userId: true,
   eventType: true,
   oldValue: true,
   newValue: true
+});
+
+export const insertSystemSettingSchema = createInsertSchema(systemSettings).pick({
+  settingKey: true,
+  settingValue: true,
+  description: true,
+  updatedById: true
 });
 
 // Types
@@ -135,6 +152,9 @@ export type InsertUsageLimit = z.infer<typeof insertUsageLimitSchema>;
 
 export type UserEvent = typeof userEvents.$inferSelect;
 export type InsertUserEvent = z.infer<typeof insertUserEventSchema>;
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
 
 // Tier information
 export const TIER_LIMITS = {

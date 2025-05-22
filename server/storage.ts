@@ -75,6 +75,12 @@ export interface IStorage {
     registrationsByDate: { date: string; count: number }[];
     tierConversionRate: { fromTier: string; toTier: string; count: number }[];
   }>;
+  
+  // System Settings for Beta Mode
+  getSystemSetting(key: string): Promise<SystemSetting | undefined>;
+  setSystemSetting(key: string, value: string, description?: string, updatedById?: number): Promise<SystemSetting>;
+  getAllSystemSettings(): Promise<SystemSetting[]>;
+  isBetaModeEnabled(): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
