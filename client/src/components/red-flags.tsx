@@ -197,7 +197,7 @@ export default function RedFlags({
   
   // If we have no flags but this is the personal tier or above, use a fallback
   // But make sure this matches what the free tier would show
-  if ((tier === 'personal' || tier === 'pro' || tier === 'instant') && flagsToDisplay.length === 0) {
+  if ((tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') && flagsToDisplay.length === 0) {
     // For personal tier specifically, if we don't have any flags 
     // from the API but the conversation is likely problematic, show a generic flag
     if (conversation && 
@@ -276,7 +276,7 @@ export default function RedFlags({
   }
   
   // Show available red flags with tier-specific enhancements
-  const isPro = tier === 'pro' || tier === 'instant';
+  const isPro = tier === 'pro' || tier === 'instant' || tier === 'beta';
   
   return (
     <div className="mt-6">

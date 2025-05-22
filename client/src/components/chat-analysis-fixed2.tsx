@@ -561,7 +561,7 @@ export default function ChatAnalysisFixed() {
                         )}
                         
                         {/* Personal tier and above show detailed red flags */}
-                        {(tier === 'personal' || tier === 'pro' || tier === 'instant') && (
+                        {(tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') && (
                           <ul className="list-disc pl-5 space-y-4">
                             {result.redFlags.map((flag, i) => (
                               <li key={i}>
