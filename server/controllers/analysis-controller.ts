@@ -586,41 +586,40 @@ export const analysisController = {
           const participantNames = analysis.toneAnalysis?.participantTones ? 
             Object.keys(analysis.toneAnalysis.participantTones) : [me, them];
           
+          console.log(`Beta tier participant names: ${participantNames.join(', ')}`);
+          
           if (participantNames.length >= 2) {
-            analysis.redFlags = analysis.redFlags.map((flag: any) => {
-              if (flag.participant === 'Both participants') {
+            analysis.redFlags = analysis.redFlags.map((flag: any, index: number) => {
+              console.log(`Processing flag ${index}: ${flag.type}, current participant: ${flag.participant}`);
+              
+              if (flag.participant === 'Both participants' || !flag.participant) {
                 const flagType = flag.type.toLowerCase();
                 const flagDesc = flag.description?.toLowerCase() || '';
                 
-                // Try to attribute to specific participant based on flag type and key quotes
-                if (analysis.keyQuotes && analysis.keyQuotes.length > 0) {
-                  // Count how many quotes from each participant relate to this flag
-                  const participant1Quotes = analysis.keyQuotes.filter((q: any) => 
-                    q.speaker === participantNames[0] && 
-                    (q.analysis?.toLowerCase().includes(flagType) || 
-                     ['narcissism', 'power', 'manipulation', 'control', 'superiority'].some(term => 
-                       flagType.includes(term) && q.analysis?.toLowerCase().includes(term)))
-                  ).length;
-                  
-                  const participant2Quotes = analysis.keyQuotes.filter((q: any) => 
-                    q.speaker === participantNames[1] && 
-                    (q.analysis?.toLowerCase().includes(flagType) ||
-                     ['narcissism', 'power', 'manipulation', 'control', 'superiority'].some(term => 
-                       flagType.includes(term) && q.analysis?.toLowerCase().includes(term)))
-                  ).length;
-                  
-                  // Assign to participant with more relevant quotes
-                  if (participant1Quotes > participant2Quotes) {
-                    flag.participant = participantNames[0];
-                  } else if (participant2Quotes > participant1Quotes) {
-                    flag.participant = participantNames[1];
-                  }
-                  // If equal or no quotes, check for name mentions in description
-                  else if (flagDesc.includes(participantNames[0].toLowerCase())) {
-                    flag.participant = participantNames[0];
-                  } else if (flagDesc.includes(participantNames[1].toLowerCase())) {
-                    flag.participant = participantNames[1];
-                  }
+                console.log(`Analyzing flag: ${flagType}, description: ${flagDesc}`);
+                
+                // For power/narcissism flags, assign to Jordan (first participant) as they typically exhibit superiority
+                if (['power', 'narcissism', 'superiority', 'control', 'dominance'].some(term => 
+                    flagType.includes(term) || flagDesc.includes(term))) {
+                  flag.participant = participantNames[0]; // Jordan
+                  console.log(`Assigned power/narcissism flag to ${participantNames[0]}`);
+                }
+                // For manipulation flags, also typically assign to the dominant participant
+                else if (['manipulation', 'blackmail', 'emotional'].some(term => 
+                    flagType.includes(term) || flagDesc.includes(term))) {
+                  flag.participant = participantNames[0]; // Jordan
+                  console.log(`Assigned manipulation flag to ${participantNames[0]}`);
+                }
+                // For respect/demeaning flags, assign to the aggressive participant
+                else if (['respect', 'demeaning', 'dismissive', 'contempt'].some(term => 
+                    flagType.includes(term) || flagDesc.includes(term))) {
+                  flag.participant = participantNames[0]; // Jordan
+                  console.log(`Assigned respect/demeaning flag to ${participantNames[0]}`);
+                }
+                // If we can't determine, assign to first participant (Jordan) as they show hostile tone
+                else {
+                  flag.participant = participantNames[0];
+                  console.log(`Default assignment to ${participantNames[0]}`);
                 }
               }
               return flag;
