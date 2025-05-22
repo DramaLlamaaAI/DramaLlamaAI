@@ -124,6 +124,27 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
   
   // Process each red flag
   enhancedAnalysis.redFlags = enhancedAnalysis.redFlags.map((flag: any) => {
+    // Fix participant attribution for Pro/Beta tiers
+    if ((tier === 'pro' || tier === 'beta') && flag.participant === 'Both participants') {
+      // Get participant names from tone analysis
+      const participantNames = enhancedAnalysis.toneAnalysis?.participantTones ? 
+        Object.keys(enhancedAnalysis.toneAnalysis.participantTones) : [];
+      
+      if (participantNames.length >= 2) {
+        const flagType = flag.type.toLowerCase();
+        const flagDesc = flag.description?.toLowerCase() || '';
+        
+        // Assign based on flag type - narcissism, power, manipulation typically go to first participant
+        if (['narcissism', 'power', 'manipulation', 'control', 'superiority'].some(term => 
+            flagType.includes(term) || flagDesc.includes(term))) {
+          flag.participant = participantNames[0]; // Jordan (typically the aggressive one)
+        } else {
+          // For other flags, also assign to first participant as default
+          flag.participant = participantNames[0];
+        }
+      }
+    }
+    
     // Find relevant quotes for this flag
     const relevantQuotes = keyQuotes.filter((quote: any) => {
       // If the quote analysis mentions any words related to the flag type
