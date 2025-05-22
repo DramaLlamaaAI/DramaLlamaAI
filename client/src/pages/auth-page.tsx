@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -76,6 +76,13 @@ export default function AuthPage() {
       code: "",
     },
   });
+  
+  // Update email field when pendingEmail changes
+  useEffect(() => {
+    if (pendingEmail) {
+      verificationForm.setValue("email", pendingEmail);
+    }
+  }, [pendingEmail, verificationForm]);
 
   const onLoginSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
@@ -259,6 +266,12 @@ export default function AuthPage() {
                     
                     <Form {...verificationForm}>
                       <form onSubmit={verificationForm.handleSubmit(onVerificationSubmit)} className="space-y-4">
+                        <input 
+                          type="hidden" 
+                          name="email" 
+                          value={pendingEmail}
+                        />
+                        
                         <FormField
                           control={verificationForm.control}
                           name="code"
@@ -272,25 +285,32 @@ export default function AuthPage() {
                                   autoFocus 
                                 />
                               </FormControl>
+                              <FormDescription className="text-xs">
+                                Enter the 6-digit code we sent to your email when you registered
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                         
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row justify-between gap-2 mt-6">
                           <Button 
                             type="button" 
-                            variant="ghost" 
+                            variant="outline" 
                             onClick={() => {
                               setShowVerificationForm(false);
                               setPendingEmail("");
                             }}
-                            className="text-xs"
+                            className="w-full sm:w-auto order-2 sm:order-1"
                           >
                             Back to Login
                           </Button>
                           
-                          <Button type="submit" disabled={isLoading}>
+                          <Button 
+                            type="submit" 
+                            disabled={isLoading}
+                            className="w-full sm:w-auto order-1 sm:order-2"
+                          >
                             {isLoading ? "Verifying..." : "Verify Email"}
                           </Button>
                         </div>
