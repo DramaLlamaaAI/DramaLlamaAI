@@ -1,11 +1,12 @@
 import { 
-  users, analyses, usageLimits, userEvents, promoCodes, promoUsage,
+  users, analyses, usageLimits, userEvents, promoCodes, promoUsage, systemSettings,
   type User, type InsertUser, 
   type Analysis, type InsertAnalysis, 
   type UsageLimit, type InsertUsageLimit,
   type UserEvent, type InsertUserEvent,
   type PromoCode, type InsertPromoCode,
-  type PromoUsage, type InsertPromoUsage
+  type PromoUsage, type InsertPromoUsage,
+  type SystemSetting, type InsertSystemSetting
 } from "@shared/schema";
 
 // Interface for tracking anonymous usage
@@ -91,6 +92,7 @@ export class MemStorage implements IStorage {
   private userEvents: Map<number, UserEvent>;
   private promoCodes: Map<number, PromoCode>;
   private promoUsages: Map<number, PromoUsage>;
+  private systemSettings: Map<string, SystemSetting>;
   private userId: number;
   private analysisId: number;
   private usageLimitId: number;
@@ -106,12 +108,23 @@ export class MemStorage implements IStorage {
     this.userEvents = new Map();
     this.promoCodes = new Map();
     this.promoUsages = new Map();
+    this.systemSettings = new Map();
     this.userId = 1;
     this.analysisId = 1;
     this.usageLimitId = 1;
     this.userEventId = 1;
     this.promoCodeId = 1;
     this.promoUsageId = 1;
+    
+    // Initialize beta mode as enabled by default
+    this.systemSettings.set('beta_mode', {
+      id: 1,
+      settingKey: 'beta_mode',
+      settingValue: 'true',
+      description: 'Enable beta mode with unlimited access for registered users',
+      updatedAt: new Date(),
+      updatedById: null
+    });
     
     // Initialize with a demo user - using proper password format (salt:hash)
     // This is a pre-hashed representation of "password123"
