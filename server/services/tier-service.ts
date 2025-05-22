@@ -1595,6 +1595,12 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
     }
   }
   
+  // BETA TIER: Give exact same analysis as PRO tier
+  if (tier === 'beta') {
+    // Simply run the analysis again as 'pro' tier to get full features
+    return filterChatAnalysisByTier(analysis, 'pro');
+  }
+
   return filteredAnalysis;
 }
 
