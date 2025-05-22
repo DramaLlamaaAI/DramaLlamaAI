@@ -124,8 +124,25 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
   
   // Process each red flag
   enhancedAnalysis.redFlags = enhancedAnalysis.redFlags.map((flag: any) => {
-    // Fix participant attribution for Pro/Beta tiers
-    if ((tier === 'pro' || tier === 'beta') && flag.participant === 'Both participants') {
+    // Fix participant attribution for Beta tiers - always assign to specific participants
+    if (tier === 'beta' && flag.participant === 'Both participants') {
+      // Get participant names from tone analysis
+      const participantNames = enhancedAnalysis.toneAnalysis?.participantTones ? 
+        Object.keys(enhancedAnalysis.toneAnalysis.participantTones) : [];
+      
+      console.log(`BETA TIER: Fixing participant attribution for flag: ${flag.type}, participants available: ${participantNames}`);
+      
+      if (participantNames.length >= 2) {
+        const flagType = flag.type.toLowerCase();
+        const flagDesc = flag.description?.toLowerCase() || '';
+        
+        // For Beta tier, always assign to the first participant (typically the problematic one)
+        flag.participant = participantNames[0];
+        console.log(`BETA TIER: Assigned flag ${flag.type} to ${flag.participant}`);
+      }
+    }
+    // Fix participant attribution for Pro tiers
+    else if (tier === 'pro' && flag.participant === 'Both participants') {
       // Get participant names from tone analysis
       const participantNames = enhancedAnalysis.toneAnalysis?.participantTones ? 
         Object.keys(enhancedAnalysis.toneAnalysis.participantTones) : [];
