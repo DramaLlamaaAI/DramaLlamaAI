@@ -510,8 +510,12 @@ export const analysisController = {
         return res.status(403).json({ message: 'Usage limit reached' });
       }
       
-      // Get user tier (Beta automatically converts to Pro in getUserTier)
-      const tier = getUserTier(req);
+      // Get user tier and convert Beta to Pro at the source
+      let tier = getUserTier(req);
+      if (tier === 'beta') {
+        tier = 'pro';
+        console.log('BETA USER: Converting to Pro tier for complete analysis');
+      }
       console.log(`CHAT ANALYSIS USING TIER: ${tier}`);
       console.log(`DevMode header: ${req.headers['x-dev-mode']}, DevTier header: ${req.headers['x-dev-tier']}`);
       
@@ -557,9 +561,7 @@ export const analysisController = {
             }
           } else {
             // Regular analysis for group chat with other tiers
-            // Convert Beta tier to Pro for analysis
-            const analysisT = tier === 'beta' ? 'pro' : tier;
-            analysis = await analyzeGroupChatConversation(filteredConversation, groupParticipants, analysisT);
+            analysis = await analyzeGroupChatConversation(filteredConversation, groupParticipants, tier);
           }
         } else {
           // Regular two-person chat analysis
@@ -588,9 +590,7 @@ export const analysisController = {
             }
           } else {
             // Regular analysis for other tiers
-            // Convert Beta tier to Pro for analysis
-            const analysisT = tier === 'beta' ? 'pro' : tier;
-            analysis = await analyzeChatConversation(filteredConversation, me, them, analysisT);
+            analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
           }
         }
         
