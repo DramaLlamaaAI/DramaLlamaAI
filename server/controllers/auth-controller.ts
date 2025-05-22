@@ -397,21 +397,8 @@ export const authController = {
       }
       
       const userId = req.session.userId;
-      
-      // BETA MODE: Give unlimited access to all registered users
-      // This will be disabled once payments are ready
-      const user = await storage.getUser(userId);
-      if (user) {
-        return res.status(200).json({ 
-          tier: user.tier, 
-          used: 0, 
-          limit: null, // Unlimited during beta
-          remaining: null,
-          betaMode: true
-        });
-      }
-      
       const usage = await storage.getUserUsage(userId);
+      
       res.status(200).json(usage);
     } catch (error) {
       console.error("Get usage error:", error);
