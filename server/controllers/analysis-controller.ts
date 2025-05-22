@@ -601,6 +601,21 @@ export const analysisController = {
         // Filter results based on tier
         filteredResults = filterChatAnalysisByTier(analysis, tier);
         
+        // Beta tier override: Fix participant attribution directly
+        if (tier === 'beta' && filteredResults.redFlags) {
+          console.log('BETA TIER OVERRIDE: Fixing participant attribution in red flags');
+          const participantNames = [me, them]; // Use the detected participant names
+          
+          filteredResults.redFlags = filteredResults.redFlags.map((flag: any) => {
+            if (flag.participant === 'Both participants' && participantNames.length >= 2) {
+              // Always assign to the first participant (typically the problematic one)
+              flag.participant = participantNames[0];
+              console.log(`BETA OVERRIDE: Changed flag "${flag.type}" from "Both participants" to "${participantNames[0]}"`);
+            }
+            return flag;
+          });
+        }
+        
         // Get direct red flags from the conversation text
         const conversationText = filteredConversation;
         const directRedFlags = detectRedFlagsDirectly(conversationText);
