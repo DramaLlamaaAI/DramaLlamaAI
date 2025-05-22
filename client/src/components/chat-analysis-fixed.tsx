@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
 import { Label } from "@/components/ui/label";
 import RegistrationPrompt from "@/components/registration-prompt";
-import { AccountabilitySignals } from "@/components/accountability-signals";
+import { AccountabilitySignals } from "@/components/accountability-signals-new";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");

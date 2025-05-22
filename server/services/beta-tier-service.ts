@@ -10,31 +10,23 @@ function generateAccountabilitySignals(rawAnalysis: any, me: string, them: strin
   // Analyze the conversation for accountability language patterns
   const conversation = rawAnalysis.originalConversation || rawAnalysis.conversation || '';
   
-  // Enhanced accountability indicators with categories
-  const fullAccountabilityPhrases = [
-    'that\'s on me', 'i was wrong', 'i messed up', 'i take responsibility',
-    'my fault', 'i made a mistake', 'i should have', 'i could have done better',
-    'i\'m responsible for', 'i need to own', 'i failed to', 'i dropped the ball',
-    'i\'m to blame', 'i let you down', 'i didn\'t handle', 'i was out of line'
+  // Accountability Language Signal detection as per user specifications
+  const primaryAccountabilityPhrases = [
+    'that\'s on me', 'i take full responsibility', 'i should have', 'i messed up',
+    'it was my fault', 'i didn\'t do enough', 'my fault', 'i made a mistake',
+    'i was wrong', 'i failed to', 'i dropped the ball', 'i\'m responsible for',
+    'i need to own', 'i let you down', 'i didn\'t handle', 'i was out of line'
   ];
   
-  const sharedAccountabilityPhrases = [
-    'we both', 'we all', 'both of us', 'all of us', 'we messed up',
-    'we dropped the ball', 'we need to', 'we should have', 'our fault',
-    'we\'re both responsible', 'we both contributed', 'we all played a part'
+  const softerAccountabilityCues = [
+    'you\'re right', 'i hear you', 'i\'ll do better', 'i understand',
+    'i could have', 'i didn\'t mean to', 'let me fix', 'i\'ll work on'
   ];
   
   const deflectionDisguisedPhrases = [
     'i\'m sorry, but you', 'i apologize, but you', 'my bad, but you',
     'i was wrong, but you', 'i messed up, but you', 'yes i did, but you',
     'i take responsibility, but', 'that\'s on me, but you', 'i\'m at fault, but'
-  ];
-  
-  const deflectionLanguage = [
-    'you always', 'you never', 'that\'s not my', 'it\'s your fault',
-    'you made me', 'i had to because you', 'if you hadn\'t', 'you\'re the one',
-    'that\'s just how i am', 'you\'re overreacting', 'you\'re being',
-    'you started it', 'you did it first', 'you\'re just as bad'
   ];
   
   // Enhanced participant analysis with sophisticated accountability detection
@@ -46,42 +38,33 @@ function generateAccountabilitySignals(rawAnalysis: any, me: string, them: strin
     
     const allText = participantMessages.join(' ').toLowerCase();
     
-    let fullAccountabilityCount = 0;
-    let sharedAccountabilityCount = 0;
+    let primaryAccountabilityCount = 0;
+    let softerCuesCount = 0;
     let deflectionDisguisedCount = 0;
-    let deflectionCount = 0;
-    const examples = [];
+    const accountabilityQuotes = [];
     
-    // Check for full accountability phrases
-    fullAccountabilityPhrases.forEach(phrase => {
+    // Check for primary accountability phrases
+    primaryAccountabilityPhrases.forEach(phrase => {
       if (allText.includes(phrase)) {
-        fullAccountabilityCount++;
+        primaryAccountabilityCount++;
         const matchingMessage = participantMessages.find(msg => 
           msg.toLowerCase().includes(phrase)
         );
-        if (matchingMessage && examples.length < 3) {
-          examples.push({
-            text: matchingMessage.slice(0, 120) + (matchingMessage.length > 120 ? '...' : ''),
-            behavioral: 'Full accountability',
-            type: 'full_accountability'
-          });
+        if (matchingMessage && accountabilityQuotes.length < 3) {
+          accountabilityQuotes.push(`"${matchingMessage.charAt(0).toUpperCase() + matchingMessage.slice(1)}"`);
         }
       }
     });
     
-    // Check for shared accountability phrases
-    sharedAccountabilityPhrases.forEach(phrase => {
+    // Check for softer accountability cues
+    softerAccountabilityCues.forEach(phrase => {
       if (allText.includes(phrase)) {
-        sharedAccountabilityCount++;
+        softerCuesCount++;
         const matchingMessage = participantMessages.find(msg => 
           msg.toLowerCase().includes(phrase)
         );
-        if (matchingMessage && examples.length < 3) {
-          examples.push({
-            text: matchingMessage.slice(0, 120) + (matchingMessage.length > 120 ? '...' : ''),
-            behavioral: 'Shared responsibility',
-            type: 'shared_accountability'
-          });
+        if (matchingMessage && accountabilityQuotes.length < 3) {
+          accountabilityQuotes.push(`"${matchingMessage.charAt(0).toUpperCase() + matchingMessage.slice(1)}"`);
         }
       }
     });
@@ -90,75 +73,46 @@ function generateAccountabilitySignals(rawAnalysis: any, me: string, them: strin
     deflectionDisguisedPhrases.forEach(phrase => {
       if (allText.includes(phrase)) {
         deflectionDisguisedCount++;
-        const matchingMessage = participantMessages.find(msg => 
-          msg.toLowerCase().includes(phrase)
-        );
-        if (matchingMessage && examples.length < 3) {
-          examples.push({
-            text: matchingMessage.slice(0, 120) + (matchingMessage.length > 120 ? '...' : ''),
-            behavioral: 'Disguised deflection',
-            type: 'deflection_disguised'
-          });
-        }
       }
     });
     
-    // Check for pure deflection
-    deflectionLanguage.forEach(phrase => {
-      if (allText.includes(phrase)) {
-        deflectionCount++;
-        const matchingMessage = participantMessages.find(msg => 
-          msg.toLowerCase().includes(phrase)
-        );
-        if (matchingMessage && examples.length < 3) {
-          examples.push({
-            text: matchingMessage.slice(0, 120) + (matchingMessage.length > 120 ? '...' : ''),
-            behavioral: 'Blame deflection',
-            type: 'deflection'
-          });
-        }
+    // Determine if accountability signals were detected
+    const hasAccountabilitySignals = primaryAccountabilityCount > 0 || softerCuesCount > 0;
+    
+    if (hasAccountabilitySignals) {
+      let insight = '';
+      if (primaryAccountabilityCount >= 2) {
+        insight = `${participant} clearly acknowledges their role in the situation and expresses genuine ownership — a strong indicator of emotional maturity and willingness to take responsibility.`;
+      } else if (primaryAccountabilityCount === 1) {
+        insight = `${participant} takes responsibility for their actions and shows accountability — a positive sign for relationship repair and growth.`;
+      } else if (softerCuesCount > 0) {
+        insight = `${participant} shows openness to feedback and responsibility, though with softer language — indicating receptiveness to accountability.`;
       }
-    });
-    
-    // Calculate sophisticated accountability score
-    let score = 'Low';
-    let signal = '❌';
-    let description = 'Limited accountability language detected';
-    
-    const totalSignals = fullAccountabilityCount + sharedAccountabilityCount + deflectionDisguisedCount + deflectionCount;
-    
-    if (fullAccountabilityCount >= 2) {
-      score = 'High';
-      signal = '✅';
-      description = 'Demonstrates clear personal responsibility without deflection';
-    } else if (fullAccountabilityCount === 1 && deflectionCount === 0) {
-      score = 'Moderate';
-      signal = '⚠️';
-      description = 'Shows some personal accountability';
-    } else if (sharedAccountabilityCount > 0 && deflectionCount === 0) {
-      score = 'Moderate';
-      signal = '⚠️';
-      description = 'Prefers shared responsibility approach';
-    } else if (deflectionDisguisedCount > 0) {
-      score = 'Low';
-      signal = '❌';
-      description = 'Uses accountability language but deflects blame';
-    } else if (deflectionCount > 0) {
-      score = 'Low';
-      signal = '❌';
-      description = 'Tends to deflect responsibility onto others';
+      
+      if (deflectionDisguisedCount > 0) {
+        insight += ` However, some statements deflect blame despite appearing accountable.`;
+      }
+      
+      return {
+        detected: true,
+        participant,
+        quotes: accountabilityQuotes,
+        insight,
+        primaryCount: primaryAccountabilityCount,
+        softerCount: softerCuesCount,
+        deflectionDisguised: deflectionDisguisedCount > 0
+      };
+    } else {
+      return {
+        detected: false,
+        participant,
+        quotes: [],
+        insight: `No accountability language detected from ${participant}.`,
+        primaryCount: 0,
+        softerCount: 0,
+        deflectionDisguised: deflectionDisguisedCount > 0
+      };
     }
-    
-    return {
-      score,
-      signal,
-      description,
-      sampleQuotes: examples.slice(0, 2), // Limit to 2 best examples
-      fullAccountabilityCount,
-      sharedAccountabilityCount,
-      deflectionDisguisedCount,
-      deflectionCount
-    };
   }
   
   const signals = {
