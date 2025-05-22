@@ -643,6 +643,21 @@ export const analysisController = {
         filteredResults = enhanceRedFlags(filteredResults, tier);
         console.log(`Enhanced ${tier} tier red flag detection`);
         
+        // FINAL Beta tier override: Fix participant attribution after all processing
+        if (tier === 'beta' && filteredResults.redFlags) {
+          console.log('FINAL BETA TIER OVERRIDE: Fixing participant attribution in red flags');
+          const participantNames = [me, them]; // Use the detected participant names
+          
+          filteredResults.redFlags = filteredResults.redFlags.map((flag: any) => {
+            if (flag.participant === 'Both participants' && participantNames.length >= 2) {
+              // Always assign to the first participant (typically the problematic one)
+              flag.participant = participantNames[0];
+              console.log(`FINAL BETA OVERRIDE: Changed flag "${flag.type}" from "Both participants" to "${participantNames[0]}"`);
+            }
+            return flag;
+          });
+        }
+        
         // Post-process to precisely remove only stonewalling flags
         if (filteredResults.redFlags && filteredResults.redFlags.length > 0) {
           // Filter out ONLY exact stonewalling flags while keeping other valid ones
