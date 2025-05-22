@@ -598,72 +598,45 @@ export const analysisController = {
         
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
         
-        // Filter results based on tier
-        filteredResults = filterChatAnalysisByTier(analysis, tier);
-        
-        // Beta tier override: Fix participant attribution directly
-        if (tier === 'beta' && filteredResults.redFlags) {
-          console.log('BETA TIER OVERRIDE: Fixing participant attribution in red flags');
-          const participantNames = [me, them]; // Use the detected participant names
-          
-          filteredResults.redFlags = filteredResults.redFlags.map((flag: any) => {
-            if (flag.participant === 'Both participants' && participantNames.length >= 2) {
-              // Always assign to the first participant (typically the problematic one)
-              flag.participant = participantNames[0];
-              console.log(`BETA OVERRIDE: Changed flag "${flag.type}" from "Both participants" to "${participantNames[0]}"`);
-            }
-            return flag;
-          });
-        }
-        
-        // Get direct red flags from the conversation text
-        const conversationText = filteredConversation;
-        const directRedFlags = detectRedFlagsDirectly(conversationText);
-        console.log(`Directly detected ${directRedFlags.length} red flags from text patterns`);
-        
-        // Apply direct red flag detection to ensure we catch toxic patterns
-        // that might be missed by the AI model
-        filteredResults = enhanceWithDirectRedFlags(filteredResults, conversationText);
-        console.log('Added direct red flag detection');
-        
-        // Add conflict dynamics analysis to all tiers with varying detail levels
-        filteredResults = enhanceWithConflictDynamics(filteredResults, tier);
-        console.log(`Added ${tier} tier conflict dynamics analysis`);
-        
-        // For Personal, Pro, and Beta tiers, add evasion detection
-        if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
-          filteredResults = enhanceWithEvasionDetection(filteredResults, tier);
-          console.log(`Added ${tier} tier evasion detection`);
-        }
-        
-        // Add the raw conversation to the analysis for our red flag filters
-        filteredResults.conversation = filteredConversation;
-        
-        // Enhance red flags with conversation-specific insights based on tier
-        filteredResults = enhanceRedFlags(filteredResults, tier);
-        console.log(`Enhanced ${tier} tier red flag detection`);
-        
-        // FINAL Beta tier override: Fix participant attribution after all processing
-        if (tier === 'beta' && filteredResults && filteredResults.redFlags && filteredResults.redFlags.length > 0) {
-          console.log(`FINAL BETA TIER OVERRIDE: Processing ${filteredResults.redFlags.length} red flags for participant attribution`);
-          console.log(`Available participant names: ${me}, ${them}`);
-          
-          filteredResults.redFlags = filteredResults.redFlags.map((flag: any, index: number) => {
-            console.log(`Processing flag ${index + 1}: ${flag.type}, current participant: ${flag.participant}`);
-            
-            // For Beta tier, ALWAYS assign specific participant names - never leave as "Both participants"
-            if (flag.participant === 'Both participants' || !flag.participant) {
-              // Always assign to the first participant (Jordan in this case)
-              flag.participant = me || 'Jordan';
-              console.log(`FINAL BETA OVERRIDE: Changed flag "${flag.type}" from "${flag.participant || 'undefined'}" to "${flag.participant}"`);
-            }
-            
-            return flag;
-          });
-          
-          console.log('FINAL BETA TIER OVERRIDE: Completed participant attribution fix');
+        // Special handling for Beta tier - use dedicated service
+        if (tier === 'beta') {
+          console.log('BETA TIER: Using dedicated Beta tier service');
+          const { createBetaTierAnalysis } = require('../services/beta-tier-service');
+          filteredResults = createBetaTierAnalysis(analysis, me, them);
+          console.log('BETA TIER: Dedicated analysis complete');
         } else {
-          console.log(`FINAL BETA TIER OVERRIDE: Skipped - tier: ${tier}, hasResults: ${!!filteredResults}, hasRedFlags: ${!!(filteredResults && filteredResults.redFlags)}, flagCount: ${filteredResults && filteredResults.redFlags ? filteredResults.redFlags.length : 0}`);
+          // Filter results based on tier for non-Beta users
+          filteredResults = filterChatAnalysisByTier(analysis, tier);
+        }
+        
+        // Skip additional processing for Beta tier (already handled by dedicated service)
+        if (tier !== 'beta') {
+          // Get direct red flags from the conversation text
+          const conversationText = filteredConversation;
+          const directRedFlags = detectRedFlagsDirectly(conversationText);
+          console.log(`Directly detected ${directRedFlags.length} red flags from text patterns`);
+          
+          // Apply direct red flag detection to ensure we catch toxic patterns
+          // that might be missed by the AI model
+          filteredResults = enhanceWithDirectRedFlags(filteredResults, conversationText);
+          console.log('Added direct red flag detection');
+          
+          // Add conflict dynamics analysis to all tiers with varying detail levels
+          filteredResults = enhanceWithConflictDynamics(filteredResults, tier);
+          console.log(`Added ${tier} tier conflict dynamics analysis`);
+          
+          // For Personal, Pro, and Instant tiers, add evasion detection
+          if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
+            filteredResults = enhanceWithEvasionDetection(filteredResults, tier);
+            console.log(`Added ${tier} tier evasion detection`);
+          }
+          
+          // Add the raw conversation to the analysis for our red flag filters
+          filteredResults.conversation = filteredConversation;
+          
+          // Enhance red flags with conversation-specific insights based on tier
+          filteredResults = enhanceRedFlags(filteredResults, tier);
+          console.log(`Enhanced ${tier} tier red flag detection`);
         }
         
         // Post-process to precisely remove only stonewalling flags
