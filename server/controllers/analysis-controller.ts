@@ -516,8 +516,9 @@ export const analysisController = {
         tier = 'pro';
         console.log('BETA USER: Converting to Pro tier for complete analysis');
       }
-      console.log(`CHAT ANALYSIS USING TIER: ${tier}`);
+      console.log(`CHAT ANALYSIS USING TIER: ${tier} (type: ${typeof tier})`);
       console.log(`DevMode header: ${req.headers['x-dev-mode']}, DevTier header: ${req.headers['x-dev-tier']}`);
+      console.log(`Tier comparison result: tier === 'beta' is ${tier === 'beta'}`);
       
       // Track usage
       await trackUsage(req);
