@@ -130,6 +130,8 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
       const participantNames = enhancedAnalysis.toneAnalysis?.participantTones ? 
         Object.keys(enhancedAnalysis.toneAnalysis.participantTones) : [];
       
+      console.log(`Fixing participant attribution for flag: ${flag.type}, participants available: ${participantNames}`);
+      
       if (participantNames.length >= 2) {
         const flagType = flag.type.toLowerCase();
         const flagDesc = flag.description?.toLowerCase() || '';
@@ -138,9 +140,11 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
         if (['narcissism', 'power', 'manipulation', 'control', 'superiority'].some(term => 
             flagType.includes(term) || flagDesc.includes(term))) {
           flag.participant = participantNames[0]; // Jordan (typically the aggressive one)
+          console.log(`Assigned ${flag.type} to ${participantNames[0]}`);
         } else {
           // For other flags, also assign to first participant as default
           flag.participant = participantNames[0];
+          console.log(`Assigned ${flag.type} to ${participantNames[0]} (default)`);
         }
       }
     }

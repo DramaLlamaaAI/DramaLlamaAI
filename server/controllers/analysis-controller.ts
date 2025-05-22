@@ -575,20 +575,14 @@ export const analysisController = {
             }
           } else {
             // Regular analysis for other tiers
-            // Beta tier users get Pro tier analysis
-            const analysisApiTier = tier === 'beta' ? 'pro' : tier;
-            analysis = await analyzeChatConversation(filteredConversation, me, them, analysisApiTier);
+            analysis = await analyzeChatConversation(filteredConversation, me, them, effectiveTier);
           }
         }
         
-        console.log(`Chat analysis complete, applying tier filter: ${tier}`);
+        console.log(`Chat analysis complete, applying tier filter: ${effectiveTier}`);
         
-        // Beta tier gets exact same treatment as Pro tier - no special handling needed
-        
-        // Filter results based on user's tier
-        // Beta tier users get Pro tier filtering (no restrictions)
-        const filterTier = tier === 'beta' ? 'pro' : tier;
-        filteredResults = filterChatAnalysisByTier(analysis, filterTier);
+        // Filter results based on effective tier (Beta = Pro)
+        filteredResults = filterChatAnalysisByTier(analysis, effectiveTier);
         
         // Get direct red flags from the conversation text
         const conversationText = filteredConversation;
@@ -601,24 +595,21 @@ export const analysisController = {
         console.log('Added direct red flag detection');
         
         // Add conflict dynamics analysis to all tiers with varying detail levels
-        // Beta tier gets Pro tier enhancements
-        const enhanceTier = tier === 'beta' ? 'pro' : tier;
-        filteredResults = enhanceWithConflictDynamics(filteredResults, enhanceTier);
-        console.log(`Added ${enhanceTier} tier conflict dynamics analysis`);
+        filteredResults = enhanceWithConflictDynamics(filteredResults, effectiveTier);
+        console.log(`Added ${effectiveTier} tier conflict dynamics analysis`);
         
         // For Personal, Pro, and Beta tiers, add evasion detection
-        if (tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') {
-          // Apply evasion detection based on tier level
-          filteredResults = enhanceWithEvasionDetection(filteredResults, tier);
-          console.log(`Added ${tier} tier evasion detection`);
+        if (effectiveTier === 'personal' || effectiveTier === 'pro' || effectiveTier === 'instant') {
+          filteredResults = enhanceWithEvasionDetection(filteredResults, effectiveTier);
+          console.log(`Added ${effectiveTier} tier evasion detection`);
         }
         
         // Add the raw conversation to the analysis for our red flag filters
         filteredResults.conversation = filteredConversation;
         
         // Enhance red flags with conversation-specific insights based on tier
-        filteredResults = enhanceRedFlags(filteredResults, tier);
-        console.log(`Enhanced ${tier} tier red flag detection`);
+        filteredResults = enhanceRedFlags(filteredResults, effectiveTier);
+        console.log(`Enhanced ${effectiveTier} tier red flag detection`);
         
         // Post-process to precisely remove only stonewalling flags
         if (filteredResults.redFlags && filteredResults.redFlags.length > 0) {
