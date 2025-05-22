@@ -85,6 +85,12 @@ function filterStonewalling(redFlags: any[], conversation?: string): any[] {
 }
 
 export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: string): ChatAnalysisResult {
+  // Beta tier should get full Pro-level results without any filtering
+  if (tier === 'beta') {
+    console.log('Beta tier detected - returning complete unfiltered analysis');
+    return analysis; // Return the original analysis without any modifications
+  }
+  
   // Define interface for the enhanced filtered analysis with all Pro tier features
   type EnhancedChatAnalysisResult = ChatAnalysisResult & {
     communicationPatternComparison?: Record<string, {pattern: string, example: string}[]>;
