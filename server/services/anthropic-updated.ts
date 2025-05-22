@@ -864,7 +864,7 @@ When analyzing conversations:
         console.log('Anthropic API overloaded, attempting fallback to OpenAI');
         
         // Use the OpenAI fallback with the same parameters
-        return await openAiFallbackForChatAnalysis(conversation, me, them, effectiveTier);
+        return await openAiFallbackForChatAnalysis(conversation, me, them, tier);
       } catch (fallbackError) {
         console.error('Fallback to OpenAI also failed:', fallbackError);
         throw new Error('We are experiencing high demand. Please try again in a few minutes or contact support at DramaLlamaConsultancy@gmail.com');

@@ -528,9 +528,8 @@ export const analysisController = {
       let filteredResults: any;
       
       try {
-        // Convert Beta tier to Pro for AI analysis
-        const effectiveTier = tier === 'beta' ? 'pro' : tier;
-        console.log(`Using tier ${effectiveTier} for chat analysis request (original: ${tier})`);
+        // Use the already converted tier (tier was converted to 'pro' if it was 'beta' at line 516)
+        console.log(`Using tier ${tier} for chat analysis request`);
         
         // For free tier, we need to detect red flags
         // To do this properly, we'll run both a free tier analysis AND a personal tier analysis
@@ -563,7 +562,7 @@ export const analysisController = {
             }
           } else {
             // Regular analysis for group chat with other tiers
-            analysis = await analyzeGroupChatConversation(filteredConversation, groupParticipants, effectiveTier);
+            analysis = await analyzeGroupChatConversation(filteredConversation, groupParticipants, tier);
           }
         } else {
           // Regular two-person chat analysis
@@ -592,7 +591,7 @@ export const analysisController = {
             }
           } else {
             // Regular analysis for other tiers
-            analysis = await analyzeChatConversation(filteredConversation, me, them, effectiveTier);
+            analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
           }
         }
         
