@@ -597,11 +597,14 @@ export const analysisController = {
         }
         
         console.log(`Chat analysis complete, applying tier filter: ${tier}`);
-        console.log(`BETA TIER CHECK: tier === 'beta'? ${tier === 'beta'}`);
-        console.log(`BETA TIER CHECK: typeof tier: ${typeof tier}, tier value: "${tier}"`);
+        
+        // Check original tier before getUserTier conversion (Beta -> Pro)
+        const originalTier = req.session && req.session.userId ? (req.session.userTier || 'free') : 'free';
+        console.log(`BETA TIER CHECK: originalTier = ${originalTier}, converted tier = ${tier}`);
+        console.log(`BETA TIER CHECK: originalTier === 'beta'? ${originalTier === 'beta'}`);
         
         // Special handling for Beta tier - use dedicated service
-        if (tier === 'beta') {
+        if (originalTier === 'beta') {
           console.log('BETA TIER: Using dedicated Beta tier service');
           const { createBetaTierAnalysis } = require('../services/beta-tier-service');
           filteredResults = createBetaTierAnalysis(analysis, me, them);
