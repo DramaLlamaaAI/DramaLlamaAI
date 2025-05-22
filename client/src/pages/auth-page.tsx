@@ -30,14 +30,23 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+// Verification Code Schema
+const verificationSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  code: z.string().min(6, "Verification code must be at least 6 characters")
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
+type VerificationFormValues = z.infer<typeof verificationSchema>;
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [errorMsg, setErrorMsg] = useState("");
+  const [showVerificationForm, setShowVerificationForm] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
   const { toast } = useToast();
 
   // Login Form
@@ -59,6 +68,15 @@ export default function AuthPage() {
     },
   });
 
+  // Verification Form
+  const verificationForm = useForm<VerificationFormValues>({
+    resolver: zodResolver(verificationSchema),
+    defaultValues: {
+      email: pendingEmail,
+      code: "",
+    },
+  });
+
   const onLoginSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     setErrorMsg("");
@@ -68,18 +86,22 @@ export default function AuthPage() {
       const data = await response.json();
       
       // Special handling for unverified emails 
-      if (response.status === 403 && data.needsVerification) {
+      if (response.status === 403 && data.error === "Email not verified") {
         toast({
           title: "Email verification required",
-          description: data.message || "Please verify your email before logging in.",
+          description: "Please enter your verification code to activate your account.",
         });
         
-        // If the server included the verification code directly, pass it in the URL
-        if (data.verificationCode) {
-          setLocation(`/verify-email?code=${data.verificationCode}&email=${encodeURIComponent(data.email)}`);
-        } else {
-          setLocation(`/verify-email?email=${encodeURIComponent(data.email)}`);
-        }
+        // Show the verification form and pre-populate the email
+        setPendingEmail(values.email);
+        setShowVerificationForm(true);
+        
+        // Reset form values for the verification form
+        verificationForm.reset({
+          email: values.email,
+          code: ""
+        });
+        
         return;
       }
       
@@ -103,6 +125,47 @@ export default function AuthPage() {
       }, 500);
     } catch (error: any) {
       setErrorMsg(error.message || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onVerificationSubmit = async (values: VerificationFormValues) => {
+    setIsLoading(true);
+    setErrorMsg("");
+    
+    try {
+      const response = await apiRequest("POST", "/api/auth/verify-email", values);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || "Verification failed");
+      }
+      
+      // Successfully verified email
+      toast({
+        title: "Email verified",
+        description: "Your email has been verified. You can now log in.",
+      });
+      
+      // Hide verification form and reset
+      setShowVerificationForm(false);
+      setPendingEmail("");
+      
+      // Invalidate queries to refresh user data in case they're automatically logged in
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/usage"] });
+      
+      // If the server auto-logs in the user after verification
+      if (data.autoLogin) {
+        // Add small delay to ensure session is established
+        setTimeout(() => {
+          // Redirect to home page
+          setLocation("/");
+        }, 500);
+      }
+    } catch (error: any) {
+      setErrorMsg(error.message || "Verification failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -184,52 +247,105 @@ export default function AuthPage() {
             
             <TabsContent value="login">
               <CardContent className="pt-4">
-                <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter your email address" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Enter your password" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="flex justify-end my-2">
-                      <Button 
-                        variant="link" 
-                        className="p-0 h-auto text-xs text-primary/80 hover:text-primary"
-                        onClick={() => setLocation("/forgot-password")}
-                        type="button"
-                      >
-                        Forgot password?
-                      </Button>
+                {showVerificationForm ? (
+                  // Verification Form
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 p-4 rounded-md mb-4">
+                      <h3 className="text-blue-800 font-medium text-sm mb-1">Verification Required</h3>
+                      <p className="text-blue-700 text-xs">
+                        Please enter the verification code sent to your email ({pendingEmail}).
+                      </p>
                     </div>
                     
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Logging in..." : "Log In"}
-                    </Button>
-                  </form>
-                </Form>
+                    <Form {...verificationForm}>
+                      <form onSubmit={verificationForm.handleSubmit(onVerificationSubmit)} className="space-y-4">
+                        <FormField
+                          control={verificationForm.control}
+                          name="code"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Verification Code</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="Enter your verification code" 
+                                  {...field} 
+                                  autoFocus 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="flex justify-between items-center">
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            onClick={() => {
+                              setShowVerificationForm(false);
+                              setPendingEmail("");
+                            }}
+                            className="text-xs"
+                          >
+                            Back to Login
+                          </Button>
+                          
+                          <Button type="submit" disabled={isLoading}>
+                            {isLoading ? "Verifying..." : "Verify Email"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </div>
+                ) : (
+                  // Normal Login Form
+                  <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                      <FormField
+                        control={loginForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your email address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="Enter your password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="flex justify-end my-2">
+                        <Button 
+                          variant="link" 
+                          className="p-0 h-auto text-xs text-primary/80 hover:text-primary"
+                          onClick={() => setLocation("/forgot-password")}
+                          type="button"
+                        >
+                          Forgot password?
+                        </Button>
+                      </div>
+                      
+                      <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? "Logging in..." : "Log In"}
+                      </Button>
+                    </form>
+                  </Form>
+                )}
               </CardContent>
             </TabsContent>
             
