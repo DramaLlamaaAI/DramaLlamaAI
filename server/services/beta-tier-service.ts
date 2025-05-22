@@ -161,10 +161,13 @@ function generateAccountabilitySignals(rawAnalysis: any, me: string, them: strin
     };
   }
   
-  return {
+  const signals = {
     [me]: analyzeParticipant(me),
     [them]: analyzeParticipant(them)
   };
+  
+  console.log('BETA TIER SERVICE: Generated accountability language signals', signals);
+  return signals;
 }
 
 export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: string): any {
@@ -172,8 +175,8 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
   console.log(`Participants: ${me} and ${them}`);
   
   // Generate Accountability Language Signals
-  const accountabilitySignals = generateAccountabilitySignals(rawAnalysis, me, them);
-  console.log('BETA TIER SERVICE: Generated accountability language signals');
+  const accountabilityLanguageSignals = generateAccountabilitySignals(rawAnalysis, me, them);
+  console.log('BETA TIER SERVICE: Generated accountability language signals', accountabilityLanguageSignals);
   
   // Create the Beta tier analysis with all Pro features
   const betaAnalysis = {
@@ -338,7 +341,10 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
         'Don\'t take responsibility for the other person\'s emotions',
         'Consider if this communication pattern is sustainable long-term'
       ]
-    }
+    },
+    
+    // Beta tier exclusive: Accountability Language Signals
+    accountabilityLanguageSignals
   };
   
   // Process red flags with proper participant attribution
