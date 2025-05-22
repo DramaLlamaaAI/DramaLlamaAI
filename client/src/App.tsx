@@ -51,7 +51,6 @@ function Router() {
       <Route path="/pricing" component={PricingRedirect} />
       <Route path="/instant-deep-dive" component={InstantDeepDivePage} />
       <Route path="/admin" component={AdminDashboardEnhanced} />
-      <Route path="/admin-login" component={AdminLoginPage} />
       {/* Support helplines converted to dialog component */}
       <Route component={NotFound} />
     </Switch>

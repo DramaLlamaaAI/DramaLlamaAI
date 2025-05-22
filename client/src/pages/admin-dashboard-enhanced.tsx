@@ -287,7 +287,7 @@ export default function AdminDashboardEnhanced() {
 
   // Function to handle login redirect
   const goToLogin = () => {
-    setLocation('/admin-login');
+    setLocation('/auth');
   };
 
   // If there are API errors, show error message
@@ -353,7 +353,7 @@ export default function AdminDashboardEnhanced() {
           </CardContent>
           <CardFooter>
             <Button onClick={goToLogin} className="w-full">
-              Go to Admin Login
+              Log In
             </Button>
           </CardFooter>
         </Card>
