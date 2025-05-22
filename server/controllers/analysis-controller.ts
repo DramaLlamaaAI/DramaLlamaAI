@@ -17,11 +17,15 @@ const getUserTier = (req: Request): string => {
     // But we'll return 'free' if we're unable to find it
     let tier = req.session.userTier || 'free';
     
+    console.log(`getUserTier: Original tier from session: ${tier}`);
+    
     // Beta tier users get Pro tier treatment
     if (tier === 'beta') {
       tier = 'pro';
+      console.log('getUserTier: Converted Beta to Pro tier');
     }
     
+    console.log(`getUserTier: Final tier: ${tier}`);
     return tier;
   } else {
     // For anonymous users
@@ -506,15 +510,8 @@ export const analysisController = {
         return res.status(403).json({ message: 'Usage limit reached' });
       }
       
-      // Get user tier
-      let tier = getUserTier(req);
-      
-      // Beta tier users get Pro tier treatment throughout the entire analysis
-      if (tier === 'beta') {
-        tier = 'pro';
-        console.log('BETA USER: Converting to Pro tier for complete analysis');
-      }
-      
+      // Get user tier (Beta automatically converts to Pro in getUserTier)
+      const tier = getUserTier(req);
       console.log(`CHAT ANALYSIS USING TIER: ${tier}`);
       console.log(`DevMode header: ${req.headers['x-dev-mode']}, DevTier header: ${req.headers['x-dev-tier']}`);
       
