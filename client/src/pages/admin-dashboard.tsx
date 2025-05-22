@@ -290,7 +290,7 @@ export default function AdminDashboard() {
                                     <SelectItem value="free">Free</SelectItem>
                                     <SelectItem value="personal">Personal</SelectItem>
                                     <SelectItem value="pro">Pro</SelectItem>
-                                    <SelectItem value="beta">Beta (Full Access)</SelectItem>
+                                    <SelectItem value="beta">🚀 Beta (Full Access)</SelectItem>
                                     <SelectItem value="instant">Instant</SelectItem>
                                   </SelectContent>
                                 </Select>
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
                                     <SelectItem value="free">Free</SelectItem>
                                     <SelectItem value="personal">Personal</SelectItem>
                                     <SelectItem value="pro">Pro</SelectItem>
-                                    <SelectItem value="beta">Beta (Full Access)</SelectItem>
+                                    <SelectItem value="beta">🚀 Beta (Full Access)</SelectItem>
                                     <SelectItem value="instant">Instant</SelectItem>
                                   </SelectContent>
                                 </Select>
