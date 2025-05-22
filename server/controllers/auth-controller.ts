@@ -56,6 +56,7 @@ const trackAnonymousSchema = z.object({
 // Schema for email verification
 const verifyEmailSchema = z.object({
   code: z.string().min(6, "Verification code is required"),
+  email: z.string().email("Valid email is required").optional(),
 });
 
 // Schema for resending verification email
@@ -414,8 +415,24 @@ export const authController = {
       console.log(`Verifying email with normalized code: "${code}"`);
       console.log(`Full request body:`, req.body);
       
-      // Check if the verification code is valid
-      const user = await storage.getUserByVerificationCode(code);
+      let user;
+      
+      // First try to find user by verification code
+      user = await storage.getUserByVerificationCode(code);
+      
+      // If email is provided and user was not found by code, try to match by email and code
+      if (!user && parsedBody.email) {
+        console.log(`No user found by code alone, looking up by email: ${parsedBody.email}`);
+        const userByEmail = await storage.getUserByEmail(parsedBody.email);
+        
+        if (userByEmail && 
+            userByEmail.verificationCode && 
+            userByEmail.verificationCode.toUpperCase() === code) {
+          user = userByEmail;
+          console.log(`Found user by email + code match: ${user.username}`);
+        }
+      }
+      
       if (!user) {
         console.log('Invalid verification code, no matching user found');
         return res.status(400).json({ 

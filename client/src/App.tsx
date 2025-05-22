@@ -12,7 +12,8 @@ import NotFound from "@/pages/not-found";
 import SubscriptionPage from "@/pages/subscription";
 import CheckoutPage from "@/pages/checkout";
 import AuthPage from "@/pages/auth-page";
-import VerifyEmailPage from "@/pages/verify-email-page";
+import VerifyEmailPage from "@/pages/verify-email";
+import VerifyEmailPageOld from "@/pages/verify-email-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import PricingRedirect from "@/pages/pricing-redirect";
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/checkout" component={CheckoutPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
+      <Route path="/verify" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       {/* Pricing page now redirects to subscription */}
