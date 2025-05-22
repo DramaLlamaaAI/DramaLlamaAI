@@ -318,9 +318,39 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
         // Process each flag with more detailed, evidence-based analysis
         filteredAnalysis.redFlags = redFlags.map(flag => {
           // Create a base enhanced flag structure
+          // First, try to get participant names from the analysis
+          const participantNames = analysis.toneAnalysis?.participantTones ? 
+            Object.keys(analysis.toneAnalysis.participantTones) : [];
+          
+          // Improve participant attribution for Beta tier
+          let bestParticipant = flag.participant || 'Both participants';
+          if (participantNames.length >= 2) {
+            const flagType = flag.type.toLowerCase();
+            const flagDesc = flag.description?.toLowerCase() || '';
+            
+            // Check if either participant name appears in the flag description
+            const participant1 = participantNames[0];
+            const participant2 = participantNames[1];
+            
+            if (flagDesc.includes(participant1.toLowerCase())) {
+              bestParticipant = participant1;
+            } else if (flagDesc.includes(participant2.toLowerCase())) {
+              bestParticipant = participant2;
+            } else if (analysis.keyQuotes && analysis.keyQuotes.length > 0) {
+              // Try to match based on conversation quotes and patterns
+              const participant1Quotes = analysis.keyQuotes.filter(q => q.speaker === participant1).length;
+              const participant2Quotes = analysis.keyQuotes.filter(q => q.speaker === participant2).length;
+              
+              // If one participant dominates the quotes and this is a dominance/control flag
+              if (['narcissism', 'power', 'manipulation', 'control'].some(term => flagType.includes(term))) {
+                bestParticipant = participant1Quotes > participant2Quotes ? participant1 : participant2;
+              }
+            }
+          }
+          
           const enhancedFlag = { 
             ...flag,
-            participant: flag.participant || 'Both participants',
+            participant: bestParticipant,
             examples: [] as {text: string, from: string}[],
             impact: '', // Will add impact analysis
             progression: '', // Will add progression analysis
