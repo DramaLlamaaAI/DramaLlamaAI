@@ -242,7 +242,16 @@ export default function AuthPage() {
                         )}
                       />
                       
-                      <div className="flex justify-end my-2">
+                      <div className="flex justify-between my-2">
+                        <Button 
+                          variant="link" 
+                          className="p-0 h-auto text-xs text-primary/80 hover:text-primary"
+                          onClick={() => setLocation("/verify")}
+                          type="button"
+                        >
+                          Need to verify your email?
+                        </Button>
+                        
                         <Button 
                           variant="link" 
                           className="p-0 h-auto text-xs text-primary/80 hover:text-primary"
