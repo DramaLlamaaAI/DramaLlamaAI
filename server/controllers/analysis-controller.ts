@@ -575,7 +575,9 @@ export const analysisController = {
             }
           } else {
             // Regular analysis for other tiers
-            analysis = await analyzeChatConversation(filteredConversation, me, them, tier);
+            // Beta tier users get Pro tier analysis
+            const analysisApiTier = tier === 'beta' ? 'pro' : tier;
+            analysis = await analyzeChatConversation(filteredConversation, me, them, analysisApiTier);
           }
         }
         
@@ -584,7 +586,9 @@ export const analysisController = {
         // Beta tier gets exact same treatment as Pro tier - no special handling needed
         
         // Filter results based on user's tier
-        filteredResults = filterChatAnalysisByTier(analysis, tier);
+        // Beta tier users get Pro tier filtering (no restrictions)
+        const filterTier = tier === 'beta' ? 'pro' : tier;
+        filteredResults = filterChatAnalysisByTier(analysis, filterTier);
         
         // Get direct red flags from the conversation text
         const conversationText = filteredConversation;
@@ -597,8 +601,10 @@ export const analysisController = {
         console.log('Added direct red flag detection');
         
         // Add conflict dynamics analysis to all tiers with varying detail levels
-        filteredResults = enhanceWithConflictDynamics(filteredResults, tier);
-        console.log(`Added ${tier} tier conflict dynamics analysis`);
+        // Beta tier gets Pro tier enhancements
+        const enhanceTier = tier === 'beta' ? 'pro' : tier;
+        filteredResults = enhanceWithConflictDynamics(filteredResults, enhanceTier);
+        console.log(`Added ${enhanceTier} tier conflict dynamics analysis`);
         
         // For Personal, Pro, and Beta tiers, add evasion detection
         if (tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') {
