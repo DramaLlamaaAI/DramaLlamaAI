@@ -37,10 +37,12 @@ export async function analyzeChatWithAnthropicAI(conversation: string, me: strin
     apiKey: process.env.ANTHROPIC_API_KEY,
   });
   
-  console.log(`Using Anthropic for ${tier} tier analysis with additional context: ${additionalInstructions.slice(0, 50)}...`);
+  // Convert Beta tier to Pro for complete analysis
+  const effectiveTier = tier === 'beta' ? 'pro' : tier;
+  console.log(`Using Anthropic for ${effectiveTier} tier analysis (original: ${tier}) with additional context: ${additionalInstructions.slice(0, 50)}...`);
   
   // Get the base prompt for this tier
-  const basePrompt = getTierSpecificSystemPrompt(tier, me, them);
+  const basePrompt = getTierSpecificSystemPrompt(effectiveTier, me, them);
   
   // Add any additional instructions for special cases like group chats
   const systemPrompt = additionalInstructions ? 
