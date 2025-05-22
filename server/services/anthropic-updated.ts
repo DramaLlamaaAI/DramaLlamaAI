@@ -552,12 +552,14 @@ function extractRawChatAnalysis(rawContent: string, me: string, them: string): a
 
 export async function analyzeChatConversation(conversation: string, me: string, them: string, tier: string = 'free'): Promise<ChatAnalysisResponse> {
   try {
-    console.log('Attempting to use Anthropic for chat analysis');
+    // Convert Beta tier to Pro for complete analysis
+    const effectiveTier = tier === 'beta' ? 'pro' : tier;
+    console.log(`Attempting to use Anthropic for chat analysis with ${effectiveTier} tier (original: ${tier})`);
     
     // Create a custom enhanced prompt with improved communication pattern analysis
     let enhancedPrompt = '';
     
-    if (tier === 'pro' || tier === 'instant') {
+    if (effectiveTier === 'pro' || effectiveTier === 'instant') {
       enhancedPrompt = `Provide a detailed professional analysis of conversation between ${me} and ${them}.
 
 Pay very close attention to clearly distinguishing between participants and attributing behaviors correctly.
@@ -663,7 +665,7 @@ STRICT RULES:
 
 Here's the conversation:
 ${conversation}`;
-    } else if (tier === 'personal') {
+    } else if (effectiveTier === 'personal') {
       enhancedPrompt = `Analyze this conversation between ${me} and ${them} with a personal-level depth.
       
 Pay close attention to clearly distinguishing between participants and attributing behaviors correctly.
@@ -803,7 +805,7 @@ This is a TECHNICAL INTEGRATION - your JSON MUST be machine-parseable. The app w
 
 REPEAT: This is not a general conversation. You are generating structured data that will be directly consumed by a program. Any text not formatted as perfect JSON will cause errors.
 
-For the ${tier.toUpperCase()} tier, include only the fields specified in the prompt. Keep all analysis brief and concise.
+For the ${effectiveTier.toUpperCase()} tier, include only the fields specified in the prompt. Keep all analysis brief and concise.
 
 When analyzing conversations:
 - Keep descriptions SHORT and SPECIFIC (max 25 words)
@@ -862,7 +864,7 @@ When analyzing conversations:
         console.log('Anthropic API overloaded, attempting fallback to OpenAI');
         
         // Use the OpenAI fallback with the same parameters
-        return await openAiFallbackForChatAnalysis(conversation, me, them, tier);
+        return await openAiFallbackForChatAnalysis(conversation, me, them, effectiveTier);
       } catch (fallbackError) {
         console.error('Fallback to OpenAI also failed:', fallbackError);
         throw new Error('We are experiencing high demand. Please try again in a few minutes or contact support at DramaLlamaConsultancy@gmail.com');
