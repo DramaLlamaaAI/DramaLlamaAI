@@ -314,7 +314,7 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
         });
       } 
       // For pro tier, enhance with quotes, context, and detailed analysis
-      else if (tier === 'pro' || tier === 'instant') {
+      else if (tier === 'pro' || tier === 'instant' || tier === 'beta') {
         // Process each flag with more detailed, evidence-based analysis
         filteredAnalysis.redFlags = redFlags.map(flag => {
           // Create a base enhanced flag structure
@@ -834,7 +834,7 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
   }
   
   // PRO TIER & INSTANT DEEP DIVE ADDITIONAL FEATURES:
-  if (tier === 'pro' || tier === 'instant') {
+  if (tier === 'pro' || tier === 'instant' || tier === 'beta') {
     // Add communication pattern comparison (showing side-by-side patterns of participants)
     if (tierFeatures.includes('communicationStyles') && analysis.toneAnalysis.participantTones) {
       const participantNames = Object.keys(analysis.toneAnalysis.participantTones);
@@ -1586,7 +1586,7 @@ export function filterMessageAnalysisByTier(analysis: MessageAnalysisResult, tie
   // - Basic Intent Detection (intent)
   
   // PERSONAL TIER FEATURES:
-  if (tier === 'personal' || tier === 'pro' || tier === 'instant') {
+  if (tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') {
     // Add suggested reply (part of communication styles)
     if (analysis.suggestedReply) {
       filteredAnalysis.suggestedReply = analysis.suggestedReply;
@@ -1604,7 +1604,7 @@ export function filterMessageAnalysisByTier(analysis: MessageAnalysisResult, tie
   }
   
   // PRO TIER & INSTANT DEEP DIVE ADDITIONAL FEATURES:
-  if (tier === 'pro' || tier === 'instant') {
+  if (tier === 'pro' || tier === 'instant' || tier === 'beta') {
     // Add potential response (advanced analysis)
     if (analysis.potentialResponse) {
       filteredAnalysis.potentialResponse = analysis.potentialResponse;
