@@ -135,9 +135,7 @@ export default function AdminLoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password (or leave blank for default)" 
             />
-            <p className="text-xs text-muted-foreground">
-              Default: Drama11ama#2025
-            </p>
+
           </div>
         </CardContent>
         <CardFooter>
