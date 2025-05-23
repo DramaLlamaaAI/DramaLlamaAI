@@ -378,6 +378,7 @@ export default function AdminDashboardEnhanced() {
                 <TabsList>
                   <TabsTrigger value="users">User Management</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                  <TabsTrigger value="user-analytics">User Analytics</TabsTrigger>
                   <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
                   <TabsTrigger value="promo-reports">Promo Reports</TabsTrigger>
                   <TabsTrigger value="devtools">Developer Tools</TabsTrigger>
