@@ -149,6 +149,7 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
     'i needed you'
   ];
   
+  const protectedFlags: any[] = [];
   const filteredRedFlags = (rawAnalysis.redFlags || []).filter((flag: any) => {
     // Check if flag specifically targets protected safe expressions
     const targetsProtectedExpression = flag.examples?.some((example: any) => {
@@ -171,6 +172,29 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
                                        const text = (example.text || example.quote || '').toLowerCase();
                                        return text.includes('i needed') || text.includes('i felt') || text.includes('i was hurt');
                                      });
+    
+    // If we're protecting this flag, add it to protectedFlags with explanation
+    if (targetsProtectedExpression || isVulnerabilityMislabeled) {
+      let protectionReason = '';
+      let alternativeInterpretations = [];
+      
+      if (targetsProtectedExpression) {
+        protectionReason = 'Expression of emotional vulnerability detected';
+        alternativeInterpretations = ['Healthy emotional communication', 'Defensive reassurance', 'Genuine concern'];
+      } else if (isVulnerabilityMislabeled) {
+        protectionReason = 'Potential misinterpretation of need expression';
+        alternativeInterpretations = ['Vulnerable honesty', 'Request for support', 'Emotional transparency'];
+      }
+      
+      protectedFlags.push({
+        originalType: flag.type,
+        originalDescription: flag.description,
+        protectedQuote: flag.examples?.[0]?.text || flag.examples?.[0]?.quote || 'Quote unavailable',
+        participant: flag.participant,
+        protectionReason,
+        alternativeInterpretations
+      });
+    }
     
     // Keep ALL other red flags - only filter out clearly mislabeled vulnerability
     return !targetsProtectedExpression && !isVulnerabilityMislabeled;
@@ -325,7 +349,18 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
       }
     ],
     
-    // Enhanced nuance detection active
+    // Protected Red Flags - Enhanced Nuance Detection
+    protectedRedFlags: protectedFlags.length > 0 ? {
+      count: protectedFlags.length,
+      explanation: "These potential red flags were protected due to enhanced nuance detection",
+      items: protectedFlags.map(pf => ({
+        quote: `"${pf.protectedQuote}"`,
+        participant: pf.participant,
+        originalFlagType: pf.originalType,
+        protectionReason: pf.protectionReason,
+        couldBe: pf.alternativeInterpretations
+      }))
+    } : null,
 
     // Personalised recommendations for each participant
     personalizedRecommendations: {
