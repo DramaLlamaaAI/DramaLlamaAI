@@ -249,7 +249,7 @@ export default function ChatAnalysisFixed() {
         <Button
           onClick={handleSubmit}
           disabled={!canUseFeature || isSubmitting || !conversation || !me || !them}
-          className="bg-teal-500 hover:bg-teal-600"
+          className="bg-pink-500 hover:bg-pink-600"
         >
           {isSubmitting ? (
             <>
