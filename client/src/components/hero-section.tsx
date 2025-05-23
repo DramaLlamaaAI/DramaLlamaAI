@@ -6,6 +6,7 @@ import llamaImage from "@assets/FB Profile Pic.png";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { getUserUsage } from "@/lib/openai";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 
 export default function HeroSection() {
+  const { user, isLoading } = useAuth();
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   
   // Get usage data for free tier indicator
@@ -89,9 +91,9 @@ export default function HeroSection() {
             )}
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/chat-analysis" className="w-full">
+              <Link href="/analyze" className="w-full">
                 <Button size="lg" className="w-full bg-pink-500 hover:bg-pink-600 text-white border-0 shadow-md hover:shadow-lg">
-                  {tier === 'free' && remaining > 0 ? `Try Now (${remaining} left)` : "Try For Free"}
+                  {!isLoading && user ? "Chat Analysis" : (tier === 'free' && remaining > 0 ? `Try Now (${remaining} left)` : "Try For Free")}
                 </Button>
               </Link>
               
