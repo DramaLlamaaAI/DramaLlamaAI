@@ -91,7 +91,7 @@ export default function HeroSection() {
             )}
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/analyze" className="w-full">
+              <Link href="/chat-analysis" className="w-full">
                 <Button size="lg" className="w-full bg-pink-500 hover:bg-pink-600 text-white border-0 shadow-md hover:shadow-lg">
                   {!isLoading && user ? "Chat Analysis" : (tier === 'free' && remaining > 0 ? `Try Now (${remaining} left)` : "Try For Free")}
                 </Button>
