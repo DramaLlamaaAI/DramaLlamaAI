@@ -325,23 +325,23 @@ export default function ChatAnalysis() {
                     <div className="flex justify-between">
                       <div
                         onClick={(!conversation || isDetectingNames) ? undefined : handleDetectNames}
-                        className="px-4 py-2 rounded-md font-medium transition-colors select-none"
+                        className="px-4 py-2 rounded-md font-medium transition-colors select-none pink-detect-button"
                         style={{
-                          backgroundColor: 'transparent',
-                          border: `1px solid ${(!conversation || isDetectingNames) ? '#9CA3AF' : '#EC4899'}`,
-                          color: (!conversation || isDetectingNames) ? '#9CA3AF' : '#DB2777',
+                          backgroundColor: 'transparent !important',
+                          border: `1px solid ${(!conversation || isDetectingNames) ? '#9CA3AF' : '#EC4899'} !important`,
+                          color: `${(!conversation || isDetectingNames) ? '#9CA3AF' : '#DB2777'} !important`,
                           cursor: (!conversation || isDetectingNames) ? 'not-allowed' : 'pointer'
                         }}
                         onMouseEnter={(e) => {
                           if (!(!conversation || isDetectingNames)) {
-                            e.currentTarget.style.backgroundColor = '#FDF2F8';
-                            e.currentTarget.style.color = '#BE185D';
+                            e.currentTarget.style.setProperty('background-color', '#FDF2F8', 'important');
+                            e.currentTarget.style.setProperty('color', '#BE185D', 'important');
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!(!conversation || isDetectingNames)) {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.color = '#DB2777';
+                            e.currentTarget.style.setProperty('background-color', 'transparent', 'important');
+                            e.currentTarget.style.setProperty('color', '#DB2777', 'important');
                           }
                         }}
                       >
@@ -410,16 +410,17 @@ export default function ChatAnalysis() {
                       />
                       <div
                         onClick={() => fileInputRef.current?.click()}
-                        className="mb-2 px-4 py-2 rounded-md font-medium text-white transition-colors flex items-center gap-2 cursor-pointer select-none"
+                        className="mb-2 px-4 py-2 rounded-md font-medium text-white transition-colors flex items-center gap-2 cursor-pointer select-none pink-upload-button"
                         style={{
-                          backgroundColor: '#EC4899',
-                          border: 'none'
+                          backgroundColor: '#EC4899 !important',
+                          border: 'none !important',
+                          color: 'white !important'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#DB2777';
+                          e.currentTarget.style.setProperty('background-color', '#DB2777', 'important');
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#EC4899';
+                          e.currentTarget.style.setProperty('background-color', '#EC4899', 'important');
                         }}
                       >
                         <Upload className="h-4 w-4" />
