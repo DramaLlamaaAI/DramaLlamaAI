@@ -327,7 +327,23 @@ export default function ChatAnalysis() {
                         onClick={handleDetectNames}
                         disabled={!conversation || isDetectingNames}
                         variant="outline"
-                        className="!border-pink-500 !text-pink-600 hover:!bg-pink-50 hover:!text-pink-700"
+                        style={{
+                          borderColor: '#EC4899',
+                          color: '#DB2777',
+                          backgroundColor: 'transparent'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!e.currentTarget.disabled) {
+                            e.currentTarget.style.backgroundColor = '#FDF2F8';
+                            e.currentTarget.style.color = '#BE185D';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!e.currentTarget.disabled) {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = '#DB2777';
+                          }
+                        }}
                       >
                         {isDetectingNames ? 'Detecting...' : 'Auto-Detect Names'}
                       </Button>
@@ -396,7 +412,18 @@ export default function ChatAnalysis() {
                         type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
-                        className="mb-2 !bg-pink-500 hover:!bg-pink-600 !text-white !border-pink-500"
+                        className="mb-2"
+                        style={{
+                          backgroundColor: '#EC4899',
+                          borderColor: '#EC4899',
+                          color: 'white'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#DB2777';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#EC4899';
+                        }}
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Upload WhatsApp Export
