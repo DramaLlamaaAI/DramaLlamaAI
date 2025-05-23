@@ -90,7 +90,7 @@ export default function HeroSection() {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/chat-analysis" className="w-full">
-                <Button size="lg" className="w-full bg-gradient-to-r from-primary to-secondary text-white border-0 shadow-md hover:shadow-lg">
+                <Button size="lg" className="w-full bg-pink-500 hover:bg-pink-600 text-white border-0 shadow-md hover:shadow-lg">
                   {tier === 'free' && remaining > 0 ? `Try Now (${remaining} left)` : "Try For Free"}
                 </Button>
               </Link>
@@ -99,7 +99,7 @@ export default function HeroSection() {
                 <DialogTrigger asChild>
                   <Button 
                     size="lg" 
-                    className="w-full bg-gradient-to-r from-[#FF69B4] to-[#22C9C9] text-white border-0 shadow-md hover:shadow-lg"
+                    className="w-full bg-pink-500 hover:bg-pink-600 text-white border-0 shadow-md hover:shadow-lg"
                   >
                     How It Works
                   </Button>
