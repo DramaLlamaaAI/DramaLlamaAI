@@ -43,11 +43,14 @@ export function BetaPromoBanner() {
             alt="Drama Llama" 
             className="w-6 h-6 rounded-full object-cover border-2 border-white" 
           />
-          <h3 className="font-bold text-sm">Limited Time Only!</h3>
+          <h3 className="font-bold text-sm">Upgrade to our Beta Tier — FREE!</h3>
         </div>
         
         <p className="text-sm mb-3 leading-relaxed">
-          Register and upgrade to our <strong>Beta tier</strong> which includes independent red flag insights - for free!
+          Get in-depth <strong>🚩 red flag insight</strong> and emotional tone analysis.
+        </p>
+        <p className="text-xs mb-3 text-pink-100">
+          👉 Check our Facebook page to see how to qualify.
         </p>
         
         <div className="flex flex-col gap-2">
