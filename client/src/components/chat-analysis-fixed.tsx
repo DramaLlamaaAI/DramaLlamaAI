@@ -326,22 +326,24 @@ export default function ChatAnalysis() {
                         type="button" 
                         onClick={handleDetectNames}
                         disabled={!conversation || isDetectingNames}
-                        variant="outline"
                         style={{
-                          borderColor: '#EC4899',
-                          color: '#DB2777',
-                          backgroundColor: 'transparent'
+                          borderColor: '#EC4899 !important',
+                          color: '#DB2777 !important',
+                          backgroundColor: 'transparent !important',
+                          border: '1px solid #EC4899'
                         }}
                         onMouseEnter={(e) => {
                           if (!e.currentTarget.disabled) {
                             e.currentTarget.style.backgroundColor = '#FDF2F8';
                             e.currentTarget.style.color = '#BE185D';
+                            e.currentTarget.style.borderColor = '#EC4899';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!e.currentTarget.disabled) {
                             e.currentTarget.style.backgroundColor = 'transparent';
                             e.currentTarget.style.color = '#DB2777';
+                            e.currentTarget.style.borderColor = '#EC4899';
                           }
                         }}
                       >
@@ -410,19 +412,21 @@ export default function ChatAnalysis() {
                       />
                       <Button
                         type="button"
-                        variant="outline"
                         onClick={() => fileInputRef.current?.click()}
                         className="mb-2"
                         style={{
-                          backgroundColor: '#EC4899',
-                          borderColor: '#EC4899',
-                          color: 'white'
+                          backgroundColor: '#EC4899 !important',
+                          borderColor: '#EC4899 !important',
+                          color: 'white !important',
+                          border: '1px solid #EC4899'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = '#DB2777';
+                          e.currentTarget.style.borderColor = '#DB2777';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = '#EC4899';
+                          e.currentTarget.style.borderColor = '#EC4899';
                         }}
                       >
                         <Upload className="h-4 w-4 mr-2" />
