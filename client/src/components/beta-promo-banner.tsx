@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Facebook } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
+import llamaImage from "@assets/FB Profile Pic.png";
 
 export function BetaPromoBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -37,7 +38,11 @@ export function BetaPromoBanner() {
       
       <div className="pr-6">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-lg">🎉</span>
+          <img 
+            src={llamaImage} 
+            alt="Drama Llama" 
+            className="w-6 h-6 rounded-full object-cover border-2 border-white" 
+          />
           <h3 className="font-bold text-sm">Limited Time Only!</h3>
         </div>
         
