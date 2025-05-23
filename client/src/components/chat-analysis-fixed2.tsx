@@ -202,7 +202,7 @@ export default function ChatAnalysisFixed() {
   // Participant Name Form component for reuse
   const ParticipantNameForm = () => (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-[1fr_1fr_auto] gap-4 items-end">
         <div>
           <Label htmlFor="me-name" className="text-sm font-medium">Your Name:</Label>
           <input
@@ -216,26 +216,24 @@ export default function ChatAnalysisFixed() {
         </div>
         <div>
           <Label htmlFor="them-name" className="text-sm font-medium">Their Name:</Label>
-          <div className="flex gap-2">
-            <input
-              id="them-name"
-              type="text"
-              value={them}
-              onChange={(e) => setThem(e.target.value)}
-              className="w-full p-2 border rounded mt-1 text-sm"
-              placeholder="Their name in the chat"
-            />
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={handleSwitchNames}
-              className="mt-1 bg-teal-500 hover:bg-teal-600 text-white border-teal-500 hover:border-teal-600"
-            >
-              Switch
-            </Button>
-          </div>
+          <input
+            id="them-name"
+            type="text"
+            value={them}
+            onChange={(e) => setThem(e.target.value)}
+            className="w-full p-2 border rounded mt-1 text-sm"
+            placeholder="Their name in the chat"
+          />
         </div>
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm" 
+          onClick={handleSwitchNames}
+          className="bg-teal-500 hover:bg-teal-600 text-white border-teal-500 hover:border-teal-600"
+        >
+          Switch
+        </Button>
       </div>
       
       <div className="flex justify-between">
