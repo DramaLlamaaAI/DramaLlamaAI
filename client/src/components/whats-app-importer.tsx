@@ -201,9 +201,9 @@ export default function WhatsAppImporter({ onConversationImport }: WhatsAppImpor
             Accept .txt or .zip files from WhatsApp export
           </span>
         </label>
-        <Button size="lg" className="mx-auto mt-4 bg-primary text-white" onClick={() => fileInputRef.current?.click()}>
+        <Button size="lg" className="mx-auto mt-4 bg-pink-500 hover:bg-pink-600 text-white border-pink-500 hover:border-pink-600" onClick={() => fileInputRef.current?.click()}>
           <FileText className="h-4 w-4 mr-2" />
-          Import Chat
+          Upload Here
         </Button>
         <p className="text-xs text-muted-foreground mt-4">
           To export your WhatsApp chat: Open the chat in WhatsApp → Menu (⋮) → More → Export chat → Without media
