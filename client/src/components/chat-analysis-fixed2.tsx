@@ -230,7 +230,7 @@ export default function ChatAnalysisFixed() {
               variant="outline" 
               size="sm" 
               onClick={handleSwitchNames}
-              className="mt-1"
+              className="mt-1 bg-teal-500 hover:bg-teal-600 text-white border-teal-500 hover:border-teal-600"
             >
               Switch
             </Button>
