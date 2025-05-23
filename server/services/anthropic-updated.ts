@@ -211,7 +211,16 @@ const openai = new OpenAI({
 const prompts = {
   chat: {
     free: `Analyze this conversation between {me} and {them}. 
-    Return a JSON object with the following structure:
+
+    CRITICAL: Do NOT flag healthy emotional expression as red flags:
+    - "I really needed you" = HEALTHY vulnerability, not a problem
+    - "I felt alone" = HEALTHY emotional expression, not a red flag  
+    - Expressing hurt feelings = HEALTHY communication
+    - Sharing emotional needs = POSITIVE behavior
+    
+    Only flag actual harmful behaviors like manipulation, gaslighting, personal attacks.
+    
+    Return a JSON object:
     {
       "toneAnalysis": {
         "overallTone": "string describing the conversation's overall tone",
@@ -220,22 +229,29 @@ const prompts = {
       },
       "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5}],
       "communication": {
-        "patterns": ["string describing specific communication patterns - use distinct, non-repetitive observations"],
-        "dynamics": ["string describing relationship dynamics - focus on how participants interact with each other"],
+        "patterns": ["string describing specific communication patterns"],
+        "dynamics": ["string describing relationship dynamics"],
         "suggestions": ["string with suggestions for improvement"]
       },
       "healthScore": {
         "score": number between 0-100,
-        "label": "Troubled/Needs Work/Good/Excellent",
+        "label": "Troubled/Needs Work/Good/Excellent", 
         "color": "red/yellow/light-green/green"
-      },
-      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for how to reword this statement to be more constructive"}]
+      }
     }
     
     Here's the conversation:
     {conversation}`,
 
-    personal: `Analyze this conversation between {me} and {them}. 
+    personal: `Analyze this conversation between {me} and {them}.
+
+CRITICAL: Do NOT flag healthy emotional expression as red flags:
+- "I really needed you" = HEALTHY vulnerability, not a problem
+- "I felt alone" = HEALTHY emotional expression, not a red flag
+- Expressing hurt feelings = HEALTHY communication  
+- Sharing emotional needs = POSITIVE behavior
+
+Only flag actual harmful behaviors like manipulation, gaslighting, personal attacks.
 
 Carefully distinguish between participants and their behaviors. Be precise about which participant exhibits which behaviors.
 EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specific participant who exhibits the behavior.
@@ -273,6 +289,14 @@ Return a JSON object with the following structure:
     {conversation}`,
 
     pro: `Perform a comprehensive analysis of this conversation between {me} and {them}.
+
+CRITICAL: Do NOT flag healthy emotional expression as red flags:
+- "I really needed you" = HEALTHY vulnerability, not a problem
+- "I felt alone" = HEALTHY emotional expression, not a red flag
+- Expressing hurt feelings = HEALTHY communication
+- Sharing emotional needs = POSITIVE behavior
+
+Only flag actual harmful behaviors like manipulation, gaslighting, personal attacks.
 
 Carefully distinguish between participants and their behaviors. Be precise and accurate.
 EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specific participant who exhibits the behavior.

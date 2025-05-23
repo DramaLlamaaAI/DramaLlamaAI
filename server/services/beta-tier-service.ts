@@ -300,9 +300,9 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
 
   };
   
-  // Process red flags with proper participant attribution
-  if (rawAnalysis.redFlags && rawAnalysis.redFlags.length > 0) {
-    betaAnalysis.redFlags = rawAnalysis.redFlags.map((flag: any) => {
+  // Process filtered red flags with proper participant attribution
+  if (filteredRedFlags && filteredRedFlags.length > 0) {
+    betaAnalysis.redFlags = filteredRedFlags.map((flag: any) => {
       // Always assign specific participant names for Beta tier
       let participant = flag.participant;
       if (participant === 'Both participants' || !participant) {
