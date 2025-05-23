@@ -61,7 +61,7 @@ export function BetaPromoBanner() {
           </Link>
           
           <a 
-            href="https://facebook.com/DramaLlamaAI" 
+            href="https://www.facebook.com/profile.php?id=61575701821212" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 text-xs text-pink-100 hover:text-white transition-colors"
