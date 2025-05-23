@@ -25,6 +25,7 @@ export function BetaPromoBanner() {
     localStorage.setItem('betaPromoDismissed', 'true');
   };
 
+  // Show banner to all users, not tier-specific
   if (!isVisible) return null;
 
   return (

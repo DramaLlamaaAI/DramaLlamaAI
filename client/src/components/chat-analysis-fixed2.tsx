@@ -1127,6 +1127,15 @@ export default function ChatAnalysisFixed() {
                     </div>
                   )}
                   
+                  {/* Support Help Lines - Show with recommendations based on analysis */}
+                  <div className="mt-8">
+                    <SupportHelpLines 
+                      analysisResult={result} 
+                      showRecommended={true}
+                      title="Support Resources"
+                    />
+                  </div>
+                  
                   {/* Prompt to register for more features */}
                   {tier === 'free' && user && <RegistrationPrompt tier="free" />}
                 </>
