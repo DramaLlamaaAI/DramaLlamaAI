@@ -4,6 +4,80 @@
  */
 
 /**
+ * Generate contextual support recommendations based on analysis results
+ */
+function generateSupportRecommendations(rawAnalysis: any, redFlags: any[]) {
+  const healthScore = rawAnalysis.healthScore?.score || 50;
+  const redFlagTypes = redFlags.map(flag => flag.type?.toLowerCase() || '');
+  
+  const recommendations = [];
+  
+  // Critical support for severe red flags
+  if (redFlagTypes.some(type => 
+    type.includes('abuse') || type.includes('threat') || type.includes('violence') || 
+    type.includes('control') || type.includes('isolation') || type.includes('stalking')
+  )) {
+    recommendations.push({
+      type: 'Emergency Support',
+      badge: '🆘 Critical',
+      title: 'National Domestic Violence Hotline',
+      contact: '1-800-799-7233',
+      description: 'Free, confidential support available 24/7',
+      website: 'thehotline.org'
+    });
+  }
+  
+  // Relationship counseling for moderate conflict
+  if (healthScore < 60) {
+    recommendations.push({
+      type: 'Professional Support',
+      badge: '💬 Recommended',
+      title: 'Relationship Counseling',
+      contact: 'Find local therapists',
+      description: 'Professional guidance for communication improvement',
+      website: 'psychologytoday.com'
+    });
+  }
+  
+  // Mental health support for emotional patterns
+  if (redFlagTypes.some(type => 
+    type.includes('depression') || type.includes('anxiety') || type.includes('emotional') ||
+    type.includes('manipulation') || type.includes('gaslighting')
+  )) {
+    recommendations.push({
+      type: 'Mental Health',
+      badge: '🧠 Helpful',
+      title: 'Crisis Text Line',
+      contact: 'Text HOME to 741741',
+      description: 'Free 24/7 mental health support via text',
+      website: 'crisistextline.org'
+    });
+  }
+  
+  // Communication skills for general conflict
+  if (healthScore < 70 || redFlagTypes.some(type => 
+    type.includes('communication') || type.includes('defensive') || type.includes('dismissive')
+  )) {
+    recommendations.push({
+      type: 'Self-Help Resources',
+      badge: '📚 Educational',
+      title: 'Gottman Institute',
+      contact: 'Online resources',
+      description: 'Research-based relationship improvement tools',
+      website: 'gottman.com'
+    });
+  }
+  
+  return {
+    count: recommendations.length,
+    message: recommendations.length > 0 ? 
+      "Based on your conversation analysis, here are some support resources that might be helpful:" :
+      "Your conversation shows healthy communication patterns. Keep up the good work!",
+    resources: recommendations
+  };
+}
+
+/**
  * Generate Accountability Language Signals for each participant
  */
 function generateAccountabilitySignals(rawAnalysis: any, me: string, them: string) {
@@ -381,6 +455,8 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
       ]
     },
     
+    // Support Help Lines - Context-aware recommendations
+    supportHelpLines: generateSupportRecommendations(rawAnalysis, filteredRedFlags)
 
   };
   
