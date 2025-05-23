@@ -150,28 +150,34 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
   ];
   
   const filteredRedFlags = (rawAnalysis.redFlags || []).filter((flag: any) => {
-    // Check if flag targets safe expressions (vulnerable/constructive communication)
-    const isSafeExpression = flag.examples?.some((example: any) => {
+    // Check if flag specifically targets protected safe expressions
+    const targetsProtectedExpression = flag.examples?.some((example: any) => {
       const text = example.text?.toLowerCase() || '';
-      return safeExpressions.some(safe => text.includes(safe));
+      const quote = example.quote?.toLowerCase() || '';
+      const combinedText = `${text} ${quote}`;
+      
+      // Only protect if it's EXACTLY a safe expression (not just containing it)
+      return safeExpressions.some(safe => {
+        const safeWords = safe.split(' ');
+        return safeWords.every(word => combinedText.includes(word)) && 
+               safeWords.length >= 3; // Must be substantial phrase match
+      });
     });
     
-    // Don't flag defensive reassurance or vulnerability as red flags
-    const isDefensiveReassurance = flag.type?.toLowerCase().includes('breakdown') || 
-                                  flag.description?.toLowerCase().includes('expressing needs') ||
-                                  flag.description?.toLowerCase().includes('failure to express');
+    // Only filter out flags for communication breakdown when it's clearly about expressing needs/vulnerability
+    const isVulnerabilityMislabeled = flag.type?.toLowerCase().includes('breakdown') && 
+                                     flag.description?.toLowerCase().includes('expressing needs') &&
+                                     flag.examples?.some((example: any) => {
+                                       const text = (example.text || example.quote || '').toLowerCase();
+                                       return text.includes('i needed') || text.includes('i felt') || text.includes('i was hurt');
+                                     });
     
-    // Context-aware check: Is this emotional expression followed by coercion/blame?
-    const hasCoerciveContext = flag.examples?.some((example: any) => {
-      const text = example.text?.toLowerCase() || '';
-      return text.includes(' but you') || text.includes('you never') || text.includes('you always');
-    });
-    
-    // Only flag if it's not a safe expression, not defensive reassurance, OR if it has coercive context
-    return !isSafeExpression && !isDefensiveReassurance || hasCoerciveContext;
+    // Keep ALL other red flags - only filter out clearly mislabeled vulnerability
+    return !targetsProtectedExpression && !isVulnerabilityMislabeled;
   });
   
   console.log('BETA TIER SERVICE: Filtered red flags from', (rawAnalysis.redFlags || []).length, 'to', filteredRedFlags.length);
+  console.log('BETA TIER SERVICE: Raw red flags:', (rawAnalysis.redFlags || []).map(f => f.type));
   
   // Create the Beta tier analysis with all Pro features
   const betaAnalysis = {
