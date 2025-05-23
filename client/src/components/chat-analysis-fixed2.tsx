@@ -17,7 +17,7 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
 export default function ChatAnalysisFixed() {
-  const [tabValue, setTabValue] = useState("paste");
+  const [tabValue, setTabValue] = useState("upload");
   const [conversationType, setConversationType] = useState<"two_person" | "group_chat">("two_person");
   const [conversation, setConversation] = useState("");
   const [me, setMe] = useState("");
