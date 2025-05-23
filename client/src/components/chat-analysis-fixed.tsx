@@ -327,7 +327,7 @@ export default function ChatAnalysis() {
                         onClick={handleDetectNames}
                         disabled={!conversation || isDetectingNames}
                         variant="outline"
-                        className="border-pink-500 text-pink-600 hover:bg-pink-50 hover:text-pink-700"
+                        className="border-pink-500 text-pink-600 hover:bg-pink-50 hover:text-pink-700 focus:ring-pink-500"
                       >
                         {isDetectingNames ? 'Detecting...' : 'Auto-Detect Names'}
                       </Button>
@@ -396,7 +396,7 @@ export default function ChatAnalysis() {
                         type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
-                        className="mb-2 bg-pink-500 hover:bg-pink-600 text-white border-pink-500"
+                        className="mb-2 bg-pink-500 hover:bg-pink-600 text-white border-pink-500 focus:ring-pink-500"
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Upload WhatsApp Export
