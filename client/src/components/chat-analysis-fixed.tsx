@@ -395,7 +395,7 @@ export default function ChatAnalysis() {
                         type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
-                        className="mb-2"
+                        className="mb-2 bg-pink-500 hover:bg-pink-600 text-white border-pink-500"
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Upload WhatsApp Export
