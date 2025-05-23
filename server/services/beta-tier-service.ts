@@ -219,7 +219,10 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
     communication: rawAnalysis.communication || { patterns: [] },
     
     // 🚩 Red Flag Count + summary, with Key Quotes and named participants
-    redFlags: [],
+    redFlags: filteredRedFlags.map((flag: any) => ({
+      ...flag,
+      participant: flag.participant || (flag.from === me ? me : them)
+    })),
     
     // Communication Style Comparison (You vs Them)
     communicationStyles: {
