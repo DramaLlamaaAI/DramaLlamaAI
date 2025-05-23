@@ -38,11 +38,13 @@ export function BetaPromoBanner() {
       
       <div className="pr-6">
         <div className="flex items-center gap-2 mb-2">
-          <img 
-            src={llamaImage} 
-            alt="Drama Llama" 
-            className="w-6 h-6 rounded-full object-cover border-2 border-white" 
-          />
+          <div className="w-8 h-8 rounded-full bg-white p-0.5 flex items-center justify-center">
+            <img 
+              src={llamaImage} 
+              alt="Drama Llama" 
+              className="w-full h-full rounded-full object-cover" 
+            />
+          </div>
           <h3 className="font-bold text-sm">Upgrade to our Beta Tier — FREE!</h3>
         </div>
         
