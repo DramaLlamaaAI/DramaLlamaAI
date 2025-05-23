@@ -319,8 +319,7 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
       }
     ],
     
-    // Accountability Language Signals - NEW BETA FEATURE
-    accountabilityLanguageSignals: accountabilitySignals,
+    // Enhanced nuance detection active
 
     // Personalised recommendations for each participant
     personalizedRecommendations: {
