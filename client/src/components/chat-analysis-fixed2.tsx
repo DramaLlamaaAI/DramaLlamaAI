@@ -1106,8 +1106,28 @@ export default function ChatAnalysisFixed() {
                   
 
                   
+                  {/* Anonymous user registration prompt */}
+                  {tier === 'free' && !user && (
+                    <div className="bg-gradient-to-r from-pink-50 to-teal-50 rounded-lg p-6 border-2 border-pink-200 shadow-lg">
+                      <div className="text-center">
+                        <h3 className="text-xl font-bold text-pink-700 mb-3">🚀 Join Our Free Beta!</h3>
+                        <p className="text-gray-700 mb-4">
+                          Register now to unlock independent red flag insights, advanced analysis, and unlimited chat reviews during our beta period!
+                        </p>
+                        <Link href="/auth">
+                          <Button className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 text-lg">
+                            Sign Up for Free Beta
+                          </Button>
+                        </Link>
+                        <p className="text-sm text-gray-500 mt-2">
+                          ✓ No credit card required ✓ Full access during beta
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Prompt to register for more features */}
-                  {tier === 'free' && <RegistrationPrompt tier="free" />}
+                  {tier === 'free' && user && <RegistrationPrompt tier="free" />}
                 </>
               )}
             </div>
