@@ -323,11 +323,9 @@ export default function ChatAnalysis() {
                     </div>
                     
                     <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={handleDetectNames}
-                        disabled={!conversation || isDetectingNames}
-                        className="px-4 py-2 rounded-md font-medium transition-colors"
+                      <div
+                        onClick={(!conversation || isDetectingNames) ? undefined : handleDetectNames}
+                        className="px-4 py-2 rounded-md font-medium transition-colors select-none"
                         style={{
                           backgroundColor: 'transparent',
                           border: `1px solid ${(!conversation || isDetectingNames) ? '#9CA3AF' : '#EC4899'}`,
@@ -348,7 +346,7 @@ export default function ChatAnalysis() {
                         }}
                       >
                         {isDetectingNames ? 'Detecting...' : 'Auto-Detect Names'}
-                      </button>
+                      </div>
                       
                       <Button
                         onClick={handleSubmit}
@@ -410,14 +408,12 @@ export default function ChatAnalysis() {
                         accept=".txt,.text,.zip"
                         className="hidden"
                       />
-                      <button
-                        type="button"
+                      <div
                         onClick={() => fileInputRef.current?.click()}
-                        className="mb-2 px-4 py-2 rounded-md font-medium text-white transition-colors flex items-center gap-2"
+                        className="mb-2 px-4 py-2 rounded-md font-medium text-white transition-colors flex items-center gap-2 cursor-pointer select-none"
                         style={{
                           backgroundColor: '#EC4899',
-                          border: 'none',
-                          cursor: 'pointer'
+                          border: 'none'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = '#DB2777';
@@ -428,7 +424,7 @@ export default function ChatAnalysis() {
                       >
                         <Upload className="h-4 w-4" />
                         Upload WhatsApp Export
-                      </button>
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         Upload a .txt file with WhatsApp chat exports,<br /> or a .zip of WhatsApp chat exports
                       </p>
