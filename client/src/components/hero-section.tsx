@@ -44,7 +44,7 @@ export default function HeroSection() {
               <p className="text-md text-white flex items-center justify-center">
                 <span className="mr-3 text-xl">🔐</span>
                 <span>
-                  <strong className="block md:inline text-pink-200 font-bold">Privacy First:</strong> 
+                  <strong className="block md:inline text-pink-300 font-bold">Privacy First:</strong> 
                   <span className="text-white font-medium">No one at Drama Llama can view your chats. Nothing is stored. Ever.</span>
                 </span>
               </p>
