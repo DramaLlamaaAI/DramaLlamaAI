@@ -268,6 +268,8 @@ export default function AdminDashboard() {
                             <TableHead>Email</TableHead>
                             <TableHead>Tier</TableHead>
                             <TableHead>Verified</TableHead>
+                            <TableHead>All Time</TableHead>
+                            <TableHead>This Month</TableHead>
                             <TableHead>Discount</TableHead>
                             <TableHead>Actions</TableHead>
                           </TableRow>
@@ -301,6 +303,12 @@ export default function AdminDashboard() {
                                 ) : (
                                   <span className="text-red-500">Not Verified</span>
                                 )}
+                              </TableCell>
+                              <TableCell className="text-center font-semibold">
+                                {analyticsData?.userUsageStats?.find(stat => stat.id === user.id)?.total_analyses || 0}
+                              </TableCell>
+                              <TableCell className="text-center font-semibold text-blue-600">
+                                {analyticsData?.userUsageStats?.find(stat => stat.id === user.id)?.month_analyses || 0}
                               </TableCell>
                               <TableCell>
                                 {user.discountPercentage > 0 ? (
