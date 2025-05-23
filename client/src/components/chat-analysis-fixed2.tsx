@@ -29,6 +29,7 @@ export default function ChatAnalysisFixed() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: usage } = useQuery({
     queryKey: ['/api/user/usage'],
