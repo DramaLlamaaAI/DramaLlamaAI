@@ -327,6 +327,7 @@ export default function ChatAnalysis() {
                         onClick={handleDetectNames}
                         disabled={!conversation || isDetectingNames}
                         variant="outline"
+                        className="border-pink-500 text-pink-600 hover:bg-pink-50 hover:text-pink-700"
                       >
                         {isDetectingNames ? 'Detecting...' : 'Auto-Detect Names'}
                       </Button>
