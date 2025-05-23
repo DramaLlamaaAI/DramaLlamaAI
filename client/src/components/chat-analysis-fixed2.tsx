@@ -282,12 +282,40 @@ export default function ChatAnalysisFixed() {
             </Alert>
           )}
           
-          <div className="text-center mb-6">
+          <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2 text-pink-800">Chat Analysis</h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-6">
               Analyze your text conversation to understand communication patterns,
               emotional tones and potential issues
             </p>
+            
+            {/* Step Indicators */}
+            <div className="flex items-center justify-center space-x-4 mb-6">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  1
+                </div>
+                <span className="ml-2 text-sm font-medium text-pink-700">Input Chat</span>
+              </div>
+              
+              <div className="w-8 h-px bg-gradient-to-r from-pink-300 to-teal-300"></div>
+              
+              <div className="flex items-center">
+                <div className={`w-8 h-8 ${me && them ? 'bg-teal-500' : 'bg-gray-300'} text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors`}>
+                  2
+                </div>
+                <span className={`ml-2 text-sm font-medium ${me && them ? 'text-teal-700' : 'text-gray-500'} transition-colors`}>Set Names</span>
+              </div>
+              
+              <div className="w-8 h-px bg-gradient-to-r from-teal-300 to-pink-300"></div>
+              
+              <div className="flex items-center">
+                <div className={`w-8 h-8 ${result ? 'bg-gradient-to-r from-pink-500 to-teal-500' : 'bg-gray-300'} text-white rounded-full flex items-center justify-center text-sm font-bold transition-all`}>
+                  3
+                </div>
+                <span className={`ml-2 text-sm font-medium ${result ? 'bg-gradient-to-r from-pink-600 to-teal-600 bg-clip-text text-transparent' : 'text-gray-500'} transition-colors`}>Get Results</span>
+              </div>
+            </div>
           </div>
           
           {!showResults ? (
@@ -301,12 +329,12 @@ export default function ChatAnalysisFixed() {
                 }}
                 className="mt-6"
               >
-                <TabsList className="grid grid-cols-2">
-                  <TabsTrigger value="paste">
+                <TabsList className="grid grid-cols-2 bg-pink-50 border-pink-200">
+                  <TabsTrigger value="paste" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white">
                     <Edit className="h-4 w-4 mr-2" />
                     Paste Text
                   </TabsTrigger>
-                  <TabsTrigger value="upload">
+                  <TabsTrigger value="upload" className="data-[state=active]:bg-teal-500 data-[state=active]:text-white">
                     <Upload className="h-4 w-4 mr-2" />
                     Upload File
                   </TabsTrigger>
