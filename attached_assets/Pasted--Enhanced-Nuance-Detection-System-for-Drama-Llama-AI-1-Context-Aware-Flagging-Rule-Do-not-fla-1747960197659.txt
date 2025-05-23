@@ -1,0 +1,72 @@
+🎯 Enhanced Nuance Detection System for Drama Llama AI
+🔍 1. Context-Aware Flagging
+Rule:
+Do not flag emotionally vulnerable or explanatory language as red flags unless:
+
+It is followed by coercion, guilt-tripping, threats, or blame
+
+It is clearly part of a larger manipulative pattern
+
+Example:
+
+“I’m just overwhelmed. I’m not ignoring you.”
+✅ Interpret as: Defensive reassurance
+❌ Do not flag as: Manipulation or evasion
+
+Prompt/Logic Instruction:
+
+Check whether emotionally charged statements follow an accusation or are part of a de-escalation attempt. Avoid flagging unless emotional pressure or guilt is implied.
+
+🧠 2. Intent Classification Tags
+When analyzing tone, classify key quotes under intent categories to add emotional depth:
+
+Intent	Example
+Defensive reassurance	“I do care about you.”
+Accountability	“That’s on me.” / “I should’ve told you.”
+Minimizing	“You’re overreacting.” / “This isn’t a big deal.”
+Redirecting	“What about when you…?” / “Well, you’re not perfect.”
+Genuine concern	“I didn’t know. How can I help?” / “I want to understand.”
+
+Output example:
+
+“I do care about you.”
+Tone Intent: Defensive reassurance — attempting to calm tension without escalation.
+
+🔒 3. Safe Expression Library (Non-Flagging Phrases)
+Prevent false red flags by maintaining a "Safe List" of phrases that demonstrate emotional openness or de-escalation:
+
+Examples to protect:
+“I’m feeling really overwhelmed.”
+
+“I care about you.”
+
+“This is hard, but I want to understand.”
+
+“Let’s talk about it calmly.”
+
+“I didn’t mean to upset you.”
+
+“I’m not trying to ignore you.”
+
+Prompt Rule:
+
+These phrases should be recognized as emotionally constructive or self-expressive. Do not flag unless paired with manipulation, evasion, or coercive behavior.
+
+⚠️ 4. Fallback Result (When Nuance is Unclear)
+If tone is complex, conflicting, or context is insufficient:
+
+Output:
+⚠️ Nuance Detected:
+This conversation contains emotionally charged language that may carry multiple interpretations. Some statements appear emotionally honest, while others are less clear in tone or intent.
+Intent can vary depending on relationship history and tone of voice not present in text.
+
+📘 5. Nuanced Phrase Reference Set (Starter List)
+Phrase	Suggested Intent
+“I’m not ignoring you, just overwhelmed.”	Defensive reassurance
+“I care about you.”	Genuine concern
+“You always twist things.”	Gaslighting / Blame shifting
+“Fine. Whatever.”	Emotional withdrawal / Passive aggression
+“I’m trying to understand, but this hurts.”	Vulnerable honesty
+“Maybe I’m the problem then.”	Victim positioning / Guilt strategy (context-dependent)
+“Can we please stop fighting?”	De-escalation attempt
+“I didn’t realise that upset you.”	Accountability or Reassurance (depending on tone)

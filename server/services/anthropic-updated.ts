@@ -210,15 +210,27 @@ const openai = new OpenAI({
 // Prompts (similar structure to OpenAI but adapted for Anthropic)
 const prompts = {
   chat: {
-    free: `Analyze this conversation between {me} and {them}. 
+    free: `Analyze this conversation between {me} and {them} with enhanced nuance detection.
 
-    CRITICAL: Do NOT flag healthy emotional expression as red flags:
-    - "I really needed you" = HEALTHY vulnerability, not a problem
-    - "I felt alone" = HEALTHY emotional expression, not a red flag  
-    - Expressing hurt feelings = HEALTHY communication
-    - Sharing emotional needs = POSITIVE behavior
+    🔍 CONTEXT-AWARE FLAGGING RULES:
+    - Do NOT flag emotionally vulnerable or explanatory language unless followed by coercion, guilt-tripping, threats, or blame
+    - "I'm overwhelmed" = Defensive reassurance, NOT manipulation
+    - "I care about you" = Genuine concern, NOT red flag
+    - "I really needed you" = Vulnerable honesty, NOT communication breakdown
     
-    Only flag actual harmful behaviors like manipulation, gaslighting, personal attacks.
+    🔒 SAFE EXPRESSION LIBRARY (Never flag these):
+    - "I'm feeling really overwhelmed"
+    - "I care about you" 
+    - "This is hard, but I want to understand"
+    - "I didn't mean to upset you"
+    - "I'm not trying to ignore you"
+    
+    🧠 INTENT CLASSIFICATION: For key quotes, classify intent:
+    - Defensive reassurance: Attempting to calm tension
+    - Accountability: Taking responsibility 
+    - Minimizing: Dismissing concerns
+    - Redirecting: Deflecting blame
+    - Genuine concern: Showing care
     
     Return a JSON object:
     {
@@ -243,15 +255,28 @@ const prompts = {
     Here's the conversation:
     {conversation}`,
 
-    personal: `Analyze this conversation between {me} and {them}.
+    personal: `Analyze this conversation between {me} and {them} with enhanced nuance detection.
 
-CRITICAL: Do NOT flag healthy emotional expression as red flags:
-- "I really needed you" = HEALTHY vulnerability, not a problem
-- "I felt alone" = HEALTHY emotional expression, not a red flag
-- Expressing hurt feelings = HEALTHY communication  
-- Sharing emotional needs = POSITIVE behavior
+🔍 CONTEXT-AWARE FLAGGING RULES:
+- Do NOT flag emotionally vulnerable or explanatory language unless followed by coercion, guilt-tripping, threats, or blame
+- Check if emotional statements are de-escalation attempts vs manipulation
+- Distinguish between defensive reassurance and actual red flags
 
-Only flag actual harmful behaviors like manipulation, gaslighting, personal attacks.
+🔒 SAFE EXPRESSION LIBRARY (Never flag these as red flags):
+- "I'm feeling really overwhelmed" / "I'm not ignoring you, just overwhelmed"
+- "I care about you" / "I do care about you"  
+- "This is hard, but I want to understand"
+- "I didn't mean to upset you" / "I didn't realize that upset you"
+- "I'm not trying to ignore you"
+- "Let's talk about it calmly"
+- "I really needed you this week" / "I felt completely alone"
+
+🧠 INTENT CLASSIFICATION: For key quotes, classify intent as:
+- Defensive reassurance: Attempting to calm tension without escalation
+- Accountability: Taking responsibility ("That's on me")
+- Minimizing: Dismissing concerns ("You're overreacting")
+- Redirecting: Deflecting blame ("What about when you...")
+- Genuine concern: Showing care ("How can I help?")
 
 Carefully distinguish between participants and their behaviors. Be precise about which participant exhibits which behaviors.
 EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specific participant who exhibits the behavior.
@@ -288,15 +313,33 @@ Return a JSON object with the following structure:
     Here's the conversation:
     {conversation}`,
 
-    pro: `Perform a comprehensive analysis of this conversation between {me} and {them}.
+    pro: `Perform a comprehensive analysis of this conversation between {me} and {them} with enhanced nuance detection.
 
-CRITICAL: Do NOT flag healthy emotional expression as red flags:
-- "I really needed you" = HEALTHY vulnerability, not a problem
-- "I felt alone" = HEALTHY emotional expression, not a red flag
-- Expressing hurt feelings = HEALTHY communication
-- Sharing emotional needs = POSITIVE behavior
+🔍 CONTEXT-AWARE FLAGGING RULES:
+- Do NOT flag emotionally vulnerable or explanatory language unless followed by coercion, guilt-tripping, threats, or blame
+- Check whether emotional statements are part of de-escalation attempts vs manipulation patterns
+- Distinguish between defensive reassurance and actual problematic behavior
 
-Only flag actual harmful behaviors like manipulation, gaslighting, personal attacks.
+🔒 SAFE EXPRESSION LIBRARY (Never flag these as red flags):
+- "I'm feeling really overwhelmed" / "I'm not ignoring you, just overwhelmed" 
+- "I care about you" / "I do care about you"
+- "This is hard, but I want to understand"
+- "I didn't mean to upset you" / "I didn't realize that upset you"
+- "I'm not trying to ignore you"
+- "Let's talk about it calmly" / "Can we please stop fighting?"
+- "I really needed you this week" / "I felt completely alone"
+- "I'm trying to understand, but this hurts"
+
+🧠 INTENT CLASSIFICATION: For key quotes, classify intent as:
+- Defensive reassurance: Attempting to calm tension without escalation
+- Accountability: Taking responsibility ("That's on me", "I should have")
+- Minimizing: Dismissing concerns ("You're overreacting", "This isn't a big deal")
+- Redirecting: Deflecting blame ("What about when you...", "Well, you're not perfect")
+- Genuine concern: Showing care ("How can I help?", "I want to understand")
+- Vulnerable honesty: Expressing needs/feelings directly
+
+⚠️ FALLBACK FOR UNCLEAR NUANCE:
+If tone is complex or context insufficient, note: "Nuance Detected: Some statements may carry multiple interpretations depending on relationship history and tone of voice."
 
 Carefully distinguish between participants and their behaviors. Be precise and accurate.
 EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specific participant who exhibits the behavior.

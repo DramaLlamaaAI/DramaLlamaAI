@@ -128,33 +128,47 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
   console.log('BETA TIER SERVICE: Creating dedicated Beta tier analysis');
   console.log(`Participants: ${me} and ${them}`);
   
-  // Filter out inappropriate red flags that target healthy emotional expression
+  // Enhanced nuance-based filtering using Safe Expression Library
+  const safeExpressions = [
+    'i\'m feeling really overwhelmed',
+    'i\'m not ignoring you, just overwhelmed',
+    'i care about you',
+    'i do care about you',
+    'this is hard, but i want to understand',
+    'i didn\'t mean to upset you',
+    'i didn\'t realize that upset you',
+    'i\'m not trying to ignore you',
+    'let\'s talk about it calmly',
+    'can we please stop fighting?',
+    'i really needed you this week',
+    'i felt completely alone',
+    'i\'m trying to understand, but this hurts',
+    'i really needed you',
+    'i felt alone',
+    'i was hurt',
+    'i needed you'
+  ];
+  
   const filteredRedFlags = (rawAnalysis.redFlags || []).filter((flag: any) => {
-    // Check if the flag is targeting healthy emotional expression
-    const isHealthyExpression = flag.examples?.some((example: any) => {
+    // Check if flag targets safe expressions (vulnerable/constructive communication)
+    const isSafeExpression = flag.examples?.some((example: any) => {
       const text = example.text?.toLowerCase() || '';
-      return (
-        text.includes('i really needed you') ||
-        text.includes('i felt alone') ||
-        text.includes('i felt completely alone') ||
-        text.includes('i was hurt') ||
-        text.includes('i needed you') ||
-        (text.includes('i feel') && !text.includes('angry') && !text.includes('hate'))
-      );
+      return safeExpressions.some(safe => text.includes(safe));
     });
     
-    // Don't flag healthy vulnerability as communication breakdown
-    const isVulnerabilityFlag = flag.type?.toLowerCase().includes('breakdown') || 
-                               flag.description?.toLowerCase().includes('breakdown') ||
-                               (flag.type?.toLowerCase().includes('communication') && 
-                                flag.description?.toLowerCase().includes('expressing needs'));
+    // Don't flag defensive reassurance or vulnerability as red flags
+    const isDefensiveReassurance = flag.type?.toLowerCase().includes('breakdown') || 
+                                  flag.description?.toLowerCase().includes('expressing needs') ||
+                                  flag.description?.toLowerCase().includes('failure to express');
     
-    // Additional check for the specific problematic flag
-    const isFlaggedHealthyStatement = flag.examples?.some((example: any) => {
-      return example.text?.includes('I really needed you this week');
+    // Context-aware check: Is this emotional expression followed by coercion/blame?
+    const hasCoerciveContext = flag.examples?.some((example: any) => {
+      const text = example.text?.toLowerCase() || '';
+      return text.includes(' but you') || text.includes('you never') || text.includes('you always');
     });
     
-    return !isHealthyExpression && !isVulnerabilityFlag && !isFlaggedHealthyStatement;
+    // Only flag if it's not a safe expression, not defensive reassurance, OR if it has coercive context
+    return !isSafeExpression && !isDefensiveReassurance || hasCoerciveContext;
   });
   
   console.log('BETA TIER SERVICE: Filtered red flags from', (rawAnalysis.redFlags || []).length, 'to', filteredRedFlags.length);
