@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PinkButton } from "@/components/pink-button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -322,33 +323,13 @@ export default function ChatAnalysis() {
                     </div>
                     
                     <div className="flex justify-between">
-                      <Button 
-                        type="button" 
+                      <PinkButton 
                         onClick={handleDetectNames}
                         disabled={!conversation || isDetectingNames}
-                        style={{
-                          borderColor: '#EC4899 !important',
-                          color: '#DB2777 !important',
-                          backgroundColor: 'transparent !important',
-                          border: '1px solid #EC4899'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!e.currentTarget.disabled) {
-                            e.currentTarget.style.backgroundColor = '#FDF2F8';
-                            e.currentTarget.style.color = '#BE185D';
-                            e.currentTarget.style.borderColor = '#EC4899';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!e.currentTarget.disabled) {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.color = '#DB2777';
-                            e.currentTarget.style.borderColor = '#EC4899';
-                          }
-                        }}
+                        variant="outline"
                       >
                         {isDetectingNames ? 'Detecting...' : 'Auto-Detect Names'}
-                      </Button>
+                      </PinkButton>
                       
                       <Button
                         onClick={handleSubmit}
@@ -410,28 +391,14 @@ export default function ChatAnalysis() {
                         accept=".txt,.text,.zip"
                         className="hidden"
                       />
-                      <Button
-                        type="button"
+                      <PinkButton
                         onClick={() => fileInputRef.current?.click()}
+                        variant="solid"
                         className="mb-2"
-                        style={{
-                          backgroundColor: '#EC4899 !important',
-                          borderColor: '#EC4899 !important',
-                          color: 'white !important',
-                          border: '1px solid #EC4899'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#DB2777';
-                          e.currentTarget.style.borderColor = '#DB2777';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#EC4899';
-                          e.currentTarget.style.borderColor = '#EC4899';
-                        }}
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Upload WhatsApp Export
-                      </Button>
+                      </PinkButton>
                       <p className="text-sm text-muted-foreground">
                         Upload a .txt file with WhatsApp chat exports,<br /> or a .zip of WhatsApp chat exports
                       </p>

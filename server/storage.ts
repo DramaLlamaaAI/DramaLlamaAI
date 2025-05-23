@@ -642,11 +642,14 @@ export class MemStorage implements IStorage {
     // Sort by count (highest first)
     tierConversionRate.sort((a, b) => b.count - a.count);
     
+    const userUsageStats = await this.getUserUsageStats();
+    
     return {
       totalUsers,
       usersByTier,
       registrationsByDate,
-      tierConversionRate
+      tierConversionRate,
+      userUsageStats
     };
   }
 

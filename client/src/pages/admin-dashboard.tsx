@@ -75,6 +75,15 @@ interface AnalyticsSummary {
   usersByTier: { [tier: string]: number };
   registrationsByDate: { date: string; count: number }[];
   tierConversionRate: { fromTier: string; toTier: string; count: number }[];
+  userUsageStats: {
+    id: number;
+    username: string;
+    email: string;
+    tier: string;
+    total_analyses: number;
+    month_analyses: number;
+    last_analysis: string | null;
+  }[];
 }
 
 // Define schemas for form validation
