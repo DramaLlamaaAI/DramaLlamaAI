@@ -271,17 +271,10 @@ export default function ChatAnalysisFixed() {
   
   return (
     <div className="container py-6">
-      <div className="flex justify-start mb-4">
-        <Link to="/">
-          <Button variant="outline" size="sm">
-            <Home className="h-4 w-4 mr-2" />
-            Back to Home
-          </Button>
-        </Link>
-      </div>
+
       
-      <Card className="mb-6">
-        <CardContent className="p-6">
+      <Card className="mb-6 border-pink-100 shadow-lg">
+        <CardContent className="p-6 bg-gradient-to-r from-pink-50 via-rose-50 to-pink-50">
           {errorMessage && (
             <Alert variant="destructive" className="mb-6">
               <AlertCircle className="h-4 w-4" />
