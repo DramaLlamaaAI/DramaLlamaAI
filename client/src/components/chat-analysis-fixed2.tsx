@@ -290,7 +290,7 @@ export default function ChatAnalysisFixed() {
           )}
           
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold mb-2">Chat Analysis</h1>
+            <h1 className="text-3xl font-bold mb-2 text-pink-800">Chat Analysis</h1>
             <p className="text-muted-foreground">
               Analyze your text conversation to understand communication patterns,
               emotional tones and potential issues
