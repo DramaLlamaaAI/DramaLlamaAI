@@ -128,9 +128,36 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
   console.log('BETA TIER SERVICE: Creating dedicated Beta tier analysis');
   console.log(`Participants: ${me} and ${them}`);
   
-  // Generate Accountability Language Signals
-  const accountabilityLanguageSignals = generateAccountabilitySignals(rawAnalysis, me, them);
-  console.log('BETA TIER SERVICE: Generated accountability language signals', accountabilityLanguageSignals);
+  // Filter out inappropriate red flags that target healthy emotional expression
+  const filteredRedFlags = (rawAnalysis.redFlags || []).filter((flag: any) => {
+    // Check if the flag is targeting healthy emotional expression
+    const isHealthyExpression = flag.examples?.some((example: any) => {
+      const text = example.text?.toLowerCase() || '';
+      return (
+        text.includes('i really needed you') ||
+        text.includes('i felt alone') ||
+        text.includes('i felt completely alone') ||
+        text.includes('i was hurt') ||
+        text.includes('i needed you') ||
+        (text.includes('i feel') && !text.includes('angry') && !text.includes('hate'))
+      );
+    });
+    
+    // Don't flag healthy vulnerability as communication breakdown
+    const isVulnerabilityFlag = flag.type?.toLowerCase().includes('breakdown') || 
+                               flag.description?.toLowerCase().includes('breakdown') ||
+                               (flag.type?.toLowerCase().includes('communication') && 
+                                flag.description?.toLowerCase().includes('expressing needs'));
+    
+    // Additional check for the specific problematic flag
+    const isFlaggedHealthyStatement = flag.examples?.some((example: any) => {
+      return example.text?.includes('I really needed you this week');
+    });
+    
+    return !isHealthyExpression && !isVulnerabilityFlag && !isFlaggedHealthyStatement;
+  });
+  
+  console.log('BETA TIER SERVICE: Filtered red flags from', (rawAnalysis.redFlags || []).length, 'to', filteredRedFlags.length);
   
   // Create the Beta tier analysis with all Pro features
   const betaAnalysis = {
@@ -300,7 +327,7 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
 
   };
   
-  // Process filtered red flags with proper participant attribution
+  // Process filtered red flags with proper participant attribution  
   if (filteredRedFlags && filteredRedFlags.length > 0) {
     betaAnalysis.redFlags = filteredRedFlags.map((flag: any) => {
       // Always assign specific participant names for Beta tier
