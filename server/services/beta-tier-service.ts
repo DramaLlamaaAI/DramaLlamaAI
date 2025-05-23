@@ -368,7 +368,7 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
     console.log(`BETA TIER SERVICE: Processed ${betaAnalysis.redFlags.length} red flags with participant attribution`);
   }
   
-  console.log('BETA TIER SERVICE: Analysis complete');
-  console.log('BETA TIER SERVICE: Accountability signals included:', !!betaAnalysis.accountabilityLanguageSignals);
+  console.log('BETA TIER SERVICE: Analysis complete with enhanced nuance detection');
+  console.log('BETA TIER SERVICE: Enhanced filtering protected', (rawAnalysis.redFlags || []).length - filteredRedFlags.length, 'healthy expressions from being flagged');
   return betaAnalysis;
 }
