@@ -1104,34 +1104,7 @@ export default function ChatAnalysisFixed() {
                     )}
                   </div>
                   
-                  {/* Display usage information based on tier */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-                    <h3 className="font-medium text-gray-900 mb-2">Your Analysis Usage</h3>
-                    {tier === 'free' && (
-                      <div className="text-sm text-gray-600">
-                        <p>Free Tier: {usedAnalyses}/{limit} analyses used</p>
-                        <p className="mt-1">Upgrade to get more analyses per month and additional features.</p>
-                      </div>
-                    )}
-                    {tier === 'personal' && (
-                      <div className="text-sm text-gray-600">
-                        <p>Personal Plan: {usedAnalyses}/5 analyses used this month</p>
-                        <p className="mt-1">Includes emotional tone analysis, red flag detection, and more.</p>
-                      </div>
-                    )}
-                    {tier === 'pro' && (
-                      <div className="text-sm text-gray-600">
-                        <p>Pro Plan: Unlimited analyses - you've used {usedAnalyses} this month</p>
-                        <p className="mt-1">Includes all features plus group chat analysis and advanced insights.</p>
-                      </div>
-                    )}
-                    {tier === 'instant' && (
-                      <div className="text-sm text-gray-600">
-                        <p>Instant Deep Dive: One-time analysis</p>
-                        <p className="mt-1">Includes enhanced analysis with participant summary cards.</p>
-                      </div>
-                    )}
-                  </div>
+
                   
                   {/* Prompt to register for more features */}
                   {tier === 'free' && <RegistrationPrompt tier="free" />}
