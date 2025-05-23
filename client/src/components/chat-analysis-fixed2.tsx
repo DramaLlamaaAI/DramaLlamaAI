@@ -487,16 +487,25 @@ export default function ChatAnalysisFixed() {
               {result && (
                 <>
                   {/* Display analysis results based on user tier */}
-                  <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                    <h2 className="text-xl font-bold mb-4">Analysis of conversation between {me} and {them}</h2>
+                  <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg p-8 mb-8 border border-pink-100">
+                    <h2 className="text-2xl font-bold mb-6 text-pink-800 text-center">Analysis Results</h2>
+                    <p className="text-center text-gray-600 mb-8">Conversation between <span className="font-semibold text-pink-600">{me}</span> and <span className="font-semibold text-teal-600">{them}</span></p>
                     
                     {/* Overall Emotional Tone - Available in all tiers */}
-                    <div className="mb-6">
-                      <h3 className="font-semibold mb-2">Overall Emotional Tone</h3>
-                      <p className="mb-4">{result.toneAnalysis?.overallTone}</p>
+                    <div className="bg-white rounded-lg p-6 mb-8 shadow-sm border border-pink-100">
+                      <h3 className="text-lg font-bold mb-4 text-pink-700 flex items-center">
+                        <div className="w-3 h-3 bg-pink-500 rounded-full mr-3"></div>
+                        Overall Emotional Tone
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed">{result.toneAnalysis?.overallTone}</p>
+                    </div>
                       
-                      {/* Health Score - Available in all tiers */}
-                      <h3 className="font-semibold mb-3">Conversation Health Score</h3>
+                    {/* Health Score - Available in all tiers */}
+                    <div className="bg-white rounded-lg p-6 mb-8 shadow-sm border border-pink-100">
+                      <h3 className="text-lg font-bold mb-4 text-pink-700 flex items-center">
+                        <div className="w-3 h-3 bg-teal-500 rounded-full mr-3"></div>
+                        Conversation Health Score
+                      </h3>
                       <div className="flex flex-col md:flex-row items-center gap-4 mb-2">
                         <div className="w-32 h-32">
                           <CircularProgressbar
