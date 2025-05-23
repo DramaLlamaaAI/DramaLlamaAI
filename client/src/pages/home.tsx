@@ -4,6 +4,7 @@ import HeroSection from "@/components/hero-section";
 import FeaturesSection from "@/components/features-section";
 import PricingSection from "@/components/pricing-section";
 import HowItWorks from "@/components/how-it-works";
+import { SupportHelpLines } from "@/components/support-help-lines";
 import { Helmet } from "react-helmet-async";
 import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
@@ -135,6 +136,13 @@ export default function Home() {
         
         <FeaturesSection />
         <PricingSection />
+        
+        {/* Support Help Lines Section */}
+        <section className="py-16 bg-gray-50">
+          <div className="container max-w-4xl">
+            <SupportHelpLines title="Support & Help Resources" />
+          </div>
+        </section>
       </main>
       
     </>

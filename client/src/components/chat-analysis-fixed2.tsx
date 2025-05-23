@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
+import { SupportHelpLines } from './support-help-lines';
 import { Label } from "@/components/ui/label";
 import RegistrationPrompt from "@/components/registration-prompt";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
