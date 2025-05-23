@@ -204,7 +204,7 @@ export default function ChatAnalysisFixed() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="me-name" className="text-sm font-medium">Your Name/Identifier:</Label>
+          <Label htmlFor="me-name" className="text-sm font-medium">Your Name:</Label>
           <input
             id="me-name"
             type="text"
@@ -215,7 +215,7 @@ export default function ChatAnalysisFixed() {
           />
         </div>
         <div>
-          <Label htmlFor="them-name" className="text-sm font-medium">Other Person's Name:</Label>
+          <Label htmlFor="them-name" className="text-sm font-medium">Their Name:</Label>
           <div className="flex gap-2">
             <input
               id="them-name"
