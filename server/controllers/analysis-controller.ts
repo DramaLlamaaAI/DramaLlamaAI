@@ -674,6 +674,9 @@ export const analysisController = {
         
         // For free tier, add red flag types from personal analysis
         if (tier === 'free') {
+          // Initialize directRedFlags array
+          const directRedFlags: any[] = [];
+          
           // First check if we detected flags directly from patterns
           if (directRedFlags.length > 0) {
             // Get unique flag types from directly detected flags
