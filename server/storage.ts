@@ -642,7 +642,31 @@ export class MemStorage implements IStorage {
     // Sort by count (highest first)
     tierConversionRate.sort((a, b) => b.count - a.count);
     
-    const userUsageStats = await this.getUserUsageStats();
+    // Calculate user usage stats
+    const currentMonth = new Date();
+    currentMonth.setDate(1);
+    currentMonth.setHours(0, 0, 0, 0);
+    
+    const analyses = Array.from(this.analyses.values());
+    
+    const userUsageStats = users.map(user => {
+      const userAnalyses = analyses.filter(analysis => analysis.userId === user.id);
+      const monthAnalyses = userAnalyses.filter(analysis => 
+        analysis.createdAt >= currentMonth
+      );
+      
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        tier: user.tier,
+        total_analyses: userAnalyses.length,
+        month_analyses: monthAnalyses.length,
+        last_analysis: userAnalyses.length > 0 
+          ? userAnalyses[userAnalyses.length - 1].createdAt.toISOString()
+          : null
+      };
+    }).sort((a, b) => b.total_analyses - a.total_analyses);
     
     return {
       totalUsers,

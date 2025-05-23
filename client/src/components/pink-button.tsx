@@ -17,59 +17,58 @@ export function PinkButton({
   className = '',
   type = 'button'
 }: PinkButtonProps) {
-  const baseStyle = {
-    padding: '8px 16px',
-    borderRadius: '6px',
-    fontWeight: '500',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.5 : 1,
-    transition: 'all 0.2s ease',
-    border: '1px solid #EC4899',
-    fontSize: '14px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px'
-  };
-
-  const solidStyle = {
-    ...baseStyle,
-    backgroundColor: '#EC4899',
-    color: 'white',
-  };
-
-  const outlineStyle = {
-    ...baseStyle,
-    backgroundColor: 'transparent',
-    color: '#DB2777',
-  };
-
-  const [isHovered, setIsHovered] = React.useState(false);
-
-  const getStyle = () => {
-    if (variant === 'solid') {
-      return {
-        ...solidStyle,
-        backgroundColor: isHovered && !disabled ? '#DB2777' : '#EC4899',
-      };
-    } else {
-      return {
-        ...outlineStyle,
-        backgroundColor: isHovered && !disabled ? '#FDF2F8' : 'transparent',
-        color: isHovered && !disabled ? '#BE185D' : '#DB2777',
-      };
-    }
-  };
+  if (variant === 'solid') {
+    return (
+      <button
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+        className={`${className} px-4 py-2 rounded-md font-medium text-white transition-colors`}
+        style={{
+          backgroundColor: disabled ? '#9CA3AF' : '#EC4899',
+          border: 'none',
+          cursor: disabled ? 'not-allowed' : 'pointer'
+        }}
+        onMouseEnter={(e) => {
+          if (!disabled) {
+            e.currentTarget.style.backgroundColor = '#DB2777';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!disabled) {
+            e.currentTarget.style.backgroundColor = '#EC4899';
+          }
+        }}
+      >
+        {children}
+      </button>
+    );
+  }
 
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={className}
-      style={getStyle()}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className={`${className} px-4 py-2 rounded-md font-medium transition-colors`}
+      style={{
+        backgroundColor: 'transparent',
+        border: `1px solid ${disabled ? '#9CA3AF' : '#EC4899'}`,
+        color: disabled ? '#9CA3AF' : '#DB2777',
+        cursor: disabled ? 'not-allowed' : 'pointer'
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.backgroundColor = '#FDF2F8';
+          e.currentTarget.style.color = '#BE185D';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = '#DB2777';
+        }
+      }}
     >
       {children}
     </button>
