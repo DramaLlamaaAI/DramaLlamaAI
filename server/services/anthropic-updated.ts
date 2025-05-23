@@ -279,16 +279,12 @@ EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specifi
 DO NOT label a behavior as present in both participants unless you have clear evidence from multiple messages.
 Analyze quotes and exact wording to determine which participant is exhibiting each behavior.
 
-IMPORTANT RED FLAG GUIDANCE:
-1. Only identify GENUINE red flags based on clear patterns of problematic behavior.
-2. Use specific quotes from the conversation as evidence for each red flag.
-3. Do not over-interpret single messages - look for consistent patterns.
-4. Rate severity accurately - don't inflate minor issues to severe red flags.
-5. ONLY identify a red flag if it's clearly demonstrated in multiple messages.
-6. Be extremely discerning - do not label normal communication as red flags.
-7. For each red flag, provide concrete examples from the text.
-8. Never invent red flags that aren't explicitly supported by the conversation text.
-9. When providing "impact" analysis, make it specific to what's in the conversation, not generic.
+CRITICAL RED FLAG GUIDANCE:
+- Only flag genuinely harmful behaviors: manipulation, gaslighting, attacks, contempt
+- Do NOT flag emotional vulnerability, expressing needs, or sharing feelings
+- "I really needed you" = HEALTHY vulnerability, not a red flag
+- "I felt alone" = HEALTHY emotional expression, not a problem
+- Be extremely conservative with red flag identification
 
 Return a JSON object with the following structure:
     {
