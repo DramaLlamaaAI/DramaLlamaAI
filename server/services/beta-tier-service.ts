@@ -297,8 +297,7 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
       ]
     },
     
-    // Beta tier exclusive: Accountability Language Signals
-    accountabilityLanguageSignals
+
   };
   
   // Process red flags with proper participant attribution

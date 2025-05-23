@@ -14,7 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
 import { Label } from "@/components/ui/label";
 import RegistrationPrompt from "@/components/registration-prompt";
-import { AccountabilitySignals } from "@/components/accountability-signals-new";
+
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -554,13 +554,7 @@ export default function ChatAnalysis() {
                     )}
                   </div>
                   
-                  {/* Beta tier exclusive: Accountability Language Signals */}
-                  {tier === 'beta' && (result as any).accountabilityLanguageSignals && (
-                    <AccountabilitySignals 
-                      signals={(result as any).accountabilityLanguageSignals}
-                      participants={{ me, them }}
-                    />
-                  )}
+
                   
                   {/* Prompt to register for more features */}
                   {tier === 'free' && <RegistrationPrompt tier="free" />}
