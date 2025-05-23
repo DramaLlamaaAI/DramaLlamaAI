@@ -9,6 +9,7 @@ import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, ChatAnalysisResponse } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
 import { Label } from "@/components/ui/label";
