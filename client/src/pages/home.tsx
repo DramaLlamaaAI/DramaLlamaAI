@@ -136,9 +136,10 @@ export default function Home() {
         </div>
         
         <FeaturesSection />
-        <PricingSection />
         
-        {/* Support Section */}
+
+        
+        <PricingSection />
         <section className="py-12 bg-white">
           <div className="container max-w-4xl">
             <h2 className="text-2xl font-bold text-center mb-8 text-gray-900">💝 Support & Resources</h2>
