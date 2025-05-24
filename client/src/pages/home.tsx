@@ -102,51 +102,6 @@ export default function Home() {
                 </TooltipProvider>
               </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="text-primary mb-3 flex justify-center">
-                  <MessageSquare className="h-16 w-16" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Chat Analysis</h3>
-                <p className="text-sm text-muted-foreground">
-                  Upload or paste a conversation to get detailed insights about communication patterns and emotional tone.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-[#2CCFCF] mb-3 flex justify-center">
-                  <Zap className="h-16 w-16" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Vent Mode</h3>
-                <p className="text-sm text-muted-foreground">
-                  Rewrite emotional messages into calmer, more effective communication while preserving intent.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-[#4CAF50] mb-3 flex justify-center">
-                  <MessageSquare className="h-16 w-16" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2 flex items-center justify-center">
-                  WhatsApp Group Chat
-                  <Badge className="ml-2 bg-gradient-to-r from-primary to-secondary text-[10px]">PRO</Badge>
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Analyze WhatsApp group conversations to understand dynamics between multiple participants.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-gray-700 mb-3 flex justify-center">
-                  <Mic className="h-16 w-16" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Live Talk</h3>
-                <p className="text-sm text-muted-foreground">
-                  Record conversations in real-time for immediate transcription and analysis.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
         
