@@ -674,26 +674,8 @@ export const analysisController = {
         
         // For free tier, add red flag types from personal analysis
         if (tier === 'free') {
-          // Initialize directRedFlags array
-          const directRedFlags: any[] = [];
-          
-          // First check if we detected flags directly from patterns
-          if (directRedFlags.length > 0) {
-            // Get unique flag types from directly detected flags
-            const redFlagTypes = directRedFlags
-              .map(flag => flag.type)
-              .filter((value, index, self) => self.indexOf(value) === index);
-              
-            console.log(`Using ${redFlagTypes.length} unique red flag types from pattern detection`);
-            (filteredResults as any).redFlagTypes = redFlagTypes;
-            (filteredResults as any).redFlagsCount = directRedFlags.length;
-            (filteredResults as any).redFlagsDetected = true;
-            
-            // Log the actual patterns detected for debugging
-            console.log("Directly detected red flag types:", redFlagTypes);
-          }
-          // Otherwise check AI detected flags
-          else if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
+          // Check AI detected flags first (this should be the primary path)
+          if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
             // Filter out only stonewalling flags and keep other valid flags
             const filteredRedFlags = personalAnalysis.redFlags.filter(flag => {
               const flagType = (flag.type || '').toLowerCase();
