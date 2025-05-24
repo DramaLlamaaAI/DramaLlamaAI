@@ -13,8 +13,36 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Home() {
+  const { user, isLoading } = useAuth();
+  
+  // Function to determine the correct WhatsApp Groups route
+  const getWhatsAppGroupsRoute = () => {
+    if (!user) {
+      // Anonymous user - redirect to register
+      return "/auth/register";
+    }
+    if (user.tier !== "pro" && user.tier !== "beta") {
+      // Registered user without pro/beta tier - redirect to upgrade
+      return "/pricing";
+    }
+    // User with pro/beta tier - go to analysis page
+    return "/whatsapp-groups";
+  };
+
+  // Function to determine the correct Live Talk route
+  const getLiveTalkRoute = () => {
+    if (!user) {
+      return "/auth/register";
+    }
+    if (user.tier !== "pro" && user.tier !== "beta") {
+      return "/pricing";
+    }
+    return "/live-talk";
+  };
+
   // Support smooth scrolling for anchor links
   const handleAnchorClick = (
     e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
@@ -98,7 +126,7 @@ export default function Home() {
               </div>
               
               <div className="flex items-center gap-3">
-                <Link href="/whatsapp-groups" className="flex-1">
+                <Link href={getWhatsAppGroupsRoute()} className="flex-1">
                   <div className="relative">
                     <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white w-full justify-start">
                       <MessageCircle className="h-5 w-5 mr-2" /> WhatsApp Groups
@@ -122,7 +150,7 @@ export default function Home() {
               </div>
               
               <div className="flex items-center gap-3">
-                <Link href="/live-talk" className="flex-1">
+                <Link href={getLiveTalkRoute()} className="flex-1">
                   <div className="relative">
                     <Button 
                       size="lg" 
