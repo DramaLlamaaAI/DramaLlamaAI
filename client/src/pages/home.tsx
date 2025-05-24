@@ -91,8 +91,8 @@ export default function Home() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <Info className="h-4 w-4" />
+                      <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
+                        <Info className="h-4 w-4 text-gray-600" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -107,9 +107,7 @@ export default function Home() {
         
         <FeaturesSection />
         
-
-        
-        <PricingSection />
+        {/* Support Section */}
         <section className="py-12 bg-white">
           <div className="container max-w-4xl">
             <h2 className="text-2xl font-bold text-center mb-8 text-gray-900">💝 Support & Resources</h2>
