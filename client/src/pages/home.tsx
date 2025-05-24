@@ -13,35 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useAuth } from "@/hooks/use-auth";
-
 export default function Home() {
-  const { user, isLoading } = useAuth();
-  
-  // Function to determine the correct WhatsApp Groups route
-  const getWhatsAppGroupsRoute = () => {
-    if (!user) {
-      // Anonymous user - redirect to register
-      return "/auth/register";
-    }
-    if (user.tier !== "pro" && user.tier !== "beta") {
-      // Registered user without pro/beta tier - redirect to upgrade
-      return "/pricing";
-    }
-    // User with pro/beta tier - go to analysis page
-    return "/whatsapp-groups";
-  };
-
-  // Function to determine the correct Live Talk route
-  const getLiveTalkRoute = () => {
-    if (!user) {
-      return "/auth/register";
-    }
-    if (user.tier !== "pro" && user.tier !== "beta") {
-      return "/pricing";
-    }
-    return "/live-talk";
-  };
+  // For now, redirect PRO features to auth page for anonymous users
+  // This will be enhanced when proper authentication routing is implemented
+  const getWhatsAppGroupsRoute = () => "/auth";
+  const getLiveTalkRoute = () => "/auth";
 
   // Support smooth scrolling for anchor links
   const handleAnchorClick = (
