@@ -33,11 +33,11 @@ export default function Header() {
       <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3 flex flex-wrap justify-between items-center">
         <Link href="/">
           <div className="flex items-center cursor-pointer">
-            <div className="w-10 h-10 rounded-full overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-white p-0.5 flex items-center justify-center">
               <img 
                 src={llamaImage}
                 alt="Drama Llama Logo"
-                className="w-full h-full object-cover" 
+                className="w-full h-full rounded-full object-cover" 
               />
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-white ml-2">Drama Llama</h1>
