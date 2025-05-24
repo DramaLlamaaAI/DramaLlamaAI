@@ -11,7 +11,8 @@ import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap } from "lucide-react";
+import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Home() {
   // Support smooth scrolling for anchor links
@@ -76,7 +77,7 @@ export default function Home() {
               </Link>
               
               <Link href="/live-talk">
-                <div className="relative">
+                <div className="relative flex items-center gap-2">
                   <Button 
                     size="lg" 
                     className="bg-gray-700 hover:bg-gray-800 text-white"
@@ -84,6 +85,18 @@ export default function Home() {
                     <Mic className="h-5 w-5 mr-2" /> Live Talk
                   </Button>
                   <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">Real-time conversation analysis and guided coaching during live discussions.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </Link>
             </div>
