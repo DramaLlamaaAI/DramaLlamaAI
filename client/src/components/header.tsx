@@ -8,7 +8,7 @@ import llamaImage from "@assets/FB Profile Pic.png";
 import AdminNavItem from "./admin-nav-item";
 import { apiRequest } from "@/lib/queryClient";
 import { Home, MessageSquare, Zap, Mic, Users } from "lucide-react";
-import { RedFlagLibrary } from './red-flag-library';
+
 
 export default function Header() {
   const { data: usage } = useQuery({
@@ -79,7 +79,7 @@ export default function Header() {
                   <span className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-[10px] text-white px-1 rounded">PRO</span>
                 </div>
               </Link>
-              <RedFlagLibrary />
+
             </div>
           </nav>
           
