@@ -171,9 +171,13 @@ export default function Home() {
                       </Button>
                     }
                   />
-                  <Button className="w-full justify-start bg-teal-500 hover:bg-teal-600 text-white">
-                    📞 Support Helplines
-                  </Button>
+                  <SupportHelpLines 
+                    trigger={
+                      <Button className="w-full justify-start bg-teal-500 hover:bg-teal-600 text-white">
+                        📞 Support Helplines
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             </div>
