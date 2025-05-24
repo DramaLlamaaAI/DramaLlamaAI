@@ -167,17 +167,14 @@ export const isLocalStorageAvailable = (): boolean => {
   }
 };
 
-// Save disclaimer acceptance to local storage
+// Save disclaimer acceptance to local storage - disabled for every-visit display
 export const saveDisclaimerAcceptance = (): void => {
-  if (isLocalStorageAvailable()) {
-    localStorage.setItem('dramaLlama_disclaimerAccepted', 'true');
-  }
+  // No longer saving to localStorage - disclaimer will show on every visit
 };
 
-// Check if disclaimer has been accepted
+// Check if disclaimer has been accepted - always return false to show on every visit
 export const hasAcceptedDisclaimer = (): boolean => {
-  if (!isLocalStorageAvailable()) return false;
-  return localStorage.getItem('dramaLlama_disclaimerAccepted') === 'true';
+  return false; // Always show disclaimer on every visit
 };
 
 // Check if a file is a zip archive or WhatsApp chat export
