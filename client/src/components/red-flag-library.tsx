@@ -257,9 +257,8 @@ export function RedFlagLibrary({ trigger, highlightFlag }: RedFlagLibraryProps) 
   );
 
   const defaultTrigger = (
-    <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10 flex items-center gap-2">
+    <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10 flex items-center gap-2 border border-white/20">
       🚩 Red Flag Library
-      <ExternalLink className="h-4 w-4" />
     </Button>
   );
 
