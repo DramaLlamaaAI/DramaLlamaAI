@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function Home() {
   // Support smooth scrolling for anchor links
@@ -52,29 +52,74 @@ export default function Home() {
             </p>
             
             <div className="flex flex-wrap justify-center gap-4 mb-10">
-              <Link href="/chat-analysis">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
-                  <MessageSquare className="h-5 w-5 mr-2" /> Chat Analysis
-                </Button>
-              </Link>
-              
-              <Link href="/de-escalate">
-                <Button 
-                  size="lg" 
-                  className="bg-[#2CCFCF] hover:bg-[#2CCFCF]/90 text-white"
-                >
-                  <Zap className="h-5 w-5 mr-2" /> Vent Mode
-                </Button>
-              </Link>
-              
-              <Link href="/group-chat-analysis">
-                <div className="relative">
-                  <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white">
-                    <MessageSquare className="h-5 w-5 mr-2" /> WhatsApp Group Chat
+              <div className="flex items-center gap-2">
+                <Link href="/chat-analysis">
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
+                    <MessageSquare className="h-5 w-5 mr-2" /> Chat Analysis
                   </Button>
-                  <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
-                </div>
-              </Link>
+                </Link>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
+                      <Info className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Chat Analysis</DialogTitle>
+                    </DialogHeader>
+                    <p>Upload or paste a conversation to get detailed insights about communication patterns and emotional tone.</p>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Link href="/vent-mode">
+                  <Button 
+                    size="lg" 
+                    className="bg-[#2CCFCF] hover:bg-[#2CCFCF]/90 text-white"
+                  >
+                    <Zap className="h-5 w-5 mr-2" /> Vent Mode
+                  </Button>
+                </Link>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
+                      <Info className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Vent Mode</DialogTitle>
+                    </DialogHeader>
+                    <p>Rewrite emotional messages into calmer, more effective communication while preserving intent.</p>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Link href="/whatsapp-groups">
+                  <div className="relative">
+                    <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white">
+                      <MessageCircle className="h-5 w-5 mr-2" /> WhatsApp Groups
+                    </Button>
+                    <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
+                  </div>
+                </Link>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
+                      <Info className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>WhatsApp Groups</DialogTitle>
+                    </DialogHeader>
+                    <p>Analyze WhatsApp group conversations to understand dynamics between multiple participants.</p>
+                  </DialogContent>
+                </Dialog>
+              </div>
               
               <div className="flex items-center gap-2">
                 <Link href="/live-talk">
@@ -88,18 +133,19 @@ export default function Home() {
                     <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
                   </div>
                 </Link>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
-                        <Info className="h-4 w-4 text-gray-600" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">Real-time conversation analysis and guided coaching during live discussions.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
+                      <Info className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Live Talk</DialogTitle>
+                    </DialogHeader>
+                    <p>Real-time conversation analysis and guided coaching during live discussions.</p>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
