@@ -136,8 +136,14 @@ export function parseAnthropicJson(content: string): any {
           .replace(/"([^"]+)\\"([^"]+)"/g, '"$1\\\\"$2"')
           // Fix specifically for participant detection
           .replace(/"me"\s*:\s*"([^"]*)\\",\s*\\"them"\s*:\s*"([^"]*)"/g, '"me":"$1","them":"$2"')
-          // Fix the specific issue seen in current testing
-          .replace(/"overallTone"\s*:\s*"([^"]*?)\\"/g, '"overallTone":"$1 "');
+          // Fix the specific issue seen in current testing - defensive and accusatory
+          .replace(/"overallTone"\s*:\s*"([^"]*?)\\"/g, '"overallTone":"$1"')
+          // Fix quote issues in the middle of string values
+          .replace(/"([^"]*)" and ([^"]*?)"/g, '"$1 and $2"')
+          // Fix unescaped quotes that break JSON
+          .replace(/([^\\])"([^",:}]+)"([^",:}]*)/g, '$1\\"$2\\"$3')
+          // Fix trailing backslashes before quotes
+          .replace(/\\+"/g, '"');
         
         return JSON.parse(jsonContent);
       }
