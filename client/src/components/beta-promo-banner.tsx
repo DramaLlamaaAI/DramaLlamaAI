@@ -21,8 +21,7 @@ export function BetaPromoBanner() {
 
   const handleDismiss = () => {
     setIsVisible(false);
-    // Remember that user dismissed the banner
-    localStorage.setItem('betaPromoDismissed', 'true');
+    // Don't remember dismissal - will show again on next visit
   };
 
   // Show banner to all users, not tier-specific
