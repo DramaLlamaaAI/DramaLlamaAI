@@ -31,7 +31,7 @@ export default function VentMode() {
   const canUseFeature = true;
 
   const ventModeMutation = useMutation({
-    mutationFn: ventMessage,
+    mutationFn: (message: string) => ventMessage({ message }),
     onSuccess: (data) => {
       setResult(data);
     },
