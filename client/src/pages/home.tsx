@@ -76,29 +76,31 @@ export default function Home() {
                 </div>
               </Link>
               
-              <Link href="/live-talk">
-                <div className="relative flex items-center gap-2">
-                  <Button 
-                    size="lg" 
-                    className="bg-gray-700 hover:bg-gray-800 text-white"
-                  >
-                    <Mic className="h-5 w-5 mr-2" /> Live Talk
-                  </Button>
-                  <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <Info className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">Real-time conversation analysis and guided coaching during live discussions.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link href="/live-talk">
+                  <div className="relative">
+                    <Button 
+                      size="lg" 
+                      className="bg-gray-700 hover:bg-gray-800 text-white"
+                    >
+                      <Mic className="h-5 w-5 mr-2" /> Live Talk
+                    </Button>
+                    <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
+                  </div>
+                </Link>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Info className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">Real-time conversation analysis and guided coaching during live discussions.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
