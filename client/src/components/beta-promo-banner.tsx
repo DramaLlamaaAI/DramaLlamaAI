@@ -8,11 +8,15 @@ export function BetaPromoBanner() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Show banner after 1 second - always show, ignore localStorage
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 1000);
-    return () => clearTimeout(timer);
+    // Don't show if user clicked sign up/sign in button
+    const hasClicked = localStorage.getItem('betaPromoClicked');
+    if (!hasClicked) {
+      // Show banner after 1 second
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const handleDismiss = () => {
@@ -57,8 +61,9 @@ export function BetaPromoBanner() {
               size="sm" 
               className="w-full bg-white text-pink-600 hover:bg-pink-50 font-semibold"
               onClick={() => {
-                // Close banner and navigate to auth page
+                // Close banner, set temporary flag, and navigate to auth page
                 setIsVisible(false);
+                localStorage.setItem('betaPromoClicked', 'true');
                 window.location.href = '/auth';
               }}
             >
