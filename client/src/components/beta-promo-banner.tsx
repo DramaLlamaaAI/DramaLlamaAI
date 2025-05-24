@@ -61,7 +61,7 @@ export function BetaPromoBanner() {
                 window.location.href = '/auth';
               }}
             >
-              Register Now
+              Sign Up/Sign In
             </Button>
           </Link>
           
