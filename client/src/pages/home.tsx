@@ -51,56 +51,56 @@ export default function Home() {
               Choose from our powerful AI-powered communication analysis tools to gain insights into your conversations.
             </p>
             
-            <div className="flex flex-wrap justify-center gap-4 mb-10">
-              <div className="flex items-center gap-2">
-                <Link href="/chat-analysis">
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-10">
+              <div className="flex items-center gap-3">
+                <Link href="/chat-analysis" className="flex-1">
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white w-full justify-start">
                     <MessageSquare className="h-5 w-5 mr-2" /> Chat Analysis
                   </Button>
                 </Link>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
+                    <Button variant="outline" size="sm" className="h-10 w-10 p-0 border-gray-300 flex-shrink-0">
                       <Info className="h-4 w-4 text-gray-600" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="bg-gradient-to-br from-pink-50 to-white border-pink-200">
                     <DialogHeader>
-                      <DialogTitle>Chat Analysis</DialogTitle>
+                      <DialogTitle className="text-pink-700 text-xl font-bold">Chat Analysis</DialogTitle>
                     </DialogHeader>
-                    <p>Upload or paste a conversation to get detailed insights about communication patterns and emotional tone.</p>
+                    <p className="text-gray-700 leading-relaxed">Upload or paste a conversation to get detailed insights about communication patterns and emotional tone.</p>
                   </DialogContent>
                 </Dialog>
               </div>
               
-              <div className="flex items-center gap-2">
-                <Link href="/vent-mode">
+              <div className="flex items-center gap-3">
+                <Link href="/vent-mode" className="flex-1">
                   <Button 
                     size="lg" 
-                    className="bg-[#2CCFCF] hover:bg-[#2CCFCF]/90 text-white"
+                    className="bg-[#2CCFCF] hover:bg-[#2CCFCF]/90 text-white w-full justify-start"
                   >
                     <Zap className="h-5 w-5 mr-2" /> Vent Mode
                   </Button>
                 </Link>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
+                    <Button variant="outline" size="sm" className="h-10 w-10 p-0 border-gray-300 flex-shrink-0">
                       <Info className="h-4 w-4 text-gray-600" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="bg-gradient-to-br from-teal-50 to-white border-teal-200">
                     <DialogHeader>
-                      <DialogTitle>Vent Mode</DialogTitle>
+                      <DialogTitle className="text-teal-700 text-xl font-bold">Vent Mode</DialogTitle>
                     </DialogHeader>
-                    <p>Rewrite emotional messages into calmer, more effective communication while preserving intent.</p>
+                    <p className="text-gray-700 leading-relaxed">Rewrite emotional messages into calmer, more effective communication while preserving intent.</p>
                   </DialogContent>
                 </Dialog>
               </div>
               
-              <div className="flex items-center gap-2">
-                <Link href="/whatsapp-groups">
+              <div className="flex items-center gap-3">
+                <Link href="/whatsapp-groups" className="flex-1">
                   <div className="relative">
-                    <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white">
+                    <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white w-full justify-start">
                       <MessageCircle className="h-5 w-5 mr-2" /> WhatsApp Groups
                     </Button>
                     <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
@@ -108,25 +108,25 @@ export default function Home() {
                 </Link>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
+                    <Button variant="outline" size="sm" className="h-10 w-10 p-0 border-gray-300 flex-shrink-0">
                       <Info className="h-4 w-4 text-gray-600" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="bg-gradient-to-br from-pink-50 to-white border-pink-200">
                     <DialogHeader>
-                      <DialogTitle>WhatsApp Groups</DialogTitle>
+                      <DialogTitle className="text-pink-700 text-xl font-bold">WhatsApp Groups</DialogTitle>
                     </DialogHeader>
-                    <p>Analyze WhatsApp group conversations to understand dynamics between multiple participants.</p>
+                    <p className="text-gray-700 leading-relaxed">Analyze WhatsApp group conversations to understand dynamics between multiple participants.</p>
                   </DialogContent>
                 </Dialog>
               </div>
               
-              <div className="flex items-center gap-2">
-                <Link href="/live-talk">
+              <div className="flex items-center gap-3">
+                <Link href="/live-talk" className="flex-1">
                   <div className="relative">
                     <Button 
                       size="lg" 
-                      className="bg-gray-700 hover:bg-gray-800 text-white"
+                      className="bg-gray-700 hover:bg-gray-800 text-white w-full justify-start"
                     >
                       <Mic className="h-5 w-5 mr-2" /> Live Talk
                     </Button>
@@ -135,15 +135,15 @@ export default function Home() {
                 </Link>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-gray-300">
+                    <Button variant="outline" size="sm" className="h-10 w-10 p-0 border-gray-300 flex-shrink-0">
                       <Info className="h-4 w-4 text-gray-600" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="bg-gradient-to-br from-teal-50 to-white border-teal-200">
                     <DialogHeader>
-                      <DialogTitle>Live Talk</DialogTitle>
+                      <DialogTitle className="text-teal-700 text-xl font-bold">Live Talk</DialogTitle>
                     </DialogHeader>
-                    <p>Real-time conversation analysis and guided coaching during live discussions.</p>
+                    <p className="text-gray-700 leading-relaxed">Real-time conversation analysis and guided coaching during live discussions.</p>
                   </DialogContent>
                 </Dialog>
               </div>
