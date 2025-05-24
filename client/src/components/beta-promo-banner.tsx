@@ -57,7 +57,8 @@ export function BetaPromoBanner() {
               size="sm" 
               className="w-full bg-white text-pink-600 hover:bg-pink-50 font-semibold"
               onClick={() => {
-                // Force navigation to auth page
+                // Close banner and navigate to auth page
+                setIsVisible(false);
                 window.location.href = '/auth';
               }}
             >
