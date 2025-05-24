@@ -138,45 +138,12 @@ export default function Home() {
         <FeaturesSection />
         <PricingSection />
         
-        {/* Tools and Support Section */}
-        <section className="py-16 bg-gray-50">
-          <div className="container max-w-6xl">
-            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Tools & Support</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Tools Section - Left */}
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  🛠️ Tools
-                </h3>
-                <div className="space-y-3">
-                  <Link href="/chat-analysis">
-                    <Button className="w-full justify-start bg-pink-500 hover:bg-pink-600 text-white">
-                      💬 Chat Analysis
-                    </Button>
-                  </Link>
-                  <Link href="/whatsapp-groups">
-                    <Button className="w-full justify-start bg-green-500 hover:bg-green-600 text-white">
-                      📱 WhatsApp Groups
-                    </Button>
-                  </Link>
-                  <Link href="/vent-mode">
-                    <Button className="w-full justify-start bg-blue-500 hover:bg-blue-600 text-white">
-                      🧘 Vent Mode
-                    </Button>
-                  </Link>
-                  <Link href="/live-talk">
-                    <Button className="w-full justify-start bg-purple-500 hover:bg-purple-600 text-white">
-                      🎤 Live Talk
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Support Section - Right */}
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  💝 Support
-                </h3>
+        {/* Support Section */}
+        <section className="py-12 bg-white">
+          <div className="container max-w-4xl">
+            <h2 className="text-2xl font-bold text-center mb-8 text-gray-900">💝 Support & Resources</h2>
+            <div className="flex justify-center">
+              <div className="bg-gray-50 rounded-lg shadow-lg p-6 w-full max-w-md">
                 <div className="space-y-3">
                   <RedFlagLibrary 
                     trigger={
@@ -185,13 +152,9 @@ export default function Home() {
                       </Button>
                     }
                   />
-                  <SupportHelpLines 
-                    trigger={
-                      <Button className="w-full justify-start bg-teal-500 hover:bg-teal-600 text-white">
-                        📞 Support Helplines
-                      </Button>
-                    }
-                  />
+                  <Button className="w-full justify-start bg-teal-500 hover:bg-teal-600 text-white">
+                    📞 Support Helplines
+                  </Button>
                 </div>
               </div>
             </div>
