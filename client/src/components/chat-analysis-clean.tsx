@@ -153,9 +153,48 @@ export default function ChatAnalysisClean() {
             </TabsContent>
 
             <TabsContent value="upload" className="mt-4">
-              <div className="text-center py-8">
-                <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">File upload feature coming soon!</p>
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-lg font-medium text-gray-900 mb-2">Upload Conversation File</p>
+                  <p className="text-gray-600 mb-4">
+                    Upload a text file containing your conversation
+                  </p>
+                  <input
+                    type="file"
+                    accept=".txt,.doc,.docx"
+                    className="hidden"
+                    id="file-upload"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const text = event.target?.result as string;
+                          setConversation(text);
+                          setTabValue("paste"); // Switch to paste tab to show the loaded content
+                        };
+                        reader.readAsText(file);
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md inline-flex items-center"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose File
+                  </label>
+                </div>
+                
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium mb-2">Supported formats:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Text files (.txt)</li>
+                    <li>Word documents (.doc, .docx)</li>
+                    <li>Plain text conversations</li>
+                  </ul>
+                </div>
               </div>
             </TabsContent>
 
