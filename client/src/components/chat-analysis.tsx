@@ -904,6 +904,8 @@ export default function ChatAnalysis() {
                               )}
                             </Button>
                           </div>
+                        </div>
+                      )}
                         
                       {imagePreview && (
                         <div className="mt-4">
