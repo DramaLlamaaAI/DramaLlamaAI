@@ -510,12 +510,6 @@ export default function ChatAnalysis() {
                     <Image className="h-4 w-4 mr-2" />
                     Screenshot
                   </TabsTrigger>
-                  {isDevMode && (
-                    <TabsTrigger value="debug">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Developer
-                    </TabsTrigger>
-                  )}
                 </TabsList>
                 
                 <TabsContent value="paste" className="mt-4">
