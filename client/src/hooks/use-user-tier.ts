@@ -92,10 +92,10 @@ export function useUserTier(): UseTierResult {
     // For all tiers except 'instant', canUseFeature will be true if limit is null
     canUseFeature = limit === null || used < limit;
   } 
-  // If not authenticated, anonymous users are limited to 2 analyses per month
+  // If not authenticated, anonymous users are limited to 5 analyses per month
   else {
-    // Anonymous users are limited to 2 analyses
-    const ANONYMOUS_LIMIT = 2;
+    // Anonymous users are limited to 5 analyses
+    const ANONYMOUS_LIMIT = 5;
     canUseFeature = analysisCount < ANONYMOUS_LIMIT;
   }
   

@@ -422,7 +422,7 @@ export class MemStorage implements IStorage {
       } else if (user.tier === 'instant') {
         limit = 1; // 1-time use
       } else {
-        limit = 2; // Free tier (2 per month)
+        limit = 5; // Free tier (5 per month)
       }
       
       return {

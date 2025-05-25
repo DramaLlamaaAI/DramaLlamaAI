@@ -159,7 +159,7 @@ export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
 // Tier information
 export const TIER_LIMITS = {
   free: {
-    monthlyLimit: 1, // 1 chat analysis per month
+    monthlyLimit: 5, // 5 chat analysis per month
     features: [
       "overallTone",          // Overall Emotional Tone Summary
       "healthScore",          // Conversation Health Meter

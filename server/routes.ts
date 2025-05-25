@@ -39,8 +39,8 @@ const checkTrialEligibility = async (req: Request, res: Response, next: NextFunc
   // Check anonymous usage
   const usage = await storage.getAnonymousUsage(deviceId);
   
-  // If user has not used their free trial yet, allow the request
-  if (!usage || usage.count < 1) {
+  // If user has not used their free trial yet, allow the request (now 5 analyses)
+  if (!usage || usage.count < 5) {
     next();
   } else {
     // User has used their free trial
