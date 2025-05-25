@@ -10,11 +10,9 @@ import { Edit, Upload, Image, Brain, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ScreenshotTab from "@/components/screenshot-tab";
 
-interface ChatAnalysisProps {
-  canUseFeature: boolean;
-}
-
-export default function ChatAnalysisClean({ canUseFeature }: ChatAnalysisProps) {
+export default function ChatAnalysisClean() {
+  // Mock canUseFeature for now - replace with actual user tier logic
+  const canUseFeature = true;
   const [tabValue, setTabValue] = useState("paste");
   const [conversation, setConversation] = useState("");
   const [me, setMe] = useState("");
