@@ -35,6 +35,12 @@ export default function ChatAnalysis() {
   const [fileName, setFileName] = useState("");
   const [fileIsZip, setFileIsZip] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Screenshot analysis states
+  const [screenshotMe, setScreenshotMe] = useState("");
+  const [screenshotThem, setScreenshotThem] = useState("");
+  const [messageOrientation, setMessageOrientation] = useState<"left" | "right">("right");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -405,7 +411,7 @@ export default function ChatAnalysis() {
                 }}
                 className="mt-6"
               >
-                <TabsList className={`grid ${isDevMode ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                <TabsList className={`grid ${isDevMode ? 'grid-cols-4' : 'grid-cols-3'}`}>
                   <TabsTrigger value="paste">
                     <Edit className="h-4 w-4 mr-2" />
                     Paste Text
@@ -413,6 +419,10 @@ export default function ChatAnalysis() {
                   <TabsTrigger value="upload">
                     <Upload className="h-4 w-4 mr-2" />
                     Upload File
+                  </TabsTrigger>
+                  <TabsTrigger value="screenshot">
+                    <Image className="h-4 w-4 mr-2" />
+                    Screenshot
                   </TabsTrigger>
                   {isDevMode && (
                     <TabsTrigger value="debug">
@@ -848,6 +858,156 @@ export default function ChatAnalysis() {
                           </ol>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Screenshot Analysis Tab */}
+                <TabsContent value="screenshot" className="mt-4">
+                  <div className="space-y-4">
+                    <div className="text-center mb-6">
+                      <div className="bg-purple-100 inline-block p-4 mb-3 rounded-full">
+                        <Image className="h-8 w-8 text-purple-600" />
+                      </div>
+                      <h3 className="text-xl font-medium text-purple-700 mb-2">Screenshot Analysis</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Upload a screenshot of your conversation and let AI extract and analyze the text
+                      </p>
+                    </div>
+
+                    {/* Participant Name Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label htmlFor="screenshot-me" className="block mb-2 font-medium">Your Name (Me)</Label>
+                        <Input
+                          id="screenshot-me"
+                          placeholder="Enter your name"
+                          value={screenshotMe}
+                          onChange={(e) => setScreenshotMe(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="screenshot-them" className="block mb-2 font-medium">Other Person's Name (Them)</Label>
+                        <Input
+                          id="screenshot-them"
+                          placeholder="Enter their name"
+                          value={screenshotThem}
+                          onChange={(e) => setScreenshotThem(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Message Orientation Selector */}
+                    <div className="mb-6">
+                      <Label className="block mb-3 font-medium">Where are YOUR messages in the screenshot?</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div 
+                          className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                            messageOrientation === 'right' 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => setMessageOrientation('right')}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">My messages on the RIGHT</span>
+                            {messageOrientation === 'right' && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <div className="text-left bg-gray-200 p-2 rounded-lg">Their message</div>
+                            <div className="text-right bg-blue-500 text-white p-2 rounded-lg ml-8">Your message</div>
+                          </div>
+                        </div>
+                        
+                        <div 
+                          className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                            messageOrientation === 'left' 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => setMessageOrientation('left')}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">My messages on the LEFT</span>
+                            {messageOrientation === 'left' && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <div className="text-left bg-blue-500 text-white p-2 rounded-lg mr-8">Your message</div>
+                            <div className="text-right bg-gray-200 p-2 rounded-lg">Their message</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* File Upload Area */}
+                    <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleScreenshotUpload}
+                        className="hidden"
+                        id="screenshot-input"
+                      />
+                      
+                      {!selectedImage ? (
+                        <div>
+                          <div className="mb-4">
+                            <Upload className="h-12 w-12 mx-auto text-purple-400 mb-2" />
+                            <p className="text-lg font-medium text-purple-700 mb-1">Upload Screenshot</p>
+                            <p className="text-sm text-gray-600">Choose an image file of your conversation</p>
+                          </div>
+                          
+                          <Button
+                            onClick={() => document.getElementById('screenshot-input')?.click()}
+                            className="bg-purple-500 hover:bg-purple-600 text-white"
+                          >
+                            <Image className="h-4 w-4 mr-2" />
+                            Select Screenshot
+                          </Button>
+                          
+                          <p className="text-xs text-gray-500 mt-2">
+                            Supports: JPG, PNG, WebP
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-medium text-purple-700 mb-2">
+                            Screenshot selected: {selectedImage.name}
+                          </p>
+                          {imagePreview && (
+                            <div className="mt-4 mb-4">
+                              <img 
+                                src={imagePreview} 
+                                alt="Screenshot preview" 
+                                className="max-w-full max-h-64 mx-auto rounded-lg shadow-lg"
+                              />
+                            </div>
+                          )}
+                          <div className="flex gap-2 justify-center">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedImage(null);
+                                setImagePreview(null);
+                              }}
+                            >
+                              Remove
+                            </Button>
+                            <Button
+                              onClick={() => document.getElementById('screenshot-input')?.click()}
+                              variant="outline"
+                            >
+                              Change Screenshot
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TabsContent>
