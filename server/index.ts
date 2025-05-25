@@ -4,6 +4,22 @@ import { setupVite, serveStatic, log } from "./vite";
 import { seedAdminUser } from "./seed-admin";
 
 const app = express();
+
+// Domain redirect middleware - redirect old Replit domain to custom domain
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const host = req.get('host');
+  
+  // Check if request is coming from the old Replit domain
+  if (host && host.includes('drama-llama-ai-elskieproductio.replit.app')) {
+    // Redirect to the new custom domain
+    const newUrl = `https://www.dramallama.ai${req.originalUrl}`;
+    console.log(`Redirecting from ${host} to www.dramallama.ai`);
+    return res.redirect(301, newUrl); // 301 = permanent redirect
+  }
+  
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
