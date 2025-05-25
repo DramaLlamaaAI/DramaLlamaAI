@@ -11,12 +11,25 @@
     <link rel="icon" href="/src/assets/llama-logo.svg" type="image/svg+xml">
     <script>
       // Domain redirect - redirect old Replit domain to custom domain
-      if (window.location.hostname.includes('replit.app') || 
-          window.location.hostname.includes('drama-llama-ai-elskieproductio')) {
-        const newUrl = 'https://www.dramallama.ai' + window.location.pathname + window.location.search + window.location.hash;
-        console.log('Redirecting to custom domain:', newUrl);
-        window.location.replace(newUrl);
-      }
+      (function() {
+        const hostname = window.location.hostname;
+        console.log('Current hostname:', hostname);
+        
+        if (hostname.includes('replit.app') || 
+            hostname.includes('drama-llama-ai-elskieproductio') ||
+            hostname.includes('drama-llama-ai')) {
+          const newUrl = 'https://www.dramallama.ai' + window.location.pathname + window.location.search + window.location.hash;
+          console.log('Redirecting from', hostname, 'to:', newUrl);
+          
+          // Use location.href for immediate redirect
+          window.location.href = newUrl;
+          
+          // Fallback with replace
+          setTimeout(() => {
+            window.location.replace(newUrl);
+          }, 100);
+        }
+      })();
     </script>
   </head>
   <body>
