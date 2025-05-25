@@ -5,26 +5,54 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit } from "lucide-react";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Settings, ChevronUpCircle, Zap, Archive, FileText, Home } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { analyzeChatConversation, detectParticipants, processImageOcr, ChatAnalysisResponse } from "@/lib/openai";
+import { analyzeChatConversation, detectParticipants, detectGroupParticipants, processImageOcr, ChatAnalysisResponse, OcrRequest } from "@/lib/openai";
 import { useToast } from "@/hooks/use-toast";
 import { fileToBase64, validateConversation, getParticipantColor } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import SupportHelpLinesLink from "@/components/support-helplines-link";
+import { useLocation } from "wouter";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import JSZip from "jszip";
+import exportToPdf from '@/components/export-document-generator';
+import RedFlags from "@/components/red-flags";
+import RegistrationPrompt from "@/components/registration-prompt";
+import EvasionDetection from "@/components/evasion-detection";
+import ConflictDynamics from "@/components/conflict-dynamics";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
+  const [conversationType, setConversationType] = useState<"two_person" | "group_chat">("two_person");
   const [conversation, setConversation] = useState("");
   const [me, setMe] = useState("");
   const [them, setThem] = useState("");
+  const [participants, setParticipants] = useState<string[]>([]);
   const [fileName, setFileName] = useState("");
   const [fileIsZip, setFileIsZip] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Screenshot analysis states
+  const [screenshotMe, setScreenshotMe] = useState("");
+  const [screenshotThem, setScreenshotThem] = useState("");
+  const [messageOrientation, setMessageOrientation] = useState<"left" | "right">("right");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedTier, setSelectedTier] = useState("free");
+  const [focusRecent, setFocusRecent] = useState(false);
+  const [fromDate, setFromDate] = useState<string>("");
+  const [toDate, setToDate] = useState<string>("");
+  
+  // Get the location for dev mode
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  const isDevMode = searchParams.get('dev') === 'true';
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -47,6 +75,10 @@ export default function ChatAnalysis() {
       setErrorMessage(null);
       console.log("Analysis result:", data);
       console.log("Health Score:", data.healthScore);
+      
+      // Save analysis result to localStorage for helpline recommendations
+      localStorage.setItem('lastAnalysisResult', JSON.stringify(data));
+      
       setResult(data);
       setShowResults(true);
       window.scrollTo({ top: document.getElementById('analysisResults')?.offsetTop || 0, behavior: 'smooth' });
@@ -74,7 +106,7 @@ export default function ChatAnalysis() {
   });
 
   const detectNamesMutation = useMutation({
-    mutationFn: detectParticipants,
+    mutationFn: (text: string) => detectParticipants(text),
     onSuccess: (data) => {
       setMe(data.me);
       setThem(data.them);
@@ -91,9 +123,27 @@ export default function ChatAnalysis() {
       });
     },
   });
+  
+  const detectGroupParticipantsMutation = useMutation({
+    mutationFn: (text: string) => detectGroupParticipants(text),
+    onSuccess: (data) => {
+      setParticipants(data);
+      toast({
+        title: "Group Participants Detected",
+        description: `Found ${data.length} participants in the WhatsApp group chat.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Detection Failed",
+        description: "Could not detect participants. Make sure this is a WhatsApp group chat export.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const ocrMutation = useMutation({
-    mutationFn: processImageOcr,
+    mutationFn: (params: { image: string }) => processImageOcr(params),
     onSuccess: (data) => {
       setConversation(data.text);
       setTabValue("paste");
@@ -122,20 +172,62 @@ export default function ChatAnalysis() {
                    file.type === 'application/x-zip-compressed';
       
       setFileIsZip(isZip);
-      const text = await file.text();
+      
+      let text = "";
+      
+      if (isZip) {
+        // Handle ZIP file using JSZip
+        const fileData = await file.arrayBuffer();
+        const zip = new JSZip();
+        const zipContents = await zip.loadAsync(fileData);
+        
+        // Find the first text file in the ZIP
+        for (const [filename, zipEntry] of Object.entries(zipContents.files)) {
+          if (!zipEntry.dir && filename.endsWith('.txt')) {
+            // Get the text content
+            text = await zipEntry.async('string');
+            break;
+          }
+        }
+        
+        if (!text) {
+          setErrorMessage("No text file found in the ZIP archive.");
+          return;
+        }
+      } else {
+        // Handle regular text file
+        text = await file.text();
+      }
+      
+      // Make sure we have actual text content
+      if (!text.trim()) {
+        setErrorMessage("The file appears to be empty. Please check the file and try again.");
+        return;
+      }
+      
       setConversation(text);
       setFileName(file.name);
+      
+      // Clear any previous error messages
+      setErrorMessage(null);
       
       toast({
         title: isZip ? "ZIP File Processed" : "WhatsApp Export Loaded",
         description: `${file.name} has been loaded successfully.`,
       });
       
+      // Set the conversation text, but avoid redundant state updates
+      // as we already called setConversation earlier in the function
+      
       // If we have text content, try to auto-detect names
       if (text && text.trim().length > 0 && !me && !them) {
-        handleDetectNames();
+        // Call the name detection after a longer delay to ensure state is fully updated
+        setTimeout(() => {
+          detectNamesMutation.mutate(text);
+        }, 300);
       }
     } catch (error) {
+      console.error("File upload error:", error);
       toast({
         title: "Upload Failed",
         description: "Could not read the file. Please check the format and try again.",
@@ -149,19 +241,20 @@ export default function ChatAnalysis() {
     if (!file) return;
     
     try {
-      // Preview image
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      const base64 = await fileToBase64(file);
       
-      // Process OCR
-      const base64Image = await fileToBase64(file);
-      ocrMutation.mutate({ image: base64Image });
+      if (typeof base64 === 'string') {
+        setImagePreview(base64);
+        
+        // Send to OCR API if it's an image
+        if (file.type.startsWith('image/')) {
+          // Pass the base64 string directly
+          ocrMutation.mutate({ image: base64.split(',')[1] });
+        }
+      }
     } catch (error) {
       toast({
-        title: "Upload Failed",
+        title: "Image Processing Failed",
         description: "Could not process the image. Please try another image.",
         variant: "destructive",
       });
@@ -169,874 +262,1277 @@ export default function ChatAnalysis() {
   };
 
   const handleDetectNames = () => {
-    if (!conversation) {
+    if (!conversation.trim()) {
       toast({
-        title: "No Conversation",
+        title: "Empty Conversation",
         description: "Please paste or upload a conversation first.",
         variant: "destructive",
       });
       return;
     }
     
-    // First try to automatically detect names using patterns in the text
-    try {
-      // Simple regex pattern to identify common chat format: "Name: Message"
-      const namePattern = /^([A-Za-z]+):/gm;
-      let match;
-      const names: string[] = [];
-      
-      // Manually collect matches
-      while ((match = namePattern.exec(conversation)) !== null) {
-        names.push(match[1]);
-      }
-      
-      // Get unique names
-      const uniqueNames: string[] = [];
-      for (const name of names) {
-        if (!uniqueNames.includes(name)) {
-          uniqueNames.push(name);
-        }
-      }
-      
-      if (uniqueNames.length >= 2) {
-        setMe(uniqueNames[0]);
-        setThem(uniqueNames[1]);
-        
-        toast({
-          title: "Names Detected",
-          description: `Found participants: ${uniqueNames[0]} and ${uniqueNames[1]}`,
-        });
-        return;
-      }
-    } catch (error) {
-      console.error("Error in local name detection:", error);
-    }
-    
-    // If local detection fails or API key is invalid, try the API
+    // Pass the conversation as a string directly
     detectNamesMutation.mutate(conversation);
   };
-
-  const handleSwitchRoles = () => {
-    const tempMe = me;
-    setMe(them);
-    setThem(tempMe);
-  };
-
-  const handleAnalyze = () => {
-    // Clear any previous errors
-    setErrorMessage(null);
-    
-    if (!canUseFeature) {
-      setErrorMessage(`You've reached your ${tier} tier limit of ${limit} analyses this month. Please upgrade your plan for more.`);
-      return;
-    }
-    
-    if (!conversation) {
-      setErrorMessage("Please paste or upload a conversation first.");
-      return;
-    }
-    
-    if (!me || !them) {
-      setErrorMessage("Please identify both participants in the conversation.");
-      return;
-    }
-    
-    if (!validateConversation(conversation)) {
+  
+  const handleDetectGroupParticipants = () => {
+    if (!conversation.trim()) {
       toast({
-        title: "Invalid Format",
-        description: "Please ensure your conversation includes messages between participants.",
+        title: "Empty Conversation",
+        description: "Please paste or upload a WhatsApp group conversation first.",
         variant: "destructive",
       });
       return;
     }
     
-    analysisMutation.mutate({
-      conversation,
-      me,
-      them
-    });
+    // Pass the conversation to our group participant detection function
+    detectGroupParticipantsMutation.mutate(conversation);
   };
 
+  const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      const base64 = await fileToBase64(file);
+      setSelectedImage(file);
+      setImagePreview(base64);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process screenshot",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleScreenshotAnalysis = async () => {
+    if (!selectedImage || !screenshotMe || !screenshotThem) {
+      toast({
+        title: "Missing Information", 
+        description: "Please upload a screenshot and enter participant names.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!canUseFeature) {
+      toast({
+        title: "Usage Limit Reached",
+        description: "Please upgrade your plan to continue analyzing conversations.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const base64 = imagePreview?.split(',')[1];
+      if (!base64) throw new Error("Invalid image data");
+
+      // Extract text using OCR
+      const ocrResult = await processImageOcr({ image: base64 });
+      
+      if (!ocrResult.text) {
+        throw new Error("No text found in screenshot");
+      }
+
+      // Format the conversation based on message orientation
+      const formattedConversation = formatScreenshotText(ocrResult.text, screenshotMe, screenshotThem, messageOrientation);
+
+      // Analyze the formatted conversation
+      const analysisData = {
+        conversation: formattedConversation,
+        conversationType: "two_person" as const,
+        me: screenshotMe,
+        them: screenshotThem
+      };
+
+      analysisMutation.mutate(analysisData);
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "Failed to analyze screenshot",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatScreenshotText = (extractedText: string, me: string, them: string, orientation: "left" | "right"): string => {
+    const lines = extractedText.split('\n').filter(line => line.trim());
+    let formattedLines: string[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return;
+      
+      // Alternate messages based on orientation
+      const isUserMessage = orientation === "right" ? (index % 2 === 1) : (index % 2 === 0);
+      const speaker = isUserMessage ? me : them;
+      
+      formattedLines.push(`${speaker}: ${trimmedLine}`);
+    });
+    
+    return formattedLines.join('\n');
+  };
+
+  const handleSubmit = () => {
+    // Clear any previous error message
+    setErrorMessage(null);
+    
+    // Basic validation
+    if (!conversation.trim()) {
+      toast({
+        title: "Empty Conversation",
+        description: "Please paste or upload a conversation.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Different validation based on conversation type
+    if (conversationType === "two_person") {
+      if (!me.trim() || !them.trim()) {
+        toast({
+          title: "Missing Names",
+          description: "Please enter names for both participants.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (conversationType === "group_chat") {
+      if (participants.length === 0) {
+        toast({
+          title: "No Participants Detected",
+          description: "Please detect participants for the group chat analysis.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    // Reset any previous error
+    setErrorMessage(null);
+    
+    // Create request data based on conversation type
+    const requestData: any = { 
+      conversation,
+      conversationType,
+    };
+    
+    if (conversationType === "two_person") {
+      requestData.me = me;
+      requestData.them = them;
+    } else {
+      // For group chat, pass participants array and use the first participant as "me" for API compatibility
+      requestData.participants = participants;
+      requestData.me = participants[0] || "";
+      requestData.them = participants.slice(1).join(", ");
+    }
+    
+    // Add date filtering if enabled
+    if (focusRecent && fromDate) {
+      requestData.dateFilter = {
+        fromDate: fromDate
+      };
+      
+      if (toDate) {
+        requestData.dateFilter.toDate = toDate;
+      }
+    }
+    
+    // Add tier header if in dev mode
+    if (isDevMode && selectedTier) {
+      requestData.tier = selectedTier;
+    }
+    
+    analysisMutation.mutate(requestData);
+  };
+
+  const handleSwitchNames = () => {
+    setMe(them);
+    setThem(me);
+  };
+
+  const isValidating = validateConversation(conversation);
+  const isSubmitting = analysisMutation.isPending;
+  const isDetectingNames = detectNamesMutation.isPending;
+
   return (
-    <section id="chatAnalysis" className="mb-12">
-      <Card>
+    <section className="container max-w-5xl py-8">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Chat Analysis</h2>
+        <Link href="/">
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Home className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
+      
+      <Card className="mb-6">
         <CardContent className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Chat Analysis</h2>
-          
-          <Tabs value={tabValue} onValueChange={setTabValue} className="mb-6">
-            <TabsList className="mb-4">
-              <TabsTrigger value="paste">Paste Chat</TabsTrigger>
-              <TabsTrigger value="file">Import File</TabsTrigger>
-              <TabsTrigger value="image">Upload Screenshot</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="paste">
-              <div className="mb-4">
-                <details className="bg-muted p-4 rounded-lg mb-4">
-                  <summary className="font-medium cursor-pointer flex items-center">
-                    <Info className="h-4 w-4 mr-2" /> How to Export Text from WhatsApp
-                  </summary>
-                  <div className="mt-3 text-sm">
-                    <h4 className="font-medium mb-2">📲 How to Copy a WhatsApp Chat for Analysis</h4>
-                    <p className="mb-2">Want to analyze a WhatsApp conversation in Drama Llama? Here's how to export your chat and copy the messages:</p>
-                    
-                    <h5 className="font-medium mt-3 mb-1">✅ Step-by-Step (iOS & Android)</h5>
-                    <ol className="list-decimal pl-5 space-y-1">
-                      <li><strong>Open WhatsApp</strong> and go to the chat you want to export.</li>
-                      <li><strong>Tap the Contact or Group Name</strong> to open the chat settings.</li>
-                      <li><strong>Select "Export Chat"</strong> - Scroll down and tap Export Chat. (On Android: tap the 3-dot menu &gt; More &gt; Export chat)</li>
-                      <li><strong>Choose "Without Media"</strong> - Select Without Media when asked to keep the file lightweight and text-only.</li>
-                      <li><strong>Send the File to Yourself</strong> - Use Email, Notes, Google Drive, or any other app where you can access the text later.</li>
-                      <li><strong>Open the Exported File</strong> - Tap to open the .txt file you sent to yourself.</li>
-                      <li><strong>Select and Copy the Chat</strong> - Tap and hold anywhere in the message text, tap Select All, then Copy.</li>
-                      <li><strong>Paste into Drama Llama</strong> - Return to the app and paste the text into the box below.</li>
-                    </ol>
-                  </div>
-                </details>
-              </div>
-              <Textarea 
-                placeholder="Paste your conversation here..."
-                className="w-full h-64 resize-none"
-                value={conversation}
-                onChange={(e) => setConversation(e.target.value)}
-              />
-            </TabsContent>
-            
-            <TabsContent value="file">
-              <div className="mb-4">
-                <details className="text-sm">
-                  <summary className="font-medium cursor-pointer hover:text-primary">
-                    How to Export WhatsApp Chats
-                  </summary>
-                  <div className="mt-2 p-4 bg-muted rounded-md text-sm">
-                    <h5 className="font-medium mb-2">📱 WhatsApp Chat Export Guide</h5>
-                    <ol className="list-decimal pl-5 space-y-2 mb-4">
-                      <li><strong>Open WhatsApp</strong> on your phone and navigate to the chat you want to analyze.</li>
-                      <li><strong>Tap the three dots</strong> (⋮) in the top-right corner and select <strong>More</strong>.</li>
-                      <li>Select <strong>Export chat</strong> from the menu.</li>
-                      <li>Choose <strong>WITHOUT MEDIA</strong> to keep the file small.</li>
-                      <li>Email the chat to yourself or save it to your device.</li>
-                    </ol>
-                    
-                    <h5 className="font-medium mb-2">📃 For non-WhatsApp messages:</h5>
-                    <ol className="list-decimal pl-5 space-y-1">
-                      <li><strong>For iPhone</strong>: Use a third-party backup tool like iExplorer or iMazing to export messages as text files.</li>
-                      <li><strong>For Android</strong>: Use SMS Backup & Restore app to export messages as XML or TXT.</li>
-                      <li><strong>Upload the exported file</strong> below for analysis.</li>
-                    </ol>
-                  </div>
-                </details>
-              </div>
-              
-              <div className="grid grid-cols-1 gap-6">
-                {/* WhatsApp Export UI with blue styling */}
-                <div className="border border-blue-200 border-dashed rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept=".zip,application/zip,application/x-zip-compressed,application/octet-stream,text/plain,.txt"
-                    className="hidden"
-                  />
-                  
-                  <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Upload className="h-8 w-8 text-blue-500" />
-                  </div>
-                  
-                  <h3 className="text-xl font-medium text-blue-800 mb-2">WhatsApp Chat Exports</h3>
-                  <p className="text-sm text-blue-600 mb-6">Upload WhatsApp exports or ZIP files</p>
-                  
-                  <Button 
-                    variant="outline"
-                    className="border-blue-300 bg-white hover:bg-blue-50 text-blue-700"
-                    onClick={() => {
-                      if (fileInputRef.current) {
-                        // Accept both WhatsApp chat exports and zip files
-                        fileInputRef.current.click();
-                      }
-                    }}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Select Chat Export
-                  </Button>
-                  
-                  {fileName && (
-                    <div className="mt-6 p-3 bg-blue-50 rounded-md border border-blue-100 text-left">
-                      <p className="text-sm text-blue-800 mb-2">Chat export: {fileName}</p>
-                      
-                      {/* Preview of chat content */}
-                      <div className="mt-2 mb-3 bg-white border border-blue-200 rounded p-2 max-h-36 overflow-y-auto text-left">
-                        {conversation && conversation.trim().length > 0 ? (
-                          <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                            {conversation.length > 500 
-                              ? conversation.substring(0, 500) + "..." 
-                              : conversation}
-                          </pre>
-                        ) : (
-                          <div className="text-center py-3">
-                            <p className="text-red-500 font-medium text-sm">No content found in the file.</p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Try selecting a different WhatsApp export or check that the file is not empty.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <Button 
-                          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                          onClick={() => {
-                            // Switch to the paste tab to show the full extracted content in editable form
-                            setTabValue("paste");
-                            // If we've automatically detected participants, try to get their names
-                            if (conversation && !me && !them) {
-                              handleDetectNames();
-                            }
-                          }}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Extracted Content
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="image">
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-10 text-center">
-                <input
-                  type="file"
-                  ref={imageInputRef}
-                  onChange={handleImageUpload}
-                  accept="image/*"
-                  className="hidden"
-                />
-                <Image className="h-10 w-10 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="mb-2 font-medium">Upload Screenshot</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Upload a screenshot of your conversation
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => imageInputRef.current?.click()}
-                >
-                  Choose Image
-                </Button>
-                {imagePreview && (
-                  <div className="mt-4">
-                    <p className="text-sm mb-2">Preview:</p>
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
-                      className="max-h-40 mx-auto object-contain rounded" 
-                    />
-                    {ocrMutation.isPending && (
-                      <div className="mt-2">
-                        <p className="text-sm text-muted-foreground mb-1">Extracting text...</p>
-                        <Progress value={45} className="h-2" />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label className="block text-sm font-medium mb-2 text-muted-foreground">Me (Your Name)</label>
-              <Input 
-                type="text" 
-                placeholder="Your name in the conversation" 
-                value={me}
-                onChange={(e) => setMe(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2 text-muted-foreground">Them (Other Person)</label>
-              <Input 
-                type="text" 
-                placeholder="Their name in the conversation"
-                value={them}
-                onChange={(e) => setThem(e.target.value)} 
-              />
-            </div>
-          </div>
-          
-          <div className="flex flex-wrap gap-4 mb-6">
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2 bg-cyan-100 hover:bg-cyan-200 border-cyan-200" 
-              onClick={handleDetectNames}
-              disabled={!conversation || detectNamesMutation.isPending}
-            >
-              <Search className="h-4 w-4 text-cyan-700" /> 
-              <span className="text-cyan-800">{detectNamesMutation.isPending ? "Detecting..." : "Detect Names"}</span>
-              <span className="text-xs text-cyan-600">(No API Required)</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex items-center bg-pink-100 hover:bg-pink-200 border-pink-200"
-              onClick={handleSwitchRoles}
-              disabled={!me && !them}
-            >
-              <ArrowLeftRight className="mr-2 h-4 w-4 text-pink-700" /> 
-              <span className="text-pink-800">Switch Roles</span>
-            </Button>
-            <Button 
-              className={`ml-auto flex items-center ${analysisMutation.isPending ? '' : 'pulsing'}`}
-              onClick={handleAnalyze}
-              disabled={analysisMutation.isPending || !me || !them || !conversation || !canUseFeature}
-            >
-              <Brain className="mr-2 h-4 w-4" /> 
-              {analysisMutation.isPending ? "Analyzing..." : "Analyze Conversation"}
-            </Button>
-          </div>
-          
           {errorMessage && (
-            <Alert className="mb-4 border-red-400 bg-red-50" variant="destructive">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-700">
-                <div className="font-bold">Analysis failed</div>
-                <div>{errorMessage}</div>
-                <div className="mt-2 text-sm">
-                  If you're seeing API errors, please check that your OpenAI API key is configured correctly.
-                </div>
-              </AlertDescription>
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           )}
-
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              {tier === 'free' ? (
-                <div className="flex flex-col md:flex-row md:items-center justify-between">
-                  <div>
-                    <p className="font-medium">Free tier includes basic tone analysis.</p>
-                    <p>Upgrade to Personal plan for red flags and pattern detection, or Pro for more comprehensive analysis with conflict patterns.</p>
-                  </div>
-                  <Button variant="secondary" className="mt-2 md:mt-0 md:ml-4 whitespace-nowrap">
-                    Upgrade Plan
-                  </Button>
-                </div>
-              ) : (
-                <p className="font-medium">
-                  {tier === 'personal'
-                    ? "Personal plan includes red flags and pattern detection."
-                    : "Pro plan includes all analysis features with comprehensive conflict and tension insights."}
-                </p>
-              )}
-            </AlertDescription>
-          </Alert>
           
-          {showResults && result && (
-            <div id="analysisResults" className="mt-8 slide-in">
-              <h3 className="text-xl font-bold mb-4">Analysis Results</h3>
-              
-              <div className="bg-muted p-4 rounded-lg mb-4">
-                <h4 className="font-medium mb-2">Overall Tone</h4>
-                <p className="text-lg mb-4">{result.toneAnalysis.overallTone}</p>
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold mb-2">Chat Analysis</h1>
+            <p className="text-muted-foreground">
+              Analyze your text conversation to understand communication patterns,
+              emotional tones and potential issues
+            </p>
+          </div>
+          
+          {!showResults ? (
+            <>
+              <Tabs
+                defaultValue={tabValue} 
+                value={tabValue}
+                onValueChange={(value) => {
+                  setTabValue(value);
+                  setErrorMessage(null); // Clear error message when switching tabs
+                }}
+                className="mt-6"
+              >
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="paste">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Paste Text
+                  </TabsTrigger>
+                  <TabsTrigger value="upload">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload File
+                  </TabsTrigger>
+                  <TabsTrigger value="screenshot">
+                    <Image className="h-4 w-4 mr-2" />
+                    Screenshot
+                  </TabsTrigger>
+                </TabsList>
                 
-                {result.toneAnalysis.participantTones && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h5 className="font-medium mb-2 text-sm uppercase tracking-wide text-muted-foreground">Participant Analysis</h5>
-                    <div className="space-y-2">
-                      {Object.entries(result.toneAnalysis.participantTones).map(([name, tone]) => (
-                        <div key={name} className="flex items-start">
-                          <span className={`inline-block mr-2 ${getParticipantColor(name)}`}>{name}:</span>
-                          <span>{tone}</span>
+                <TabsContent value="paste" className="mt-4">
+                  <div className="space-y-4">
+                    {/* Conversation Type Selector */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">Conversation Type:</label>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          type="button"
+                          variant={conversationType === "two_person" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setConversationType("two_person")}
+                          className="flex-1"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          Two-Person Chat
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant={conversationType === "group_chat" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setConversationType("group_chat")}
+                          className="flex-1"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          WhatsApp Group Chat
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {conversationType === "two_person" 
+                          ? "Select 'Two-Person Chat' to analyze a conversation between two participants." 
+                          : "Select 'WhatsApp Group Chat' to analyze a group conversation with multiple participants."}
+                      </p>
+                    </div>
+                    
+                    <Textarea
+                      placeholder={conversationType === "two_person" 
+                        ? "Paste your conversation here..." 
+                        : "Paste your WhatsApp group conversation here..."}
+                      value={conversation}
+                      onChange={(e) => setConversation(e.target.value)}
+                      className="min-h-[200px]"
+                    />
+                    
+                    {/* Two-Person Chat UI */}
+                    {conversationType === "two_person" && (
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Your name (the gray messages)"
+                            value={me}
+                            onChange={(e) => setMe(e.target.value)}
+                          />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {result.healthScore && (
-                <div className={`p-4 rounded-lg mb-4 ${
-                  result.healthScore.color === 'red' ? 'bg-red-50' : 
-                  result.healthScore.color === 'yellow' ? 'bg-amber-50' : 
-                  result.healthScore.color === 'light-green' ? 'bg-emerald-50' : 
-                  'bg-green-50'
-                }`}>
-                  <h4 className="font-medium mb-3 text-gray-800">Conversation Health Meter</h4>
-                  <div className="flex items-center mb-2">
-                    <span className="font-medium text-lg">{result.healthScore.label}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                      {/* Background color gradient from green to red */}
-                      <div className="absolute top-0 left-0 h-full w-full bg-gray-200">
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          onClick={handleSwitchNames}
+                          className="sm:flex-shrink-0"
+                        >
+                          <ArrowLeftRight className="h-4 w-4 mr-2" />
+                          Switch Names
+                        </Button>
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Their name (the blue messages)"
+                            value={them}
+                            onChange={(e) => setThem(e.target.value)}
+                          />
+                        </div>
                       </div>
-                      
-                      {/* Green bar that shows health score */}
-                      <div 
-                        className="absolute top-0 left-0 h-full rounded-r-full"
-                        style={{ 
-                          width: `${Math.max(0, Math.min(100, result.healthScore.score || 0))}%`,
-                          background: result.healthScore.score >= 80 
-                            ? 'linear-gradient(to right, #22c55e, #10b981)' 
-                            : result.healthScore.score >= 50 
-                            ? 'linear-gradient(to right, #10b981, #f59e0b)' 
-                            : 'linear-gradient(to right, #f59e0b, #ef4444)'
-                        }}
-                      />
-                    </div>
-
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
-                    <span className="text-red-600">🚩 High Conflict</span>
-                    <span className="text-amber-600">⚠️ Strained</span>
-                    <span className="text-emerald-600">✅ Healthy</span>
-                    <span className="text-green-600">🌿 Very Healthy</span>
-                  </div>
-
-                  
-                  {/* Display warning message and high tension summary for high conflict conversations */}
-                  {result.healthScore.score < 30 && (
-                    <div className="bg-red-100 border border-red-200 rounded-md p-3 mt-4 text-sm">
-                      <div className="flex items-start mb-3">
-                        <span className="text-red-600 mr-2 text-lg mt-0.5">⚠️</span>
-                        <p className="text-red-700">
-                          This conversation shows signs of high emotional tension. Consider taking a step back or using Vent Mode to reframe future replies.
-                        </p>
-                      </div>
-                      
-                      <div className="mt-4">
-                        <h5 className="font-medium text-red-700 flex items-center mb-2">
-                          <span className="mr-1.5">🔥</span> 
-                          Why it's high-tension:
-                        </h5>
-                        <ul className="space-y-2">
-                          {me.toLowerCase().includes('alex') || them.toLowerCase().includes('alex') ? (
+                    )}
+                    
+                    {/* Group Chat UI */}
+                    {conversationType === "group_chat" && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Auto-Detected Participants:</label>
+                          <div className="flex flex-wrap gap-2">
+                            {participants.length > 0 ? (
+                              participants.map((participant, index) => (
+                                <div key={index} className="bg-muted rounded-full px-3 py-1 text-sm">
+                                  {participant}
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-sm text-muted-foreground">No participants detected yet. Click "Detect Participants" after pasting your conversation.</p>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDetectGroupParticipants}
+                          disabled={detectGroupParticipantsMutation.isPending || !conversation.trim()}
+                          className="w-full"
+                        >
+                          {detectGroupParticipantsMutation.isPending ? (
                             <>
-                              <li className="flex items-start">
-                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
-                                <span>Accusatory language with emotional charging</span>
-                              </li>
-                              <li className="flex items-start">
-                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
-                                <span>Generalization patterns ("always", "never")</span>
-                              </li>
-                              <li className="flex items-start">
-                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
-                                <span>One-sided escalation ({them.toLowerCase().includes('alex') ? them : me})</span>
-                              </li>
-                              <li className="flex items-start">
-                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
-                                <span>{them.toLowerCase().includes('jamie') ? them : me} attempts de-escalation but is invalidated</span>
-                              </li>
+                              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                              <span>Detecting Participants...</span>
                             </>
                           ) : (
                             <>
-                              <li className="flex items-start">
-                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
-                                <span>Clear power struggle and emotional misalignment</span>
-                              </li>
-                              <li className="flex items-start">
-                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
-                                <span>Blame-shifting, gaslighting accusations</span>
-                              </li>
-                              <li className="flex items-start">
-                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
-                                <span>One-sided escalation with disengagement threats</span>
-                              </li>
-                              <li className="flex items-start">
-                                <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
-                                <span>De-escalation attempts are invalidated repeatedly</span>
-                              </li>
+                              <Search className="h-4 w-4 mr-2" />
+                              Detect Group Participants
                             </>
                           )}
-                        </ul>
+                        </Button>
                       </div>
+                    )}
+                    
+                    <div className="flex gap-2">
+                      {conversationType === "two_person" && (
+                        <Button
+                          variant="outline"
+                          onClick={handleDetectNames}
+                          disabled={isDetectingNames || !conversation.trim()}
+                          className="flex-shrink-0"
+                          size="sm"
+                        >
+                          {isDetectingNames ? (
+                            <>
+                              <div className="h-4 w-4 mr-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                              <span className="hidden sm:inline">Detecting...</span>
+                              <span className="sm:hidden">Detect</span>
+                            </>
+                          ) : (
+                            <>
+                              <Search className="h-4 w-4 mr-1" />
+                              <span className="hidden sm:inline">Auto-Detect Names</span>
+                              <span className="sm:hidden">Detect</span>
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={
+                          !canUseFeature || 
+                          isSubmitting || 
+                          !conversation.trim() || 
+                          (conversationType === "two_person" && (!me.trim() || !them.trim())) ||
+                          (conversationType === "group_chat" && participants.length === 0)
+                        }
+                        className="flex-grow"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                            <span>Analyzing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Brain className="h-4 w-4 mr-2" />
+                            <span>{canUseFeature ? 'Analyze Conversation' : 'Usage Limit Reached'}</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="upload" className="mt-4">
+                  <div className="space-y-6">
+                    {/* Conversation Type Selector (also add to upload tab) */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">Conversation Type:</label>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          type="button"
+                          variant={conversationType === "two_person" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setConversationType("two_person")}
+                          className="flex-1"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          Two-Person Chat
+                        </Button>
+                        <Button 
+                          type="button"
+                          variant={conversationType === "group_chat" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setConversationType("group_chat")}
+                          className="flex-1"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          WhatsApp Group Chat
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {conversationType === "two_person" 
+                          ? "Select 'Two-Person Chat' for a conversation between two people." 
+                          : "Select 'WhatsApp Group Chat' for a conversation with multiple participants."}
+                      </p>
+                    </div>
+                    
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <div className="bg-blue-100 inline-block p-4 mb-3 rounded-full">
+                        <Archive className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-xl font-medium text-blue-700 mb-2">WhatsApp Chat Exports</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Upload a WhatsApp chat export (.txt file or .zip archive). On WhatsApp, tap ⋮ on a
+                        chat, "More" → "Export chat" → "Without media"
+                      </p>
+                      
+                      <div className="flex items-center justify-center mb-4">
+                        <Button
+                          className="bg-blue-500 hover:bg-blue-600 text-white"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          Choose File
+                        </Button>
+                      </div>
+                      
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        accept=".txt,.zip"
+                      />
+                      
+                      <input
+                        type="file"
+                        ref={imageInputRef}
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        accept="image/*"
+                      />
+                      
+                      {fileName && (
+                        <div className="mt-4 text-left max-w-md mx-auto">
+                          <p className="text-sm font-medium text-center mb-4">
+                            File loaded: <span className="text-blue-700">{fileName}</span>
+                          </p>
+                          
+                          <div className="space-y-4">
+                            {conversationType === "two_person" ? (
+                              <>
+                                <div>
+                                  <Label htmlFor="your-name" className="block mb-1">Your Name</Label>
+                                  <Input
+                                    id="your-name"
+                                    placeholder="Your name in the chat"
+                                    value={me}
+                                    onChange={(e) => setMe(e.target.value)}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label htmlFor="other-name" className="block mb-1">Other Person's Name</Label>
+                                  <Input
+                                    id="other-name"
+                                    placeholder="Other person's name"
+                                    value={them}
+                                    onChange={(e) => setThem(e.target.value)}
+                                  />
+                                </div>
+                              
+                                <div className="space-y-3">
+                                  <Button
+                                    variant="outline"
+                                    onClick={handleDetectNames}
+                                    disabled={isDetectingNames || !conversation}
+                                    className="w-full"
+                                    size="default"
+                                  >
+                                    {isDetectingNames ? (
+                                      <>
+                                        <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                        Detecting...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Search className="h-4 w-4 mr-2" />
+                                        Auto-Detect Names
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </>
+                            ) : (
+                              /* Group chat UI */
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="block text-sm font-medium mb-2">Participants in Group Chat:</label>
+                                  <div className="flex flex-wrap gap-2 bg-muted p-3 rounded-md min-h-[60px]">
+                                    {participants.length > 0 ? (
+                                      participants.map((participant, index) => (
+                                        <div key={index} className="bg-primary/10 rounded-full px-3 py-1 text-sm">
+                                          {participant}
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <p className="text-sm text-muted-foreground">No participants detected yet. Click "Detect Participants" after uploading your WhatsApp group chat export.</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="default"
+                                  onClick={handleDetectGroupParticipants}
+                                  disabled={detectGroupParticipantsMutation.isPending || !conversation}
+                                  className="w-full"
+                                >
+                                  {detectGroupParticipantsMutation.isPending ? (
+                                    <>
+                                      <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                      <span>Detecting Participants...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Search className="h-4 w-4 mr-2" />
+                                      Detect Group Participants
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            )}
+                            
+                            {conversationType === "two_person" && (
+                              <Button
+                                variant="outline"
+                                onClick={handleSwitchNames}
+                                className="w-full"
+                              >
+                                <ArrowLeftRight className="h-4 w-4 mr-2" />
+                                Switch Names
+                              </Button>
+                            )}
+                            </div>
+                            
+                            <div className="relative">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Switch 
+                                  id="focus-recent" 
+                                  checked={focusRecent}
+                                  onCheckedChange={setFocusRecent}
+                                />
+                                <Label htmlFor="focus-recent">Focus on Recent Messages</Label>
+                                <span className="text-xs px-2 py-1 bg-amber-100 text-amber-800 rounded-full">New</span>
+                              </div>
+                              
+                              {focusRecent && (
+                                <div className="ml-7 mb-4 space-y-2 py-2 px-3 bg-gray-50 rounded-md">
+                                  <div className="text-sm text-gray-600 mb-1">Filter messages by date range:</div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <Label htmlFor="from-date" className="text-xs">From Date</Label>
+                                      <input
+                                        id="from-date"
+                                        type="date"
+                                        value={fromDate}
+                                        onChange={(e) => setFromDate(e.target.value)}
+                                        className="w-full h-8 px-2 text-sm rounded border border-gray-300"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="to-date" className="text-xs">To Date (optional)</Label>
+                                      <input
+                                        id="to-date"
+                                        type="date"
+                                        value={toDate}
+                                        onChange={(e) => setToDate(e.target.value)}
+                                        className="w-full h-8 px-2 text-sm rounded border border-gray-300"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <Button
+                              onClick={handleSubmit}
+                              disabled={!canUseFeature || isSubmitting || !conversation || !me || !them}
+                              className="w-full bg-teal-500 hover:bg-teal-600"
+                            >
+                              {isSubmitting ? (
+                                <>
+                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                                  Analyzing...
+                                </>
+                              ) : (
+                                <>
+                                  <Brain className="h-4 w-4 mr-2" />
+                                  {canUseFeature ? 'Analyze Chat' : 'Usage Limit Reached'}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Screenshot Analysis Tab */}
+                  <TabsContent value="screenshot" className="mt-4">
+                    <div className="space-y-4">
+                      <div className="text-center mb-6">
+                        <div className="bg-purple-100 inline-block p-4 mb-3 rounded-full">
+                          <Image className="h-8 w-8 text-purple-600" />
+                        </div>
+                        <h3 className="text-xl font-medium text-purple-700 mb-2">Screenshot Analysis</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Upload a screenshot of your conversation and let AI extract and analyze the text
+                        </p>
+                      </div>
+
+                      {/* Participant Name Fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <Label htmlFor="screenshot-me" className="block mb-2 font-medium">Your Name (Me)</Label>
+                          <Input
+                            id="screenshot-me"
+                            placeholder="Enter your name"
+                            value={screenshotMe}
+                            onChange={(e) => setScreenshotMe(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="screenshot-them" className="block mb-2 font-medium">Their Name</Label>
+                          <Input
+                            id="screenshot-them"
+                            placeholder="Enter their name"
+                            value={screenshotThem}
+                            onChange={(e) => setScreenshotThem(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Message Orientation Selector */}
+                      <div className="mb-4">
+                        <Label className="block mb-2 font-medium">Where do your messages appear?</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div 
+                            className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                              messageOrientation === "left" ? "border-purple-500 bg-purple-50" : "border-gray-200"
+                            }`}
+                            onClick={() => setMessageOrientation("left")}
+                          >
+                            <div className="flex items-center mb-2">
+                              <div className="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
+                              <span className="text-sm">My messages on left</span>
+                            </div>
+                          </div>
+                          <div 
+                            className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                              messageOrientation === "right" ? "border-purple-500 bg-purple-50" : "border-gray-200"
+                            }`}
+                            onClick={() => setMessageOrientation("right")}
+                          >
+                            <div className="flex items-center mb-2 justify-end">
+                              <span className="text-sm">My messages on right</span>
+                              <div className="w-3 h-3 rounded-full bg-blue-400 ml-2"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Screenshot Upload */}
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                        <input
+                          type="file"
+                          ref={imageInputRef}
+                          onChange={handleScreenshotUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        
+                        {!selectedImage ? (
+                          <div className="text-center">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => imageInputRef.current?.click()}
+                              className="mb-2"
+                            >
+                              <Image className="h-4 w-4 mr-2" />
+                              Select Screenshot
+                            </Button>
+                            
+                            <p className="text-xs text-gray-500 mt-2">
+                              Supports: JPG, PNG, WebP
+                            </p>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-sm font-medium text-purple-700 mb-2">
+                              Screenshot selected: {selectedImage.name}
+                            </p>
+                            {imagePreview && (
+                              <div className="mt-4 mb-4">
+                                <img 
+                                  src={imagePreview} 
+                                  alt="Screenshot preview" 
+                                  className="max-w-full max-h-64 mx-auto rounded-lg shadow-lg"
+                                />
+                              </div>
+                            )}
+                            
+                            <div className="flex gap-2 justify-center">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedImage(null);
+                                  setImagePreview(null);
+                                }}
+                              >
+                                Remove
+                              </Button>
+                              <Button
+                                type="button"
+                                onClick={handleScreenshotAnalysis}
+                                disabled={!canUseFeature || !screenshotMe || !screenshotThem}
+                              >
+                                <Brain className="h-4 w-4 mr-2" />
+                                {canUseFeature ? 'Analyze Screenshot' : 'Usage Limit Reached'}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Developer Mode Tab */}
+                  {isDevMode && ( 
+                            className="max-h-48 mx-auto border rounded-lg"
+                          />
+                          
+                          {ocrMutation.isPending && (
+                            <div className="mt-2 text-sm text-center">
+                              <div className="h-4 w-4 mx-auto mb-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                              Extracting text from image...
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      <div className="flex items-start mb-2">
+                        <Info className="h-4 w-4 mr-2 mt-0.5" />
+                        <div>
+                          <strong>WhatsApp Export Instructions:</strong>
+                          <ol className="list-decimal ml-5 mt-1 space-y-1">
+                            <li>Open the WhatsApp chat</li>
+                            <li>Tap the three dots ⋮ in the top right</li>
+                            <li>Select "More" → "Export chat"</li>
+                            <li>Choose "Without media"</li>
+                            <li>Share the .zip file here</li>
+                          </ol>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Screenshot Analysis Tab */}
+                <TabsContent value="screenshot" className="mt-4">
+                  <div className="space-y-4">
+                    <div className="text-center mb-6">
+                      <div className="bg-purple-100 inline-block p-4 mb-3 rounded-full">
+                        <Image className="h-8 w-8 text-purple-600" />
+                      </div>
+                      <h3 className="text-xl font-medium text-purple-700 mb-2">Screenshot Analysis</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Upload a screenshot of your conversation and let AI extract and analyze the text
+                      </p>
+                    </div>
+
+                    {/* Participant Name Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label htmlFor="screenshot-me" className="block mb-2 font-medium">Your Name (Me)</Label>
+                        <Input
+                          id="screenshot-me"
+                          placeholder="Enter your name"
+                          value={screenshotMe}
+                          onChange={(e) => setScreenshotMe(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="screenshot-them" className="block mb-2 font-medium">Other Person's Name (Them)</Label>
+                        <Input
+                          id="screenshot-them"
+                          placeholder="Enter their name"
+                          value={screenshotThem}
+                          onChange={(e) => setScreenshotThem(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Message Orientation Selector */}
+                    <div className="mb-6">
+                      <Label className="block mb-3 font-medium">Where are YOUR messages in the screenshot?</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div 
+                          className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                            messageOrientation === 'right' 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => setMessageOrientation('right')}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">My messages on the RIGHT</span>
+                            {messageOrientation === 'right' && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <div className="text-left bg-gray-200 p-2 rounded-lg">Their message</div>
+                            <div className="text-right bg-blue-500 text-white p-2 rounded-lg ml-8">Your message</div>
+                          </div>
+                        </div>
+                        
+                        <div 
+                          className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                            messageOrientation === 'left' 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => setMessageOrientation('left')}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">My messages on the LEFT</span>
+                            {messageOrientation === 'left' && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <div className="text-left bg-blue-500 text-white p-2 rounded-lg mr-8">Your message</div>
+                            <div className="text-right bg-gray-200 p-2 rounded-lg">Their message</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* File Upload Area */}
+                    <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleScreenshotUpload}
+                        className="hidden"
+                        id="screenshot-input"
+                      />
+                      
+                      {!selectedImage ? (
+                        <div>
+                          <div className="mb-4">
+                            <Upload className="h-12 w-12 mx-auto text-purple-400 mb-2" />
+                            <p className="text-lg font-medium text-purple-700 mb-1">Upload Screenshot</p>
+                            <p className="text-sm text-gray-600">Choose an image file of your conversation</p>
+                          </div>
+                          
+                          <Button
+                            onClick={() => document.getElementById('screenshot-input')?.click()}
+                            className="bg-purple-500 hover:bg-purple-600 text-white"
+                          >
+                            <Image className="h-4 w-4 mr-2" />
+                            Select Screenshot
+                          </Button>
+                          
+                          <p className="text-xs text-gray-500 mt-2">
+                            Supports: JPG, PNG, WebP
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-medium text-purple-700 mb-2">
+                            Screenshot selected: {selectedImage.name}
+                          </p>
+                          {imagePreview && (
+                            <div className="mt-4 mb-4">
+                              <img 
+                                src={imagePreview} 
+                                alt="Screenshot preview" 
+                                className="max-w-full max-h-64 mx-auto rounded-lg shadow-lg"
+                              />
+                            </div>
+                          )}
+                          <div className="flex gap-2 justify-center">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedImage(null);
+                                setImagePreview(null);
+                              }}
+                            >
+                              Remove
+                            </Button>
+                            <Button
+                              onClick={() => document.getElementById('screenshot-input')?.click()}
+                              variant="outline"
+                            >
+                              Change Screenshot
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Analyze Button for Screenshot */}
+                    {selectedImage && screenshotMe && screenshotThem && (
+                      <div className="mt-6">
+                        <Button
+                          onClick={handleScreenshotAnalysis}
+                          disabled={!canUseFeature || isSubmitting}
+                          className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-white"></div>
+                              Analyzing Screenshot...
+                            </>
+                          ) : (
+                            <>
+                              <Brain className="h-4 w-4 mr-2" />
+                              Analyze Screenshot
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                {isDevMode && (
+                  <TabsContent value="debug" className="mt-4">
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+                        <h3 className="text-md font-medium mb-2">Developer Options</h3>
+                        <div className="space-y-2">
+                          <div>
+                            <Label htmlFor="tier-select">Test with tier:</Label>
+                            <Select value={selectedTier} onValueChange={setSelectedTier}>
+                              <SelectTrigger id="tier-select" className="mt-1">
+                                <SelectValue placeholder="Select tier" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="free">Free</SelectItem>
+                                <SelectItem value="personal">Personal</SelectItem>
+                                <SelectItem value="pro">Pro</SelectItem>
+                                <SelectItem value="instant">Instant Deep Dive</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              This will override the user's actual tier for testing purposes only.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
+              </Tabs>
+
+              {!canUseFeature && (
+                <Alert className="mt-6">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    You've reached your analysis limit. Please upgrade your plan to continue.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          ) : (
+            <div id="analysisResults">
+              {/* Registration prompt for anonymous/free tier users */}
+              <RegistrationPrompt tier={tier} />
+              
+              {result && (
+                <div className="space-y-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                    <h3 className="text-2xl font-bold mb-2 md:mb-0">Analysis Results</h3>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          if (result) {
+                            exportToPdf({
+                              result: result as any, 
+                              me, 
+                              them, 
+                              toast, 
+                              tier,
+                              conversationType: 'two_person',
+                              conversation
+                            });
+                          }
+                        }}
+                        className="self-start"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Export to PDF
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowResults(false)}
+                        className="self-start"
+                      >
+                        Back to Input
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Participants section removed as requested */}
+                  
+                  {/* Overall Tone Analysis */}
+                  <div className="bg-white p-5 rounded-lg shadow-sm">
+                    <div className="flex items-center mb-4">
+                      <Activity className="h-5 w-5 text-blue-600 mr-2" />
+                      <h3 className="text-lg font-semibold">Overall Tone Analysis</h3>
+                    </div>
+                    
+                    <p className="text-lg mb-4">
+                      {result.toneAnalysis && result.toneAnalysis.overallTone 
+                        ? result.toneAnalysis.overallTone 
+                        : "Analysis not available"}
+                    </p>
+                    
+                    {result.emotionalState && result.emotionalState.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Emotional Temperature</h4>
+                        <div className="space-y-3">
+                          {result.emotionalState.slice(0, 5).map((emotion: { emotion: string; intensity: number }, idx: number) => (
+                            <div key={idx} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span>{emotion.emotion}</span>
+                                <span>{Math.round(emotion.intensity * 100)}%</span>
+                              </div>
+                              <Progress value={emotion.intensity * 100} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Health Score */}
+                  <div className="bg-white p-5 rounded-lg shadow-sm">
+                    <div className="flex items-center mb-4">
+                      <Activity className="h-5 w-5 text-blue-600 mr-2" />
+                      <h3 className="text-lg font-semibold">Relationship Health Score</h3>
+                    </div>
+                    
+                    {result.healthScore ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-red-500">Unhealthy 🔴<br/>(0-25)</span>
+                          <span className="font-medium text-orange-500">Moderate Tension 🟠<br/>(26-60)</span>
+                          <span className="font-medium text-yellow-500">Healthy 🟡<br/>(61-85)</span>
+                          <span className="font-medium text-green-600">Very Healthy 🟢<br/>(86-100)</span>
+                        </div>
+                        
+                        <div className="h-3 bg-gray-100 rounded-full relative">
+                          <div 
+                            className="h-3 rounded-full" 
+                            style={{
+                              width: `${result.healthScore.score}%`,
+                              backgroundColor: 
+                                result.healthScore.score < 30 ? '#ef4444' : 
+                                result.healthScore.score < 50 ? '#f59e0b' : 
+                                result.healthScore.score < 75 ? '#84cc16' : 
+                                '#16a34a',
+                            }}
+                          ></div>
+                          
+                          <div 
+                            className="absolute top-3 text-sm font-medium"
+                            style={{
+                              left: `calc(${result.healthScore.score}% - 15px)`,
+                            }}
+                          >
+                            {result.healthScore.score}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 p-3 rounded-md" style={{
+                          backgroundColor: 
+                            result.healthScore.score < 30 ? '#fef2f2' : 
+                            result.healthScore.score < 50 ? '#fffbeb' : 
+                            result.healthScore.score < 75 ? '#f7fee7' : 
+                            '#ecfdf5',
+                          color: 
+                            result.healthScore.score < 30 ? '#b91c1c' : 
+                            result.healthScore.score < 50 ? '#b45309' : 
+                            result.healthScore.score < 75 ? '#3f6212' : 
+                            '#166534',
+                        }}>
+                          <p className="font-medium">
+                            {result.healthScore.label}: {result.healthScore.score}/100
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p>Health score not available for this conversation.</p>
+                    )}
+                  </div>
+                  
+                  {/* Red Flags */}
+                  <div className="bg-white p-5 rounded-lg shadow-sm">
+                    <div className="flex items-center mb-4">
+                      <Flame className="h-5 w-5 text-red-600 mr-2" />
+                      <h3 className="text-lg font-semibold">Communication Issues</h3>
+                    </div>
+                    
+                    {/* Using the dedicated RedFlags component with all necessary props */}
+                    {result ? (
+                      <RedFlags 
+                        redFlags={result.redFlags} 
+                        tier={tier}
+                        conversation={conversation}
+                        overallTone={result.toneAnalysis?.overallTone}
+                        redFlagsCount={result.redFlagsCount}
+                        redFlagTypes={result.redFlagTypes}
+                        redFlagsDetected={result.redFlagsDetected}
+                        sampleQuotes={result.sampleQuotes}
+                        me={me}
+                        them={them}
+                      />
+                    ) : (
+                      <p className="text-gray-600">Analysis not available yet.</p>
+                    )}
+                  </div>
+                  
+                  {/* Conflict Dynamics - All tiers, but with varying detail */}
+                  {result && (
+                    <ConflictDynamics 
+                      tier={tier}
+                      conflictDynamics={result.conflictDynamics}
+                    />
+                  )}
+                  
+                  {/* Evasion Detection - Only for Personal and Pro tiers */}
+                  {tier !== 'free' && result && (
+                    <EvasionDetection 
+                      tier={tier}
+                      evasionDetection={result.evasionDetection}
+                    />
+                  )}
+                  
+                  {/* Communication Patterns - Only for paid tiers */}
+                  {tier !== 'free' && (
+                    <div className="bg-muted p-5 rounded-lg">
+                      <h4 className="font-medium mb-3">Communication Insights</h4>
+                      {(result.communication?.patterns && result.communication?.patterns.length > 0) ? (
+                        <div className="mb-4">
+                          <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
+                          <div className="space-y-3">
+                            {result.communication?.patterns.map((pattern: string, idx: number) => {
+                              // Check if the pattern contains a quote (text inside quotes)
+                              const quoteMatch = pattern.match(/"([^"]+)"/);
+                              const hasQuote = quoteMatch && quoteMatch[1];
+                              
+                              // Split pattern into parts before and after the quote
+                              let beforeQuote = pattern;
+                              let quote = '';
+                              let afterQuote = '';
+                              
+                              if (hasQuote) {
+                                const parts = pattern.split(quoteMatch[0]);
+                                beforeQuote = parts[0];
+                                quote = quoteMatch[1];
+                                afterQuote = parts[1] || '';
+                              }
+                              
+                              // Detect which participant is mentioned
+                              const meColor = pattern.includes(me) ? "text-cyan-700 bg-cyan-50" : "";
+                              const themColor = pattern.includes(them) ? "text-pink-700 bg-pink-50" : "";
+                              
+                              return (
+                                <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
+                                  <p>
+                                    <span className="text-gray-700">{beforeQuote}</span>
+                                    {hasQuote && (
+                                      <>
+                                        <span className={`italic px-2 py-1 rounded my-1 inline-block ${meColor || themColor || "bg-blue-50 text-blue-600"}`}>
+                                          "{quote}"
+                                        </span>
+                                        <span className="text-gray-700">{afterQuote}</span>
+                                      </>
+                                    )}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-sm">No significant communication patterns detected.</p>
+                      )}
+                      
+                      {result.communication?.suggestions && result.communication?.suggestions.length > 0 && (
+                        <div className="mt-4">
+                          <h5 className="text-sm font-medium text-muted-foreground mb-1">Improvement Suggestions</h5>
+                          <div className="space-y-2">
+                            {result.communication?.suggestions.map((suggestion: string, idx: number) => (
+                              <div key={idx} className="p-3 bg-blue-50 text-blue-700 rounded">
+                                {suggestion}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                   
-                  {/* Individual Contributions to Tension Chart */}
-                  <div className="mt-6 border rounded-lg p-4">
-                    <div className="flex items-center mb-2">
-                      <Users className="mr-2 h-5 w-5 text-muted-foreground" />
-                      <h4 className="font-medium">Individual Contributions to Tension</h4>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-4">
-                      This chart shows each participant's contribution to tension throughout the conversation.
-                      Higher values indicate more intense emotional responses or confrontational communication.
-                    </p>
-                    
-                    {/* Contribution chart - now visible by default */}
-                    <div id="contributionChart" className="mt-2">
-                        <ResponsiveContainer width="100%" height={100}>
-                          <LineChart
-                            data={[
-                              { 
-                                name: 'Start', 
-                                me: (me.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) 
-                                  : (me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score))
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)),
-                                them: (them.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) 
-                                  : (them.toLowerCase().includes("taylor"))
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score))
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score))
-                              },
-                              { 
-                                name: '25%', 
-                                me: (me.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9
-                                  : (me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.8
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.85,
-                                them: (them.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9 
-                                  : (them.toLowerCase().includes("taylor"))
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.8
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.85
-                              },
-                              { 
-                                name: '50%', 
-                                me: (me.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.1
-                                  : (me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.7
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.9,
-                                them: (them.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.1
-                                  : (them.toLowerCase().includes("taylor"))
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.7
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.9
-                              },
-                              { 
-                                name: '75%', 
-                                me: (me.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.0
-                                  : (me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.6
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.8,
-                                them: (them.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 1.0 
-                                  : (them.toLowerCase().includes("taylor"))
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.6
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.8
-                              },
-                              { 
-                                name: 'End', 
-                                me: (me.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9
-                                  : (me.toLowerCase().includes("taylor")) 
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.5
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.7,
-                                them: (them.toLowerCase().includes("alex")) 
-                                  ? Math.min(75, Math.max(30, 100 - result.healthScore.score)) * 0.9
-                                  : (them.toLowerCase().includes("taylor"))
-                                  ? Math.min(25, Math.max(5, 100 - result.healthScore.score)) * 0.5
-                                  : Math.min(30, Math.max(10, 100 - result.healthScore.score)) * 0.7
-                              },
-                            ]}
-                            margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
-                          >
-                            <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                            <YAxis hide={true} domain={[0, 100]} />
-                            <Tooltip 
-                              formatter={(value, name) => [`${name}: ${value}% tension`]}
-                              labelFormatter={(value) => `At ${value} of conversation`}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="me"
-                              name={me}
-                              stroke="#22C9C9"
-                              strokeWidth={2}
-                              dot={true}
-                              activeDot={{ r: 4, fill: "#22C9C9" }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="them"
-                              name={them}
-                              stroke="#9333ea"
-                              strokeWidth={2}
-                              dot={true}
-                              activeDot={{ r: 4, fill: "#9333ea" }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                        <div className="flex justify-center gap-8 mt-2 text-xs">
-                          <div className="flex items-center">
-                            <div className="w-3 h-3 rounded-full bg-[#22C9C9] mr-1"></div>
-                            <span className="font-medium">{me}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <div className="w-3 h-3 rounded-full bg-[#9333ea] mr-1"></div>
-                            <span className="font-medium">{them}</span>
-                          </div>
-                        </div>
-                        
-                        {/* Participant Conflict Scores */}
-                        {result.participantConflictScores && 
-                          result.participantConflictScores[me] && 
-                          result.participantConflictScores[them] &&
-                          typeof result.participantConflictScores[me].score === 'number' &&
-                          typeof result.participantConflictScores[them].score === 'number' ? (
-                          <div className="grid grid-cols-2 gap-4 mt-4 mb-2">
-                            <div className="border rounded p-3 bg-gradient-to-r from-white to-cyan-50">
-                              <div className="flex items-center mb-2">
-                                <div className="w-3 h-3 rounded-full bg-[#22C9C9] mr-1"></div>
-                                <h5 className="font-medium text-sm">{me}</h5>
-                              </div>
-                              <div className="relative w-full h-3 bg-gray-200 rounded-full mb-1">
-                                <div 
-                                  className={`absolute top-0 left-0 h-3 rounded-full ${
-                                    result.participantConflictScores[me].score >= 80 ? 'bg-green-400' :
-                                    result.participantConflictScores[me].score >= 60 ? 'bg-lime-400' :
-                                    result.participantConflictScores[me].score >= 40 ? 'bg-amber-400' :
-                                    result.participantConflictScores[me].score >= 20 ? 'bg-orange-400' :
-                                    'bg-red-400'
-                                  }`}
-                                  style={{width: `${result.participantConflictScores[me].score}%`}}
-                                />
-                              </div>
-                              <div className="text-sm font-medium">
-                                {result.participantConflictScores[me].label}
-                              </div>
-                              <div className="text-xs mt-1 text-slate-500">
-                                {result.participantConflictScores[me].isEscalating 
-                                  ? "Tends to escalate conflict" 
-                                  : "Communication tends to de-escalate"}
-                              </div>
-                            </div>
-                            
-                            <div className="border rounded p-3 bg-gradient-to-r from-white to-purple-50">
-                              <div className="flex items-center mb-2">
-                                <div className="w-3 h-3 rounded-full bg-[#9333ea] mr-1"></div>
-                                <h5 className="font-medium text-sm">{them}</h5>
-                              </div>
-                              <div className="relative w-full h-3 bg-gray-200 rounded-full mb-1">
-                                <div 
-                                  className={`absolute top-0 left-0 h-3 rounded-full ${
-                                    result.participantConflictScores[them].score >= 80 ? 'bg-green-400' :
-                                    result.participantConflictScores[them].score >= 60 ? 'bg-lime-400' :
-                                    result.participantConflictScores[them].score >= 40 ? 'bg-amber-400' :
-                                    result.participantConflictScores[them].score >= 20 ? 'bg-orange-400' :
-                                    'bg-red-400'
-                                  }`}
-                                  style={{width: `${result.participantConflictScores[them].score}%`}}
-                                />
-                              </div>
-                              <div className="text-sm font-medium">
-                                {result.participantConflictScores[them].label}
-                              </div>
-                              <div className="text-xs mt-1 text-slate-500">
-                                {result.participantConflictScores[them].isEscalating 
-                                  ? "Tends to escalate conflict" 
-                                  : "Communication tends to de-escalate"}
-                              </div>
-                            </div>
-                          </div>
-                        ) : null}
-                        
-                        <div className="bg-blue-50 p-3 rounded-md mt-3 text-sm">
-                          <h5 className="font-medium text-blue-700 mb-1">What This Means</h5>
-                          <p className="text-blue-800">
-                            {result.participantConflictScores && 
-                             result.participantConflictScores[me] && 
-                             result.participantConflictScores[them] &&
-                             typeof result.participantConflictScores[me].score === 'number' &&
-                             typeof result.participantConflictScores[them].score === 'number'
-                              ? (result.participantConflictScores[me].score < result.participantConflictScores[them].score - 20
-                                ? `${me} appears to contribute more to the tension in this conversation with a ${result.participantConflictScores[me].label.toLowerCase()} style.`
-                                : result.participantConflictScores[them].score < result.participantConflictScores[me].score - 20
-                                ? `${them} appears to contribute more to the tension in this conversation with a ${result.participantConflictScores[them].label.toLowerCase()} style.`
-                                : `Both participants show relatively similar communication patterns with balanced responsibility for any tension.`)
-                              : (result.healthScore && result.healthScore.score 
-                                ? (result.healthScore.score < 50 
-                                  ? `One participant appears to contribute more to the tension spikes in this conversation.`
-                                  : result.healthScore.score < 80
-                                  ? `This conversation shows balanced tension levels, with minimal conflict between participants.`
-                                  : `This conversation shows very low tension, with warm and supportive communication between ${me} and ${them}.`)
-                                : `This conversation shows mixed communication patterns with both supportive and challenging moments.`)
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <SupportHelpLinesLink variant="secondary" size="default" />
                 </div>
               )}
-              
-              {result && (
-                <div className="bg-muted p-4 rounded-lg mb-4">
-                <h4 className="font-medium mb-2">Communication Insights</h4>
-                {(result.communication.patterns && result.communication.patterns.length > 0) ? (
-                  <div className="mb-4">
-                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
-                    <div className="space-y-3">
-                      {result.communication.patterns.map((pattern, idx) => {
-                        // Check if the pattern contains a quote (text inside quotes)
-                        const quoteMatch = pattern.match(/"([^"]+)"/);
-                        const hasQuote = quoteMatch && quoteMatch[1];
-                        
-                        // Split pattern into parts before and after the quote
-                        let beforeQuote = pattern;
-                        let quote = '';
-                        let afterQuote = '';
-                        
-                        if (hasQuote) {
-                          const parts = pattern.split(quoteMatch[0]);
-                          beforeQuote = parts[0];
-                          quote = quoteMatch[1];
-                          afterQuote = parts[1] || '';
-                        }
-                        
-                        // Detect which participant is mentioned
-                        const meColor = pattern.includes(me) ? "text-cyan-700 bg-cyan-50" : "";
-                        const themColor = pattern.includes(them) ? "text-pink-700 bg-pink-50" : "";
-                        
-                        return (
-                          <div key={idx} className="p-3 rounded bg-white border border-gray-200 shadow-sm">
-                            <p>
-                              <span className="text-gray-700">{beforeQuote}</span>
-                              {hasQuote && (
-                                <>
-                                  <span className={`italic px-2 py-1 rounded my-1 inline-block ${meColor || themColor || "bg-blue-50 text-blue-600"}`}>
-                                    "{quote}"
-                                  </span>
-                                  <span className="text-gray-700">{afterQuote}</span>
-                                </>
-                              )}
-                              {!hasQuote && (
-                                <span className="text-gray-700">{pattern}</span>
-                              )}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mb-4">
-                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Communication Patterns</h5>
-                    <div className="bg-blue-50 p-2 rounded">
-                      <p className="text-blue-500">
-                        {result.healthScore && result.healthScore.score > 85 ? 
-                          "Supportive check-in dialogue with positive emotional tone." :
-                          result.healthScore && result.healthScore.score < 60 ? 
-                          "Some tension detected with moments of accusatory language." : 
-                          "Mixed communication patterns with neutral emotional tone."}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                {result.communication.suggestions && (
-                  <div>
-                    <h5 className="text-sm font-medium text-muted-foreground mb-1">Personalized Suggestions</h5>
-                    <div className="space-y-3 mt-2">
-                      {result.communication.suggestions.map((suggestion, idx) => {
-                        // Determine if suggestion is specifically for one participant
-                        const forMe = suggestion.toLowerCase().includes(me.toLowerCase());
-                        const forThem = suggestion.toLowerCase().includes(them.toLowerCase());
-                        
-                        return (
-                          <div 
-                            key={idx} 
-                            className={`p-3 rounded border ${
-                              forMe 
-                                ? "border-cyan-200 bg-cyan-50" 
-                                : forThem 
-                                ? "border-pink-200 bg-pink-50" 
-                                : "border-purple-200 bg-purple-50"
-                            }`}
-                          >
-                            <div className="flex items-start">
-                              <div className={`mt-1 mr-2 ${
-                                forMe 
-                                  ? "text-cyan-600" 
-                                  : forThem 
-                                  ? "text-pink-600" 
-                                  : "text-purple-600"
-                              }`}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
-                                </svg>
-                              </div>
-                              <div>
-                                {forMe && (
-                                  <div className="text-xs font-medium text-cyan-600 mb-1">For {me}</div>
-                                )}
-                                {forThem && (
-                                  <div className="text-xs font-medium text-pink-600 mb-1">For {them}</div>
-                                )}
-                                {!forMe && !forThem && (
-                                  <div className="text-xs font-medium text-purple-600 mb-1">For both participants</div>
-                                )}
-                                <p className={`text-sm ${
-                                  forMe 
-                                    ? "text-cyan-700" 
-                                    : forThem 
-                                    ? "text-pink-700" 
-                                    : "text-purple-700"
-                                }`}>
-                                  {suggestion}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {result.keyQuotes && result.keyQuotes.length > 0 && (
-                <div className="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
-                  <h4 className="font-medium mb-2 text-blue-700">Key Quotes Analysis</h4>
-                  <div className="space-y-3">
-                    {result.keyQuotes.map((quote, idx) => (
-                      <div key={idx} className="bg-white p-3 rounded border border-blue-100">
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="font-semibold text-blue-800">{quote.speaker}</span>
-                          <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">Quote #{idx + 1}</span>
-                        </div>
-                        <p className="text-gray-700 italic mb-2">"{quote.quote}"</p>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
-                            <span className="font-medium text-blue-700">Analysis:</span> {quote.analysis}
-                          </p>
-                          {quote.improvement && (
-                            <div className="text-sm text-gray-600 bg-green-50 p-2 rounded border border-green-100">
-                              <span className="font-medium text-green-700">Possible Reframe:</span> {quote.improvement}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-
-              
-              <div className="mt-6 flex justify-end">
-                <Button
-                  variant="outline"
-                  className="mr-2"
-                  onClick={() => setShowResults(false)}
-                >
-                  Back to Analysis
-                </Button>
-                <Button>
-                  Export Results
-                </Button>
-              </div>
             </div>
-          ))}
-          
+          )}
         </CardContent>
       </Card>
     </section>
