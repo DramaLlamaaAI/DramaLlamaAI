@@ -289,6 +289,92 @@ export default function ChatAnalysis() {
     detectGroupParticipantsMutation.mutate(conversation);
   };
 
+  const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      const base64 = await fileToBase64(file);
+      setSelectedImage(file);
+      setImagePreview(base64);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process screenshot",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleScreenshotAnalysis = async () => {
+    if (!selectedImage || !screenshotMe || !screenshotThem) {
+      toast({
+        title: "Missing Information", 
+        description: "Please upload a screenshot and enter participant names.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!canUseFeature) {
+      toast({
+        title: "Usage Limit Reached",
+        description: "Please upgrade your plan to continue analyzing conversations.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const base64 = imagePreview?.split(',')[1];
+      if (!base64) throw new Error("Invalid image data");
+
+      // Extract text using OCR
+      const ocrResult = await processImageOcr({ image: base64 });
+      
+      if (!ocrResult.text) {
+        throw new Error("No text found in screenshot");
+      }
+
+      // Format the conversation based on message orientation
+      const formattedConversation = formatScreenshotText(ocrResult.text, screenshotMe, screenshotThem, messageOrientation);
+
+      // Analyze the formatted conversation
+      const analysisData = {
+        conversation: formattedConversation,
+        conversationType: "two_person" as const,
+        me: screenshotMe,
+        them: screenshotThem
+      };
+
+      analysisMutation.mutate(analysisData);
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "Failed to analyze screenshot",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatScreenshotText = (extractedText: string, me: string, them: string, orientation: "left" | "right"): string => {
+    const lines = extractedText.split('\n').filter(line => line.trim());
+    let formattedLines: string[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return;
+      
+      // Alternate messages based on orientation
+      const isUserMessage = orientation === "right" ? (index % 2 === 1) : (index % 2 === 0);
+      const speaker = isUserMessage ? me : them;
+      
+      formattedLines.push(`${speaker}: ${trimmedLine}`);
+    });
+    
+    return formattedLines.join('\n');
+  };
+
   const handleSubmit = () => {
     // Clear any previous error message
     setErrorMessage(null);
@@ -1009,6 +1095,29 @@ export default function ChatAnalysis() {
                         </div>
                       )}
                     </div>
+                    
+                    {/* Analyze Button for Screenshot */}
+                    {selectedImage && screenshotMe && screenshotThem && (
+                      <div className="mt-6">
+                        <Button
+                          onClick={handleScreenshotAnalysis}
+                          disabled={!canUseFeature || isSubmitting}
+                          className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-white"></div>
+                              Analyzing Screenshot...
+                            </>
+                          ) : (
+                            <>
+                              <Brain className="h-4 w-4 mr-2" />
+                              Analyze Screenshot
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
                 
