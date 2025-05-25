@@ -115,6 +115,13 @@ const redFlagPatterns = [
     type: 'Emotional Blackmail',
     description: 'Using threats or pressure to control another person\'s behavior',
     severity: 8
+  },
+  // Passivity - refined to distinguish neutral awareness from dismissive patterns
+  {
+    pattern: /(it['']s not a big deal|I didn['']t think it mattered|you['']re overreacting|it['']s not that important|I don['']t see why|you['']re being too sensitive|how was I supposed to know|you never said it was important|I can['']t read your mind|that['']s not my fault|not my problem|you['']re making too much of this)/i,
+    type: 'Passivity',
+    description: 'Avoiding responsibility or minimizing impact of actions',
+    severity: 6
   }
 ];
 
@@ -262,6 +269,35 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
             // Special case for "I care about you" - this needs context to be manipulative
             if (messageText.match(/I care about you/i) && !messageText.match(/(if you|but you|you should|after all I've done)/i)) {
               console.log(`Preventing emotional manipulation false positive: "I care about you" without manipulation context`);
+              isValidFlag = false;
+            }
+          }
+          
+          // RULE 5: Prevent false positives for Passivity - distinguish neutral awareness from dismissive patterns
+          if (pattern.type === 'Passivity') {
+            // Neutral awareness statements that should NOT be flagged as passivity
+            const isNeutralAwareness = messageText.match(/(I didn['']t realize|didn['']t know|you should['']ve told me|wish you had told me|would have|if I had known)/i);
+            
+            // Check if it's followed by dismissive language or repeated behavior pattern
+            const isDismissive = messageText.match(/(but it['']s not|not a big deal|you['']re overreacting|too sensitive|making too much)/i);
+            
+            // Check for patterns of avoiding responsibility (multiple indicators)
+            const responsibilityAvoidance = messageText.match(/(not my fault|not my problem|how was I supposed|can['']t read your mind)/i);
+            
+            // Check for minimizing impact
+            const minimizingImpact = messageText.match(/(it['']s not that important|I don['']t see why|not a big deal|you['']re making too much)/i);
+            
+            // Only flag if there's a clear pattern of avoiding responsibility or minimizing impact
+            // Do NOT flag neutral awareness statements unless they're combined with dismissive language
+            if (isNeutralAwareness && !isDismissive && !responsibilityAvoidance && !minimizingImpact) {
+              console.log(`Preventing passivity false positive: "${messageText}" is neutral awareness, not dismissive`);
+              isValidFlag = false;
+            }
+            
+            // Also check if the message shows willingness to improve or understand
+            const showsWillingness = messageText.match(/(next time|in future|will try|want to understand|help me understand)/i);
+            if (showsWillingness) {
+              console.log(`Preventing passivity false positive: "${messageText}" shows willingness to improve`);
               isValidFlag = false;
             }
           }

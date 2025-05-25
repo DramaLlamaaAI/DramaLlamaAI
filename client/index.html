@@ -9,6 +9,15 @@
     <meta property="og:type" content="website" />
     <title>Drama Llama - AI Powered Communication Analysis</title>
     <link rel="icon" href="/src/assets/llama-logo.svg" type="image/svg+xml">
+    <script>
+      // Domain redirect - redirect old Replit domain to custom domain
+      if (window.location.hostname.includes('replit.app') || 
+          window.location.hostname.includes('drama-llama-ai-elskieproductio')) {
+        const newUrl = 'https://www.dramallama.ai' + window.location.pathname + window.location.search + window.location.hash;
+        console.log('Redirecting to custom domain:', newUrl);
+        window.location.replace(newUrl);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
