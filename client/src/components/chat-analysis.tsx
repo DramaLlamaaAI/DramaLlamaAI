@@ -930,17 +930,45 @@ export default function ChatAnalysis() {
                   </TabsContent>
 
                   {/* Developer Mode Tab */}
-                  {isDevMode && (
-                    <TabsContent value="developer" className="mt-4">
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Developer Mode</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Additional debugging and development features.
-                        </p>
+                  {isDevMode && ( 
+                            className="max-h-48 mx-auto border rounded-lg"
+                          />
+                          
+                          {ocrMutation.isPending && (
+                            <div className="mt-2 text-sm text-center">
+                              <div className="h-4 w-4 mx-auto mb-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                              Extracting text from image...
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      <div className="flex items-start mb-2">
+                        <Info className="h-4 w-4 mr-2 mt-0.5" />
+                        <div>
+                          <strong>WhatsApp Export Instructions:</strong>
+                          <ol className="list-decimal ml-5 mt-1 space-y-1">
+                            <li>Open the WhatsApp chat</li>
+                            <li>Tap the three dots ⋮ in the top right</li>
+                            <li>Select "More" → "Export chat"</li>
+                            <li>Choose "Without media"</li>
+                            <li>Share the .zip file here</li>
+                          </ol>
+                        </div>
                       </div>
-                    </TabsContent>
-                  )}
-                </Tabs>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Screenshot Analysis Tab */}
+                <TabsContent value="screenshot" className="mt-4">
+                  <div className="space-y-4">
+                    <div className="text-center mb-6">
+                      <div className="bg-purple-100 inline-block p-4 mb-3 rounded-full">
+                        <Image className="h-8 w-8 text-purple-600" />
+                      </div>
                       <h3 className="text-xl font-medium text-purple-700 mb-2">Screenshot Analysis</h3>
                       <p className="text-sm text-muted-foreground mb-4">
                         Upload a screenshot of your conversation and let AI extract and analyze the text
