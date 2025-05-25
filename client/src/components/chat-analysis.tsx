@@ -497,7 +497,7 @@ export default function ChatAnalysis() {
                 }}
                 className="mt-6"
               >
-                <TabsList className={`grid ${isDevMode ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                <TabsList className="grid grid-cols-3">
                   <TabsTrigger value="paste">
                     <Edit className="h-4 w-4 mr-2" />
                     Paste Text
