@@ -8,9 +8,10 @@ const app = express();
 // Domain redirect middleware - redirect old Replit domain to custom domain
 app.use((req: Request, res: Response, next: NextFunction) => {
   const host = req.get('host');
+  console.log(`Request host: ${host}`); // Debug log to see what host we're getting
   
   // Check if request is coming from the old Replit domain
-  if (host && host.includes('drama-llama-ai-elskieproductio.replit.app')) {
+  if (host && (host.includes('replit.app') || host.includes('drama-llama-ai-elskieproductio'))) {
     // Redirect to the new custom domain
     const newUrl = `https://www.dramallama.ai${req.originalUrl}`;
     console.log(`Redirecting from ${host} to www.dramallama.ai`);
