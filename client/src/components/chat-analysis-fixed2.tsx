@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Brain, Upload, AlertCircle, Users, Edit, Home } from "lucide-react";
+import { Info, Brain, Upload, AlertCircle, Users, Edit, Home, Image } from "lucide-react";
 import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, ChatAnalysisResponse } from "@/lib/openai";
@@ -27,8 +27,14 @@ export default function ChatAnalysisFixed() {
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [screenshotMe, setScreenshotMe] = useState("");
+  const [screenshotThem, setScreenshotThem] = useState("");
+  const [messageOrientation, setMessageOrientation] = useState<"left" | "right">("right");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -199,6 +205,76 @@ export default function ChatAnalysisFixed() {
       description: `Switched to: You are ${tempThem}, they are ${tempMe}`,
     });
   };
+
+  const handleSwitchScreenshotNames = () => {
+    const tempMe = screenshotMe;
+    setScreenshotMe(screenshotThem);
+    setScreenshotThem(tempMe);
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      setErrorMessage(null);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    setScreenshotMe("");
+    setScreenshotThem("");
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
+  };
+
+  const handleAnalyzeScreenshot = async () => {
+    if (!selectedImage || !screenshotMe || !screenshotThem) {
+      setErrorMessage("Please upload a screenshot and enter participant names.");
+      return;
+    }
+
+    if (!canUseFeature) {
+      if (limit !== null && usedAnalyses >= limit) {
+        setErrorMessage(`You've reached your monthly limit of ${limit} analyses. Please upgrade your plan to continue.`);
+      } else {
+        setErrorMessage("Unable to perform analysis at this time.");
+      }
+      return;
+    }
+
+    try {
+      // Convert image to base64
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Image = e.target?.result as string;
+        
+        // Extract text from image using OCR and then analyze
+        const analysisData = {
+          conversation: "", // Will be filled by OCR
+          me: screenshotMe,
+          them: screenshotThem,
+          conversationType: conversationType,
+          isScreenshot: true,
+          screenshotData: base64Image,
+          messageOrientation: messageOrientation
+        };
+
+        analysisMutation.mutate(analysisData);
+      };
+      reader.readAsDataURL(selectedImage);
+    } catch (error) {
+      console.error('Screenshot analysis error:', error);
+      setErrorMessage("Failed to analyze screenshot. Please try again.");
+    }
+  };
   
   // Participant Name Form component for reuse
   const ParticipantNameForm = () => (
@@ -330,7 +406,7 @@ export default function ChatAnalysisFixed() {
                 }}
                 className="mt-6"
               >
-                <TabsList className="grid grid-cols-2 bg-pink-50 border-pink-200">
+                <TabsList className="grid grid-cols-3 bg-pink-50 border-pink-200">
                   <TabsTrigger value="paste" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white">
                     <Edit className="h-4 w-4 mr-2" />
                     Paste Text
@@ -338,6 +414,10 @@ export default function ChatAnalysisFixed() {
                   <TabsTrigger value="upload" className="data-[state=active]:bg-teal-500 data-[state=active]:text-white">
                     <Upload className="h-4 w-4 mr-2" />
                     Upload File
+                  </TabsTrigger>
+                  <TabsTrigger value="screenshot" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+                    <Image className="h-4 w-4 mr-2" />
+                    Upload Screenshot
                   </TabsTrigger>
                 </TabsList>
                 
@@ -447,6 +527,185 @@ export default function ChatAnalysisFixed() {
                         <Info className="h-4 w-4 mr-2 mt-0.5" />
                         <span>
                           We don't store your conversation data. All analysis is performed securely.
+                        </span>
+                      </div>
+                      
+                      <div className="mt-4">
+                        {usage && (
+                          <div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span>Analyses used this month: {usedAnalyses}{limit !== null && ` of ${limit}`}</span>
+                              <span className="text-xs">
+                                {tier === 'free' && 'Free Tier'}
+                                {tier === 'personal' && 'Personal Tier'}
+                                {tier === 'pro' && 'Pro Tier'}
+                                {tier === 'instant' && 'Instant Deep Dive'}
+                              </span>
+                            </div>
+                            
+                            {limit !== null && (
+                              <Progress value={(usedAnalyses / limit) * 100} className="h-2" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="screenshot" className="mt-4">
+                  <div className="space-y-4">
+                    {/* Info about screenshot analysis */}
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2">
+                        <Info className="h-4 w-4" />
+                        <p className="text-sm text-muted-foreground">
+                          Upload a screenshot of your conversation. We'll extract the text and analyze it for you.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Screenshot Upload */}
+                    <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center bg-purple-50">
+                      <input
+                        type="file"
+                        ref={imageInputRef}
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      
+                      {!selectedImage ? (
+                        <div>
+                          <Image className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+                          <Button
+                            onClick={() => imageInputRef.current?.click()}
+                            className="bg-purple-500 hover:bg-purple-600 text-white"
+                          >
+                            Choose Screenshot
+                          </Button>
+                          <p className="text-xs text-gray-500 mt-2">Supports JPG, PNG, and other image formats</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <img 
+                            src={imagePreview || ''} 
+                            alt="Screenshot preview" 
+                            className="max-w-full max-h-64 mx-auto mb-4 rounded"
+                          />
+                          <div className="flex gap-2 justify-center">
+                            <Button
+                              onClick={() => imageInputRef.current?.click()}
+                              variant="outline"
+                              size="sm"
+                            >
+                              Change Image
+                            </Button>
+                            <Button
+                              onClick={handleRemoveImage}
+                              variant="outline"
+                              size="sm"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Screenshot Settings */}
+                    {selectedImage && (
+                      <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+                        <h3 className="font-medium text-sm mb-3">Screenshot Settings:</h3>
+                        
+                        {/* Message Orientation */}
+                        <div>
+                          <Label className="text-sm font-medium">My messages appear on the:</Label>
+                          <div className="flex gap-4 mt-2">
+                            <Button
+                              type="button"
+                              variant={messageOrientation === "left" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setMessageOrientation("left")}
+                              className={messageOrientation === "left" ? "bg-purple-500 hover:bg-purple-600" : ""}
+                            >
+                              Left side
+                            </Button>
+                            <Button
+                              type="button"
+                              variant={messageOrientation === "right" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setMessageOrientation("right")}
+                              className={messageOrientation === "right" ? "bg-purple-500 hover:bg-purple-600" : ""}
+                            >
+                              Right side
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Participant Names for Screenshot */}
+                        <div className="grid grid-cols-[1fr_1fr_auto] gap-4 items-end">
+                          <div>
+                            <Label htmlFor="screenshot-me-name" className="text-sm font-medium">Me:</Label>
+                            <input
+                              id="screenshot-me-name"
+                              type="text"
+                              value={screenshotMe}
+                              onChange={(e) => setScreenshotMe(e.target.value)}
+                              className="w-full p-2 border rounded mt-1 text-sm"
+                              placeholder="Your display name"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="screenshot-them-name" className="text-sm font-medium">Them:</Label>
+                            <input
+                              id="screenshot-them-name"
+                              type="text"
+                              value={screenshotThem}
+                              onChange={(e) => setScreenshotThem(e.target.value)}
+                              className="w-full p-2 border rounded mt-1 text-sm"
+                              placeholder="Their display name"
+                            />
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleSwitchScreenshotNames}
+                            className="bg-purple-500 hover:bg-purple-600 text-white border-purple-500 hover:border-purple-600"
+                          >
+                            Switch
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Analyze Button for Screenshot */}
+                    {selectedImage && screenshotMe && screenshotThem && (
+                      <Button 
+                        onClick={handleAnalyzeScreenshot}
+                        disabled={!canUseFeature || analysisMutation.isPending}
+                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3"
+                      >
+                        {analysisMutation.isPending ? (
+                          <>
+                            <Brain className="animate-spin h-4 w-4 mr-2" />
+                            Analyzing Screenshot...
+                          </>
+                        ) : (
+                          <>
+                            <Brain className="h-4 w-4 mr-2" />
+                            Analyze Screenshot
+                          </>
+                        )}
+                      </Button>
+                    )}
+
+                    <div className="text-sm text-muted-foreground">
+                      <div className="flex items-start mb-2">
+                        <Info className="h-4 w-4 mr-2 mt-0.5" />
+                        <span>
+                          We don't store your screenshot data. All analysis is performed securely.
                         </span>
                       </div>
                       
