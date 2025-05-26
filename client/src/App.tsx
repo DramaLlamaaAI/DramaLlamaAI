@@ -21,6 +21,7 @@ import PricingRedirect from "@/pages/pricing-redirect";
 import InstantDeepDivePage from "@/pages/instant-deep-dive";
 import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
+import ContactUs from "@/pages/contact-us";
 // Support helplines converted to dialog component
 import ChatAnalysisFixed2 from "./components/chat-analysis-fixed2";
 import GroupChatAnalysis from "./components/group-chat-analysis";
