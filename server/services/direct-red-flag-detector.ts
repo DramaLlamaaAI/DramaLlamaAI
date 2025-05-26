@@ -197,6 +197,12 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
         if (isHealthyConversation) {
           // This is a demonstrably healthy conversation, no red flags needed
           isValidFlag = false;
+        }
+        
+        // RULE 0.5: Never flag clearly supportive statements
+        if (messageText.match(/(always here for you|of course|i'd love that|happy to help|glad I could help)/i)) {
+          console.log(`Preventing false positive: "${messageText}" is clearly supportive`);
+          isValidFlag = false;
         } 
         // If not a broadly healthy conversation, apply specific rules
         else {
