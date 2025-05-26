@@ -216,7 +216,7 @@ export function detectRedFlagsDirectly(conversation: string, healthScore?: numbe
         }
         
         // RULE 0.5: Never flag clearly supportive statements (applies regardless of conversation health)
-        if (messageText.match(/(always here for you|of course|i'd love that|happy to help|glad I could help)/i)) {
+        if (messageText.match(/(always here for you|i'm always here|of course|i'd love that|happy to help|glad I could help|here for you|made a difference|appreciate|thank you|grateful)/i)) {
           console.log(`Preventing false positive: "${messageText}" is clearly supportive`);
           isValidFlag = false;
         } 
