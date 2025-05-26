@@ -1419,7 +1419,7 @@ export default function ChatAnalysisFixed() {
                       <div className="text-center">
                         <h3 className="text-xl font-bold text-pink-700 mb-3">🚀 Join Our Free Beta!</h3>
                         <p className="text-gray-700 mb-4">
-                          Register now to unlock independent red flag insights, advanced analysis, and unlimited chat reviews during our beta period!
+                          Register now to unlock independent red flag insights, advanced analysis, and unlimited chat reviews during our beta period! Once you've activated your account, email us at support@dramallama.ai and we'll adjust your account to Beta Tier.
                         </p>
                         <Link href="/auth">
                           <Button className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 text-lg">

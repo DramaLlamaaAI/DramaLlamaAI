@@ -52,7 +52,7 @@ export function BetaPromoBanner() {
           Get in-depth <strong>🚩 red flag insight</strong> and emotional tone analysis.
         </p>
         <p className="text-xs mb-3 text-pink-100">
-          👉 Check our Facebook page to see how to qualify.
+          👉 Sign up, then email us at support@dramallama.ai and we'll upgrade your account.
         </p>
         
         <div className="flex flex-col gap-2">
