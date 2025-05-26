@@ -626,7 +626,12 @@ export const analysisController = {
           const healthScore = filteredResults.healthScore?.score || 0;
           
           if (healthScore >= 85) {
-            console.log(`Skipping direct red flag detection for healthy conversation (health score: ${healthScore})`);
+            console.log(`Skipping ALL red flag detection for healthy conversation (health score: ${healthScore})`);
+            // Ensure no red flags exist for healthy conversations
+            if (filteredResults.redFlags && filteredResults.redFlags.length > 0) {
+              console.log(`Removing ${filteredResults.redFlags.length} existing red flags from healthy conversation`);
+              filteredResults.redFlags = [];
+            }
           } else {
             const directRedFlags = detectRedFlagsDirectly(conversationText, healthScore);
             console.log(`Directly detected ${directRedFlags.length} red flags from text patterns`);
