@@ -217,6 +217,7 @@ const prompts = {
     - "I'm overwhelmed" = Defensive reassurance, NOT manipulation
     - "I care about you" = Genuine concern, NOT red flag
     - "I really needed you" = Vulnerable honesty, NOT communication breakdown
+    - "I really appreciated" + positive response = Genuine gratitude, NOT guilt tripping
     
     🔒 SAFE EXPRESSION LIBRARY (Never flag these):
     - "I'm feeling really overwhelmed"
@@ -224,6 +225,9 @@ const prompts = {
     - "This is hard, but I want to understand"
     - "I didn't mean to upset you"
     - "I'm not trying to ignore you"
+    - "I really appreciated your help"
+    - "You made a difference"
+    - "Thank you for" + positive reciprocal response
     
     🧠 INTENT CLASSIFICATION: For key quotes, classify intent:
     - Defensive reassurance: Attempting to calm tension

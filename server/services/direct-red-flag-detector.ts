@@ -18,9 +18,9 @@ interface RedFlag {
  * Patterns for detecting specific types of red flags
  */
 const redFlagPatterns = [
-  // Guilt-tripping
+  // Guilt-tripping - refined to avoid flagging genuine appreciation
   {
-    pattern: /(shouldn['']t have to|too busy for me|make me feel|always .* for you|guess you['']re too|you didn['']t even notice|you just don['']t care|i guess you just|you should already|if you really cared|after all I('ve| have) done|can['']t believe you would)/i,
+    pattern: /(shouldn['']t have to tell you|too busy for me when|guess you['']re too busy|you didn['']t even notice when|you just don['']t care about|i guess you just don['']t|you should already know|if you really cared you would|after all I('ve| have) done for you|can['']t believe you would do this|you never appreciate|don['']t even care that)/i,
     type: 'Guilt Tripping',
     description: 'Using guilt to control or manipulate the other person',
     severity: 7
@@ -273,7 +273,25 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
             }
           }
           
-          // RULE 5: Prevent false positives for Passivity - distinguish neutral awareness from dismissive patterns
+          // RULE 5: Prevent false positives for Guilt Tripping - distinguish genuine appreciation from manipulation
+          if (pattern.type === 'Guilt Tripping') {
+            // Check if this is genuine appreciation without manipulation
+            const isGenuineAppreciation = messageText.match(/(really appreciated|thank you|made a difference|means a lot|grateful for)/i);
+            const hasManipulativeContext = messageText.match(/(but you|if you|you should|you never|you always|after all I|you owe me)/i);
+            
+            // Check if the conversation contains reciprocal positive responses
+            const hasPositiveReciprocity = allMessages.some(msg => 
+              msg.text.match(/(of course|always here|happy to|glad I could|you're welcome|love that|i'd love)/i)
+            );
+            
+            // If it's genuine appreciation without manipulative context and there's positive reciprocity, don't flag
+            if (isGenuineAppreciation && !hasManipulativeContext && hasPositiveReciprocity) {
+              console.log(`Preventing guilt tripping false positive: "${messageText}" is genuine appreciation with positive reciprocity`);
+              isValidFlag = false;
+            }
+          }
+          
+          // RULE 6: Prevent false positives for Passivity - distinguish neutral awareness from dismissive patterns
           if (pattern.type === 'Passivity') {
             // Neutral awareness statements that should NOT be flagged as passivity
             const isNeutralAwareness = messageText.match(/(I didn['']t realize|didn['']t know|you should['']ve told me|wish you had told me|would have|if I had known)/i);
