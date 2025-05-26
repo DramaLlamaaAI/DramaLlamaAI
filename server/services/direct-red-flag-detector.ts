@@ -389,7 +389,7 @@ export function enhanceWithDirectRedFlags(analysis: any, conversation: string): 
   }
   
   // Detect red flags directly from conversation
-  const directRedFlags = detectRedFlagsDirectly(conversation);
+  const directRedFlags = detectRedFlagsDirectly(conversation, healthScore);
   
   // If we have directly detected red flags
   if (directRedFlags.length > 0) {
