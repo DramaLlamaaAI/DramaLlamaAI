@@ -27,8 +27,8 @@ export default function ChatAnalysisFixed() {
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [screenshotMe, setScreenshotMe] = useState("");
   const [screenshotThem, setScreenshotThem] = useState("");
   const [messageOrientation, setMessageOrientation] = useState<"left" | "right">("right");
@@ -213,31 +213,54 @@ export default function ChatAnalysisFixed() {
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(event.target.files || []);
+    if (files.length > 0) {
+      const newImages = [...selectedImages, ...files].slice(0, 10); // Limit to 10 images
+      setSelectedImages(newImages);
+      
+      // Generate previews for new images
+      const newPreviews: string[] = [];
+      let loadedCount = 0;
+      
+      files.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          newPreviews[index] = e.target?.result as string;
+          loadedCount++;
+          
+          if (loadedCount === files.length) {
+            setImagePreviews([...imagePreviews, ...newPreviews]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+      
       setErrorMessage(null);
     }
   };
 
-  const handleRemoveImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
-    setScreenshotMe("");
-    setScreenshotThem("");
-    if (imageInputRef.current) {
-      imageInputRef.current.value = "";
+  const handleRemoveImage = (index?: number) => {
+    if (index !== undefined) {
+      // Remove specific image
+      const newImages = selectedImages.filter((_, i) => i !== index);
+      const newPreviews = imagePreviews.filter((_, i) => i !== index);
+      setSelectedImages(newImages);
+      setImagePreviews(newPreviews);
+    } else {
+      // Remove all images
+      setSelectedImages([]);
+      setImagePreviews([]);
+      setScreenshotMe("");
+      setScreenshotThem("");
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
     }
   };
 
   const handleAnalyzeScreenshot = async () => {
-    if (!selectedImage || !screenshotMe || !screenshotThem) {
-      setErrorMessage("Please upload a screenshot and enter participant names.");
+    if (selectedImages.length === 0 || !screenshotMe || !screenshotThem) {
+      setErrorMessage("Please upload at least one screenshot and enter participant names.");
       return;
     }
 
@@ -251,28 +274,36 @@ export default function ChatAnalysisFixed() {
     }
 
     try {
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64Image = e.target?.result as string;
-        
-        // Extract text from image using OCR and then analyze
-        const analysisData = {
-          conversation: "", // Will be filled by OCR
-          me: screenshotMe,
-          them: screenshotThem,
-          conversationType: conversationType,
-          isScreenshot: true,
-          screenshotData: base64Image,
-          messageOrientation: messageOrientation
-        };
+      // Convert all images to base64
+      const base64Images: string[] = [];
+      let processedCount = 0;
+      
+      selectedImages.forEach((image, index) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          base64Images[index] = e.target?.result as string;
+          processedCount++;
+          
+          if (processedCount === selectedImages.length) {
+            // All images processed, send for analysis
+            const analysisData = {
+              conversation: "", // Will be filled by OCR
+              me: screenshotMe,
+              them: screenshotThem,
+              conversationType: conversationType,
+              isScreenshot: true,
+              screenshotData: base64Images, // Array of images
+              messageOrientation: messageOrientation
+            };
 
-        analysisMutation.mutate(analysisData);
-      };
-      reader.readAsDataURL(selectedImage);
+            analysisMutation.mutate(analysisData);
+          }
+        };
+        reader.readAsDataURL(image);
+      });
     } catch (error) {
       console.error('Screenshot analysis error:', error);
-      setErrorMessage("Failed to analyze screenshot. Please try again.");
+      setErrorMessage("Failed to analyze screenshots. Please try again.");
     }
   };
   
@@ -572,49 +603,65 @@ export default function ChatAnalysisFixed() {
                         ref={imageInputRef}
                         onChange={handleImageUpload}
                         accept="image/*"
+                        multiple
                         className="hidden"
                       />
                       
-                      {!selectedImage ? (
+                      {selectedImages.length === 0 ? (
                         <div>
                           <Image className="h-12 w-12 text-purple-400 mx-auto mb-4" />
                           <Button
                             onClick={() => imageInputRef.current?.click()}
                             className="bg-purple-500 hover:bg-purple-600 text-white"
                           >
-                            Choose Screenshot
+                            Choose Screenshots
                           </Button>
-                          <p className="text-xs text-gray-500 mt-2">Supports JPG, PNG, and other image formats</p>
+                          <p className="text-xs text-gray-500 mt-2">Supports JPG, PNG, and other image formats. You can select multiple files.</p>
                         </div>
                       ) : (
                         <div>
-                          <img 
-                            src={imagePreview || ''} 
-                            alt="Screenshot preview" 
-                            className="max-w-full max-h-64 mx-auto mb-4 rounded"
-                          />
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                            {imagePreviews.map((preview, index) => (
+                              <div key={index} className="relative">
+                                <img 
+                                  src={preview} 
+                                  alt={`Screenshot ${index + 1}`} 
+                                  className="w-full h-32 object-cover rounded border"
+                                />
+                                <Button
+                                  onClick={() => handleRemoveImage(index)}
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                                >
+                                  ×
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
                           <div className="flex gap-2 justify-center">
                             <Button
                               onClick={() => imageInputRef.current?.click()}
                               variant="outline"
                               size="sm"
                             >
-                              Change Image
+                              Add More
                             </Button>
                             <Button
-                              onClick={handleRemoveImage}
+                              onClick={() => handleRemoveImage()}
                               variant="outline"
                               size="sm"
                             >
-                              Remove
+                              Remove All
                             </Button>
                           </div>
+                          <p className="text-xs text-gray-500 mt-2">{selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''} selected (max 10)</p>
                         </div>
                       )}
                     </div>
 
                     {/* Screenshot Settings */}
-                    {selectedImage && (
+                    {selectedImages.length > 0 && (
                       <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
                         <h3 className="font-medium text-sm mb-3">Screenshot Settings:</h3>
                         
@@ -681,7 +728,7 @@ export default function ChatAnalysisFixed() {
                     )}
 
                     {/* Analyze Button for Screenshot */}
-                    {selectedImage && screenshotMe && screenshotThem && (
+                    {selectedImages.length > 0 && screenshotMe && screenshotThem && (
                       <Button 
                         onClick={handleAnalyzeScreenshot}
                         disabled={!canUseFeature || analysisMutation.isPending}
