@@ -49,6 +49,7 @@ function Router() {
       <Route path="/verify" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
+      <Route path="/contact-us" component={ContactUs} />
       {/* Pricing page now redirects to subscription */}
       <Route path="/pricing" component={PricingRedirect} />
       <Route path="/instant-deep-dive" component={InstantDeepDivePage} />

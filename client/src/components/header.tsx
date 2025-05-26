@@ -7,7 +7,7 @@ import { Link } from "wouter";
 import llamaImage from "@assets/FB Profile Pic.png";
 import AdminNavItem from "./admin-nav-item";
 import { apiRequest } from "@/lib/queryClient";
-import { Home, MessageSquare, Zap, Mic, Users } from "lucide-react";
+import { Home, MessageSquare, Zap, Mic, Users, Mail } from "lucide-react";
 
 
 export default function Header() {
@@ -78,6 +78,11 @@ export default function Header() {
                   </Button>
                   <span className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-[10px] text-white px-1 rounded">PRO</span>
                 </div>
+              </Link>
+              <Link href="/contact-us">
+                <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
+                  <Mail className="w-4 h-4 mr-2" /> Contact Us
+                </Button>
               </Link>
 
             </div>
