@@ -39,9 +39,9 @@ const redFlagPatterns = [
     description: 'Avoiding responsibility by blaming the other person',
     severity: 7
   },
-  // All-or-nothing statements (with improved false positive prevention)
+  // All-or-nothing statements (very specific to avoid flagging supportive language)
   {
-    pattern: /(you never|you always|you don['']t care at all|everything is ruined|nothing ever changes|not once have you|every single time)/i,
+    pattern: /(you never listen|you always do this|you don['']t care at all|everything is ruined|nothing ever changes|not once have you helped|every single time you)/i,
     type: 'All-or-Nothing Thinking',
     description: 'Using absolutes to exaggerate situations',
     severity: 5
