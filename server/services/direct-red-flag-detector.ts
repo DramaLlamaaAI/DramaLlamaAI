@@ -185,6 +185,15 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
     // Signs of forward-focused approach
     allMessages.some(msg => msg.text.match(/(next time|plan|future|weekend|looking forward)/i));
   
+  // Check for Elena-Harper style appreciation conversation
+  const isAppreciationConversation = 
+    // Signs of gratitude and appreciation
+    allMessages.some(msg => msg.text.match(/(really appreciated|made a difference|means a lot)/i)) &&
+    // Signs of supportive responses
+    allMessages.some(msg => msg.text.match(/(of course|always here|i'd love)/i)) &&
+    // Overall positive tone without conflict
+    !allMessages.some(msg => msg.text.match(/(but you|however|if you|you should|you never|you always)/i));
+  
   // Process each message with context awareness
   allMessages.forEach(({speaker: speakerName, text: messageText}) => {
     // Check for red flag patterns with context awareness
@@ -194,18 +203,20 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
         let isValidFlag = true;
         
         // RULE 0: Skip all red flags for conversations that are clearly healthy
-        if (isHealthyConversation) {
+        if (isHealthyConversation || isAppreciationConversation) {
           // This is a demonstrably healthy conversation, no red flags needed
+          console.log(`Skipping red flag for healthy conversation: "${messageText}"`);
           isValidFlag = false;
         }
         
-        // RULE 0.5: Never flag clearly supportive statements
+        // RULE 0.5: Never flag clearly supportive statements (applies regardless of conversation health)
         if (messageText.match(/(always here for you|of course|i'd love that|happy to help|glad I could help)/i)) {
           console.log(`Preventing false positive: "${messageText}" is clearly supportive`);
           isValidFlag = false;
         } 
-        // If not a broadly healthy conversation, apply specific rules
-        else {
+        
+        // If flag is still valid, apply specific rules
+        if (isValidFlag) {
           // RULE 1: Prevent false positives for All-or-Nothing Thinking
           if (pattern.type === 'All-or-Nothing Thinking' && nuancedLanguage.has(speakerName)) {
             // Skip if this speaker uses nuanced language elsewhere in the conversation
