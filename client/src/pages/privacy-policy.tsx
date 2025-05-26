@@ -50,7 +50,7 @@ export default function PrivacyPolicy() {
               
               <li className="flex">
                 <span className="text-green-500 font-bold mr-2">✅</span>
-                <span>You can request deletion of your account and associated data at any time by contacting us at <a href="mailto:DramaLlamaConsultancy@gmail.com" className="text-primary hover:underline">DramaLlamaConsultancy@gmail.com</a>.</span>
+                <span>You can request deletion of your account and associated data at any time by contacting us at <a href="mailto:support@dramallama.ai" className="text-primary hover:underline">support@dramallama.ai</a>.</span>
               </li>
             </ul>
             
@@ -93,7 +93,7 @@ export default function PrivacyPolicy() {
           
           <h2 className="text-2xl font-bold mt-8 mb-4">Contact Us</h2>
           <p>If you have any questions about this Privacy Policy or our data practices, please contact us at:</p>
-          <p><a href="mailto:DramaLlamaConsultancy@gmail.com" className="text-primary hover:underline">DramaLlamaConsultancy@gmail.com</a></p>
+          <p><a href="mailto:support@dramallama.ai" className="text-primary hover:underline">support@dramallama.ai</a></p>
           
           <h2 className="text-2xl font-bold mt-8 mb-4">Changes to This Policy</h2>
           <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
