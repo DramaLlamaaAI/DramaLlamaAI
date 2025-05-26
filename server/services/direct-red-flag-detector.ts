@@ -18,9 +18,9 @@ interface RedFlag {
  * Patterns for detecting specific types of red flags
  */
 const redFlagPatterns = [
-  // Guilt-tripping - refined to avoid flagging genuine appreciation
+  // Guilt-tripping - very specific patterns to avoid false positives
   {
-    pattern: /(shouldn['']t have to tell you|too busy for me when|guess you['']re too busy|you didn['']t even notice when|you just don['']t care about|i guess you just don['']t|you should already know|if you really cared you would|after all I('ve| have) done for you|can['']t believe you would do this|you never appreciate|don['']t even care that)/i,
+    pattern: /(shouldn['']t have to tell you that|too busy for me when I need|guess you['']re too busy to|you didn['']t even notice when I|you just don['']t care about me|i guess you just don['']t care|you should already know how|if you really cared you would have|after all I('ve| have) done for you and|can['']t believe you would do this to me|you never appreciate what I|don['']t even care that I)/i,
     type: 'Guilt Tripping',
     description: 'Using guilt to control or manipulate the other person',
     severity: 7
@@ -275,6 +275,9 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
           
           // RULE 5: Prevent false positives for Guilt Tripping - distinguish genuine appreciation from manipulation
           if (pattern.type === 'Guilt Tripping') {
+            // Check if this is a supportive response
+            const isSupportiveResponse = messageText.match(/(of course|always here for you|happy to help|glad I could|you're welcome|i'd love that|that means a lot)/i);
+            
             // Check if this is genuine appreciation without manipulation
             const isGenuineAppreciation = messageText.match(/(really appreciated|thank you|made a difference|means a lot|grateful for)/i);
             const hasManipulativeContext = messageText.match(/(but you|if you|you should|you never|you always|after all I|you owe me)/i);
@@ -284,8 +287,13 @@ export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
               msg.text.match(/(of course|always here|happy to|glad I could|you're welcome|love that|i'd love)/i)
             );
             
+            // Never flag supportive responses as guilt tripping
+            if (isSupportiveResponse) {
+              console.log(`Preventing guilt tripping false positive: "${messageText}" is a supportive response`);
+              isValidFlag = false;
+            }
             // If it's genuine appreciation without manipulative context and there's positive reciprocity, don't flag
-            if (isGenuineAppreciation && !hasManipulativeContext && hasPositiveReciprocity) {
+            else if (isGenuineAppreciation && !hasManipulativeContext && hasPositiveReciprocity) {
               console.log(`Preventing guilt tripping false positive: "${messageText}" is genuine appreciation with positive reciprocity`);
               isValidFlag = false;
             }
