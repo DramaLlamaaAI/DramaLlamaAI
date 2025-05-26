@@ -41,6 +41,7 @@ function Router() {
       <Route path="/group-chat-analysis" component={GroupChatAnalysisPage} />
       <Route path="/message-analysis" component={MessageAnalysis} />
       <Route path="/de-escalate" component={VentMode} />
+      <Route path="/vent-mode" component={VentMode} />
       <Route path="/live-talk" component={LiveTalk} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/checkout" component={CheckoutPage} />
