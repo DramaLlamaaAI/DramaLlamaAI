@@ -621,14 +621,20 @@ export const analysisController = {
         
         // Skip additional processing for Beta tier (already handled by dedicated service)
         if (tier !== 'beta') {
-          // Get direct red flags from the conversation text
+          // Get direct red flags from the conversation text (only if health score is below 85)
           const conversationText = filteredConversation;
-          const directRedFlags = detectRedFlagsDirectly(conversationText);
-          console.log(`Directly detected ${directRedFlags.length} red flags from text patterns`);
+          const healthScore = filteredResults.healthScore?.score || 0;
           
-          // Apply direct red flag detection to ensure we catch toxic patterns
-          // that might be missed by the AI model
-          filteredResults = enhanceWithDirectRedFlags(filteredResults, conversationText);
+          if (healthScore >= 85) {
+            console.log(`Skipping direct red flag detection for healthy conversation (health score: ${healthScore})`);
+          } else {
+            const directRedFlags = detectRedFlagsDirectly(conversationText);
+            console.log(`Directly detected ${directRedFlags.length} red flags from text patterns`);
+            
+            // Apply direct red flag detection to ensure we catch toxic patterns
+            // that might be missed by the AI model
+            filteredResults = enhanceWithDirectRedFlags(filteredResults, conversationText);
+          }
           console.log('Added direct red flag detection');
           
           // Add conflict dynamics analysis to all tiers with varying detail levels
