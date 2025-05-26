@@ -128,9 +128,15 @@ const redFlagPatterns = [
 /**
  * Detect red flags directly from conversation text
  */
-export function detectRedFlagsDirectly(conversation: string): RedFlag[] {
+export function detectRedFlagsDirectly(conversation: string, healthScore?: number): RedFlag[] {
   // If no conversation, return empty array
   if (!conversation) {
+    return [];
+  }
+  
+  // If health score is provided and conversation is healthy (85+), skip red flag detection
+  if (healthScore && healthScore >= 85) {
+    console.log(`Skipping red flag detection for healthy conversation (health score: ${healthScore})`);
     return [];
   }
   

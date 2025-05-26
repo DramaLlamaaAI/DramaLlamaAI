@@ -628,7 +628,7 @@ export const analysisController = {
           if (healthScore >= 85) {
             console.log(`Skipping direct red flag detection for healthy conversation (health score: ${healthScore})`);
           } else {
-            const directRedFlags = detectRedFlagsDirectly(conversationText);
+            const directRedFlags = detectRedFlagsDirectly(conversationText, healthScore);
             console.log(`Directly detected ${directRedFlags.length} red flags from text patterns`);
             
             // Apply direct red flag detection to ensure we catch toxic patterns
