@@ -375,6 +375,13 @@ export function enhanceWithDirectRedFlags(analysis: any, conversation: string): 
   // Create deep copy of the analysis to avoid mutations
   const enhancedAnalysis = JSON.parse(JSON.stringify(analysis));
   
+  // Check health score - if conversation is healthy (85+), don't add any red flags
+  const healthScore = enhancedAnalysis.healthScore?.score || 0;
+  if (healthScore >= 85) {
+    console.log(`Skipping red flag detection for healthy conversation (health score: ${healthScore})`);
+    return enhancedAnalysis;
+  }
+  
   // Detect red flags directly from conversation
   const directRedFlags = detectRedFlagsDirectly(conversation);
   
