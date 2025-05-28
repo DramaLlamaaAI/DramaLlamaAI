@@ -30,8 +30,14 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+// Resend Verification Schema
+const resendSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
+type ResendFormValues = z.infer<typeof resendSchema>;
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -199,9 +205,10 @@ export default function AuthPage() {
             </CardHeader>
             
             <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="login">Log In</TabsTrigger>
                 <TabsTrigger value="register">Sign Up</TabsTrigger>
+                <TabsTrigger value="resend">Resend Code</TabsTrigger>
               </TabsList>
               
               {errorMsg && (
@@ -325,6 +332,12 @@ export default function AuthPage() {
                   </Form>
                 </CardContent>
               </TabsContent>
+              
+              <TabsContent value="resend">
+                <CardContent className="pt-4">
+                  <ResendVerificationForm setErrorMsg={setErrorMsg} />
+                </CardContent>
+              </TabsContent>
             </Tabs>
             
             <CardFooter className="flex flex-col items-center text-sm text-muted-foreground pt-4">
@@ -379,6 +392,89 @@ export default function AuthPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Resend Verification Form Component
+function ResendVerificationForm({ setErrorMsg }: { setErrorMsg: (msg: string) => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const { toast } = useToast();
+
+  const resendForm = useForm<ResendFormValues>({
+    resolver: zodResolver(resendSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const onResendSubmit = async (values: ResendFormValues) => {
+    setIsLoading(true);
+    setErrorMsg("");
+    setSuccessMessage("");
+
+    try {
+      const response = await apiRequest("POST", "/api/auth/resend-verification", values);
+      const data = await response.json();
+
+      if (data.success) {
+        setSuccessMessage("Verification email sent! Please check your inbox.");
+        toast({
+          title: "Email Sent",
+          description: "Please check your email for the verification code.",
+        });
+        resendForm.reset();
+      } else {
+        setErrorMsg(data.message || "Failed to send verification email");
+      }
+    } catch (error: any) {
+      setErrorMsg(error.message || "An error occurred while sending the verification email");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold mb-2">Resend Verification Email</h3>
+        <p className="text-sm text-muted-foreground">
+          Didn't receive your verification email? Enter your email address below and we'll send you a new verification code.
+        </p>
+      </div>
+
+      {successMessage && (
+        <Alert className="mb-4">
+          <AlertDescription>{successMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      <Form {...resendForm}>
+        <form onSubmit={resendForm.handleSubmit(onResendSubmit)} className="space-y-4">
+          <FormField
+            control={resendForm.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email Address</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="email" 
+                    placeholder="Enter your email address" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Sending..." : "Resend Verification Email"}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 }
