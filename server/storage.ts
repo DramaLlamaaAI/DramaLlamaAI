@@ -32,6 +32,7 @@ export interface IStorage {
   
   // Admin Management
   getAllUsers(): Promise<User[]>;
+  getAllUsersWithPromoInfo(): Promise<(User & { promoCode?: string; promoUsedAt?: Date })[]>;
   setUserAdmin(userId: number, isAdmin: boolean): Promise<User>;
   setUserDiscount(userId: number, discountPercentage: number, expiryDays?: number): Promise<User>;
   
@@ -328,6 +329,28 @@ export class MemStorage implements IStorage {
   // Admin management methods
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values());
+  }
+
+  async getAllUsersWithPromoInfo(): Promise<(User & { promoCode?: string; promoUsedAt?: Date })[]> {
+    const users = Array.from(this.users.values());
+    const usersWithPromo = users.map(user => {
+      // Find promo usage for this user
+      const promoUsage = Array.from(this.promoUsages.values()).find(usage => usage.userId === user.id);
+      
+      if (promoUsage) {
+        // Find the promo code details
+        const promoCode = this.promoCodes.get(promoUsage.promoCodeId);
+        return {
+          ...user,
+          promoCode: promoCode?.code || 'Unknown',
+          promoUsedAt: promoUsage.usedAt
+        };
+      }
+      
+      return user;
+    });
+    
+    return usersWithPromo;
   }
   
   async setUserAdmin(userId: number, isAdmin: boolean): Promise<User> {
@@ -999,6 +1022,33 @@ export class DatabaseStorage implements IStorage {
   // Admin Management
   async getAllUsers(): Promise<User[]> {
     return db.select().from(users);
+  }
+
+  async getAllUsersWithPromoInfo(): Promise<(User & { promoCode?: string; promoUsedAt?: Date })[]> {
+    const result = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        tier: users.tier,
+        email: users.email,
+        emailVerified: users.emailVerified,
+        verificationCode: users.verificationCode,
+        verificationCodeExpires: users.verificationCodeExpires,
+        stripeCustomerId: users.stripeCustomerId,
+        stripeSubscriptionId: users.stripeSubscriptionId,
+        isAdmin: users.isAdmin,
+        discountPercentage: users.discountPercentage,
+        discountExpiryDate: users.discountExpiryDate,
+        country: users.country,
+        promoCode: promoCodes.code,
+        promoUsedAt: promoUsage.usedAt,
+      })
+      .from(users)
+      .leftJoin(promoUsage, eq(users.id, promoUsage.userId))
+      .leftJoin(promoCodes, eq(promoUsage.promoCodeId, promoCodes.id));
+
+    return result;
   }
 
   async setUserAdmin(userId: number, isAdmin: boolean): Promise<User> {

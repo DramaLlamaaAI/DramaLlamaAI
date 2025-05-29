@@ -468,6 +468,7 @@ export default function AdminDashboardEnhanced() {
                                   <TableHead>Username</TableHead>
                                   <TableHead>Email</TableHead>
                                   <TableHead>Country</TableHead>
+                                  <TableHead>Promo Code</TableHead>
                                   <TableHead>Tier</TableHead>
                                   <TableHead>Verified</TableHead>
                                   <TableHead>Discount</TableHead>

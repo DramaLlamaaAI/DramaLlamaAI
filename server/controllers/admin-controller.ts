@@ -46,7 +46,7 @@ export const adminController = {
   // Get all users (admin only)
   getAllUsers: async (req: Request, res: Response) => {
     try {
-      const users = await storage.getAllUsers();
+      const users = await storage.getAllUsersWithPromoInfo();
       
       // Remove sensitive data like passwords
       const safeUsers = users.map(user => {
