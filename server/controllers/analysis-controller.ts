@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { analyzeChatConversation, analyzeMessage, deEscalateMessage, detectParticipants, processImageOcr } from '../services/anthropic-updated';
+import { analyzeChatConversation, analyzeMessage, deEscalateMessage, detectParticipants } from '../services/anthropic-updated';
+import { processImage } from '../services/ocr-service';
 import { TIER_LIMITS } from '@shared/schema';
 import { filterChatAnalysisByTier, filterMessageAnalysisByTier, filterDeEscalateResultByTier } from '../services/tier-service';
 import { storage } from '../storage';
@@ -837,8 +838,8 @@ export const analysisController = {
         return res.status(400).json({ message: 'Missing required parameters' });
       }
       
-      // Process image OCR
-      const extractedText = await processImageOcr(base64Image);
+      // Process image with Tesseract OCR
+      const extractedText = await processImage(base64Image);
       
       res.json({ text: extractedText });
     } catch (error: any) {
