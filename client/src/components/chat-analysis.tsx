@@ -24,7 +24,7 @@ import RedFlags from "@/components/red-flags";
 import RegistrationPrompt from "@/components/registration-prompt";
 import EvasionDetection from "@/components/evasion-detection";
 import ConflictDynamics from "@/components/conflict-dynamics";
-import ScreenshotWorkflow from "@/components/screenshot-workflow";
+import ScreenshotWorkflowFixed from "@/components/screenshot-workflow-fixed";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -917,7 +917,7 @@ export default function ChatAnalysis() {
 
                   {/* Screenshot Analysis Tab */}
                   <TabsContent value="screenshot" className="mt-4">
-                    <ScreenshotWorkflow 
+                    <ScreenshotWorkflowFixed 
                       canUseFeature={canUseFeature}
                       onAnalyze={(conversation, me, them) => {
                         setConversation(conversation);
@@ -931,7 +931,6 @@ export default function ChatAnalysis() {
                             conversation,
                             me,
                             them,
-                            deviceId: localStorage.getItem('deviceId') || 'unknown',
                             extraData: {
                               isGroupChat: false,
                               groupParticipants: []
