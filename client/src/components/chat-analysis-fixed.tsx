@@ -14,6 +14,7 @@ import { validateConversation } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { getUserUsage } from "@/lib/openai";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import RegistrationPrompt from "@/components/registration-prompt";
 
 

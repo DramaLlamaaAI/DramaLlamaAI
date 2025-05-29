@@ -121,11 +121,6 @@ export default function HeroSection() {
                       </div>
                       
                       <div>
-                        <h3 className="text-sm font-semibold mb-0.5">Message Analysis</h3>
-                        <p className="text-xs">Understand tone and intent of single messages with response suggestions.</p>
-                      </div>
-                      
-                      <div>
                         <h3 className="text-sm font-semibold mb-0.5">Vent Mode</h3>
                         <p className="text-xs">Transform emotional messages into calm, constructive communication.</p>
                       </div>
@@ -136,6 +131,10 @@ export default function HeroSection() {
                         </div>
                         <h3 className="text-sm font-semibold mb-0.5">Live Talk</h3>
                         <p className="text-xs">Record and transcribe conversations with real-time AI analysis.</p>
+                      </div>
+                      
+                      <div>
+                        {/* Empty div to maintain grid layout */}
                       </div>
                     </div>
                     
