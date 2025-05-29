@@ -170,7 +170,7 @@ export default function ScreenshotAnalysis({ user, selectedTier, deviceId }: Scr
         headers['X-Device-ID'] = deviceId;
       }
 
-      const response = await fetch('/api/analyze', {
+      const response = await fetch('/api/analyze/chat', {
         method: 'POST',
         headers,
         body: JSON.stringify({
