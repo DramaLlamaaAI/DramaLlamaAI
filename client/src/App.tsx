@@ -23,7 +23,7 @@ import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
 import ContactUs from "@/pages/contact-us";
 // Support helplines converted to dialog component
-import ChatAnalysisFixed2 from "./components/chat-analysis-fixed2";
+import ChatAnalysisRestored from "./components/chat-analysis-restored";
 import GroupChatAnalysis from "./components/group-chat-analysis";
 import GroupChatAnalysisImproved from "./components/group-chat-analysis-improved";
 import GroupChatAnalysisPage from "./pages/group-chat-analysis";
@@ -37,7 +37,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       {/* Re-enabled using the fixed component */}
-      <Route path="/chat-analysis" component={ChatAnalysisFixed2} />
+      <Route path="/chat-analysis" component={ChatAnalysisRestored} />
       <Route path="/group-chat-analysis" component={GroupChatAnalysisPage} />
       <Route path="/message-analysis" component={MessageAnalysis} />
       <Route path="/de-escalate" component={VentMode} />

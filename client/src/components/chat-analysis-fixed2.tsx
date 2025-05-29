@@ -610,9 +610,8 @@ export default function ChatAnalysisFixed() {
                   />
                 </TabsContent>
               </Tabs>
-            </CardContent>
-          </Card>
-        </section>
+        </CardContent>
+      </Card>
 
         {/* Results Section */}
         {showResults && result && (
