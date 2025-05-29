@@ -45,14 +45,27 @@ export function BetaPromoBanner() {
               className="w-full h-full rounded-full object-cover" 
             />
           </div>
-          <h3 className="font-bold text-sm">Upgrade to our Beta Tier — FREE!</h3>
+          <h3 className="font-bold text-sm">🎉 Beta Tier Access – FREE for a Limited Time</h3>
         </div>
         
         <p className="text-sm mb-3 leading-relaxed">
-          Get in-depth <strong>🚩 red flag insight</strong> and emotional tone analysis.
+          Sign up today and get upgraded to our Beta Tier within 24 hours — no card required.
+        </p>
+        
+        <div className="text-xs mb-3 text-pink-100 space-y-1">
+          <div>✅ Deeper red flag detection</div>
+          <div>✅ Emotional tone breakdowns</div>
+          <div>✅ Private & secure chat analysis</div>
+        </div>
+        
+        <p className="text-xs mb-2 text-pink-100">
+          You'll receive a confirmation email once your Beta Tier access is active.
+        </p>
+        <p className="text-xs mb-2 text-yellow-100">
+          🕒 Beta Tier access is temporary and will revert to Free Tier when the promotional period ends.
         </p>
         <p className="text-xs mb-3 text-pink-100">
-          👉 Sign up, then email us at support@dramallama.ai and we'll upgrade your account.
+          Need help? Contact us at support@dramallama.ai
         </p>
         
         <div className="flex flex-col gap-2">

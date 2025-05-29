@@ -79,9 +79,14 @@ export default function RegistrationPrompt({ tier, onClose, showCloseButton = tr
               </div>
             </div>
             
+            <p className="text-sm text-gray-600 mb-2">
+              You'll receive a confirmation email once your Beta Tier access is active.
+            </p>
+            <p className="text-sm text-amber-600 mb-2">
+              🕒 Beta Tier access is temporary and will revert to Free Tier when the promotional period ends.
+            </p>
             <p className="text-sm text-gray-600 mb-4">
-              You'll receive a confirmation email once your Beta Tier access is active.<br/>
-              If you need support, feel free to reach out at support@dramallama.ai.
+              Need help? Contact us at support@dramallama.ai
             </p>
             
             <div className="flex flex-wrap gap-3">
