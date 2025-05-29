@@ -1406,22 +1406,22 @@ export default function ChatAnalysis() {
                     </div>
                   )}
                   
-                  {/* Show locked preview sections for features not available in current tier */}
-                  <div className="bg-yellow-100 p-4 rounded-lg mb-4">
-                    <p className="text-sm">Debug: Current tier = "{tier}"</p>
-                    <p className="text-sm">This debug box should always show when results are displayed</p>
-                  </div>
-                  <LockedPreviewSections 
-                    userTier={tier}
-                    onUpgrade={() => {
-                      // You can add upgrade logic here, such as opening a modal or redirecting
-                      window.location.href = '/upgrade';
-                    }}
-                  />
-                  
                   <SupportHelpLinesLink variant="secondary" size="default" />
                 </div>
               )}
+              
+              {/* Show locked preview sections for features not available in current tier */}
+              <div className="bg-yellow-100 p-4 rounded-lg mb-4 mt-4">
+                <p className="text-sm">Debug: Current tier = "{tier}"</p>
+                <p className="text-sm">This debug box should always show when results are displayed</p>
+              </div>
+              <LockedPreviewSections 
+                userTier={tier}
+                onUpgrade={() => {
+                  // You can add upgrade logic here, such as opening a modal or redirecting
+                  window.location.href = '/upgrade';
+                }}
+              />
             </div>
           )}
         </CardContent>
