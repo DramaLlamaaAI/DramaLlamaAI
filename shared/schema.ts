@@ -17,6 +17,7 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").notNull().default(false),
   discountPercentage: integer("discount_percentage").default(0),
   discountExpiryDate: timestamp("discount_expiry_date"),
+  country: text("country"),
 });
 
 // Promotional codes schema
@@ -53,6 +54,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   tier: true,
   isAdmin: true,
   emailVerified: true,
+  country: true,
 });
 
 export const insertPromoCodeSchema = createInsertSchema(promoCodes).pick({
