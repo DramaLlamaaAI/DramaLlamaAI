@@ -919,11 +919,18 @@ export default function ChatAnalysis() {
                         setMe(me);
                         setThem(them);
                         setTabValue("paste");
+                        
+                        // Directly trigger the analysis mutation instead of DOM manipulation
                         setTimeout(() => {
-                          const analyzeButton = document.querySelector('[data-analyze-button]') as HTMLButtonElement;
-                          if (analyzeButton) {
-                            analyzeButton.click();
-                          }
+                          analysisMutation.mutate({
+                            conversation,
+                            me,
+                            them,
+                            extraData: {
+                              isGroupChat: false,
+                              groupParticipants: []
+                            }
+                          });
                         }, 100);
                       }}
                     />
