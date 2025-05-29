@@ -1473,7 +1473,7 @@ export async function processImageOcr(image: string, mediaType?: string): Promis
           content: [
             {
               type: "text",
-              text: "Extract all the text from this image. Return just the raw text."
+              text: "This is a screenshot of a chat conversation. Extract all the text and format it so I can tell which person said what.\n\nFor each message, add a prefix based on its visual position:\n- Add 'Left: ' before messages that appear on the left side of the screen\n- Add 'Right: ' before messages that appear on the right side of the screen\n\nReturn the conversation in chronological order with these prefixes. Only include the actual message text after each prefix."
             },
             {
               type: "image",

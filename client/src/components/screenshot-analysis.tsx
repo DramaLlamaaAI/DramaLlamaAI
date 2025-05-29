@@ -116,10 +116,21 @@ export default function ScreenshotAnalysis({ user, selectedTier, deviceId }: Scr
 
       setExtractedText(combinedText.trim());
       
-      toast({
-        title: "Text extracted successfully",
-        description: "You can now edit the text and assign participant names.",
-      });
+      // Auto-detect participant assignments if prefixes are present
+      const hasLeftRight = combinedText.includes('Left:') || combinedText.includes('Right:');
+      if (hasLeftRight) {
+        setMe('Left Person');
+        setThem('Right Person');
+        toast({
+          title: "Text extracted with positioning",
+          description: "Participant positions detected automatically. You can edit the names as needed.",
+        });
+      } else {
+        toast({
+          title: "Text extracted successfully",
+          description: "You can now edit the text and assign participant names.",
+        });
+      }
     } catch (error) {
       console.error('Text extraction error:', error);
       toast({
