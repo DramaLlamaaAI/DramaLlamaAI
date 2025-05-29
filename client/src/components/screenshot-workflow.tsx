@@ -3,13 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Image, ArrowRight, Edit, Brain, ChevronRight } from 'lucide-react';
+import { Upload, ArrowRight, Edit, Brain, ChevronRight } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
-interface ScreenshotAnalysisProps {
+interface ScreenshotWorkflowProps {
   canUseFeature: boolean;
   onAnalyze: (conversation: string, me: string, them: string) => void;
 }
@@ -36,15 +36,15 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
-export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: ScreenshotAnalysisProps) {
+export default function ScreenshotWorkflow({ canUseFeature, onAnalyze }: ScreenshotWorkflowProps) {
   const [currentStep, setCurrentStep] = useState<'upload' | 'extract' | 'edit'>('upload');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState<string>('');
   const [leftParticipant, setLeftParticipant] = useState<string>('');
   const [rightParticipant, setRightParticipant] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [userPosition, setUserPosition] = useState<'left' | 'right'>('right');
+  const [isProcessing, setIsProcessing] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -53,17 +53,17 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
     mutationFn: processImageOcr,
     onSuccess: (data) => {
       if (data.text) {
-        const formattedText = formatExtractedText(data.text);
+        const formattedText = addLeftRightPrefixes(data.text);
         setExtractedText(formattedText);
         setCurrentStep('extract');
         toast({
-          title: "Text Extracted",
-          description: "Chat text has been extracted from the screenshot",
+          title: "Text Extracted Successfully",
+          description: "Chat messages have been extracted with Left/Right prefixes",
         });
       } else {
         toast({
           title: "No Text Found",
-          description: "Could not extract text from the image. Please try a clearer screenshot.",
+          description: "Could not extract text from the screenshot. Please try a clearer image.",
           variant: "destructive",
         });
       }
@@ -79,17 +79,16 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
     },
   });
 
-  const formatExtractedText = (text: string): string => {
+  const addLeftRightPrefixes = (text: string): string => {
     const lines = text.split('\n').filter(line => line.trim());
-    let formattedLines: string[] = [];
+    const formattedLines: string[] = [];
     
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
       if (!trimmedLine) return;
       
-      // Use spatial analysis to determine if message is from left or right side of screenshot
-      // This is a simplified approach - in reality, OCR would provide positioning data
-      // For now, we'll alternate but this should be enhanced with actual position detection
+      // Determine if message is from left or right side of screenshot
+      // For now, alternating pattern - this should be enhanced with actual position detection
       const isLeftMessage = index % 2 === 0;
       const prefix = isLeftMessage ? 'Left' : 'Right';
       
@@ -105,7 +104,7 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
     
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Invalid File Type",
+        title: "Invalid File",
         description: "Please upload an image file (PNG, JPG, etc.)",
         variant: "destructive",
       });
@@ -118,7 +117,7 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
       setImagePreview(base64);
       toast({
         title: "Image Uploaded",
-        description: "Screenshot uploaded successfully. Click Extract to process the text.",
+        description: "Screenshot uploaded successfully. Click 'Extract Text' to continue.",
       });
     } catch (error) {
       toast({
@@ -164,18 +163,6 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
     }
   };
 
-  const handleEditText = () => {
-    if (!extractedText.trim()) {
-      toast({
-        title: "No Text Available",
-        description: "Please extract text from an image first",
-        variant: "destructive",
-      });
-      return;
-    }
-    setCurrentStep('edit');
-  };
-
   const convertToFinalFormat = (text: string): string => {
     const lines = text.split('\n').filter(line => line.trim());
     const formattedLines: string[] = [];
@@ -184,12 +171,12 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
       const trimmedLine = line.trim();
       if (!trimmedLine) return;
       
-      // Check if line already has Left: or Right: prefix
+      // Check if line has Left: or Right: prefix
       if (trimmedLine.startsWith('Left:') || trimmedLine.startsWith('Right:')) {
         const isLeftSide = trimmedLine.startsWith('Left:');
         const messageContent = trimmedLine.replace(/^(Left|Right):\s*/, '');
         
-        // Determine which participant based on user position and message side
+        // Determine speaker based on user position and message side
         let speaker: string;
         if (userPosition === 'right') {
           // User is on right side
@@ -201,7 +188,7 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
         
         formattedLines.push(`${speaker}: ${messageContent}`);
       } else {
-        // If no prefix, treat as regular line
+        // If no prefix, add as-is
         formattedLines.push(trimmedLine);
       }
     });
@@ -278,7 +265,7 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
         
         <div className={`flex items-center space-x-2 ${currentStep === 'extract' ? 'text-blue-600' : currentStep === 'edit' ? 'text-green-600' : 'text-gray-400'}`}>
           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'extract' ? 'bg-blue-100 border-2 border-blue-600' : currentStep === 'edit' ? 'bg-green-100 border-2 border-green-600' : 'bg-gray-100 border-2 border-gray-300'}`}>
-            <Image className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4" />
           </div>
           <span className="font-medium">Extract</span>
         </div>
@@ -299,7 +286,6 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
           <CardContent className="p-6">
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-4">Upload Chat Screenshots</h3>
-              <p className="text-gray-600 mb-6">Upload screenshots of your conversation. Our AI will extract the text automatically.</p>
               
               <div 
                 className="border-2 border-dashed border-gray-300 rounded-lg p-12 hover:border-gray-400 transition-colors cursor-pointer"
@@ -362,15 +348,15 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
       {currentStep === 'extract' && (
         <Card>
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Extracted Text</h3>
-            <p className="text-gray-600 mb-4">Review the extracted text. Messages are labeled as "Left" or "Right" based on their position in the screenshot.</p>
+            <h3 className="text-lg font-semibold mb-4">Extracted Text with Left/Right Prefixes</h3>
+            <p className="text-gray-600 mb-4">Review the extracted text. Messages are labeled as "Left:" or "Right:" based on their position in the screenshot.</p>
             
             <div className="bg-gray-50 p-4 rounded-lg mb-4 max-h-64 overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm">{extractedText}</pre>
+              <pre className="whitespace-pre-wrap text-sm font-mono">{extractedText}</pre>
             </div>
             
             <div className="flex justify-center space-x-3">
-              <Button onClick={handleEditText}>
+              <Button onClick={() => setCurrentStep('edit')}>
                 <Edit className="w-4 h-4 mr-2" />
                 Edit & Analyze
               </Button>
@@ -446,13 +432,14 @@ export default function ScreenshotAnalysis({ canUseFeature, onAnalyze }: Screens
             {/* Extracted Text Editor */}
             <div className="mb-6">
               <Label htmlFor="extracted-text" className="block mb-2 font-medium">Edit Extracted Text</Label>
-              <textarea
+              <Textarea
                 id="extracted-text"
                 value={extractedText}
                 onChange={(e) => setExtractedText(e.target.value)}
-                className="w-full h-48 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Extracted text will appear here..."
+                className="min-h-48 font-mono text-sm"
+                placeholder="Extracted text with Left:/Right: prefixes will appear here..."
               />
+              <p className="text-sm text-gray-500 mt-1">You can edit the extracted text above before analyzing.</p>
             </div>
 
             <div className="flex justify-center space-x-3">
