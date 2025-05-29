@@ -467,6 +467,7 @@ export default function AdminDashboardEnhanced() {
                                   <TableHead>ID</TableHead>
                                   <TableHead>Username</TableHead>
                                   <TableHead>Email</TableHead>
+                                  <TableHead>Country</TableHead>
                                   <TableHead>Tier</TableHead>
                                   <TableHead>Verified</TableHead>
                                   <TableHead>Discount</TableHead>
@@ -476,7 +477,7 @@ export default function AdminDashboardEnhanced() {
                               <TableBody>
                                 {currentUsers.length === 0 ? (
                                   <TableRow>
-                                    <TableCell colSpan={8} className="text-center py-4">
+                                    <TableCell colSpan={9} className="text-center py-4">
                                       No users found.
                                     </TableCell>
                                   </TableRow>
@@ -492,6 +493,7 @@ export default function AdminDashboardEnhanced() {
                                       <TableCell>{user.id}</TableCell>
                                       <TableCell>{user.username}</TableCell>
                                       <TableCell>{user.email}</TableCell>
+                                      <TableCell>{user.country || 'United Kingdom'}</TableCell>
                                       <TableCell>
                                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                                           user.tier === 'pro' ? 'bg-green-100 text-green-800' :
