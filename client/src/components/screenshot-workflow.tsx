@@ -176,15 +176,8 @@ export default function ScreenshotWorkflow({ canUseFeature, onAnalyze }: Screens
         const isLeftSide = trimmedLine.startsWith('Left:');
         const messageContent = trimmedLine.replace(/^(Left|Right):\s*/, '');
         
-        // Determine speaker based on user position and message side
-        let speaker: string;
-        if (userPosition === 'right') {
-          // User is on right side
-          speaker = isLeftSide ? (leftParticipant || 'Them') : (rightParticipant || 'Me');
-        } else {
-          // User is on left side
-          speaker = isLeftSide ? (leftParticipant || 'Me') : (rightParticipant || 'Them');
-        }
+        // Use the participant names directly based on side
+        const speaker = isLeftSide ? leftParticipant : rightParticipant;
         
         formattedLines.push(`${speaker}: ${messageContent}`);
       } else {
@@ -348,17 +341,26 @@ export default function ScreenshotWorkflow({ canUseFeature, onAnalyze }: Screens
       {currentStep === 'extract' && (
         <Card>
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Extracted Text with Left/Right Prefixes</h3>
-            <p className="text-gray-600 mb-4">Review the extracted text. Messages are labeled as "Left:" or "Right:" based on their position in the screenshot.</p>
+            <h3 className="text-lg font-semibold mb-4">Step 2: Extracted Text with Left/Right Prefixes</h3>
+            <p className="text-gray-600 mb-4">Text has been extracted from your screenshot. Each message is automatically labeled as "Left:" or "Right:" based on its position.</p>
             
-            <div className="bg-gray-50 p-4 rounded-lg mb-4 max-h-64 overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm font-mono">{extractedText}</pre>
+            {/* Editable text field showing extracted text with prefixes */}
+            <div className="mb-6">
+              <Label htmlFor="extracted-text-display" className="block mb-2 font-medium">Extracted Text (with Left/Right prefixes)</Label>
+              <Textarea
+                id="extracted-text-display"
+                value={extractedText}
+                onChange={(e) => setExtractedText(e.target.value)}
+                className="min-h-48 font-mono text-sm"
+                placeholder="Extracted text with Left:/Right: prefixes will appear here..."
+              />
+              <p className="text-sm text-gray-500 mt-1">You can edit the extracted text above if needed.</p>
             </div>
             
             <div className="flex justify-center space-x-3">
               <Button onClick={() => setCurrentStep('edit')}>
-                <Edit className="w-4 h-4 mr-2" />
-                Edit & Analyze
+                <ArrowRight className="w-4 h-4 mr-2" />
+                Continue to Step 3
               </Button>
               <Button variant="outline" onClick={() => setCurrentStep('upload')}>
                 Back to Upload
@@ -368,87 +370,64 @@ export default function ScreenshotWorkflow({ canUseFeature, onAnalyze }: Screens
         </Card>
       )}
 
-      {/* Step 3: Edit & Analyze */}
+      {/* Step 3: Confirm Participants */}
       {currentStep === 'edit' && (
         <Card>
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Edit & Analyze</h3>
+            <h3 className="text-lg font-semibold mb-4">Step 3: Confirm Who's Messages Are Where</h3>
+            <p className="text-gray-600 mb-6">Tell us which participant's messages appear on each side of the screenshot.</p>
             
             {/* Participant Names */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <Label htmlFor="left-participant" className="block mb-2 font-medium">Left Side Participant</Label>
+                <Label htmlFor="left-participant" className="block mb-2 font-medium">Who's messages are on the LEFT side?</Label>
                 <Input
                   id="left-participant"
-                  placeholder="Name of person on left"
+                  placeholder="Enter name (e.g., Sarah, Me, etc.)"
                   value={leftParticipant}
                   onChange={(e) => setLeftParticipant(e.target.value)}
                 />
               </div>
               <div>
-                <Label htmlFor="right-participant" className="block mb-2 font-medium">Right Side Participant</Label>
+                <Label htmlFor="right-participant" className="block mb-2 font-medium">Who's messages are on the RIGHT side?</Label>
                 <Input
                   id="right-participant"
-                  placeholder="Name of person on right"
+                  placeholder="Enter name (e.g., John, Me, etc.)"
                   value={rightParticipant}
                   onChange={(e) => setRightParticipant(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* User Position */}
+            {/* Show extracted text preview */}
             <div className="mb-6">
-              <Label className="block mb-3 font-medium">Which side are YOU on in the screenshot?</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div 
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    userPosition === 'left' 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setUserPosition('left')}
-                >
-                  <div className="text-center">
-                    <div className="text-lg font-medium mb-1">Left Side</div>
-                    <div className="text-sm text-gray-600">Your messages appear on the left</div>
-                  </div>
-                </div>
-                <div 
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    userPosition === 'right' 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setUserPosition('right')}
-                >
-                  <div className="text-center">
-                    <div className="text-lg font-medium mb-1">Right Side</div>
-                    <div className="text-sm text-gray-600">Your messages appear on the right</div>
-                  </div>
-                </div>
+              <Label className="block mb-2 font-medium">Preview of extracted text with participant names:</Label>
+              <div className="bg-gray-50 p-4 rounded-lg max-h-32 overflow-y-auto">
+                <pre className="whitespace-pre-wrap text-sm font-mono">
+                  {extractedText.split('\n').map((line, index) => {
+                    if (line.startsWith('Left:')) {
+                      const message = line.replace('Left:', '');
+                      return `${leftParticipant || 'Left'}:${message}`;
+                    } else if (line.startsWith('Right:')) {
+                      const message = line.replace('Right:', '');
+                      return `${rightParticipant || 'Right'}:${message}`;
+                    }
+                    return line;
+                  }).join('\n')}
+                </pre>
               </div>
             </div>
 
-            {/* Extracted Text Editor */}
-            <div className="mb-6">
-              <Label htmlFor="extracted-text" className="block mb-2 font-medium">Edit Extracted Text</Label>
-              <Textarea
-                id="extracted-text"
-                value={extractedText}
-                onChange={(e) => setExtractedText(e.target.value)}
-                className="min-h-48 font-mono text-sm"
-                placeholder="Extracted text with Left:/Right: prefixes will appear here..."
-              />
-              <p className="text-sm text-gray-500 mt-1">You can edit the extracted text above before analyzing.</p>
-            </div>
-
             <div className="flex justify-center space-x-3">
-              <Button onClick={handleAnalyze} disabled={!extractedText.trim()}>
+              <Button 
+                onClick={handleAnalyze} 
+                disabled={!extractedText.trim() || !leftParticipant.trim() || !rightParticipant.trim()}
+              >
                 <Brain className="w-4 h-4 mr-2" />
                 Analyze Conversation
               </Button>
               <Button variant="outline" onClick={() => setCurrentStep('extract')}>
-                Back to Extract
+                Back to Step 2
               </Button>
               <Button variant="outline" onClick={resetWorkflow}>
                 Start Over
