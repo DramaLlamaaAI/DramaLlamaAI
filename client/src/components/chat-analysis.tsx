@@ -418,6 +418,7 @@ export default function ChatAnalysis() {
     const requestData: any = { 
       conversation,
       conversationType,
+      deviceId: localStorage.getItem('deviceId') || 'unknown',
     };
     
     if (conversationType === "two_person") {
@@ -428,6 +429,10 @@ export default function ChatAnalysis() {
       requestData.participants = participants;
       requestData.me = participants[0] || "";
       requestData.them = participants.slice(1).join(", ");
+      requestData.extraData = {
+        isGroupChat: true,
+        groupParticipants: participants
+      };
     }
     
     // Add date filtering if enabled
@@ -920,12 +925,13 @@ export default function ChatAnalysis() {
                         setThem(them);
                         setTabValue("paste");
                         
-                        // Directly trigger the analysis mutation instead of DOM manipulation
+                        // Directly trigger the analysis mutation with proper device tracking
                         setTimeout(() => {
                           analysisMutation.mutate({
                             conversation,
                             me,
                             them,
+                            deviceId: localStorage.getItem('deviceId') || 'unknown',
                             extraData: {
                               isGroupChat: false,
                               groupParticipants: []
