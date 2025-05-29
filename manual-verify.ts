@@ -8,7 +8,7 @@ async function manualVerify() {
     console.log('Getting all users...');
     const users = await storage.getAllUsers();
     
-    const targetUser = users.find(u => u.email === 'rachelresmer@live.com');
+    const targetUser = users.find(u => u.email === 'vixta91@icloud.com');
     
     if (targetUser) {
       console.log(`Found user: ${targetUser.username} (ID: ${targetUser.id})`);
