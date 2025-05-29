@@ -23,7 +23,7 @@ interface ProcessImageOcrResponse {
 }
 
 const processImageOcr = async (data: ProcessImageOcrRequest): Promise<ProcessImageOcrResponse> => {
-  const response = await apiRequest('POST', '/api/process-image-ocr', data);
+  const response = await apiRequest('POST', '/api/ocr', data);
   return response.json();
 };
 
