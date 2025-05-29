@@ -289,25 +289,33 @@ export default function ChatAnalysis() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="me" className="text-sm font-medium">Your Name/Identifier:</Label>
-                        <input
+                        <Input
                           id="me"
                           type="text"
                           value={me}
                           onChange={(e) => setMe(e.target.value)}
-                          className="w-full p-2 border rounded mt-1 text-sm"
+                          className="mt-1 text-sm"
                           placeholder="Your name in the chat"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="off"
+                          spellCheck="false"
                         />
                       </div>
                       <div>
                         <Label htmlFor="them" className="text-sm font-medium">Other Person's Name:</Label>
                         <div className="flex gap-2">
-                          <input
+                          <Input
                             id="them"
                             type="text"
                             value={them}
                             onChange={(e) => setThem(e.target.value)}
-                            className="w-full p-2 border rounded mt-1 text-sm"
+                            className="mt-1 text-sm"
                             placeholder="Their name in the chat"
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="off"
+                            spellCheck="false"
                           />
                           <Button 
                             type="button" 
