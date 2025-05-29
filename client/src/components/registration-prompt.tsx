@@ -57,11 +57,31 @@ export default function RegistrationPrompt({ tier, onClose, showCloseButton = tr
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-violet-800 mb-2">
-              Unlock the full power of Drama Llama
+              🎉 Beta Tier Access – FREE for a Limited Time
             </h3>
             
             <p className="text-gray-700 mb-4">
-              {getMessage()}
+              Sign up today and get upgraded to our Beta Tier within 24 hours — no card required.
+            </p>
+            
+            <div className="text-gray-700 mb-4 space-y-1">
+              <div className="flex items-center">
+                <span className="mr-2">✅</span>
+                <span>Deeper red flag detection</span>
+              </div>
+              <div className="flex items-center">
+                <span className="mr-2">✅</span>
+                <span>Emotional tone breakdowns</span>
+              </div>
+              <div className="flex items-center">
+                <span className="mr-2">✅</span>
+                <span>Private & secure chat analysis</span>
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-600 mb-4">
+              You'll receive a confirmation email once your Beta Tier access is active.<br/>
+              If you need support, feel free to reach out at support@dramallama.ai.
             </p>
             
             <div className="flex flex-wrap gap-3">
