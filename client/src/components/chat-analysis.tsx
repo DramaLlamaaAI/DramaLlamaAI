@@ -1407,6 +1407,11 @@ export default function ChatAnalysis() {
                   )}
                   
                   {/* Show locked preview sections for features not available in current tier */}
+                  {console.log('Debug: Current tier for locked sections:', tier)}
+                  <div className="bg-yellow-100 p-4 rounded-lg mb-4">
+                    <p className="text-sm">Debug: Current tier = "{tier}"</p>
+                    <p className="text-sm">This debug box should always show when results are displayed</p>
+                  </div>
                   <LockedPreviewSections 
                     userTier={tier}
                     onUpgrade={() => {
