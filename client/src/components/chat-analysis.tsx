@@ -937,19 +937,13 @@ export default function ChatAnalysis() {
                   </TabsContent>
 
                   {/* Developer Mode Tab */}
-                  {isDevMode && ( 
-                            className="max-h-48 mx-auto border rounded-lg"
-                          />
-                          
-                          {ocrMutation.isPending && (
-                            <div className="mt-2 text-sm text-center">
-                              <div className="h-4 w-4 mx-auto mb-1 animate-spin rounded-full border-t-2 border-gray-500"></div>
-                              Extracting text from image...
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                  {isDevMode && (
+                    <TabsContent value="developer" className="mt-4">
+                      <div className="text-sm text-muted-foreground">
+                        Developer mode for testing purposes
+                      </div>
+                    </TabsContent>
+                  )}
                     
                     <div className="text-sm text-muted-foreground">
                       <div className="flex items-start mb-2">

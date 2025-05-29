@@ -76,6 +76,11 @@ export interface IStorage {
     usersByTier: { [tier: string]: number };
     registrationsByDate: { date: string; count: number }[];
     tierConversionRate: { fromTier: string; toTier: string; count: number }[];
+    anonymousStats: {
+      totalAnonymousUsers: number;
+      totalAnonymousAnalyses: number;
+      averageAnalysesPerAnonymousUser: number;
+    };
   }>;
   
   // System Settings for Beta Mode
@@ -691,12 +696,24 @@ export class MemStorage implements IStorage {
       };
     }).sort((a, b) => b.total_analyses - a.total_analyses);
     
+    // Calculate anonymous user statistics
+    const anonymousUsers = Array.from(this.anonymousUsage.values());
+    const totalAnonymousUsers = anonymousUsers.length;
+    const totalAnonymousAnalyses = anonymousUsers.reduce((sum, user) => sum + user.count, 0);
+    const averageAnalysesPerAnonymousUser = totalAnonymousUsers > 0 
+      ? Math.round((totalAnonymousAnalyses / totalAnonymousUsers) * 100) / 100 
+      : 0;
+
     return {
       totalUsers,
       usersByTier,
       registrationsByDate,
       tierConversionRate,
-      userUsageStats
+      anonymousStats: {
+        totalAnonymousUsers,
+        totalAnonymousAnalyses,
+        averageAnalysesPerAnonymousUser
+      }
     };
   }
 

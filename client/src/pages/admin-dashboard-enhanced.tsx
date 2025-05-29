@@ -62,6 +62,11 @@ interface AnalyticsSummary {
   usersByTier: { [tier: string]: number };
   registrationsByDate: { date: string; count: number }[];
   tierConversionRate: { fromTier: string; toTier: string; count: number }[];
+  anonymousStats: {
+    totalAnonymousUsers: number;
+    totalAnonymousAnalyses: number;
+    averageAnalysesPerAnonymousUser: number;
+  };
 }
 
 export default function AdminDashboardEnhanced() {
