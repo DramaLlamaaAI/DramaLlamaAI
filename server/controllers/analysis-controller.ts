@@ -830,18 +830,19 @@ export const analysisController = {
   // Process image OCR
   processOcr: async (req: Request, res: Response) => {
     try {
-      const { imageData } = req.body;
+      const { image, imageData } = req.body;
+      const base64Image = image || imageData;
       
-      if (!imageData) {
+      if (!base64Image) {
         return res.status(400).json({ message: 'Missing required parameters' });
       }
       
       // Process image OCR
-      const ocrResult = await processImageOcr(imageData);
+      const extractedText = await processImageOcr(base64Image);
       
-      res.json(ocrResult);
+      res.json({ text: extractedText });
     } catch (error: any) {
-      console.error(error);
+      console.error('OCR processing error:', error);
       res.status(500).json({ message: error.message || 'Internal server error' });
     }
   }
