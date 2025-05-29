@@ -608,66 +608,70 @@ export default function ChatAnalysisFixed() {
                       }, 100);
                     }}
                   />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </section>
 
-                    {/* Screenshot Upload */}
-                    <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center bg-purple-50">
-                      <input
-                        type="file"
-                        ref={imageInputRef}
-                        onChange={handleImageUpload}
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                      />
-                      
-                      {selectedImages.length === 0 ? (
-                        <div>
-                          <Image className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                          <Button
-                            onClick={() => imageInputRef.current?.click()}
-                            className="bg-purple-500 hover:bg-purple-600 text-white"
-                          >
-                            Choose Screenshots
-                          </Button>
-                          <p className="text-xs text-gray-500 mt-2">Supports JPG, PNG, and other image formats. You can select multiple files.</p>
+        {/* Results Section */}
+        {showResults && result && (
+          <section className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-purple-700">Analysis Results</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Overview Card */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-purple-700 mb-3">Overall Health Score</h3>
+                      <div className="flex items-center space-x-4">
+                        <div className="relative w-20 h-20">
+                          <CircularProgressbar
+                            value={result?.healthScore || 0}
+                            text={`${result?.healthScore || 0}%`}
+                            styles={buildStyles({
+                              textSize: '16px',
+                              pathColor: result && result.healthScore >= 70 ? '#10b981' : result && result.healthScore >= 40 ? '#f59e0b' : '#ef4444',
+                              textColor: result && result.healthScore >= 70 ? '#10b981' : result && result.healthScore >= 40 ? '#f59e0b' : '#ef4444',
+                              trailColor: '#e5e7eb',
+                            })}
+                          />
                         </div>
-                      ) : (
                         <div>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                            {imagePreviews.map((preview, index) => (
-                              <div key={index} className="relative">
-                                <img 
-                                  src={preview} 
-                                  alt={`Screenshot ${index + 1}`} 
-                                  className="w-full h-32 object-cover rounded border"
-                                />
-                                <Button
-                                  onClick={() => handleRemoveImage(index)}
-                                  variant="destructive"
-                                  size="sm"
-                                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                                >
-                                  ×
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex gap-2 justify-center">
-                            <Button
-                              onClick={() => imageInputRef.current?.click()}
-                              variant="outline"
-                              size="sm"
-                            >
-                              Add More
-                            </Button>
-                            <Button
-                              onClick={() => handleRemoveImage()}
-                              variant="outline"
-                              size="sm"
-                            >
-                              Remove All
-                            </Button>
-                          </div>
+                          <p className="text-sm text-gray-600 mb-1">
+                            {result && result.healthScore >= 70 ? 'Healthy communication patterns detected' :
+                             result && result.healthScore >= 40 ? 'Some concerning patterns identified' :
+                             'Significant communication issues detected'}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Based on {selectedTier} tier analysis
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-semibold text-purple-700 mb-3">Analysis Summary</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Participants:</span>
+                          <span className="font-medium">{result?.participants?.join(', ') || 'Not specified'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Messages analyzed:</span>
+                          <span className="font-medium">{result?.messageCount || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Analysis depth:</span>
+                          <span className="font-medium capitalize">{selectedTier}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                           <p className="text-xs text-gray-500 mt-2">{selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''} selected (max 10)</p>
                         </div>
                       )}
