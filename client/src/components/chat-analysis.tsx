@@ -25,6 +25,7 @@ import RegistrationPrompt from "@/components/registration-prompt";
 import EvasionDetection from "@/components/evasion-detection";
 import ConflictDynamics from "@/components/conflict-dynamics";
 import ScreenshotWorkflowSimple from "@/components/screenshot-workflow-simple";
+import LockedPreviewSections from "@/components/locked-preview-sections";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -1404,6 +1405,15 @@ export default function ChatAnalysis() {
                       )}
                     </div>
                   )}
+                  
+                  {/* Show locked preview sections for features not available in current tier */}
+                  <LockedPreviewSections 
+                    userTier={tier}
+                    onUpgrade={() => {
+                      // You can add upgrade logic here, such as opening a modal or redirecting
+                      window.location.href = '/upgrade';
+                    }}
+                  />
                   
                   <SupportHelpLinesLink variant="secondary" size="default" />
                 </div>
