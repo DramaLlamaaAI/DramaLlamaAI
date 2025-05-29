@@ -9,19 +9,39 @@ import { Upload, X, ArrowRight, Camera, FileText, Edit3 } from "lucide-react";
 import { processImageOcr } from '@/lib/openai';
 
 interface ScreenshotTabProps {
-  canUseFeature: boolean;
-  onAnalyze: (conversation: string, me: string, them: string) => void;
+  selectedImages: File[];
+  imagePreviews: string[];
+  extractedText: string;
+  me: string;
+  them: string;
+  isProcessing: boolean;
+  imageInputRef: React.RefObject<HTMLInputElement>;
+  onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: (index: number) => void;
+  onExtractText: () => Promise<void>;
+  onTextChange: (text: string) => void;
+  onMeChange: (name: string) => void;
+  onThemChange: (name: string) => void;
+  onAnalyze: () => Promise<void>;
 }
 
-export default function ScreenshotTab({ canUseFeature, onAnalyze }: ScreenshotTabProps) {
-  const [screenshots, setScreenshots] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [extractedText, setExtractedText] = useState("");
-  const [leftParticipant, setLeftParticipant] = useState("");
-  const [rightParticipant, setRightParticipant] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+export default function ScreenshotTab({
+  selectedImages,
+  imagePreviews,
+  extractedText,
+  me,
+  them,
+  isProcessing,
+  imageInputRef,
+  onImageUpload,
+  onRemoveImage,
+  onExtractText,
+  onTextChange,
+  onMeChange,
+  onThemChange,
+  onAnalyze
+}: ScreenshotTabProps) {
   const [step, setStep] = useState<"upload" | "extract" | "edit">("upload");
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const fileToBase64 = (file: File): Promise<string> => {
