@@ -154,6 +154,16 @@ app.use(session({
       
       console.log('ZIP file size:', fileBuffer.length, 'bytes');
       
+      // Check if file is actually a ZIP by looking at magic bytes
+      if (fileBuffer.length < 4 || 
+          !(fileBuffer[0] === 0x50 && fileBuffer[1] === 0x4B && 
+            (fileBuffer[2] === 0x03 || fileBuffer[2] === 0x05))) {
+        console.log('File magic bytes:', fileBuffer.slice(0, 10));
+        return res.status(400).json({ 
+          error: 'The uploaded file is not a valid ZIP archive. Please ensure you\'re uploading a WhatsApp chat export (.zip file).' 
+        });
+      }
+      
       // Process with JSZip
       const JSZip = await import('jszip');
       const zip = new JSZip.default();
@@ -193,7 +203,10 @@ app.use(session({
         res.json({ text: textContent });
       } catch (zipErr) {
         console.error('Error processing ZIP archive:', zipErr);
-        return res.status(400).json({ error: 'Invalid ZIP file format' });
+        return res.status(400).json({ 
+          error: 'The file appears to be corrupted or encoded. Please ensure you\'re uploading a valid WhatsApp chat export (.zip file).',
+          details: zipErr instanceof Error ? zipErr.message : 'Unknown ZIP processing error'
+        });
       }
     } catch (error) {
       console.error('Error extracting chat from ZIP:', error);
