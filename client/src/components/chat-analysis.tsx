@@ -24,7 +24,7 @@ import RedFlags from "@/components/red-flags";
 import RegistrationPrompt from "@/components/registration-prompt";
 import EvasionDetection from "@/components/evasion-detection";
 import ConflictDynamics from "@/components/conflict-dynamics";
-import ScreenshotTab from "@/components/screenshot-tab";
+import ScreenshotAnalysis from "@/components/screenshot-analysis";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("paste");
@@ -917,7 +917,7 @@ export default function ChatAnalysis() {
 
                   {/* Screenshot Analysis Tab */}
                   <TabsContent value="screenshot" className="mt-4">
-                    <ScreenshotTab 
+                    <ScreenshotAnalysis 
                       canUseFeature={canUseFeature}
                       onAnalyze={(conversation, me, them) => {
                         setConversation(conversation);
