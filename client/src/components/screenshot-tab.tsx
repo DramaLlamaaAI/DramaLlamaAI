@@ -146,7 +146,7 @@ export default function ScreenshotTab({ canUseFeature, onAnalyze }: ScreenshotTa
         <div className="grid grid-cols-2 gap-4">
           <div 
             className={`p-4 border rounded-lg cursor-pointer transition-all ${
-              messageOrientation === "left" ? "border-purple-500 bg-purple-50" : "border-gray-200"
+              messageOrientation === "left" ? "border-pink-500 bg-pink-50" : "border-gray-200"
             }`}
             onClick={() => setMessageOrientation("left")}
           >
@@ -157,7 +157,7 @@ export default function ScreenshotTab({ canUseFeature, onAnalyze }: ScreenshotTa
           </div>
           <div 
             className={`p-4 border rounded-lg cursor-pointer transition-all ${
-              messageOrientation === "right" ? "border-purple-500 bg-purple-50" : "border-gray-200"
+              messageOrientation === "right" ? "border-pink-500 bg-pink-50" : "border-gray-200"
             }`}
             onClick={() => setMessageOrientation("right")}
           >
@@ -197,7 +197,7 @@ export default function ScreenshotTab({ canUseFeature, onAnalyze }: ScreenshotTa
           </div>
         ) : (
           <div>
-            <p className="text-sm font-medium text-purple-700 mb-2">
+            <p className="text-sm font-medium text-pink-700 mb-2">
               Screenshot selected: {selectedImage.name}
             </p>
             {imagePreview && (
