@@ -950,24 +950,7 @@ export default function ChatAnalysis() {
                       </div>
                     </TabsContent>
                   )}
-                    
-                    <div className="text-sm text-muted-foreground">
-                      <div className="flex items-start mb-2">
-                        <Info className="h-4 w-4 mr-2 mt-0.5" />
-                        <div>
-                          <strong>WhatsApp Export Instructions:</strong>
-                          <ol className="list-decimal ml-5 mt-1 space-y-1">
-                            <li>Open the WhatsApp chat</li>
-                            <li>Tap the three dots ⋮ in the top right</li>
-                            <li>Select "More" → "Export chat"</li>
-                            <li>Choose "Without media"</li>
-                            <li>Share the .zip file here</li>
-                          </ol>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
+                </Tabs>
 
                 {/* Screenshot Analysis Tab */}
                 <TabsContent value="screenshot" className="mt-4">
