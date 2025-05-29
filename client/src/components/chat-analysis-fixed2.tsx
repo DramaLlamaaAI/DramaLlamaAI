@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import RegistrationPrompt from "@/components/registration-prompt";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import ScreenshotTab from "@/components/screenshot-tab";
 
 export default function ChatAnalysisFixed() {
   const [tabValue, setTabValue] = useState("upload");
@@ -585,16 +586,28 @@ export default function ChatAnalysisFixed() {
                 </TabsContent>
 
                 <TabsContent value="screenshot" className="mt-4">
-                  <div className="space-y-4">
-                    {/* Info about screenshot analysis */}
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2">
-                        <Info className="h-4 w-4" />
-                        <p className="text-sm text-muted-foreground">
-                          Upload a screenshot of your conversation. We'll extract the text and analyze it for you.
-                        </p>
-                      </div>
-                    </div>
+                  <ScreenshotTab 
+                    canUseFeature={canUseFeature}
+                    onAnalyze={(conversation, me, them) => {
+                      setConversation(conversation);
+                      setMe(me);
+                      setThem(them);
+                      setTabValue("paste");
+                      
+                      // Trigger analysis with the extracted conversation
+                      setTimeout(() => {
+                        analysisMutation.mutate({
+                          conversation,
+                          me,
+                          them,
+                          tier,
+                          extraData: {
+                            conversationType: "two_person",
+                          }
+                        });
+                      }, 100);
+                    }}
+                  />
 
                     {/* Screenshot Upload */}
                     <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center bg-purple-50">

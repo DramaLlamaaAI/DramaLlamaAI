@@ -36,12 +36,6 @@ export default function ChatAnalysis() {
   const [fileName, setFileName] = useState("");
   const [fileIsZip, setFileIsZip] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  
-  // Screenshot analysis states
-  const [screenshotMe, setScreenshotMe] = useState("");
-  const [screenshotThem, setScreenshotThem] = useState("");
-  const [messageOrientation, setMessageOrientation] = useState<"left" | "right">("right");
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [result, setResult] = useState<ChatAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -950,30 +944,7 @@ export default function ChatAnalysis() {
                       </div>
                     </TabsContent>
                   )}
-                    
-                    <div className="text-sm text-muted-foreground">
-                      <div className="flex items-start mb-2">
-                        <Info className="h-4 w-4 mr-2 mt-0.5" />
-                        <div>
-                          <strong>WhatsApp Export Instructions:</strong>
-                          <ol className="list-decimal ml-5 mt-1 space-y-1">
-                            <li>Open the WhatsApp chat</li>
-                            <li>Tap the three dots ⋮ in the top right</li>
-                            <li>Select "More" → "Export chat"</li>
-                            <li>Choose "Without media"</li>
-                            <li>Share the .zip file here</li>
-                          </ol>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                {/* Screenshot Analysis Tab */}
-                <TabsContent value="screenshot" className="mt-4">
-                  <div className="space-y-4">
-                    <div className="text-center mb-6">
-                      <div className="bg-purple-100 inline-block p-4 mb-3 rounded-full">
+                </Tabs>
                         <Image className="h-8 w-8 text-purple-600" />
                       </div>
                       <h3 className="text-xl font-medium text-purple-700 mb-2">Screenshot Analysis</h3>
