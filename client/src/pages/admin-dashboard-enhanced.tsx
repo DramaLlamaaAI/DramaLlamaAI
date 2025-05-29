@@ -478,7 +478,7 @@ export default function AdminDashboardEnhanced() {
                               <TableBody>
                                 {currentUsers.length === 0 ? (
                                   <TableRow>
-                                    <TableCell colSpan={9} className="text-center py-4">
+                                    <TableCell colSpan={10} className="text-center py-4">
                                       No users found.
                                     </TableCell>
                                   </TableRow>
@@ -495,6 +495,15 @@ export default function AdminDashboardEnhanced() {
                                       <TableCell>{user.username}</TableCell>
                                       <TableCell>{user.email}</TableCell>
                                       <TableCell>{user.country || 'United Kingdom'}</TableCell>
+                                      <TableCell>
+                                        {(user as any).promoCode ? (
+                                          <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                                            {(user as any).promoCode}
+                                          </span>
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">No promo code</span>
+                                        )}
+                                      </TableCell>
                                       <TableCell>
                                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                                           user.tier === 'pro' ? 'bg-green-100 text-green-800' :
