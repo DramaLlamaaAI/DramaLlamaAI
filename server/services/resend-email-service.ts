@@ -48,7 +48,7 @@ export const sendEmail = async (params: EmailParams): Promise<boolean> => {
   try {
     // Send the email with Resend
     const { data, error } = await resendClient!.emails.send({
-      from: 'Drama Llama AI <noreply@dramallama.ai>', // Using verified domain
+      from: 'Drama Llama AI <support@dramallama.ai>', // Using verified domain
       to: params.to,
       subject: params.subject,
       text: params.text || '',
