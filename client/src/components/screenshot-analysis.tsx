@@ -79,14 +79,15 @@ export default function ScreenshotAnalysis({ user, selectedTier, deviceId }: Scr
       for (let i = 0; i < selectedImages.length; i++) {
         const image = selectedImages[i];
         
-        // Convert image to base64
-        const base64 = await new Promise<string>((resolve) => {
+        // Convert image to base64 with media type
+        const { base64Data, mediaType } = await new Promise<{base64Data: string, mediaType: string}>((resolve) => {
           const reader = new FileReader();
           reader.onload = (e) => {
             const result = e.target?.result as string;
-            // Remove the data:image/type;base64, prefix
-            const base64Data = result.split(',')[1];
-            resolve(base64Data);
+            // Extract media type and base64 data
+            const [header, base64] = result.split(',');
+            const mediaType = header.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
+            resolve({ base64Data: base64, mediaType });
           };
           reader.readAsDataURL(image);
         });
@@ -97,7 +98,10 @@ export default function ScreenshotAnalysis({ user, selectedTier, deviceId }: Scr
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ image: base64 }),
+          body: JSON.stringify({ 
+            image: base64Data,
+            mediaType: mediaType 
+          }),
         });
 
         if (!response.ok) {

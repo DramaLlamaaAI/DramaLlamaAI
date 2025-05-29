@@ -1458,8 +1458,11 @@ async function openAiFallbackForVentMode(message: string, tier: string = 'free')
   }
 }
 
-export async function processImageOcr(image: string): Promise<string> {
+export async function processImageOcr(image: string, mediaType?: string): Promise<string> {
   try {
+    // Determine the media type - default to jpeg if not provided
+    const imageMediaType = mediaType || "image/jpeg";
+    
     // Anthropic Claude has multimodal capabilities
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
@@ -1476,7 +1479,7 @@ export async function processImageOcr(image: string): Promise<string> {
               type: "image",
               source: {
                 type: "base64",
-                media_type: "image/jpeg",
+                media_type: imageMediaType,
                 data: image
               }
             }
