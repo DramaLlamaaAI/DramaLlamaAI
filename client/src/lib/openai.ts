@@ -17,7 +17,6 @@ export interface ChatAnalysisRequest {
   dateFilter?: DateFilter;
   conversationType?: 'two_person' | 'group_chat';
   participants?: string[];
-  deviceId?: string;
   extraData?: {
     isGroupChat?: boolean;
     groupParticipants?: string[];
@@ -215,17 +214,7 @@ export interface OcrResponse {
 // API functions
 export async function analyzeChatConversation(request: ChatAnalysisRequest): Promise<ChatAnalysisResponse> {
   try {
-    // Extract the parameters that the backend expects
-    const requestBody = {
-      conversation: request.conversation,
-      me: request.me,
-      them: request.them,
-      dateFilter: request.dateFilter,
-      extraData: request.extraData,
-      deviceId: request.deviceId || localStorage.getItem('deviceId') || 'unknown'
-    };
-
-    const response = await apiRequest('POST', '/api/analyze/chat', requestBody);
+    const response = await apiRequest('POST', '/api/analyze/chat', request);
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(errorText || 'Failed to analyze conversation');

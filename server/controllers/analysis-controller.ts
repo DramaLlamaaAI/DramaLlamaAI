@@ -830,15 +830,15 @@ export const analysisController = {
   // Process image OCR
   processOcr: async (req: Request, res: Response) => {
     try {
-      const { image, imageData, mediaType } = req.body;
+      const { image, imageData } = req.body;
       const base64Image = image || imageData;
       
       if (!base64Image) {
         return res.status(400).json({ message: 'Missing required parameters' });
       }
       
-      // Process image OCR with media type
-      const extractedText = await processImageOcr(base64Image, mediaType);
+      // Process image OCR
+      const extractedText = await processImageOcr(base64Image);
       
       res.json({ text: extractedText });
     } catch (error: any) {

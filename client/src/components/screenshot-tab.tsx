@@ -1,265 +1,247 @@
-import React, { useState } from 'react';
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Image, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X, ArrowRight, Camera, FileText, Edit3 } from "lucide-react";
+import { fileToBase64 } from "@/lib/utils";
+import { processImageOcr } from "@/lib/openai";
 
 interface ScreenshotTabProps {
-  selectedImages: File[];
-  imagePreviews: string[];
-  extractedText: string;
-  me: string;
-  them: string;
-  isProcessing: boolean;
-  imageInputRef: React.RefObject<HTMLInputElement>;
-  onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveImage: (index: number) => void;
-  onExtractText: () => Promise<void>;
-  onTextChange: (text: string) => void;
-  onMeChange: (name: string) => void;
-  onThemChange: (name: string) => void;
-  onAnalyze: () => Promise<void>;
+  canUseFeature: boolean;
+  onAnalyze: (conversation: string, me: string, them: string) => void;
 }
 
-export default function ScreenshotTab({
-  selectedImages,
-  imagePreviews,
-  extractedText,
-  me,
-  them,
-  isProcessing,
-  imageInputRef,
-  onImageUpload,
-  onRemoveImage,
-  onExtractText,
-  onTextChange,
-  onMeChange,
-  onThemChange,
-  onAnalyze
-}: ScreenshotTabProps) {
-  const [step, setStep] = useState<"upload" | "extract" | "edit">("upload");
+export default function ScreenshotTab({ canUseFeature, onAnalyze }: ScreenshotTabProps) {
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [screenshotMe, setScreenshotMe] = useState("");
+  const [screenshotThem, setScreenshotThem] = useState("");
+  const [messageOrientation, setMessageOrientation] = useState<"left" | "right">("right");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleAnalyze = async () => {
-    if (!extractedText.trim() || !me.trim() || !them.trim()) {
+  const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      const base64 = await fileToBase64(file);
+      setSelectedImage(file);
+      setImagePreview(base64);
+    } catch (error) {
       toast({
-        title: "Missing Information",
-        description: "Please ensure you have extracted text and entered both participant names.",
+        title: "Error",
+        description: "Failed to process screenshot",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleScreenshotAnalysis = async () => {
+    if (!selectedImage || !screenshotMe || !screenshotThem) {
+      toast({
+        title: "Missing Information", 
+        description: "Please upload a screenshot and enter participant names.",
         variant: "destructive",
       });
       return;
     }
 
-    await onAnalyze();
+    if (!canUseFeature) {
+      toast({
+        title: "Usage Limit Reached",
+        description: "Please upgrade your plan to continue analyzing conversations.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const base64 = imagePreview?.split(',')[1];
+      if (!base64) throw new Error("Invalid image data");
+
+      // Extract text using OCR
+      const ocrResult = await processImageOcr({ image: base64 });
+      
+      if (!ocrResult.text) {
+        throw new Error("No text found in screenshot");
+      }
+
+      // Format the conversation based on message orientation
+      const formattedConversation = formatScreenshotText(ocrResult.text, screenshotMe, screenshotThem, messageOrientation);
+      
+      // Call the parent analysis function
+      onAnalyze(formattedConversation, screenshotMe, screenshotThem);
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "Failed to analyze screenshot",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const formatScreenshotText = (extractedText: string, me: string, them: string, orientation: "left" | "right"): string => {
+    const lines = extractedText.split('\n').filter(line => line.trim());
+    let formattedLines: string[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return;
+      
+      // Alternate messages based on orientation
+      const isUserMessage = orientation === "right" ? (index % 2 === 1) : (index % 2 === 0);
+      const speaker = isUserMessage ? me : them;
+      
+      formattedLines.push(`${speaker}: ${trimmedLine}`);
+    });
+    
+    return formattedLines.join('\n');
   };
 
   return (
-    <div className="space-y-6">
-      {/* Step indicator */}
-      <div className="flex items-center justify-center space-x-4 mb-8">
-        <div className={`flex items-center space-x-2 ${step === "upload" ? "text-blue-600" : selectedImages.length > 0 ? "text-green-600" : "text-gray-400"}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "upload" ? "bg-blue-100 border-2 border-blue-600" : selectedImages.length > 0 ? "bg-green-100" : "bg-gray-100"}`}>
-            <Camera className="w-4 h-4" />
-          </div>
-          <span className="font-medium">Upload</span>
+    <div className="space-y-4">
+      <div className="text-center mb-6">
+        <div className="bg-purple-100 inline-block p-4 mb-3 rounded-full">
+          <Image className="h-8 w-8 text-purple-600" />
         </div>
-        <ArrowRight className="w-5 h-5 text-gray-400" />
-        <div className={`flex items-center space-x-2 ${step === "extract" ? "text-blue-600" : extractedText ? "text-green-600" : "text-gray-400"}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "extract" ? "bg-blue-100 border-2 border-blue-600" : extractedText ? "bg-green-100" : "bg-gray-100"}`}>
-            <FileText className="w-4 h-4" />
-          </div>
-          <span className="font-medium">Extract</span>
+        <h3 className="text-xl font-medium text-purple-700 mb-2">Screenshot Analysis</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Upload a screenshot of your conversation and let AI extract and analyze the text
+        </p>
+      </div>
+
+      {/* Participant Name Fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <Label htmlFor="screenshot-me" className="block mb-2 font-medium">Your Name (Me)</Label>
+          <Input
+            id="screenshot-me"
+            placeholder="Enter your name"
+            value={screenshotMe}
+            onChange={(e) => setScreenshotMe(e.target.value)}
+            className="w-full"
+          />
         </div>
-        <ArrowRight className="w-5 h-5 text-gray-400" />
-        <div className={`flex items-center space-x-2 ${step === "edit" ? "text-blue-600" : "text-gray-400"}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "edit" ? "bg-blue-100 border-2 border-blue-600" : "bg-gray-100"}`}>
-            <Edit3 className="w-4 h-4" />
-          </div>
-          <span className="font-medium">Edit & Analyze</span>
+        <div>
+          <Label htmlFor="screenshot-them" className="block mb-2 font-medium">Their Name</Label>
+          <Input
+            id="screenshot-them"
+            placeholder="Enter their name"
+            value={screenshotThem}
+            onChange={(e) => setScreenshotThem(e.target.value)}
+            className="w-full"
+          />
         </div>
       </div>
 
-      {/* Step 1: Upload Screenshots */}
-      {step === "upload" && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-4">Upload Chat Screenshots</h3>
-              <p className="text-gray-600 mb-6">
-                Upload screenshots of your conversation. Our AI will extract the text automatically.
-              </p>
-              
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-gray-400 transition-colors">
-                <input
-                  ref={imageInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={onImageUpload}
-                  className="hidden"
-                />
-                
-                <div className="space-y-4">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <div>
-                    <Button
-                      type="button"
-                      onClick={() => imageInputRef.current?.click()}
-                      className="mb-2"
-                    >
-                      Choose Screenshots
-                    </Button>
-                    <p className="text-sm text-gray-500">
-                      or drag and drop your images here
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Show selected images */}
-              {imagePreviews.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="font-medium mb-3">Selected Images ({imagePreviews.length})</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {imagePreviews.map((preview, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={preview}
-                          alt={`Screenshot ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border"
-                        />
-                        <button
-                          onClick={() => onRemoveImage(index)}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <Button
-                    onClick={() => setStep("extract")}
-                    className="mt-4"
-                    disabled={selectedImages.length === 0}
-                  >
-                    Continue to Text Extraction
-                  </Button>
-                </div>
-              )}
+      {/* Message Orientation Selector */}
+      <div className="mb-4">
+        <Label className="block mb-2 font-medium">Where do your messages appear?</Label>
+        <div className="grid grid-cols-2 gap-4">
+          <div 
+            className={`p-4 border rounded-lg cursor-pointer transition-all ${
+              messageOrientation === "left" ? "border-pink-500 bg-pink-50" : "border-gray-200"
+            }`}
+            onClick={() => setMessageOrientation("left")}
+          >
+            <div className="flex items-center mb-2">
+              <div className="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
+              <span className="text-sm">My messages on left</span>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+          <div 
+            className={`p-4 border rounded-lg cursor-pointer transition-all ${
+              messageOrientation === "right" ? "border-pink-500 bg-pink-50" : "border-gray-200"
+            }`}
+            onClick={() => setMessageOrientation("right")}
+          >
+            <div className="flex items-center mb-2 justify-end">
+              <span className="text-sm">My messages on right</span>
+              <div className="w-3 h-3 rounded-full bg-blue-400 ml-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Step 2: Extract Text */}
-      {step === "extract" && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-4">Extract Text from Screenshots</h3>
-              <p className="text-gray-600 mb-6">
-                Click the button below to automatically extract text from your screenshots.
-              </p>
-              
+      {/* Screenshot Upload */}
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+        <input
+          type="file"
+          ref={imageInputRef}
+          onChange={handleScreenshotUpload}
+          accept="image/*"
+          className="hidden"
+        />
+        
+        {!selectedImage ? (
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => imageInputRef.current?.click()}
+              className="mb-2"
+            >
+              <Image className="h-4 w-4 mr-2" />
+              Select Screenshot
+            </Button>
+            
+            <p className="text-xs text-gray-500 mt-2">
+              Supports: JPG, PNG, WebP
+            </p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-sm font-medium text-pink-700 mb-2">
+              Screenshot selected: {selectedImage.name}
+            </p>
+            {imagePreview && (
+              <div className="mt-4 mb-4">
+                <img 
+                  src={imagePreview} 
+                  alt="Screenshot preview" 
+                  className="max-w-full max-h-64 mx-auto rounded-lg shadow-lg"
+                />
+              </div>
+            )}
+            
+            <div className="flex gap-2 justify-center">
               <Button
-                onClick={onExtractText}
-                disabled={isProcessing || selectedImages.length === 0}
-                className="mb-6"
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                }}
               >
-                {isProcessing ? "Extracting Text..." : "Extract Text from Images"}
+                Remove
               </Button>
-
-              {extractedText && (
-                <div className="mt-6">
-                  <Label htmlFor="extracted-text" className="text-left block mb-2">
-                    Extracted Text (You can edit this if needed)
-                  </Label>
-                  <Textarea
-                    id="extracted-text"
-                    value={extractedText}
-                    onChange={(e) => onTextChange(e.target.value)}
-                    rows={10}
-                    className="w-full text-left"
-                    placeholder="Extracted text will appear here..."
-                  />
-                  
-                  <Button
-                    onClick={() => setStep("edit")}
-                    className="mt-4"
-                    disabled={!extractedText.trim()}
-                  >
-                    Continue to Edit & Analyze
-                  </Button>
-                </div>
-              )}
+              <Button
+                type="button"
+                onClick={handleScreenshotAnalysis}
+                disabled={!canUseFeature || !screenshotMe || !screenshotThem || isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Brain className="h-4 w-4 mr-2" />
+                    {canUseFeature ? 'Analyze Screenshot' : 'Usage Limit Reached'}
+                  </>
+                )}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 3: Edit and Analyze */}
-      {step === "edit" && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-center">Edit Participants & Analyze</h3>
-              
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="me-name">Your Name</Label>
-                  <Input
-                    id="me-name"
-                    value={me}
-                    onChange={(e) => onMeChange(e.target.value)}
-                    placeholder="Enter your name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="them-name">Other Person's Name</Label>
-                  <Input
-                    id="them-name"
-                    value={them}
-                    onChange={(e) => onThemChange(e.target.value)}
-                    placeholder="Enter other person's name"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="final-text">Conversation Text</Label>
-                <Textarea
-                  id="final-text"
-                  value={extractedText}
-                  onChange={(e) => onTextChange(e.target.value)}
-                  rows={12}
-                  className="w-full"
-                  placeholder="Edit the conversation text here..."
-                />
-              </div>
-
-              <div className="flex space-x-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep("extract")}
-                >
-                  Back to Extract
-                </Button>
-                <Button
-                  onClick={handleAnalyze}
-                  disabled={isProcessing || !extractedText.trim() || !me.trim() || !them.trim()}
-                  className="flex-1"
-                >
-                  {isProcessing ? "Analyzing..." : "Analyze Conversation"}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
