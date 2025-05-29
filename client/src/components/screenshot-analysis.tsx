@@ -73,22 +73,44 @@ export default function ScreenshotAnalysis({ user, selectedTier, deviceId }: Scr
 
     setIsProcessing(true);
     try {
-      const formData = new FormData();
-      selectedImages.forEach((image, index) => {
-        formData.append(`images`, image);
-      });
+      let combinedText = '';
+      
+      // Process each image individually using OCR
+      for (let i = 0; i < selectedImages.length; i++) {
+        const image = selectedImages[i];
+        
+        // Convert image to base64
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const result = e.target?.result as string;
+            // Remove the data:image/type;base64, prefix
+            const base64Data = result.split(',')[1];
+            resolve(base64Data);
+          };
+          reader.readAsDataURL(image);
+        });
 
-      const response = await fetch('/api/extract-chat', {
-        method: 'POST',
-        body: formData,
-      });
+        // Send to OCR endpoint
+        const response = await fetch('/api/ocr', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ image: base64 }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to extract text from images');
+        if (!response.ok) {
+          throw new Error(`Failed to extract text from image ${i + 1}`);
+        }
+
+        const data = await response.json();
+        if (data.text) {
+          combinedText += data.text + '\n\n';
+        }
       }
 
-      const data = await response.json();
-      setExtractedText(data.extractedText || '');
+      setExtractedText(combinedText.trim());
       
       toast({
         title: "Text extracted successfully",
