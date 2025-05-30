@@ -505,6 +505,25 @@ export const analysisController = {
         return res.status(400).json({ message: 'Missing required parameters' });
       }
       
+      // Validate conversation data integrity to prevent analysis of corrupted extractions
+      const conversationLines = conversation.split('\n').filter(line => line.trim().length > 0);
+      const messageLines = conversationLines.filter(line => line.includes(':') && line.trim().length > 10);
+      
+      if (conversationLines.length < 3 || messageLines.length < 2) {
+        return res.status(400).json({ 
+          message: 'Conversation data appears incomplete or corrupted. Please verify your chat export and try again.',
+          error: 'INVALID_CONVERSATION_DATA'
+        });
+      }
+      
+      // Additional validation for ZIP-extracted content
+      if (conversation.length < 100 || conversation.includes('Failed to read') || conversation.includes('corrupted')) {
+        return res.status(400).json({ 
+          message: 'Chat extraction failed. Please export your conversation again and ensure the file is not corrupted.',
+          error: 'EXTRACTION_FAILED'
+        });
+      }
+      
       // Check if user has reached usage limit
       const canUseFeature = await checkUsageLimit(req);
       if (!canUseFeature) {
