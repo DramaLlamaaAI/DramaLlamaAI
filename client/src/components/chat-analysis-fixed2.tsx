@@ -53,7 +53,11 @@ export default function ChatAnalysisFixed() {
     queryFn: getUserUsage,
   });
   
-  const tier = usage?.tier || 'free';
+  // Determine if user is authenticated
+  const isAuthenticated = !!user;
+  
+  // Set tier based on authentication status
+  const tier = isAuthenticated ? (usage?.tier || 'free') : 'anonymous';
   const usedAnalyses = usage?.used || 0;
   // Set default limit to 2 for free tier, this ensures correct display even if backend returns a different value
   const limit = usage?.limit === null ? null : (usage?.limit || 2);
