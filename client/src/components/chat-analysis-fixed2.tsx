@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Info, Brain, Upload, AlertCircle, Users, Edit, Home, Image } from "lucide-react";
 import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -17,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import RegistrationPrompt from "@/components/registration-prompt";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import LockedPreviewSections from "@/components/locked-preview-sections";
+import LockedPreviewSections from "@/components/locked-preview-sections-compact";
 import { SafetyReminderModal } from "@/components/safety-reminder-modal";
 
 export default function ChatAnalysisFixed() {
@@ -1429,7 +1434,25 @@ export default function ChatAnalysisFixed() {
                     )}
                   </div>
                   
-                  {/* Show locked preview sections for features not available in current tier */}
+                  {/* Support Resources - Collapsible and closer to results */}
+                  <Collapsible className="mt-6">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-colors">
+                      <h3 className="font-semibold text-red-800 flex items-center">
+                        <AlertCircle className="h-5 w-5 mr-2" />
+                        Support Resources & Red Flag Library
+                      </h3>
+                      <Info className="h-4 w-4 text-red-600" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      <SupportHelpLines 
+                        analysisResult={result} 
+                        showRecommended={true}
+                        title=""
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Compact upgrade sections - moved closer to results */}
                   <LockedPreviewSections 
                     userTier={tier}
                     onUpgrade={() => {
@@ -1437,35 +1460,22 @@ export default function ChatAnalysisFixed() {
                     }}
                   />
 
-                  
                   {/* Anonymous user registration prompt */}
                   {tier === 'free' && !user && (
-                    <div className="bg-gradient-to-r from-pink-50 to-teal-50 rounded-lg p-6 border-2 border-pink-200 shadow-lg">
+                    <div className="bg-gradient-to-r from-pink-50 to-teal-50 rounded-lg p-4 border border-pink-200 mt-4">
                       <div className="text-center">
-                        <h3 className="text-xl font-bold text-pink-700 mb-3">🚀 Join Our Free Beta!</h3>
-                        <p className="text-gray-700 mb-4">
-                          Register now to unlock independent red flag insights, advanced analysis, and unlimited chat reviews during our beta period! Once you've activated your account, email us at support@dramallama.ai and we'll adjust your account to Beta Tier.
+                        <h3 className="text-lg font-bold text-pink-700 mb-2">🚀 Join Our Free Beta!</h3>
+                        <p className="text-sm text-gray-700 mb-3">
+                          Register for independent red flag insights and advanced analysis during our beta period!
                         </p>
                         <Link href="/auth">
-                          <Button className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-6 py-3 text-lg">
+                          <Button className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-4 py-2">
                             Sign Up for Free Beta
                           </Button>
                         </Link>
-                        <p className="text-sm text-gray-500 mt-2">
-                          ✓ No credit card required ✓ Full access during beta
-                        </p>
                       </div>
                     </div>
                   )}
-                  
-                  {/* Support Help Lines - Show with recommendations based on analysis */}
-                  <div className="mt-8">
-                    <SupportHelpLines 
-                      analysisResult={result} 
-                      showRecommended={true}
-                      title="Support Resources"
-                    />
-                  </div>
                   
                   {/* Prompt to register for more features */}
                   {tier === 'free' && user && <RegistrationPrompt tier="free" />}
