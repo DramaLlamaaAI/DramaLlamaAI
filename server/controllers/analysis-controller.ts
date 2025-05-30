@@ -550,13 +550,16 @@ export const analysisController = {
       
       // Strict validation to prevent analysis of questionable extractions
       const hasValidWhatsAppFormat = messageLines.some((line: string) => {
-        // Check for timestamp patterns typical in WhatsApp exports
-        return /\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line) || 
+        // Check for common WhatsApp patterns - be more inclusive
+        return /\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4}/.test(line) || 
                /\d{1,2}:\d{2}/.test(line) ||
-               /\[\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line);
+               /\[\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4}/.test(line) ||
+               /\s*-\s*.+:\s*.+/.test(line) ||
+               (line.includes(':') && line.includes(' ') && line.length > 10);
       });
       
-      if (!hasValidWhatsAppFormat) {
+      // Only block if it's clearly not a conversation format at all
+      if (!hasValidWhatsAppFormat && messageLines.length < 5) {
         return res.status(400).json({ 
           message: 'The uploaded content does not appear to be a valid WhatsApp chat export. Please ensure you are uploading the correct file format.',
           error: 'INVALID_FORMAT'

@@ -23,37 +23,58 @@ function isValidWhatsAppFormat(text: string): boolean {
   const lines = text.split('\n').filter(line => line.trim().length > 0);
   if (lines.length < 3) return false;
   
-  // Check for WhatsApp timestamp patterns
-  const timestampPatterns = [
-    /^\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s*\d{1,2}:\d{2}:\d{2}\s*(AM|PM)?\]/i,  // [MM/DD/YYYY, HH:MM:SS AM/PM]
-    /^\d{1,2}\/\d{1,2}\/\d{2,4},?\s*\d{1,2}:\d{2}\s*(AM|PM)?/i,             // MM/DD/YYYY, HH:MM AM/PM
-    /^\[\d{1,2}:\d{2}:\d{2}\]/,                                              // [HH:MM:SS]
-    /^\d{1,2}\/\d{1,2}\/\d{2,4}/                                             // MM/DD/YYYY
+  // More comprehensive WhatsApp patterns to handle various export formats
+  const whatsappPatterns = [
+    // Standard formats with dash separator
+    /\d{1,2}\/\d{1,2}\/\d{2,4},?\s*\d{1,2}:\d{2}(\s*(AM|PM))?\s*-\s*.+:\s*.+/i,
+    
+    // Bracketed timestamp formats
+    /\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s*\d{1,2}:\d{2}(:\d{2})?(\s*(AM|PM))?\]\s*.+:\s*.+/i,
+    
+    // Time-only formats (continuation messages)
+    /\d{1,2}:\d{2}(\s*(AM|PM))?\s*-\s*.+:\s*.+/i,
+    
+    // International date formats
+    /\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4},?\s*\d{1,2}:\d{2}.*-.*:\s*.+/i,
+    
+    // Message continuation lines (no timestamp but has colon)
+    /^[^:\[\(]*:\s*.+/,
+    
+    // Lines that contain participant names and message indicators
+    /\s*-\s*.+:\s*.+/
   ];
   
-  // Check for message patterns (name: message)
-  const messagePattern = /:\s*.+/;
-  
   let validLines = 0;
-  let totalContentLines = 0;
+  let totalChecked = 0;
   
-  for (const line of lines.slice(0, Math.min(20, lines.length))) {
-    totalContentLines++;
+  // Check first 15 lines to determine format
+  for (const line of lines.slice(0, Math.min(15, lines.length))) {
+    if (line.trim().length < 5) continue; // Skip very short lines
     
-    // Check if line matches WhatsApp format
-    const hasTimestamp = timestampPatterns.some(pattern => pattern.test(line));
-    const hasMessage = messagePattern.test(line);
+    totalChecked++;
     
-    if (hasTimestamp || hasMessage) {
+    // Check against WhatsApp patterns
+    if (whatsappPatterns.some(pattern => pattern.test(line))) {
       validLines++;
+    }
+    // Also accept lines that clearly contain names and messages
+    else if (line.includes(':') && line.trim().length > 10) {
+      const colonIndex = line.indexOf(':');
+      const beforeColon = line.substring(0, colonIndex).trim();
+      const afterColon = line.substring(colonIndex + 1).trim();
+      
+      // If we have reasonable name and message content
+      if (beforeColon.length > 0 && beforeColon.length < 50 && afterColon.length > 0) {
+        validLines += 0.5; // Partial credit
+      }
     }
   }
   
-  // Require at least 30% of lines to match WhatsApp patterns
-  const validPercentage = validLines / totalContentLines;
-  console.log(`WhatsApp validation: ${validLines}/${totalContentLines} valid lines (${Math.round(validPercentage * 100)}%)`);
+  const validPercentage = totalChecked > 0 ? validLines / totalChecked : 0;
+  console.log(`WhatsApp validation: ${validLines}/${totalChecked} valid lines (${Math.round(validPercentage * 100)}%)`);
   
-  return validPercentage >= 0.3;
+  // More lenient threshold - accept if 25% of lines match patterns and we have at least 2 clear matches
+  return validLines >= 2 && validPercentage >= 0.25;
 }
 
 // Middleware to check if the user is authenticated
@@ -229,8 +250,21 @@ app.use(session({
           if (zipFile.dir || !(filename.endsWith('.txt') || filename.includes('_chat'))) continue;
           
           try {
-            // Extract the text content
-            const extractedText = await zipFile.async('text');
+            // Extract the text content with better encoding handling
+            let extractedText = '';
+            try {
+              extractedText = await zipFile.async('text');
+            } catch (encodingError) {
+              console.log('UTF-8 extraction failed, trying binary approach for:', filename);
+              const binaryData = await zipFile.async('uint8array');
+              extractedText = new TextDecoder('utf-8', { fatal: false }).decode(binaryData);
+            }
+            
+            // Clean up the content
+            extractedText = extractedText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            if (extractedText.charCodeAt(0) === 0xFEFF) {
+              extractedText = extractedText.substring(1); // Remove BOM
+            }
             
             // Validate the extracted text content
             if (!extractedText || extractedText.trim().length === 0) {
