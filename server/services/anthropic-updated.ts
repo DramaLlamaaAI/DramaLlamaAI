@@ -9,6 +9,12 @@ const getTierSpecificSystemPrompt = (tier: string, me: string, them: string): st
 
 For this ${tier.toUpperCase()} tier analysis, examine the conversation between ${me} and ${them}.
 
+CRITICAL ACCURACY REQUIREMENT: You must ONLY reference text that exists verbatim in the provided conversation. 
+- NEVER create, paraphrase, or modify quotes
+- NEVER generate example quotes that don't exist in the original text
+- If you cannot find exact quotes for red flags or examples, omit the quote fields entirely
+- All quotes must be exact word-for-word matches from the conversation
+
 IMPORTANT: Return ONLY JSON wrapped in code block markers (\`\`\`json). NEVER include ANY explanatory text outside the JSON code block.
 
 All JSON values MUST be in "double quotes" without special characters. Do NOT use single quotes or line breaks within values.
@@ -19,8 +25,8 @@ The JSON structure should include only the required fields for ${tier.toUpperCas
 - toneAnalysis (overallTone, emotionalState, participantTones)
 - communication (patterns, dynamics, suggestions) 
 - healthScore (score from 0-100, label, color)
-${tier === 'personal' || tier === 'pro' ? '- redFlags (if applicable)' : ''}
-${tier === 'pro' ? '- keyQuotes, dramaScore, and other advanced analysis components' : ''}`;
+${tier === 'personal' || tier === 'pro' ? '- redFlags (if applicable - NO QUOTES unless exact matches found)' : ''}
+${tier === 'pro' ? '- keyQuotes (ONLY if exact quotes can be verified), dramaScore, and other advanced analysis components' : ''}`;
 };
 
 // Function for direct group chat analysis with Anthropic
@@ -482,6 +488,80 @@ Return a JSON object with the following structure:
  * Special raw response parser to handle malformed responses from Anthropic API
  * This parser extracts key data using regex patterns directly from the raw response
  */
+// Validate quotes against original conversation to prevent fabrication
+function validateQuotesAgainstConversation(analysis: any, originalConversation: string): any {
+  if (!analysis || !originalConversation) return analysis;
+  
+  const conversationText = originalConversation.toLowerCase();
+  
+  // Validate red flag examples
+  if (analysis.redFlags && Array.isArray(analysis.redFlags)) {
+    analysis.redFlags = analysis.redFlags.map((flag: any) => {
+      if (flag.examples && Array.isArray(flag.examples)) {
+        flag.examples = flag.examples.filter((example: any) => {
+          if (!example.text || typeof example.text !== 'string') return false;
+          
+          const quoteText = example.text.toLowerCase().trim();
+          if (quoteText.length < 3) return false;
+          
+          // Check for exact match first
+          if (conversationText.includes(quoteText)) {
+            return true;
+          }
+          
+          // For longer quotes, check word match percentage
+          const words = quoteText.split(' ').filter((word: string) => word.length > 2);
+          if (words.length === 0) return false;
+          
+          const matchedWords = words.filter((word: string) => conversationText.includes(word));
+          const matchPercentage = matchedWords.length / words.length;
+          
+          // Require 70% word match for validation
+          return matchPercentage >= 0.7;
+        });
+        
+        // If no valid examples remain, remove the examples field
+        if (flag.examples.length === 0) {
+          delete flag.examples;
+        }
+      }
+      return flag;
+    });
+  }
+  
+  // Validate key quotes
+  if (analysis.keyQuotes && Array.isArray(analysis.keyQuotes)) {
+    analysis.keyQuotes = analysis.keyQuotes.filter((quoteObj: any) => {
+      if (!quoteObj.quote || typeof quoteObj.quote !== 'string') return false;
+      
+      const quoteText = quoteObj.quote.toLowerCase().trim();
+      if (quoteText.length < 3) return false;
+      
+      // Check for exact match first
+      if (conversationText.includes(quoteText)) {
+        return true;
+      }
+      
+      // For longer quotes, check word match percentage
+      const words = quoteText.split(' ').filter((word: string) => word.length > 2);
+      if (words.length === 0) return false;
+      
+      const matchedWords = words.filter((word: string) => conversationText.includes(word));
+      const matchPercentage = matchedWords.length / words.length;
+      
+      // Require 70% word match for validation
+      return matchPercentage >= 0.7;
+    });
+    
+    // If no valid quotes remain, remove the keyQuotes field
+    if (analysis.keyQuotes.length === 0) {
+      delete analysis.keyQuotes;
+    }
+  }
+  
+  return analysis;
+}
+
 function extractRawChatAnalysis(rawContent: string, me: string, them: string): any {
   console.log("Using raw response extraction as fallback");
   
@@ -900,6 +980,10 @@ When analyzing conversations:
       // Use the specialized raw extraction function that works directly on the raw text
       result = extractRawChatAnalysis(content, me, them);
     }
+    
+    // Apply quote validation to ensure accuracy
+    result = validateQuotesAgainstConversation(result, conversation);
+    console.log('Applied quote validation to prevent fabricated quotes');
     
     // Add raw response as a non-enumerable property for direct extraction later
     // This is critical for free tier to extract red flags data from personal tier analysis
