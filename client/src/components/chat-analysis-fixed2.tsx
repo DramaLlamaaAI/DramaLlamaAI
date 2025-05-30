@@ -9,7 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Info, Brain, Upload, AlertCircle, Users, Edit, Home, Image, AlertTriangle } from "lucide-react";
+import { Info, Brain, Upload, AlertCircle, Users, Edit, Home, Image, AlertTriangle, ChevronUp, ChevronDown, Move } from "lucide-react";
 import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, ChatAnalysisResponse } from "@/lib/openai";
@@ -284,6 +284,38 @@ export default function ChatAnalysisFixed() {
         imageInputRef.current.value = "";
       }
     }
+  };
+
+  const moveScreenshotUp = (index: number) => {
+    if (index === 0) return;
+    
+    setSelectedImages(prev => {
+      const newArray = [...prev];
+      [newArray[index - 1], newArray[index]] = [newArray[index], newArray[index - 1]];
+      return newArray;
+    });
+    
+    setImagePreviews(prev => {
+      const newArray = [...prev];
+      [newArray[index - 1], newArray[index]] = [newArray[index], newArray[index - 1]];
+      return newArray;
+    });
+  };
+
+  const moveScreenshotDown = (index: number) => {
+    if (index === selectedImages.length - 1) return;
+    
+    setSelectedImages(prev => {
+      const newArray = [...prev];
+      [newArray[index], newArray[index + 1]] = [newArray[index + 1], newArray[index]];
+      return newArray;
+    });
+    
+    setImagePreviews(prev => {
+      const newArray = [...prev];
+      [newArray[index], newArray[index + 1]] = [newArray[index + 1], newArray[index]];
+      return newArray;
+    });
   };
 
   const handleAnalyzeScreenshot = async () => {
@@ -696,22 +728,71 @@ export default function ChatAnalysisFixed() {
                         </div>
                       ) : (
                         <div>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                          {selectedImages.length > 1 && (
+                            <div className="mb-3 p-3 bg-blue-50 rounded-lg border-blue-200 border">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Move className="h-4 w-4 text-blue-600" />
+                                <span className="text-sm font-medium text-blue-700">Screenshot Order</span>
+                              </div>
+                              <p className="text-xs text-blue-600">
+                                Make sure your screenshots are in the correct conversation order. Use the arrow buttons to reorder.
+                              </p>
+                            </div>
+                          )}
+                          
+                          <div className="space-y-3 mb-4">
                             {imagePreviews.map((preview, index) => (
-                              <div key={index} className="relative">
-                                <img 
-                                  src={preview} 
-                                  alt={`Screenshot ${index + 1}`} 
-                                  className="w-full h-32 object-cover rounded border"
-                                />
-                                <Button
-                                  onClick={() => handleRemoveImage(index)}
-                                  variant="destructive"
-                                  size="sm"
-                                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                                >
-                                  ×
-                                </Button>
+                              <div key={index} className="relative bg-white rounded-lg border p-3">
+                                <div className="flex items-center gap-3">
+                                  {/* Order number */}
+                                  <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <span className="text-sm font-medium text-purple-600">{index + 1}</span>
+                                  </div>
+                                  
+                                  {/* Image preview */}
+                                  <img 
+                                    src={preview} 
+                                    alt={`Screenshot ${index + 1}`} 
+                                    className="w-20 h-16 object-cover rounded border flex-shrink-0"
+                                  />
+                                  
+                                  {/* Controls */}
+                                  <div className="flex items-center gap-2 ml-auto">
+                                    {selectedImages.length > 1 && (
+                                      <>
+                                        <Button
+                                          onClick={() => moveScreenshotUp(index)}
+                                          variant="outline"
+                                          size="sm"
+                                          disabled={index === 0}
+                                          className="h-8 w-8 p-0"
+                                          title="Move up"
+                                        >
+                                          <ChevronUp className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          onClick={() => moveScreenshotDown(index)}
+                                          variant="outline"
+                                          size="sm"
+                                          disabled={index === selectedImages.length - 1}
+                                          className="h-8 w-8 p-0"
+                                          title="Move down"
+                                        >
+                                          <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                      </>
+                                    )}
+                                    <Button
+                                      onClick={() => handleRemoveImage(index)}
+                                      variant="destructive"
+                                      size="sm"
+                                      className="h-8 w-8 p-0"
+                                      title="Remove"
+                                    >
+                                      ×
+                                    </Button>
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>
