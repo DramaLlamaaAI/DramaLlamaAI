@@ -98,6 +98,24 @@ function filterInvalidRedFlags(redFlags: any[], conversation: string): any[] {
 }
 
 /**
+ * Validates that a quote actually exists in the conversation
+ */
+function validateQuoteInConversation(quote: string, conversation: string): boolean {
+  if (!quote || !conversation) return false;
+  
+  // Clean the quote and conversation for comparison
+  const cleanQuote = quote.trim().toLowerCase();
+  const cleanConversation = conversation.toLowerCase();
+  
+  // Check if the quote (or a significant portion of it) exists in the conversation
+  return cleanConversation.includes(cleanQuote) || 
+         // Also check for partial matches (in case of slight variations)
+         cleanQuote.split(' ').length > 3 && 
+         cleanQuote.split(' ').slice(0, 5).join(' ').length > 10 &&
+         cleanConversation.includes(cleanQuote.split(' ').slice(0, 5).join(' '));
+}
+
+/**
  * Enhances red flags with quotes from the conversation
  */
 export function enhanceRedFlags(analysis: any, tier: string): any {
@@ -111,8 +129,13 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
     return analysis;
   }
   
-  // Get the key quotes from the conversation
-  const keyQuotes = analysis.keyQuotes || [];
+  // Get the key quotes from the conversation and validate them
+  const keyQuotes = (analysis.keyQuotes || []).filter((quote: any) => {
+    if (!quote.quote || !analysis.conversation) return false;
+    return validateQuoteInConversation(quote.quote, analysis.conversation);
+  });
+  
+  console.log(`Quote validation: ${analysis.keyQuotes?.length || 0} original quotes, ${keyQuotes.length} validated quotes`);
   
   // Create deep copy of the analysis to avoid mutations
   const enhancedAnalysis = JSON.parse(JSON.stringify(analysis));
@@ -174,40 +197,54 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
       return analysis.includes(flagType);
     });
     
-    // For Personal tier, add basic quote information
+    // For Personal tier, add basic quote information - but only if quotes are validated
     if (tier === 'personal' && relevantQuotes.length > 0) {
       const quote = relevantQuotes[0];
-      flag.quote = quote.quote;  // Changed from exampleQuote to quote for consistency with the display component
-      flag.participant = quote.speaker;
-      
-      // Also ensure there are examples for display in the UI
-      flag.examples = [{ 
-        text: quote.quote,
-        from: quote.speaker
-      }];
+      // Double-check quote validation before assigning
+      if (validateQuoteInConversation(quote.quote, analysis.conversation)) {
+        flag.quote = quote.quote;
+        flag.participant = quote.speaker;
+        
+        // Also ensure there are examples for display in the UI
+        flag.examples = [{ 
+          text: quote.quote,
+          from: quote.speaker
+        }];
+      } else {
+        console.log(`Skipping invalid quote for flag ${flag.type}: "${quote.quote}"`);
+      }
     }
     
-    // For Pro tier, add detailed information with examples and recommendations
+    // For Pro tier, add detailed information with examples and recommendations - but only if quotes are validated
     if ((tier === 'pro' || tier === 'instant') && relevantQuotes.length > 0) {
-      // Add all examples
-      flag.examples = relevantQuotes.map((quote: any) => ({
-        text: quote.quote,
-        from: quote.speaker
-      }));
+      // Filter quotes once more to ensure validity
+      const validQuotes = relevantQuotes.filter((quote: any) => 
+        validateQuoteInConversation(quote.quote, analysis.conversation)
+      );
       
-      // Add primary example
-      const primaryQuote = relevantQuotes[0];
-      flag.quote = primaryQuote.quote;
-      flag.speaker = primaryQuote.speaker;
-      
-      // Create impact analysis
-      flag.impact = `When ${primaryQuote.speaker} says "${primaryQuote.quote}", it creates tension and can damage trust in the relationship.`;
-      
-      // Create recommendation
-      flag.recommendedAction = `Consider discussing how statements like "${primaryQuote.quote}" affect you emotionally, using "I" statements to express your feelings.`;
-      
-      // Add behavioral pattern analysis
-      flag.behavioralPattern = `This type of communication may indicate an underlying pattern of ${flag.type.toLowerCase()} behavior that could escalate if not addressed.`;
+      if (validQuotes.length > 0) {
+        // Add all valid examples
+        flag.examples = validQuotes.map((quote: any) => ({
+          text: quote.quote,
+          from: quote.speaker
+        }));
+        
+        // Add primary example
+        const primaryQuote = validQuotes[0];
+        flag.quote = primaryQuote.quote;
+        flag.speaker = primaryQuote.speaker;
+        
+        // Create impact analysis only with validated quotes
+        flag.impact = `When ${primaryQuote.speaker} says "${primaryQuote.quote}", it creates tension and can damage trust in the relationship.`;
+        
+        // Create recommendation with validated quotes
+        flag.recommendedAction = `Consider discussing how statements like "${primaryQuote.quote}" affect you emotionally, using "I" statements to express your feelings.`;
+        
+        // Add behavioral pattern analysis
+        flag.behavioralPattern = `This type of communication may indicate an underlying pattern of ${flag.type.toLowerCase()} behavior that could escalate if not addressed.`;
+      } else {
+        console.log(`No valid quotes found for flag ${flag.type}, skipping quote enhancement`);
+      }
     }
     
     return flag;
