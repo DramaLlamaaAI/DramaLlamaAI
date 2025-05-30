@@ -24,6 +24,7 @@ import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import LockedPreviewSections from "@/components/locked-preview-sections-compact";
 import { SafetyReminderModal } from "@/components/safety-reminder-modal";
+import { RedFlagLibrary } from "@/components/red-flag-library";
 
 export default function ChatAnalysisFixed() {
   const [tabValue, setTabValue] = useState("upload");
@@ -1434,43 +1435,35 @@ export default function ChatAnalysisFixed() {
                     )}
                   </div>
                   
-                  {/* Support Resources - Collapsible and closer to results */}
+                  {/* Support Resources - Collapsible */}
                   <Collapsible className="mt-6">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors">
+                      <h3 className="font-semibold text-blue-800 flex items-center">
+                        <AlertCircle className="h-5 w-5 mr-2" />
+                        Support Resources
+                      </h3>
+                      <Info className="h-4 w-4 text-blue-600" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      <SupportHelpLines 
+                        analysisResult={result} 
+                        showRecommended={true}
+                        title=""
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Red Flag Library - Separate Educational Section */}
+                  <Collapsible className="mt-4">
                     <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-colors">
                       <h3 className="font-semibold text-red-800 flex items-center">
                         <AlertCircle className="h-5 w-5 mr-2" />
-                        Support Resources & Red Flag Library
+                        Red Flag Library
                       </h3>
                       <Info className="h-4 w-4 text-red-600" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-2">
-                      <div className="space-y-4">
-                        {/* Red Flag Library */}
-                        <div className="bg-red-25 p-4 rounded-lg border border-red-100">
-                          <h4 className="font-semibold text-red-800 mb-3">🚩 Red Flag Library</h4>
-                          {result?.redFlags && result.redFlags.length > 0 ? (
-                            <div className="space-y-2">
-                              {result.redFlags.map((flag, index) => (
-                                <div key={index} className="text-sm">
-                                  <span className="font-medium text-red-700">{flag.type}</span>
-                                  {flag.description && (
-                                    <p className="text-red-600 mt-1">{flag.description}</p>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-red-600">No specific red flags detected in this conversation.</p>
-                          )}
-                        </div>
-                        
-                        {/* Support Resources */}
-                        <SupportHelpLines 
-                          analysisResult={result} 
-                          showRecommended={true}
-                          title=""
-                        />
-                      </div>
+                      <RedFlagLibrary />
                     </CollapsibleContent>
                   </Collapsible>
 
