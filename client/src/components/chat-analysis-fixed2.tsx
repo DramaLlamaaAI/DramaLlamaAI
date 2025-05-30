@@ -942,7 +942,7 @@ export default function ChatAnalysisFixed() {
                         )}
                         
                         {/* Personal tier and above show detailed red flags */}
-                        {(tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') && (
+                        {(tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') && result.redFlags && result.redFlags.length > 0 && (
                           <ul className="list-disc pl-5 space-y-4">
                             {result.redFlags.map((flag, i) => (
                               <li key={i}>
@@ -998,6 +998,38 @@ export default function ChatAnalysisFixed() {
                       </div>
                     )}
                     
+                    {/* Red Flag Analysis for Personal tier and above */}
+                    {(tier === 'personal' || tier === 'pro' || tier === 'instant' || tier === 'beta') && result.redFlags && result.redFlags.length > 0 && (
+                      <div className="mb-6">
+                        <div className="flex items-center mb-3">
+                          <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+                          <h3 className="text-lg font-semibold text-red-600">Red Flag Analysis</h3>
+                        </div>
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                          <div className="space-y-4">
+                            {result.redFlags.map((flag, i) => (
+                              <div key={i} className="bg-white rounded-md p-3 border border-red-100">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="font-medium text-red-700">{flag.type}</h4>
+                                  {flag.participant && (
+                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                                      {flag.participant}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-gray-700 mb-2">{flag.description}</p>
+                                {flag.quote && (
+                                  <div className="mt-2 pl-3 border-l-3 border-red-300 bg-red-25">
+                                    <p className="text-sm italic text-gray-600">"{flag.quote}"</p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Personal tier and above content */}
                     {(tier === 'personal' || tier === 'pro' || tier === 'instant') && (
                       <>
