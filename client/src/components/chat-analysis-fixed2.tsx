@@ -401,42 +401,28 @@ export default function ChatAnalysisFixed() {
       setErrorMessage(null);
       setOcrProgress({ current: 0, total: selectedImages.length });
       
-      // Compress and process all images in parallel for speed
+      // Process all images in parallel for faster results
       const extractedTexts: string[] = [];
       
-      console.log("Compressing images for faster processing...");
+      console.log("Converting images to base64...");
       
-      // Compress all images in parallel
-      const compressedImages = await Promise.all(
-        selectedImages.map(async (image, i) => {
-          try {
-            console.log(`Starting compression for image ${i + 1}`);
-            const compressed = await compressImage(image);
-            console.log(`Image ${i + 1} compressed successfully`);
-            return { index: i, file: compressed };
-          } catch (compressionError) {
-            console.error(`Compression failed for image ${i + 1}:`, compressionError);
-            throw new Error(`Failed to compress image ${i + 1}: ${compressionError.message}`);
-          }
-        })
-      );
-
-      // Convert compressed images to base64 in parallel
+      // Convert all images to base64 in parallel
       const processedImages = await Promise.all(
-        compressedImages.map(async ({index, file}) => {
+        selectedImages.map(async (image, i) => {
           return new Promise<{index: number, base64: string}>((resolve) => {
             const reader = new FileReader();
             reader.onload = (e) => {
               const base64 = (e.target?.result as string)?.split(',')[1];
-              resolve({ index, base64: base64 || '' });
+              console.log(`Image ${i + 1} converted to base64`);
+              resolve({ index: i, base64: base64 || '' });
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(image);
           });
         })
       );
 
       console.log("Starting parallel text extraction for all images...");
-      setOcrProgress({ current: selectedImages.length, total: selectedImages.length });
+      setOcrProgress({ current: 1, total: selectedImages.length });
 
       // Process all images with OCR in parallel
       const ocrPromises = processedImages.map(async ({index, base64}) => {
