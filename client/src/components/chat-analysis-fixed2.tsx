@@ -9,7 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Info, Brain, Upload, AlertCircle, Users, Edit, Home, Image } from "lucide-react";
+import { Info, Brain, Upload, AlertCircle, Users, Edit, Home, Image, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { analyzeChatConversation, detectParticipants, ChatAnalysisResponse } from "@/lib/openai";
