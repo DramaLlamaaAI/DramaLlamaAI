@@ -48,6 +48,7 @@ export default function ChatAnalysisFixed() {
   const [messageOrientation, setMessageOrientation] = useState<"left" | "right">("right");
   const [showSafetyReminder, setShowSafetyReminder] = useState(false);
   const [zoomedImageIndex, setZoomedImageIndex] = useState<number | null>(null);
+  const [ocrProgress, setOcrProgress] = useState<{current: number, total: number} | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -351,11 +352,13 @@ export default function ChatAnalysisFixed() {
     try {
       console.log("Starting OCR processing for", selectedImages.length, "images");
       setErrorMessage(null);
+      setOcrProgress({ current: 0, total: selectedImages.length });
       
       // Process each image with OCR to extract text
       const extractedTexts: string[] = [];
       
       for (let i = 0; i < selectedImages.length; i++) {
+        setOcrProgress({ current: i + 1, total: selectedImages.length });
         const image = selectedImages[i];
         const reader = new FileReader();
         
@@ -368,19 +371,29 @@ export default function ChatAnalysisFixed() {
         });
         
         const base64 = await base64Promise;
+        console.log(`Image ${i + 1} converted to base64, length:`, base64.length);
         
-        // Extract text using OCR
+        // Extract text using OCR with timeout
         try {
           console.log(`Processing image ${i + 1} with OCR`);
+          
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+          
           const response = await fetch('/api/ocr', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: base64 })
+            body: JSON.stringify({ image: base64 }),
+            signal: controller.signal
           });
+          
+          clearTimeout(timeoutId);
           
           if (!response.ok) {
             console.error(`OCR request failed for image ${i + 1}:`, response.status, response.statusText);
-            throw new Error('OCR processing failed');
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`OCR processing failed: ${response.status}`);
           }
           
           const ocrResult = await response.json();
@@ -388,7 +401,10 @@ export default function ChatAnalysisFixed() {
           extractedTexts.push(ocrResult.text || '');
         } catch (ocrError) {
           console.error('OCR error for image', i, ocrError);
-          throw new Error(`Failed to extract text from screenshot ${i + 1}`);
+          if (ocrError.name === 'AbortError') {
+            throw new Error(`OCR processing timed out for screenshot ${i + 1}`);
+          }
+          throw new Error(`Failed to extract text from screenshot ${i + 1}: ${ocrError.message}`);
         }
       }
       
@@ -413,10 +429,12 @@ export default function ChatAnalysisFixed() {
       };
 
       console.log("Triggering analysis mutation with data:", analysisData);
+      setOcrProgress(null); // Clear OCR progress
       analysisMutation.mutate(analysisData);
       
     } catch (error) {
       console.error('Screenshot analysis error:', error);
+      setOcrProgress(null); // Clear OCR progress on error
       setErrorMessage(error instanceof Error ? error.message : "Failed to analyze screenshots. Please try again.");
     }
   };
@@ -914,13 +932,18 @@ export default function ChatAnalysisFixed() {
                     {selectedImages.length > 0 && screenshotMe && screenshotThem && (
                       <Button 
                         onClick={handleAnalyzeScreenshot}
-                        disabled={!canUseFeature || analysisMutation.isPending}
+                        disabled={!canUseFeature || analysisMutation.isPending || ocrProgress !== null}
                         className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3"
                       >
-                        {analysisMutation.isPending ? (
+                        {ocrProgress ? (
                           <>
                             <Brain className="animate-spin h-4 w-4 mr-2" />
-                            Analyzing Screenshot...
+                            Processing Image {ocrProgress.current} of {ocrProgress.total}...
+                          </>
+                        ) : analysisMutation.isPending ? (
+                          <>
+                            <Brain className="animate-spin h-4 w-4 mr-2" />
+                            Analyzing Conversation...
                           </>
                         ) : (
                           <>
