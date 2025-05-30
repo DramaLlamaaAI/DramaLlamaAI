@@ -509,10 +509,19 @@ export const analysisController = {
       const conversationLines = conversation.split('\n').filter((line: string) => line.trim().length > 0);
       const messageLines = conversationLines.filter((line: string) => line.includes(':') && line.trim().length > 10);
       
-      if (conversationLines.length < 10 || messageLines.length < 5) {
+      if (conversationLines.length < 15 || messageLines.length < 8) {
         return res.status(400).json({ 
           message: 'Conversation data appears incomplete or corrupted. Please verify your chat export and try again.',
           error: 'INVALID_CONVERSATION_DATA'
+        });
+      }
+      
+      // Check for realistic conversation length and complexity
+      const averageMessageLength = messageLines.reduce((sum, line) => sum + line.length, 0) / messageLines.length;
+      if (averageMessageLength < 20 || averageMessageLength > 500) {
+        return res.status(400).json({ 
+          message: 'The conversation data does not appear to be from a genuine chat export. Please upload a real WhatsApp conversation.',
+          error: 'UNREALISTIC_DATA'
         });
       }
       
@@ -569,6 +578,20 @@ export const analysisController = {
         return res.status(400).json({ 
           message: 'The content appears to be artificial or corrupted. Please upload a genuine WhatsApp chat export.',
           error: 'ARTIFICIAL_CONTENT'
+        });
+      }
+      
+      // Final safety check: If this appears to be from a failed extraction, block it entirely
+      const conversationSample = conversation.substring(0, 1000).toLowerCase();
+      const hasRepeatedPatterns = /(.{10,})\1{2,}/.test(conversationSample);
+      const hasMinimalVariation = messageLines.every((line: string, index: number) => 
+        index === 0 || line.length < 30 || messageLines.filter(l => l === line).length > 1
+      );
+      
+      if (hasRepeatedPatterns || (hasMinimalVariation && messageLines.length < 20)) {
+        return res.status(400).json({ 
+          message: 'The conversation data appears to be corrupted or incomplete. Please try exporting your chat again.',
+          error: 'CORRUPTED_EXTRACTION'
         });
       }
       
