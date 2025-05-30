@@ -326,12 +326,20 @@ export default function ChatAnalysisFixed() {
   };
 
   const handleAnalyzeScreenshot = async () => {
+    console.log("Screenshot analysis started", { 
+      imageCount: selectedImages.length, 
+      me: screenshotMe, 
+      them: screenshotThem 
+    });
+    
     if (selectedImages.length === 0 || !screenshotMe || !screenshotThem) {
+      console.log("Validation failed - missing data");
       setErrorMessage("Please upload at least one screenshot and enter participant names.");
       return;
     }
 
     if (!canUseFeature) {
+      console.log("Feature not available", { canUseFeature, limit, usedAnalyses });
       if (limit !== null && usedAnalyses >= limit) {
         setErrorMessage(`You've reached your monthly limit of ${limit} analyses. Please upgrade your plan to continue.`);
       } else {
@@ -341,6 +349,7 @@ export default function ChatAnalysisFixed() {
     }
 
     try {
+      console.log("Starting OCR processing for", selectedImages.length, "images");
       setErrorMessage(null);
       
       // Process each image with OCR to extract text
@@ -362,6 +371,7 @@ export default function ChatAnalysisFixed() {
         
         // Extract text using OCR
         try {
+          console.log(`Processing image ${i + 1} with OCR`);
           const response = await fetch('/api/ocr', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -369,10 +379,12 @@ export default function ChatAnalysisFixed() {
           });
           
           if (!response.ok) {
+            console.error(`OCR request failed for image ${i + 1}:`, response.status, response.statusText);
             throw new Error('OCR processing failed');
           }
           
           const ocrResult = await response.json();
+          console.log(`OCR result for image ${i + 1}:`, ocrResult.text?.length || 0, 'characters extracted');
           extractedTexts.push(ocrResult.text || '');
         } catch (ocrError) {
           console.error('OCR error for image', i, ocrError);
@@ -382,9 +394,13 @@ export default function ChatAnalysisFixed() {
       
       // Combine extracted texts and format as conversation
       const combinedText = extractedTexts.join('\n\n');
+      console.log("Combined OCR text:", combinedText.length, "characters");
+      
       const formattedConversation = formatScreenshotText(combinedText, screenshotMe, screenshotThem, messageOrientation);
+      console.log("Formatted conversation:", formattedConversation.length, "characters");
       
       if (!formattedConversation.trim()) {
+        console.log("No text extracted, showing error");
         throw new Error("No text could be extracted from the screenshots");
       }
       
@@ -396,6 +412,7 @@ export default function ChatAnalysisFixed() {
         conversationType: conversationType
       };
 
+      console.log("Triggering analysis mutation with data:", analysisData);
       analysisMutation.mutate(analysisData);
       
     } catch (error) {
