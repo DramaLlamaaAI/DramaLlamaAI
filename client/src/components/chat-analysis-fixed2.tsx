@@ -1444,11 +1444,33 @@ export default function ChatAnalysisFixed() {
                       <Info className="h-4 w-4 text-red-600" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-2">
-                      <SupportHelpLines 
-                        analysisResult={result} 
-                        showRecommended={true}
-                        title=""
-                      />
+                      <div className="space-y-4">
+                        {/* Red Flag Library */}
+                        <div className="bg-red-25 p-4 rounded-lg border border-red-100">
+                          <h4 className="font-semibold text-red-800 mb-3">🚩 Red Flag Library</h4>
+                          {result?.redFlags && result.redFlags.length > 0 ? (
+                            <div className="space-y-2">
+                              {result.redFlags.map((flag, index) => (
+                                <div key={index} className="text-sm">
+                                  <span className="font-medium text-red-700">{flag.type}</span>
+                                  {flag.description && (
+                                    <p className="text-red-600 mt-1">{flag.description}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-red-600">No specific red flags detected in this conversation.</p>
+                          )}
+                        </div>
+                        
+                        {/* Support Resources */}
+                        <SupportHelpLines 
+                          analysisResult={result} 
+                          showRecommended={true}
+                          title=""
+                        />
+                      </div>
                     </CollapsibleContent>
                   </Collapsible>
 

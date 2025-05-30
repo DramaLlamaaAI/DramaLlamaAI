@@ -20,7 +20,7 @@ export default function LockedPreviewSections({ userTier, onUpgrade }: LockedPre
     if (currentTierIndex < TIER_HIERARCHY.indexOf('personal')) {
       sections.push({
         tier: 'Personal',
-        features: ['Detailed Red Flag Analysis', 'Deep Communication Insights'],
+        features: ['Detailed Red Flag Analysis', 'Manipulation Score Detection', 'Communication Style Analysis'],
         color: 'bg-blue-50 border-blue-200',
         buttonColor: 'bg-blue-500 hover:bg-blue-600'
       });
@@ -30,7 +30,7 @@ export default function LockedPreviewSections({ userTier, onUpgrade }: LockedPre
     if (currentTierIndex < TIER_HIERARCHY.indexOf('pro')) {
       sections.push({
         tier: 'Pro',
-        features: ['Advanced Conflict Dynamics', 'Relationship Trajectory Analysis'],
+        features: ['Power Dynamics Analysis', 'Participant Conflict Scores', 'Communication Pattern Comparison'],
         color: 'bg-purple-50 border-purple-200',
         buttonColor: 'bg-purple-500 hover:bg-purple-600'
       });
@@ -39,8 +39,8 @@ export default function LockedPreviewSections({ userTier, onUpgrade }: LockedPre
     // Instant tier features (for free/personal/pro users)
     if (currentTierIndex < TIER_HIERARCHY.indexOf('instant')) {
       sections.push({
-        tier: 'Instant',
-        features: ['Expert Recommendations & Action Plans'],
+        tier: 'One Time Insight £1.99',
+        features: ['Instant Deep Analysis & Recommendations'],
         color: 'bg-amber-50 border-amber-200',
         buttonColor: 'bg-amber-500 hover:bg-amber-600'
       });
