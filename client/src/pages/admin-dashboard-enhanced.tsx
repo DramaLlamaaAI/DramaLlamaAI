@@ -668,7 +668,7 @@ export default function AdminDashboardEnhanced() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                               <div className="text-center">
                                 <div className="text-3xl font-bold text-blue-600">
-                                  {analyticsData.anonymousStats.totalAnonymousUsers}
+                                  {analyticsData.anonymousStats?.totalAnonymousUsers || 0}
                                 </div>
                                 <div className="text-sm text-muted-foreground">Anonymous Users</div>
                                 <div className="text-xs text-muted-foreground mt-1">
@@ -678,7 +678,7 @@ export default function AdminDashboardEnhanced() {
                               
                               <div className="text-center">
                                 <div className="text-3xl font-bold text-green-600">
-                                  {analyticsData.anonymousStats.totalAnonymousAnalyses}
+                                  {analyticsData.anonymousStats?.totalAnonymousAnalyses || 0}
                                 </div>
                                 <div className="text-sm text-muted-foreground">Anonymous Analyses</div>
                                 <div className="text-xs text-muted-foreground mt-1">
@@ -688,7 +688,7 @@ export default function AdminDashboardEnhanced() {
                               
                               <div className="text-center">
                                 <div className="text-3xl font-bold text-purple-600">
-                                  {analyticsData.anonymousStats.averageAnalysesPerAnonymousUser}
+                                  {analyticsData.anonymousStats?.averageAnalysesPerAnonymousUser || 0}
                                 </div>
                                 <div className="text-sm text-muted-foreground">Average per Anonymous User</div>
                                 <div className="text-xs text-muted-foreground mt-1">
@@ -701,10 +701,10 @@ export default function AdminDashboardEnhanced() {
                               <h4 className="font-semibold text-blue-900 mb-2">Usage Insights</h4>
                               <div className="text-sm text-blue-700 space-y-1">
                                 <p>• <strong>Conversion Rate:</strong> {analyticsData.totalUsers > 0 ? 
-                                  Math.round((analyticsData.totalUsers / (analyticsData.totalUsers + analyticsData.anonymousStats.totalAnonymousUsers)) * 100) 
+                                  Math.round((analyticsData.totalUsers / (analyticsData.totalUsers + (analyticsData.anonymousStats?.totalAnonymousUsers || 0))) * 100) 
                                   : 0}% of users create accounts</p>
-                                <p>• <strong>Free vs Registered:</strong> {analyticsData.anonymousStats.totalAnonymousUsers} anonymous vs {analyticsData.totalUsers} registered users</p>
-                                <p>• <strong>Engagement:</strong> Anonymous users average {analyticsData.anonymousStats.averageAnalysesPerAnonymousUser} analyses each</p>
+                                <p>• <strong>Free vs Registered:</strong> {analyticsData.anonymousStats?.totalAnonymousUsers || 0} anonymous vs {analyticsData.totalUsers} registered users</p>
+                                <p>• <strong>Engagement:</strong> Anonymous users average {analyticsData.anonymousStats?.averageAnalysesPerAnonymousUser || 0} analyses each</p>
                               </div>
                             </div>
                           </CardContent>
