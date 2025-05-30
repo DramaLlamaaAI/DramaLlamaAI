@@ -1,6 +1,7 @@
 import React from 'react';
 import { Lock, TrendingUp, Eye, MessageSquare, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'wouter';
 
 interface LockedPreviewSectionsProps {
   userTier: string;
@@ -82,13 +83,14 @@ export default function LockedPreviewSections({ userTier, onUpgrade }: LockedPre
               ))}
             </ul>
             
-            <Button
-              onClick={onUpgrade}
-              className={`w-full text-white ${section.buttonColor}`}
-              size="sm"
-            >
-              Upgrade to {section.tier}
-            </Button>
+            <Link href="/subscription">
+              <Button
+                className={`w-full text-white ${section.buttonColor}`}
+                size="sm"
+              >
+                Upgrade to {section.tier}
+              </Button>
+            </Link>
           </div>
         ))}
       </div>
