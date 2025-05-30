@@ -27,7 +27,7 @@ import { SafetyReminderModal } from "@/components/safety-reminder-modal";
 import { RedFlagLibrary } from "@/components/red-flag-library";
 
 export default function ChatAnalysisFixed() {
-  const [tabValue, setTabValue] = useState("upload");
+  const [tabValue, setTabValue] = useState("screenshot");
   const [conversationType, setConversationType] = useState<"two_person" | "group_chat">("two_person");
   const [conversation, setConversation] = useState("");
   const [me, setMe] = useState("");
@@ -513,18 +513,18 @@ export default function ChatAnalysisFixed() {
                 }}
                 className="mt-6"
               >
-                <TabsList className="grid grid-cols-3 bg-pink-50 border-pink-200">
-                  <TabsTrigger value="paste" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Paste Text
+                <TabsList className="grid grid-cols-3 bg-purple-50 border-purple-200">
+                  <TabsTrigger value="screenshot" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+                    <Image className="h-4 w-4 mr-2" />
+                    Screenshot Analysis
                   </TabsTrigger>
                   <TabsTrigger value="upload" className="data-[state=active]:bg-teal-500 data-[state=active]:text-white">
                     <Upload className="h-4 w-4 mr-2" />
                     Upload File
                   </TabsTrigger>
-                  <TabsTrigger value="screenshot" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
-                    <Image className="h-4 w-4 mr-2" />
-                    Upload Screenshot
+                  <TabsTrigger value="paste" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Paste Text
                   </TabsTrigger>
                 </TabsList>
                 
