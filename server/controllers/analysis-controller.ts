@@ -506,13 +506,28 @@ export const analysisController = {
       }
       
       // Validate conversation data integrity to prevent analysis of corrupted extractions
-      const conversationLines = conversation.split('\n').filter(line => line.trim().length > 0);
-      const messageLines = conversationLines.filter(line => line.includes(':') && line.trim().length > 10);
+      const conversationLines = conversation.split('\n').filter((line: string) => line.trim().length > 0);
+      const messageLines = conversationLines.filter((line: string) => line.includes(':') && line.trim().length > 10);
       
-      if (conversationLines.length < 3 || messageLines.length < 2) {
+      if (conversationLines.length < 10 || messageLines.length < 5) {
         return res.status(400).json({ 
           message: 'Conversation data appears incomplete or corrupted. Please verify your chat export and try again.',
           error: 'INVALID_CONVERSATION_DATA'
+        });
+      }
+      
+      // Check for actual participant names vs generic placeholders
+      const hasGenericNames = conversation.includes('WhatsAppUser') || 
+                              conversation.includes('Dad') ||
+                              conversation.includes('User1') ||
+                              conversation.includes('User2') ||
+                              conversation.includes('Person A') ||
+                              conversation.includes('Person B');
+      
+      if (hasGenericNames && messageLines.length < 20) {
+        return res.status(400).json({ 
+          message: 'The conversation appears to contain placeholder or test data. Please upload a genuine WhatsApp chat export.',
+          error: 'PLACEHOLDER_DATA'
         });
       }
       
@@ -521,6 +536,39 @@ export const analysisController = {
         return res.status(400).json({ 
           message: 'Chat extraction failed. Please export your conversation again and ensure the file is not corrupted.',
           error: 'EXTRACTION_FAILED'
+        });
+      }
+      
+      // Strict validation to prevent analysis of questionable extractions
+      const hasValidWhatsAppFormat = messageLines.some((line: string) => {
+        // Check for timestamp patterns typical in WhatsApp exports
+        return /\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line) || 
+               /\d{1,2}:\d{2}/.test(line) ||
+               /\[\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line);
+      });
+      
+      if (!hasValidWhatsAppFormat) {
+        return res.status(400).json({ 
+          message: 'The uploaded content does not appear to be a valid WhatsApp chat export. Please ensure you are uploading the correct file format.',
+          error: 'INVALID_FORMAT'
+        });
+      }
+      
+      // Check for signs of artificial or corrupted content
+      const suspiciousIndicators = [
+        'artificially generated', 'synthetic data', 'mock conversation',
+        'placeholder text', 'sample chat', 'test conversation',
+        'corrupted file', 'extraction error', 'binary content'
+      ];
+      
+      const hasArtificialContent = suspiciousIndicators.some(indicator => 
+        conversation.toLowerCase().includes(indicator)
+      );
+      
+      if (hasArtificialContent) {
+        return res.status(400).json({ 
+          message: 'The content appears to be artificial or corrupted. Please upload a genuine WhatsApp chat export.',
+          error: 'ARTIFICIAL_CONTENT'
         });
       }
       

@@ -273,9 +273,36 @@ app.use(session({
           line.includes(':') && line.trim().length > 10
         );
         
-        if (messageLines.length < 3) {
+        if (messageLines.length < 5) {
           return res.status(400).json({ 
             error: 'The extracted file does not contain enough conversation messages. Please verify this is a valid WhatsApp chat export.' 
+          });
+        }
+        
+        // Validate that the extracted content has proper WhatsApp message format
+        const hasValidTimestamps = messageLines.some(line => 
+          /\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line) || /\d{1,2}:\d{2}/.test(line)
+        );
+        
+        if (!hasValidTimestamps) {
+          return res.status(400).json({ 
+            error: 'The extracted content does not appear to be a valid WhatsApp chat export. Please ensure you are uploading the correct file format.' 
+          });
+        }
+        
+        // Check for suspicious extraction artifacts
+        const suspiciousPatterns = [
+          'corrupted', 'failed to read', 'error reading', 'binary data',
+          'null', 'undefined', 'extraction failed', 'parse error'
+        ];
+        
+        const hasSuspiciousContent = suspiciousPatterns.some(pattern => 
+          textContent.toLowerCase().includes(pattern)
+        );
+        
+        if (hasSuspiciousContent) {
+          return res.status(400).json({ 
+            error: 'ZIP extraction failed or produced corrupted data. Please try exporting your chat again and ensure the file is not damaged.' 
           });
         }
         
