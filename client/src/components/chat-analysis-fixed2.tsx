@@ -52,6 +52,53 @@ export default function ChatAnalysisFixed() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  // Compress image to improve OCR processing speed
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Resize for optimal OCR processing
+        const maxWidth = 1200;
+        const maxHeight = 1600;
+        
+        let { width, height } = img;
+        
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        
+        if (height > maxHeight) {
+          width = (width * maxHeight) / height;
+          height = maxHeight;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw compressed image
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve(compressedFile);
+          } else {
+            resolve(file);
+          }
+        }, 'image/jpeg', 0.8);
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -354,31 +401,44 @@ export default function ChatAnalysisFixed() {
       setErrorMessage(null);
       setOcrProgress({ current: 0, total: selectedImages.length });
       
-      // Process each image with OCR to extract text
+      // Compress and process all images in parallel for speed
       const extractedTexts: string[] = [];
       
-      for (let i = 0; i < selectedImages.length; i++) {
-        setOcrProgress({ current: i + 1, total: selectedImages.length });
-        const image = selectedImages[i];
-        const reader = new FileReader();
-        
-        const base64Promise = new Promise<string>((resolve) => {
-          reader.onload = (e) => {
-            const base64 = (e.target?.result as string)?.split(',')[1];
-            resolve(base64 || '');
-          };
-          reader.readAsDataURL(image);
-        });
-        
-        const base64 = await base64Promise;
-        console.log(`Image ${i + 1} converted to base64, length:`, base64.length);
-        
-        // Extract text using OCR with timeout
+      console.log("Compressing images for faster processing...");
+      
+      // Compress all images in parallel
+      const compressedImages = await Promise.all(
+        selectedImages.map(async (image, i) => {
+          const compressed = await compressImage(image);
+          console.log(`Image ${i + 1} compressed`);
+          return { index: i, file: compressed };
+        })
+      );
+
+      // Convert compressed images to base64 in parallel
+      const processedImages = await Promise.all(
+        compressedImages.map(async ({index, file}) => {
+          return new Promise<{index: number, base64: string}>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const base64 = (e.target?.result as string)?.split(',')[1];
+              resolve({ index, base64: base64 || '' });
+            };
+            reader.readAsDataURL(file);
+          });
+        })
+      );
+
+      console.log("Starting parallel text extraction for all images...");
+      setOcrProgress({ current: selectedImages.length, total: selectedImages.length });
+
+      // Process all images with OCR in parallel
+      const ocrPromises = processedImages.map(async ({index, base64}) => {
         try {
-          console.log(`Processing image ${i + 1} with OCR`);
+          console.log(`Extracting text from image ${index + 1}`);
           
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+          const timeoutId = setTimeout(() => controller.abort(), 90000); // 1.5 minute timeout
           
           const response = await fetch('/api/ocr', {
             method: 'POST',
@@ -390,23 +450,30 @@ export default function ChatAnalysisFixed() {
           clearTimeout(timeoutId);
           
           if (!response.ok) {
-            console.error(`OCR request failed for image ${i + 1}:`, response.status, response.statusText);
+            console.error(`Text extraction failed for image ${index + 1}:`, response.status);
             const errorText = await response.text();
             console.error('Error response:', errorText);
-            throw new Error(`OCR processing failed: ${response.status}`);
+            throw new Error(`Text extraction failed: ${response.status}`);
           }
           
           const ocrResult = await response.json();
-          console.log(`OCR result for image ${i + 1}:`, ocrResult.text?.length || 0, 'characters extracted');
-          extractedTexts.push(ocrResult.text || '');
-        } catch (ocrError) {
-          console.error('OCR error for image', i, ocrError);
+          console.log(`Text extracted from image ${index + 1}:`, ocrResult.text?.length || 0, 'characters');
+          return { index, text: ocrResult.text || '' };
+        } catch (ocrError: any) {
+          console.error('Text extraction error for image', index + 1, ocrError);
           if (ocrError.name === 'AbortError') {
-            throw new Error(`OCR processing timed out for screenshot ${i + 1}`);
+            throw new Error(`Text extraction timed out for screenshot ${index + 1}`);
           }
-          throw new Error(`Failed to extract text from screenshot ${i + 1}: ${ocrError.message}`);
+          throw new Error(`Failed to extract text from screenshot ${index + 1}: ${ocrError.message}`);
         }
-      }
+      });
+
+      // Wait for all text extraction to complete
+      const ocrResults = await Promise.all(ocrPromises);
+      
+      // Sort results by original image order
+      ocrResults.sort((a, b) => a.index - b.index);
+      extractedTexts.push(...ocrResults.map(result => result.text));
       
       // Combine extracted texts and format as conversation
       const combinedText = extractedTexts.join('\n\n');
