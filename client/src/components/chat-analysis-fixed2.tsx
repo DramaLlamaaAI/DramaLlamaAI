@@ -917,8 +917,10 @@ export default function ChatAnalysisFixed() {
                         {/* Anonymous users see only count with registration prompt */}
                         {tier === 'anonymous' && (
                           <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <p className="text-blue-800 font-medium mb-2">
-                              Register for a free deeper insight into these warning signs
+                            <p className="text-blue-800 font-medium mb-3">
+                              <Link href="/auth" className="text-blue-600 hover:text-blue-800 underline">
+                                Register for a free deeper insight
+                              </Link> into these warning signs
                             </p>
                             <RegistrationPrompt tier="anonymous" />
                           </div>
