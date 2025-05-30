@@ -11,7 +11,7 @@ import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info } from "lucide-react";
+import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 export default function Home() {
   // For now, redirect PRO features to auth page for anonymous users
@@ -164,20 +164,37 @@ export default function Home() {
             <div className="flex justify-center">
               <div className="bg-gray-50 rounded-lg shadow-lg p-6 w-full max-w-md">
                 <div className="space-y-3">
-                  <RedFlagLibrary 
-                    trigger={
+                  <Dialog>
+                    <DialogTrigger asChild>
                       <Button className="w-full justify-start bg-red-500 hover:bg-red-600 text-white">
                         🚩 Red Flag Library
                       </Button>
-                    }
-                  />
-                  <SupportHelpLines 
-                    trigger={
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center text-red-700">
+                          <AlertTriangle className="h-5 w-5 mr-2" />
+                          Red Flag Library
+                        </DialogTitle>
+                      </DialogHeader>
+                      <RedFlagLibrary />
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog>
+                    <DialogTrigger asChild>
                       <Button className="w-full justify-start bg-teal-500 hover:bg-teal-600 text-white">
                         📞 Support Helplines
                       </Button>
-                    }
-                  />
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center text-teal-700">
+                          📞 Support Helplines
+                        </DialogTitle>
+                      </DialogHeader>
+                      <SupportHelpLines />
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </div>
