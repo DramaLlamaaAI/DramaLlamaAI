@@ -895,20 +895,31 @@ export default function ChatAnalysisFixed() {
                       </div>
                     </div>
                     
-                    {/* Red Flags - Show for free tier via redFlagTypes or detailed for higher tiers */}
-                    {((tier === 'free' && result.redFlagsDetected && result.redFlagTypes && result.redFlagTypes.length > 0) || 
-                      (tier !== 'free' && result.redFlags && result.redFlags.length > 0)) && (
+                    {/* Red Flags - Show count only for anonymous, breakdown for free, detailed for paid tiers */}
+                    {((tier === 'anonymous' && result.redFlagsDetected && result.redFlagTypes && result.redFlagTypes.length > 0) ||
+                      (tier === 'free' && result.redFlagsDetected && result.redFlagTypes && result.redFlagTypes.length > 0) || 
+                      (tier !== 'free' && tier !== 'anonymous' && result.redFlags && result.redFlags.length > 0)) && (
                       <div className="mb-6">
                         <h3 className="font-semibold mb-2">
                           Potential Issues Detected 
                           <span className="ml-2 text-sm bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                            {tier === 'free' ? 
+                            {(tier === 'anonymous' || tier === 'free') ? 
                               `${result.redFlagTypes?.length || 0} ${(result.redFlagTypes?.length || 0) === 1 ? 'red flag' : 'red flags'}` :
                               `${result.redFlags?.length || 0} ${(result.redFlags?.length || 0) === 1 ? 'red flag' : 'red flags'}`
                             }
                           </span>
                         </h3>
                         
+                        {/* Anonymous users see only count with registration prompt */}
+                        {tier === 'anonymous' && (
+                          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <p className="text-blue-800 font-medium mb-2">
+                              Register for a free deeper insight into these warning signs
+                            </p>
+                            <RegistrationPrompt tier="anonymous" />
+                          </div>
+                        )}
+
                         {/* Free tier shows basic red flag types detected */}
                         {tier === 'free' && result.redFlagTypes && (
                           <div className="mb-4">
