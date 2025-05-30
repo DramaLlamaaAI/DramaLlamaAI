@@ -14,6 +14,48 @@ import { adminPromoCodeController } from "./controllers/admin-promo-code-control
 import session from "express-session";
 import memoryStore from "memorystore";
 
+/**
+ * Validates if extracted text appears to be a valid WhatsApp chat export
+ */
+function isValidWhatsAppFormat(text: string): boolean {
+  if (!text || text.trim().length < 20) return false;
+  
+  const lines = text.split('\n').filter(line => line.trim().length > 0);
+  if (lines.length < 3) return false;
+  
+  // Check for WhatsApp timestamp patterns
+  const timestampPatterns = [
+    /^\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s*\d{1,2}:\d{2}:\d{2}\s*(AM|PM)?\]/i,  // [MM/DD/YYYY, HH:MM:SS AM/PM]
+    /^\d{1,2}\/\d{1,2}\/\d{2,4},?\s*\d{1,2}:\d{2}\s*(AM|PM)?/i,             // MM/DD/YYYY, HH:MM AM/PM
+    /^\[\d{1,2}:\d{2}:\d{2}\]/,                                              // [HH:MM:SS]
+    /^\d{1,2}\/\d{1,2}\/\d{2,4}/                                             // MM/DD/YYYY
+  ];
+  
+  // Check for message patterns (name: message)
+  const messagePattern = /:\s*.+/;
+  
+  let validLines = 0;
+  let totalContentLines = 0;
+  
+  for (const line of lines.slice(0, Math.min(20, lines.length))) {
+    totalContentLines++;
+    
+    // Check if line matches WhatsApp format
+    const hasTimestamp = timestampPatterns.some(pattern => pattern.test(line));
+    const hasMessage = messagePattern.test(line);
+    
+    if (hasTimestamp || hasMessage) {
+      validLines++;
+    }
+  }
+  
+  // Require at least 30% of lines to match WhatsApp patterns
+  const validPercentage = validLines / totalContentLines;
+  console.log(`WhatsApp validation: ${validLines}/${totalContentLines} valid lines (${Math.round(validPercentage * 100)}%)`);
+  
+  return validPercentage >= 0.3;
+}
+
 // Middleware to check if the user is authenticated
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   if (req.session && req.session.userId) {
@@ -173,9 +215,10 @@ app.use(session({
         const zipContents = await zip.loadAsync(fileBuffer);
         console.log('Files in ZIP:', Object.keys(zipContents.files).length);
         
-        // Find a .txt file in the ZIP
+        // Find and validate .txt files in the ZIP
         let textContent = '';
         let foundTextFile = false;
+        let extractedFileName = '';
         
         for (const filename of Object.keys(zipContents.files)) {
           const zipFile = zipContents.files[filename];
@@ -187,9 +230,25 @@ app.use(session({
           
           try {
             // Extract the text content
-            textContent = await zipFile.async('text');
+            const extractedText = await zipFile.async('text');
+            
+            // Validate the extracted text content
+            if (!extractedText || extractedText.trim().length === 0) {
+              console.log('Empty or invalid text file:', filename);
+              continue;
+            }
+            
+            // Check if it looks like a WhatsApp chat export
+            const isValidWhatsAppChat = isValidWhatsAppFormat(extractedText);
+            if (!isValidWhatsAppChat) {
+              console.log('Text file does not appear to be a valid WhatsApp chat:', filename);
+              continue;
+            }
+            
+            textContent = extractedText;
             foundTextFile = true;
-            console.log('Found text file in ZIP:', filename, 'with', textContent.length, 'characters');
+            extractedFileName = filename;
+            console.log('Successfully validated text file in ZIP:', filename, 'with', textContent.length, 'characters');
             break;
           } catch (fileErr) {
             console.error('Error extracting file from ZIP:', filename, fileErr);
@@ -197,10 +256,37 @@ app.use(session({
         }
         
         if (!foundTextFile) {
-          return res.status(400).json({ error: 'No chat text file found in the ZIP archive' });
+          return res.status(400).json({ 
+            error: 'No valid WhatsApp chat file found in the ZIP archive. Please ensure the export contains a readable chat text file.' 
+          });
         }
         
-        res.json({ text: textContent });
+        // Final comprehensive validation before sending
+        if (!textContent || textContent.trim().length < 50) {
+          return res.status(400).json({ 
+            error: 'Extracted chat content is too short or invalid. Please check your WhatsApp export file.' 
+          });
+        }
+        
+        // Additional validation: Check for actual conversation content
+        const messageLines = textContent.split('\n').filter(line => 
+          line.includes(':') && line.trim().length > 10
+        );
+        
+        if (messageLines.length < 3) {
+          return res.status(400).json({ 
+            error: 'The extracted file does not contain enough conversation messages. Please verify this is a valid WhatsApp chat export.' 
+          });
+        }
+        
+        console.log(`ZIP extraction successful: ${extractedFileName}, ${textContent.length} chars, ${messageLines.length} message lines`);
+        
+        res.json({ 
+          text: textContent,
+          extractedFrom: extractedFileName,
+          validated: true,
+          messageCount: messageLines.length
+        });
       } catch (zipErr) {
         console.error('Error processing ZIP archive:', zipErr);
         return res.status(400).json({ 
