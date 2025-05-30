@@ -913,6 +913,7 @@ export default function ChatAnalysis() {
                             </Button>
                           </div>
                         </div>
+                      </div>
                     </div>
                   </TabsContent>
 

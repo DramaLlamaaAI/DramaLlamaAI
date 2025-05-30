@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import RegistrationPrompt from "@/components/registration-prompt";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import LockedPreviewSections from "@/components/locked-preview-sections";
 
 export default function ChatAnalysisFixed() {
   const [tabValue, setTabValue] = useState("upload");
@@ -1411,6 +1412,17 @@ export default function ChatAnalysisFixed() {
                     )}
                   </div>
                   
+                  {/* Debug box and locked preview sections */}
+                  <div className="bg-yellow-100 p-4 rounded-lg mb-4 mt-4">
+                    <p className="text-sm">Debug: Current tier = "{tier}"</p>
+                    <p className="text-sm">This debug box should always show when results are displayed</p>
+                  </div>
+                  <LockedPreviewSections 
+                    userTier={tier}
+                    onUpgrade={() => {
+                      window.location.href = '/upgrade';
+                    }}
+                  />
 
                   
                   {/* Anonymous user registration prompt */}
