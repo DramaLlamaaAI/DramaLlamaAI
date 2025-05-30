@@ -895,28 +895,31 @@ export default function ChatAnalysisFixed() {
                       </div>
                     </div>
                     
-                    {/* Red Flags - Limited info for Free tier, more details for higher tiers */}
-                    {result.redFlags && result.redFlags.length > 0 && (
+                    {/* Red Flags - Show for free tier via redFlagTypes or detailed for higher tiers */}
+                    {((tier === 'free' && result.redFlagsDetected && result.redFlagTypes && result.redFlagTypes.length > 0) || 
+                      (tier !== 'free' && result.redFlags && result.redFlags.length > 0)) && (
                       <div className="mb-6">
                         <h3 className="font-semibold mb-2">
                           Potential Issues Detected 
                           <span className="ml-2 text-sm bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                            {result.redFlags.length} {result.redFlags.length === 1 ? 'red flag' : 'red flags'}
+                            {tier === 'free' ? 
+                              `${result.redFlagTypes?.length || 0} ${(result.redFlagTypes?.length || 0) === 1 ? 'red flag' : 'red flags'}` :
+                              `${result.redFlags?.length || 0} ${(result.redFlags?.length || 0) === 1 ? 'red flag' : 'red flags'}`
+                            }
                           </span>
                         </h3>
                         
-                        {/* Free tier shows basic descriptions of red flags detected */}
-                        {tier === 'free' && result.redFlags && (
+                        {/* Free tier shows basic red flag types detected */}
+                        {tier === 'free' && result.redFlagTypes && (
                           <div className="mb-4">
-                            <ul className="list-disc pl-5 space-y-2">
-                              {result.redFlags.map((flag, i) => (
-                                <li key={i}>
-                                  <span className="font-medium">{flag.type}:</span> {flag.description}
-                                </li>
+                            <p className="text-gray-700 mb-2">This conversation contains potential signs of:</p>
+                            <ul className="list-disc pl-5 space-y-1">
+                              {result.redFlagTypes.map((type, i) => (
+                                <li key={i} className="text-gray-800 font-medium">{type}</li>
                               ))}
                             </ul>
                             <p className="mt-4 text-sm text-gray-500">
-                              <span className="font-medium">Upgrade to Personal or Pro</span> for more detailed analysis with specific examples and participant-specific insights.
+                              <span className="font-medium">Upgrade to Personal or Pro</span> for detailed analysis with specific examples and participant insights.
                             </p>
                           </div>
                         )}
