@@ -409,9 +409,15 @@ export default function ChatAnalysisFixed() {
       // Compress all images in parallel
       const compressedImages = await Promise.all(
         selectedImages.map(async (image, i) => {
-          const compressed = await compressImage(image);
-          console.log(`Image ${i + 1} compressed`);
-          return { index: i, file: compressed };
+          try {
+            console.log(`Starting compression for image ${i + 1}`);
+            const compressed = await compressImage(image);
+            console.log(`Image ${i + 1} compressed successfully`);
+            return { index: i, file: compressed };
+          } catch (compressionError) {
+            console.error(`Compression failed for image ${i + 1}:`, compressionError);
+            throw new Error(`Failed to compress image ${i + 1}: ${compressionError.message}`);
+          }
         })
       );
 
@@ -501,6 +507,12 @@ export default function ChatAnalysisFixed() {
       
     } catch (error) {
       console.error('Screenshot analysis error:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        type: typeof error,
+        stringified: JSON.stringify(error)
+      });
       setOcrProgress(null); // Clear OCR progress on error
       setErrorMessage(error instanceof Error ? error.message : "Failed to analyze screenshots. Please try again.");
     }
