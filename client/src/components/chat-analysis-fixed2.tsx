@@ -9,6 +9,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Info, Brain, Upload, AlertCircle, Users, Edit, Home, Image, AlertTriangle, ChevronUp, ChevronDown, Move } from "lucide-react";
 import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -41,6 +47,7 @@ export default function ChatAnalysisFixed() {
   const [screenshotThem, setScreenshotThem] = useState("");
   const [messageOrientation, setMessageOrientation] = useState<"left" | "right">("right");
   const [showSafetyReminder, setShowSafetyReminder] = useState(false);
+  const [zoomedImageIndex, setZoomedImageIndex] = useState<number | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -753,7 +760,9 @@ export default function ChatAnalysisFixed() {
                                   <img 
                                     src={preview} 
                                     alt={`Screenshot ${index + 1}`} 
-                                    className="w-20 h-16 object-cover rounded border flex-shrink-0"
+                                    className="w-20 h-16 object-cover rounded border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() => setZoomedImageIndex(index)}
+                                    title="Click to view full size"
                                   />
                                   
                                   {/* Controls */}
@@ -1658,6 +1667,101 @@ export default function ChatAnalysisFixed() {
         onClose={handleSafetyReminderClose}
         onDontShowAgain={handleSafetyReminderDontShowAgain}
       />
+
+      {/* Screenshot Zoom Modal */}
+      <Dialog open={zoomedImageIndex !== null} onOpenChange={() => setZoomedImageIndex(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Screenshot {zoomedImageIndex !== null ? zoomedImageIndex + 1 : ''} of {selectedImages.length}</span>
+              <div className="flex items-center gap-2">
+                {selectedImages.length > 1 && zoomedImageIndex !== null && (
+                  <>
+                    <Button
+                      onClick={() => {
+                        moveScreenshotUp(zoomedImageIndex);
+                        if (zoomedImageIndex > 0) setZoomedImageIndex(zoomedImageIndex - 1);
+                      }}
+                      variant="outline"
+                      size="sm"
+                      disabled={zoomedImageIndex === 0}
+                      title="Move up in order"
+                    >
+                      <ChevronUp className="h-4 w-4 mr-1" />
+                      Move Up
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        moveScreenshotDown(zoomedImageIndex);
+                        if (zoomedImageIndex < selectedImages.length - 1) setZoomedImageIndex(zoomedImageIndex + 1);
+                      }}
+                      variant="outline"
+                      size="sm"
+                      disabled={zoomedImageIndex === selectedImages.length - 1}
+                      title="Move down in order"
+                    >
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      Move Down
+                    </Button>
+                  </>
+                )}
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4">
+            {zoomedImageIndex !== null && imagePreviews[zoomedImageIndex] && (
+              <>
+                <img
+                  src={imagePreviews[zoomedImageIndex]}
+                  alt={`Screenshot ${zoomedImageIndex + 1}`}
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg border"
+                />
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-medium text-purple-600">{zoomedImageIndex + 1}</span>
+                    </div>
+                    <span>Position in conversation</span>
+                  </div>
+                  {selectedImages.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Move className="h-4 w-4" />
+                      <span>Use buttons above to reorder</span>
+                    </div>
+                  )}
+                </div>
+                {selectedImages.length > 1 && (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 mb-2">
+                      Click the arrow buttons above to move this screenshot up or down in the conversation order.
+                    </p>
+                    <div className="flex items-center gap-2 justify-center">
+                      {zoomedImageIndex > 0 && (
+                        <Button
+                          onClick={() => setZoomedImageIndex(zoomedImageIndex - 1)}
+                          variant="ghost"
+                          size="sm"
+                        >
+                          ← Previous
+                        </Button>
+                      )}
+                      {zoomedImageIndex < selectedImages.length - 1 && (
+                        <Button
+                          onClick={() => setZoomedImageIndex(zoomedImageIndex + 1)}
+                          variant="ghost"
+                          size="sm"
+                        >
+                          Next →
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
