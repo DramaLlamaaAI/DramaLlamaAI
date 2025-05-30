@@ -107,12 +107,19 @@ function validateQuoteInConversation(quote: string, conversation: string): boole
   const cleanQuote = quote.trim().toLowerCase();
   const cleanConversation = conversation.toLowerCase();
   
-  // Check if the quote (or a significant portion of it) exists in the conversation
-  return cleanConversation.includes(cleanQuote) || 
-         // Also check for partial matches (in case of slight variations)
-         cleanQuote.split(' ').length > 3 && 
-         cleanQuote.split(' ').slice(0, 5).join(' ').length > 10 &&
-         cleanConversation.includes(cleanQuote.split(' ').slice(0, 5).join(' '));
+  // For exact match, check if the quote exists in the conversation
+  if (cleanConversation.includes(cleanQuote)) {
+    return true;
+  }
+  
+  // For partial matches, require at least 70% of the quote to be found
+  const quoteWords = cleanQuote.split(' ').filter(word => word.length > 2); // Filter out small words
+  if (quoteWords.length < 3) return false; // Require at least 3 meaningful words
+  
+  const matchingWords = quoteWords.filter(word => cleanConversation.includes(word));
+  const matchPercentage = matchingWords.length / quoteWords.length;
+  
+  return matchPercentage >= 0.7; // Require 70% word match
 }
 
 /**
@@ -145,8 +152,18 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
     enhancedAnalysis.redFlags = filterInvalidRedFlags(enhancedAnalysis.redFlags, analysis.conversation);
   }
   
-  // Process each red flag
+  // Process each red flag and remove any quotes that can't be validated
   enhancedAnalysis.redFlags = enhancedAnalysis.redFlags.map((flag: any) => {
+    // For free tier, completely remove any quote-related fields to prevent display of unvalidated content
+    if (tier === 'free') {
+      delete flag.quote;
+      delete flag.examples;
+      delete flag.exampleQuote;
+      delete flag.speaker;
+      delete flag.impact;
+      delete flag.recommendedAction;
+      delete flag.behavioralPattern;
+    }
     // Fix participant attribution for Beta tiers - always assign to specific participants
     if (tier === 'beta' && flag.participant === 'Both participants') {
       // Get participant names from tone analysis
@@ -197,53 +214,49 @@ export function enhanceRedFlags(analysis: any, tier: string): any {
       return analysis.includes(flagType);
     });
     
-    // For Personal tier, add basic quote information - but only if quotes are validated
-    if (tier === 'personal' && relevantQuotes.length > 0) {
-      const quote = relevantQuotes[0];
-      // Double-check quote validation before assigning
-      if (validateQuoteInConversation(quote.quote, analysis.conversation)) {
-        flag.quote = quote.quote;
-        flag.participant = quote.speaker;
-        
-        // Also ensure there are examples for display in the UI
-        flag.examples = [{ 
-          text: quote.quote,
-          from: quote.speaker
-        }];
-      } else {
-        console.log(`Skipping invalid quote for flag ${flag.type}: "${quote.quote}"`);
-      }
-    }
-    
-    // For Pro tier, add detailed information with examples and recommendations - but only if quotes are validated
-    if ((tier === 'pro' || tier === 'instant') && relevantQuotes.length > 0) {
-      // Filter quotes once more to ensure validity
+    // For Personal tier and above, add quote information only if quotes can be validated
+    if (tier !== 'free' && relevantQuotes.length > 0) {
+      // Filter quotes to ensure they actually exist in the conversation
       const validQuotes = relevantQuotes.filter((quote: any) => 
         validateQuoteInConversation(quote.quote, analysis.conversation)
       );
       
       if (validQuotes.length > 0) {
-        // Add all valid examples
-        flag.examples = validQuotes.map((quote: any) => ({
-          text: quote.quote,
-          from: quote.speaker
-        }));
-        
-        // Add primary example
         const primaryQuote = validQuotes[0];
-        flag.quote = primaryQuote.quote;
-        flag.speaker = primaryQuote.speaker;
         
-        // Create impact analysis only with validated quotes
-        flag.impact = `When ${primaryQuote.speaker} says "${primaryQuote.quote}", it creates tension and can damage trust in the relationship.`;
+        // For Personal tier, add basic validated quote information
+        if (tier === 'personal') {
+          flag.quote = primaryQuote.quote;
+          flag.participant = primaryQuote.speaker;
+          flag.examples = [{ 
+            text: primaryQuote.quote,
+            from: primaryQuote.speaker
+          }];
+        }
         
-        // Create recommendation with validated quotes
-        flag.recommendedAction = `Consider discussing how statements like "${primaryQuote.quote}" affect you emotionally, using "I" statements to express your feelings.`;
-        
-        // Add behavioral pattern analysis
-        flag.behavioralPattern = `This type of communication may indicate an underlying pattern of ${flag.type.toLowerCase()} behavior that could escalate if not addressed.`;
+        // For Pro tier and above, add detailed information with validated quotes
+        if (tier === 'pro' || tier === 'instant' || tier === 'beta') {
+          flag.examples = validQuotes.map((quote: any) => ({
+            text: quote.quote,
+            from: quote.speaker
+          }));
+          
+          flag.quote = primaryQuote.quote;
+          flag.speaker = primaryQuote.speaker;
+          flag.impact = `When ${primaryQuote.speaker} says "${primaryQuote.quote}", it creates tension and can damage trust in the relationship.`;
+          flag.recommendedAction = `Consider discussing how statements like "${primaryQuote.quote}" affect you emotionally, using "I" statements to express your feelings.`;
+          flag.behavioralPattern = `This type of communication may indicate an underlying pattern of ${flag.type.toLowerCase()} behavior that could escalate if not addressed.`;
+        }
       } else {
-        console.log(`No valid quotes found for flag ${flag.type}, skipping quote enhancement`);
+        console.log(`No valid quotes found for flag ${flag.type} - removing quote fields`);
+        // Remove all quote-related fields if no valid quotes exist
+        delete flag.quote;
+        delete flag.examples;
+        delete flag.exampleQuote;
+        delete flag.speaker;
+        delete flag.impact;
+        delete flag.recommendedAction;
+        delete flag.behavioralPattern;
       }
     }
     
