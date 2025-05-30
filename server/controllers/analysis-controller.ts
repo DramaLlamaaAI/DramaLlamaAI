@@ -516,15 +516,15 @@ export const analysisController = {
         });
       }
       
-      // Check for actual participant names vs generic placeholders
-      const hasGenericNames = conversation.includes('WhatsAppUser') || 
-                              conversation.includes('Dad') ||
-                              conversation.includes('User1') ||
-                              conversation.includes('User2') ||
-                              conversation.includes('Person A') ||
-                              conversation.includes('Person B');
+      // Check for obvious placeholder patterns (but allow real names like "Dad")
+      const hasObviousPlaceholders = conversation.includes('User1') ||
+                                    conversation.includes('User2') ||
+                                    conversation.includes('Person A') ||
+                                    conversation.includes('Person B') ||
+                                    conversation.includes('Participant1') ||
+                                    conversation.includes('Participant2');
       
-      if (hasGenericNames && messageLines.length < 20) {
+      if (hasObviousPlaceholders && messageLines.length < 10) {
         return res.status(400).json({ 
           message: 'The conversation appears to contain placeholder or test data. Please upload a genuine WhatsApp chat export.',
           error: 'PLACEHOLDER_DATA'

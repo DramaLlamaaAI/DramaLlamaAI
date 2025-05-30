@@ -269,22 +269,48 @@ app.use(session({
         }
         
         // Additional validation: Check for actual conversation content
-        const messageLines = textContent.split('\n').filter(line => 
-          line.includes(':') && line.trim().length > 10
-        );
+        // Look for various message patterns in WhatsApp exports
+        const messageLines = textContent.split('\n').filter(line => {
+          const trimmed = line.trim();
+          if (trimmed.length < 10) return false;
+          
+          // Check for different WhatsApp message formats:
+          // Format 1: "12/31/23, 10:30 PM - Name: message"
+          // Format 2: "[12/31/23, 10:30:45 PM] Name: message"
+          // Format 3: "10:30 - Name: message"
+          // Format 4: "Name (12/31/23): message"
+          
+          return trimmed.includes(':') && (
+            /\d{1,2}\/\d{1,2}\/\d{2,4}.*-.*:/.test(trimmed) ||
+            /\[\d{1,2}\/\d{1,2}\/\d{2,4}.*\].*:/.test(trimmed) ||
+            /\d{1,2}:\d{2}.*-.*:/.test(trimmed) ||
+            /.*\(\d{1,2}\/\d{1,2}\/\d{2,4}\):/.test(trimmed) ||
+            (trimmed.includes(' - ') && trimmed.includes(':'))
+          );
+        });
         
-        if (messageLines.length < 5) {
+        if (messageLines.length < 3) {
           return res.status(400).json({ 
             error: 'The extracted file does not contain enough conversation messages. Please verify this is a valid WhatsApp chat export.' 
           });
         }
         
         // Validate that the extracted content has proper WhatsApp message format
+        // Support multiple WhatsApp export formats
         const hasValidTimestamps = messageLines.some(line => 
-          /\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line) || /\d{1,2}:\d{2}/.test(line)
+          /\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line) || 
+          /\d{1,2}:\d{2}/.test(line) ||
+          /\[\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line) ||
+          /\d{4}-\d{2}-\d{2}/.test(line) ||
+          /\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}/.test(line)
         );
         
-        if (!hasValidTimestamps) {
+        // Also check for WhatsApp specific patterns
+        const hasWhatsAppPatterns = textContent.includes(' - ') || 
+                                   textContent.includes(': ') ||
+                                   /\d{1,2}\/\d{1,2}\/\d{2,4},? \d{1,2}:\d{2}/.test(textContent);
+        
+        if (!hasValidTimestamps && !hasWhatsAppPatterns && messageLines.length < 10) {
           return res.status(400).json({ 
             error: 'The extracted content does not appear to be a valid WhatsApp chat export. Please ensure you are uploading the correct file format.' 
           });
@@ -307,6 +333,7 @@ app.use(session({
         }
         
         console.log(`ZIP extraction successful: ${extractedFileName}, ${textContent.length} chars, ${messageLines.length} message lines`);
+        console.log(`First few lines of extracted content:`, textContent.split('\n').slice(0, 3).join(' | '));
         
         res.json({ 
           text: textContent,
