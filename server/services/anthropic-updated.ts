@@ -1072,6 +1072,10 @@ async function openAiFallbackForChatAnalysis(conversation: string, me: string, t
       // Parse the response as JSON
       const result = JSON.parse(content);
       
+      // Apply quote validation to ensure accuracy
+      result = validateQuotesAgainstConversation(result, conversation);
+      console.log('Applied quote validation to OpenAI fallback analysis');
+      
       // Add a notification that this was processed by the fallback system
       Object.defineProperty(result, '_processedByFallback', {
         value: true,
