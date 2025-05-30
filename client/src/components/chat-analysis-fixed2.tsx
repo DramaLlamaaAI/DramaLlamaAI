@@ -302,37 +302,85 @@ export default function ChatAnalysisFixed() {
     }
 
     try {
-      // Convert all images to base64
-      const base64Images: string[] = [];
-      let processedCount = 0;
+      setErrorMessage(null);
       
-      selectedImages.forEach((image, index) => {
+      // Process each image with OCR to extract text
+      const extractedTexts: string[] = [];
+      
+      for (let i = 0; i < selectedImages.length; i++) {
+        const image = selectedImages[i];
         const reader = new FileReader();
-        reader.onload = async (e) => {
-          base64Images[index] = e.target?.result as string;
-          processedCount++;
+        
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onload = (e) => {
+            const base64 = (e.target?.result as string)?.split(',')[1];
+            resolve(base64 || '');
+          };
+          reader.readAsDataURL(image);
+        });
+        
+        const base64 = await base64Promise;
+        
+        // Extract text using OCR
+        try {
+          const response = await fetch('/api/ocr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64 })
+          });
           
-          if (processedCount === selectedImages.length) {
-            // All images processed, send for analysis
-            const analysisData = {
-              conversation: "", // Will be filled by OCR
-              me: screenshotMe,
-              them: screenshotThem,
-              conversationType: conversationType,
-              isScreenshot: true,
-              screenshotData: base64Images, // Array of images
-              messageOrientation: messageOrientation
-            };
-
-            analysisMutation.mutate(analysisData);
+          if (!response.ok) {
+            throw new Error('OCR processing failed');
           }
-        };
-        reader.readAsDataURL(image);
-      });
+          
+          const ocrResult = await response.json();
+          extractedTexts.push(ocrResult.text || '');
+        } catch (ocrError) {
+          console.error('OCR error for image', i, ocrError);
+          throw new Error(`Failed to extract text from screenshot ${i + 1}`);
+        }
+      }
+      
+      // Combine extracted texts and format as conversation
+      const combinedText = extractedTexts.join('\n\n');
+      const formattedConversation = formatScreenshotText(combinedText, screenshotMe, screenshotThem, messageOrientation);
+      
+      if (!formattedConversation.trim()) {
+        throw new Error("No text could be extracted from the screenshots");
+      }
+      
+      // Now analyze the extracted conversation text
+      const analysisData = {
+        conversation: formattedConversation,
+        me: screenshotMe,
+        them: screenshotThem,
+        conversationType: conversationType
+      };
+
+      analysisMutation.mutate(analysisData);
+      
     } catch (error) {
       console.error('Screenshot analysis error:', error);
-      setErrorMessage("Failed to analyze screenshots. Please try again.");
+      setErrorMessage(error instanceof Error ? error.message : "Failed to analyze screenshots. Please try again.");
     }
+  };
+  
+  const formatScreenshotText = (extractedText: string, me: string, them: string, orientation: "left" | "right"): string => {
+    const lines = extractedText.split('\n').filter(line => line.trim());
+    let formattedLines: string[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return;
+      
+      // Alternate messages based on orientation
+      const isUserMessage = orientation === "right" ? (index % 2 === 1) : (index % 2 === 0);
+      const speaker = isUserMessage ? me : them;
+      
+      formattedLines.push(`${speaker}: ${trimmedLine}`);
+    });
+    
+    return formattedLines.join('\n');
   };
   
   // Participant Name Form component for reuse
