@@ -166,6 +166,21 @@ export default function Home() {
                 <div className="space-y-3">
                   <Dialog>
                     <DialogTrigger asChild>
+                      <Button className="w-full justify-start bg-teal-500 hover:bg-teal-600 text-white">
+                        📞 Support Helplines
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center text-teal-700">
+                          📞 Support Helplines
+                        </DialogTitle>
+                      </DialogHeader>
+                      <SupportHelpLines />
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog>
+                    <DialogTrigger asChild>
                       <Button className="w-full justify-start bg-red-500 hover:bg-red-600 text-white">
                         🚩 Red Flag Library
                       </Button>
@@ -178,21 +193,6 @@ export default function Home() {
                         </DialogTitle>
                       </DialogHeader>
                       <RedFlagLibrary />
-                    </DialogContent>
-                  </Dialog>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="w-full justify-start bg-teal-500 hover:bg-teal-600 text-white">
-                        📞 Support Helplines
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center text-teal-700">
-                          📞 Support Helplines
-                        </DialogTitle>
-                      </DialogHeader>
-                      <SupportHelpLines />
                     </DialogContent>
                   </Dialog>
                 </div>
