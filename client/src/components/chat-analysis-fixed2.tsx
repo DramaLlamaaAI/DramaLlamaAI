@@ -18,6 +18,7 @@ import RegistrationPrompt from "@/components/registration-prompt";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import LockedPreviewSections from "@/components/locked-preview-sections";
+import { SafetyReminderModal } from "@/components/safety-reminder-modal";
 
 export default function ChatAnalysisFixed() {
   const [tabValue, setTabValue] = useState("upload");
@@ -33,6 +34,7 @@ export default function ChatAnalysisFixed() {
   const [screenshotMe, setScreenshotMe] = useState("");
   const [screenshotThem, setScreenshotThem] = useState("");
   const [messageOrientation, setMessageOrientation] = useState<"left" | "right">("right");
+  const [showSafetyReminder, setShowSafetyReminder] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -213,6 +215,15 @@ export default function ChatAnalysisFixed() {
     setScreenshotThem(tempMe);
   };
 
+  const handleSafetyReminderClose = () => {
+    setShowSafetyReminder(false);
+  };
+
+  const handleSafetyReminderDontShowAgain = () => {
+    localStorage.setItem('drama-llama-hide-safety-reminder', 'true');
+    setShowSafetyReminder(false);
+  };
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length > 0) {
@@ -231,6 +242,12 @@ export default function ChatAnalysisFixed() {
           
           if (loadedCount === files.length) {
             setImagePreviews([...imagePreviews, ...newPreviews]);
+            
+            // Show safety reminder if user hasn't opted out
+            const hasOptedOut = localStorage.getItem('drama-llama-hide-safety-reminder') === 'true';
+            if (!hasOptedOut) {
+              setShowSafetyReminder(true);
+            }
           }
         };
         reader.readAsDataURL(file);
@@ -1458,6 +1475,13 @@ export default function ChatAnalysisFixed() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Safety Reminder Modal */}
+      <SafetyReminderModal
+        isOpen={showSafetyReminder}
+        onClose={handleSafetyReminderClose}
+        onDontShowAgain={handleSafetyReminderDontShowAgain}
+      />
     </div>
   );
 }
