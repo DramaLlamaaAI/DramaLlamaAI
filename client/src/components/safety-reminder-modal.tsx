@@ -27,10 +27,7 @@ export function SafetyReminderModal({ isOpen, onClose, onDontShowAgain }: Safety
     onClose();
   };
 
-  const handleLearnMore = () => {
-    // Open external resource in new tab
-    window.open('https://www.thehotline.org/help/help-for-friends-and-family/', '_blank');
-  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -68,15 +65,7 @@ export function SafetyReminderModal({ isOpen, onClose, onDontShowAgain }: Safety
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-2">
-          <Button
-            variant="outline"
-            onClick={handleLearnMore}
-            className="w-full sm:w-auto"
-          >
-            <Shield className="h-4 w-4 mr-2" />
-            Learn how to stay safe
-          </Button>
+        <DialogFooter className="flex justify-center">
           <Button onClick={handleClose} className="w-full sm:w-auto">
             <X className="h-4 w-4 mr-2" />
             Got it
