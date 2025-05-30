@@ -1412,11 +1412,7 @@ export default function ChatAnalysisFixed() {
                     )}
                   </div>
                   
-                  {/* Debug box and locked preview sections */}
-                  <div className="bg-yellow-100 p-4 rounded-lg mb-4 mt-4">
-                    <p className="text-sm">Debug: Current tier = "{tier}"</p>
-                    <p className="text-sm">This debug box should always show when results are displayed</p>
-                  </div>
+                  {/* Show locked preview sections for features not available in current tier */}
                   <LockedPreviewSections 
                     userTier={tier}
                     onUpgrade={() => {

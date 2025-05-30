@@ -19,75 +19,63 @@ const TIER_HIERARCHY = ['free', 'personal', 'pro', 'instant'];
 
 const LOCKED_SECTIONS: LockedSection[] = [
   {
-    title: 'Advanced Evasion Detection',
-    description: 'Identify when someone is avoiding direct answers or deflecting topics',
+    title: 'Detailed Red Flag Analysis',
+    description: 'Identify specific warning signs and unhealthy communication patterns',
     icon: Eye,
     availableFrom: 'personal',
     features: [
-      'Topic avoidance patterns',
-      'Deflection techniques used',
-      'Response completeness analysis',
-      'Question-answer mapping'
+      'Manipulation tactics detected',
+      'Emotional abuse indicators',
+      'Gaslighting patterns',
+      'Control behavior analysis'
     ]
   },
   {
-    title: 'Deep Communication Patterns',
-    description: 'Comprehensive analysis of recurring behavioral patterns',
-    icon: TrendingUp,
+    title: 'Deep Communication Insights',
+    description: 'Uncover hidden meaning and recurring patterns in conversations',
+    icon: MessageSquare,
     availableFrom: 'personal',
     features: [
-      'Recurring phrase analysis',
-      'Communication style breakdown',
-      'Power dynamic indicators',
-      'Improvement suggestions'
+      'Power dynamic breakdown',
+      'Speaking pattern analysis',
+      'Conversation flow mapping',
+      'Personalized improvement tips'
     ]
   },
   {
-    title: 'Emotional Intelligence Insights',
-    description: 'Advanced emotional state tracking and empathy analysis',
+    title: 'Advanced Conflict Dynamics',
+    description: 'Deep analysis of how conflicts develop and escalate in relationships',
+    icon: TrendingUp,
+    availableFrom: 'pro',
+    features: [
+      'Conflict escalation patterns',
+      'De-escalation opportunities',
+      'Power struggle indicators',
+      'Resolution pathway suggestions'
+    ]
+  },
+  {
+    title: 'Relationship Trajectory Analysis',
+    description: 'Understand where your relationship is heading based on communication patterns',
     icon: Heart,
     availableFrom: 'pro',
     features: [
-      'Emotional progression mapping',
-      'Empathy response detection',
-      'Emotional trigger identification',
-      'Attachment style indicators'
+      'Relationship health trends',
+      'Compatibility indicators',
+      'Growth vs. decline patterns',
+      'Long-term outlook predictions'
     ]
   },
   {
-    title: 'Conversation Flow Analysis',
-    description: 'Detailed breakdown of conversation dynamics and timing',
-    icon: MessageSquare,
-    availableFrom: 'pro',
-    features: [
-      'Turn-taking patterns',
-      'Response time implications',
-      'Conversation momentum tracking',
-      'Engagement level analysis'
-    ]
-  },
-  {
-    title: 'Predictive Relationship Modeling',
-    description: 'AI-powered predictions about relationship trajectory',
-    icon: Zap,
-    availableFrom: 'pro',
-    features: [
-      'Conflict escalation probability',
-      'Resolution likelihood scoring',
-      'Relationship stability indicators',
-      'Future interaction predictions'
-    ]
-  },
-  {
-    title: 'Instant Deep Dive Analysis',
-    description: 'Real-time comprehensive analysis with immediate insights',
+    title: 'Expert Recommendations & Action Plans',
+    description: 'Professional-grade guidance with personalized action steps',
     icon: Crown,
     availableFrom: 'instant',
     features: [
-      'Instant processing (no wait time)',
-      'Priority analysis queue',
-      'Enhanced AI model access',
-      'Premium insight depth'
+      'Therapist-level insights',
+      'Step-by-step action plans',
+      'Crisis intervention guidance',
+      'Personalized communication scripts'
     ]
   }
 ];
