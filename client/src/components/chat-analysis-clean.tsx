@@ -139,8 +139,12 @@ export default function ChatAnalysis() {
       const response = await fetch('/api/ocr/google', {
         method: 'POST',
         body: formData,
+        headers: {
+          // Don't set Content-Type for FormData - browser will set it with boundary
+        }
       }).catch(error => {
         console.error('Network error during OCR request:', error);
+        console.error('Error details:', error);
         throw new Error(`Network error: ${error.message}`);
       });
 
@@ -150,6 +154,7 @@ export default function ChatAnalysis() {
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
         console.error('Server error response:', errorText);
+        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
         let errorData;
         try {
           errorData = JSON.parse(errorText);
