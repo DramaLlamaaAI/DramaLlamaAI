@@ -106,6 +106,79 @@ export default function ChatAnalysis() {
     }
   };
 
+  // Clean WhatsApp text by removing UI elements and extracting only conversation content
+  const cleanWhatsAppText = (rawText: string): string => {
+    const lines = rawText.split('\n');
+    const cleanedLines: string[] = [];
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      
+      // Skip empty lines
+      if (!trimmed) continue;
+      
+      // Skip WhatsApp UI elements
+      if (trimmed.includes('last seen')) continue;
+      if (trimmed.includes('Alex Leonard')) continue; // Contact name in header
+      if (trimmed.match(/^\d{2}:\d{2}$/)) continue; // Time stamps alone
+      if (trimmed.match(/^\d{1,2}\s+[A-Z][a-z]+\s+\d{4}$/)) continue; // Date stamps like "15 February 2025"
+      if (trimmed.includes('%') && trimmed.length < 20) continue; // Battery/signal indicators
+      if (trimmed.match(/^[<>\\\/\s\-\=\+\*#]+$/)) continue; // Special characters only
+      if (trimmed.match(/^[\d\s\-\=\%\+APR]+$/)) continue; // Status bar elements
+      if (trimmed.length < 3 && !trimmed.match(/^[a-zA-Z]+$/)) continue; // Very short fragments
+      
+      // Keep lines that look like actual messages
+      cleanedLines.push(trimmed);
+    }
+    
+    return cleanedLines.join('\n');
+  };
+
+  // Parse WhatsApp conversation and identify speakers
+  const parseWhatsAppConversation = (cleanedText: string, contactName: string): string => {
+    const lines = cleanedText.split('\n');
+    const messages: string[] = [];
+    let currentMessage = '';
+    let currentSender = '';
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      
+      // Check if line contains a timestamp (indicates new message)
+      const timeMatch = trimmed.match(/(\d{1,2}:\d{2})/);
+      
+      if (timeMatch) {
+        // Save previous message if exists
+        if (currentMessage && currentSender) {
+          messages.push(`${currentSender}: ${currentMessage.trim()}`);
+        }
+        
+        // Extract message content after timestamp
+        const timeIndex = trimmed.indexOf(timeMatch[0]);
+        const messageContent = trimmed.substring(timeIndex + timeMatch[0].length).trim();
+        
+        // Determine sender - if message appears on left (contact) or right (you)
+        // For now, we'll need user input to identify which side is which
+        currentSender = 'Unknown';
+        currentMessage = messageContent;
+      } else {
+        // Continuation of previous message
+        if (currentMessage) {
+          currentMessage += ' ' + trimmed;
+        } else {
+          currentMessage = trimmed;
+        }
+      }
+    }
+    
+    // Add final message
+    if (currentMessage && currentSender) {
+      messages.push(`${currentSender}: ${currentMessage.trim()}`);
+    }
+    
+    return messages.join('\n');
+  };
+
   // Update conversation when order changes
   const updateConversationOrder = () => {
     if (!ocrResults || screenshotOrder.length === 0) return;
@@ -182,8 +255,9 @@ export default function ChatAnalysis() {
       setScreenshotOrder(results.map((_, index: number) => index));
       console.log('Preview should now be visible');
 
-      // For now, simply combine all the text from the results
-      const combinedText = results.map(r => r.text).join('\n\n');
+      // Clean and combine all the text from the results
+      const cleanedTexts = results.map(r => cleanWhatsAppText(r.text));
+      const combinedText = cleanedTexts.join('\n\n');
       
       setOcrProgress(100);
       setExtractedText(combinedText);
