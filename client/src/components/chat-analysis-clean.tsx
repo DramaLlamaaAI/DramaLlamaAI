@@ -861,18 +861,21 @@ export default function ChatAnalysis() {
                       
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {screenshots.map((screenshot, index) => (
-                          <div key={index} className="relative group">
+                          <div key={index} className="relative">
                             <img
                               src={screenshot.preview}
                               alt={`Screenshot ${index + 1}`}
                               className="w-full h-32 object-cover rounded-lg border"
                             />
-                            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            
+                            {/* Mobile-friendly controls - always visible */}
+                            <div className="absolute top-2 right-2 flex flex-col gap-1">
                               <Button
                                 onClick={() => moveScreenshot(index, -1)}
                                 disabled={index === 0}
                                 variant="secondary"
                                 size="sm"
+                                className="h-6 w-6 p-0 text-xs"
                               >
                                 ↑
                               </Button>
@@ -881,6 +884,7 @@ export default function ChatAnalysis() {
                                 disabled={index === screenshots.length - 1}
                                 variant="secondary"
                                 size="sm"
+                                className="h-6 w-6 p-0 text-xs"
                               >
                                 ↓
                               </Button>
@@ -888,10 +892,13 @@ export default function ChatAnalysis() {
                                 onClick={() => removeScreenshot(index)}
                                 variant="destructive"
                                 size="sm"
+                                className="h-6 w-6 p-0 text-xs"
                               >
                                 ×
                               </Button>
                             </div>
+                            
+                            {/* Order number */}
                             <div className="absolute top-2 left-2 bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded font-medium">
                               {index + 1}
                             </div>
