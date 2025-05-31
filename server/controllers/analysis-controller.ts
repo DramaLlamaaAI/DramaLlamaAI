@@ -507,9 +507,9 @@ export const analysisController = {
       
       // Validate conversation data integrity to prevent analysis of corrupted extractions
       const conversationLines = conversation.split('\n').filter((line: string) => line.trim().length > 0);
-      const messageLines = conversationLines.filter((line: string) => line.includes(':') && line.trim().length > 10);
+      const messageLines = conversationLines.filter((line: string) => line.includes(':') && line.trim().length > 5);
       
-      if (conversationLines.length < 15 || messageLines.length < 8) {
+      if (conversationLines.length < 3 || messageLines.length < 2) {
         return res.status(400).json({ 
           message: 'Conversation data appears incomplete or corrupted. Please verify your chat export and try again.',
           error: 'INVALID_CONVERSATION_DATA'
@@ -518,7 +518,7 @@ export const analysisController = {
       
       // Check for realistic conversation length and complexity
       const averageMessageLength = messageLines.reduce((sum, line) => sum + line.length, 0) / messageLines.length;
-      if (averageMessageLength < 20 || averageMessageLength > 500) {
+      if (averageMessageLength < 10 || averageMessageLength > 1000) {
         return res.status(400).json({ 
           message: 'The conversation data does not appear to be from a genuine chat export. Please upload a real WhatsApp conversation.',
           error: 'UNREALISTIC_DATA'
