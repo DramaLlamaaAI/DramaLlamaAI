@@ -114,27 +114,71 @@ export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
     const leftMessages: string[] = [];
     const rightMessages: string[] = [];
 
-    // Process each text block
+    // Group text blocks by proximity to form complete messages
+    const leftBlocks: Array<{text: string, x: number, y: number}> = [];
+    const rightBlocks: Array<{text: string, x: number, y: number}> = [];
+
+    // First, categorize and prepare blocks with positions
     for (const block of textBlocks) {
       const text = block.description?.trim();
-      if (!text || text.length < 2) continue;
+      if (!text || text.length < 1) continue;
 
-      // Skip UI elements
+      // Skip obvious UI elements
       if (isUIElement(text)) continue;
 
-      // Calculate average X position of this text block
       const vertices = block.boundingPoly?.vertices || [];
       if (vertices.length === 0) continue;
 
       const avgX = vertices.reduce((sum, vertex) => sum + (vertex.x || 0), 0) / vertices.length;
+      const avgY = vertices.reduce((sum, vertex) => sum + (vertex.y || 0), 0) / vertices.length;
 
-      // Determine if text is on left or right side
+      // Categorize by side
       if (avgX < centerX) {
-        leftMessages.push(text);
+        leftBlocks.push({ text, x: avgX, y: avgY });
       } else {
-        rightMessages.push(text);
+        rightBlocks.push({ text, x: avgX, y: avgY });
       }
     }
+
+    // Group nearby text blocks into complete messages
+    const groupTextBlocks = (blocks: Array<{text: string, x: number, y: number}>): string[] => {
+      if (blocks.length === 0) return [];
+      
+      // Sort blocks by Y position (top to bottom)
+      const sortedBlocks = blocks.sort((a, b) => a.y - b.y);
+      const messages: string[] = [];
+      let currentMessage: string[] = [];
+      let lastY = sortedBlocks[0].y;
+
+      for (const block of sortedBlocks) {
+        // If this block is far below the last one (new message bubble)
+        if (Math.abs(block.y - lastY) > 40) { // 40px threshold for new message
+          if (currentMessage.length > 0) {
+            const messageText = currentMessage.join(' ').trim();
+            if (messageText.length > 2 && !isUIElement(messageText)) {
+              messages.push(messageText);
+            }
+          }
+          currentMessage = [block.text];
+        } else {
+          currentMessage.push(block.text);
+        }
+        lastY = block.y;
+      }
+
+      // Add the last message
+      if (currentMessage.length > 0) {
+        const messageText = currentMessage.join(' ').trim();
+        if (messageText.length > 2 && !isUIElement(messageText)) {
+          messages.push(messageText);
+        }
+      }
+
+      return messages;
+    };
+
+    const leftMessages = groupTextBlocks(leftBlocks);
+    const rightMessages = groupTextBlocks(rightBlocks);
 
     return { leftMessages, rightMessages, allText };
   } catch (error) {
