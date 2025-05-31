@@ -933,14 +933,18 @@ export const analysisController = {
       
       // Set a timeout for OCR processing to prevent hanging
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('OCR processing timed out')), 45000); // 45 second timeout
+        setTimeout(() => reject(new Error('OCR processing timed out')), 25000); // 25 second timeout
       });
+      
+      console.log('Starting OCR processing...');
       
       // Process image with Tesseract OCR with timeout
       const extractedText = await Promise.race([
         processImage(base64Image),
         timeoutPromise
       ]);
+      
+      console.log('OCR processing completed, text length:', extractedText?.length || 0);
       
       res.json({ text: extractedText });
     } catch (error: any) {

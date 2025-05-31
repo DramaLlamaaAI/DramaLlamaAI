@@ -432,7 +432,10 @@ export default function ChatAnalysisFixed() {
 
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout per image
+          const timeoutId = setTimeout(() => {
+            controller.abort();
+            console.log(`Timeout for image ${i + 1}`);
+          }, 30000); // 30 second timeout per image
 
           const response = await fetch('/api/ocr', {
             method: 'POST',
@@ -444,17 +447,22 @@ export default function ChatAnalysisFixed() {
           clearTimeout(timeoutId);
 
           if (!response.ok) {
-            console.error(`OCR failed for image ${i + 1}:`, response.status);
-            texts.push(''); // Add empty text for failed extraction
+            console.error(`OCR failed for image ${i + 1}:`, response.status, await response.text());
+            texts.push(`[Failed to extract text from image ${i + 1}]`);
             continue;
           }
 
           const ocrResult = await response.json();
-          texts.push(ocrResult.text || '');
-          console.log(`Text extracted from image ${i + 1}:`, ocrResult.text?.length || 0, 'characters');
+          const extractedText = ocrResult.text || `[No text found in image ${i + 1}]`;
+          texts.push(extractedText);
+          console.log(`Text extracted from image ${i + 1}:`, extractedText.length, 'characters');
         } catch (imageError) {
           console.error(`Error processing image ${i + 1}:`, imageError);
-          texts.push(''); // Add empty text for failed extraction
+          if (imageError.name === 'AbortError') {
+            texts.push(`[Image ${i + 1} processing timed out]`);
+          } else {
+            texts.push(`[Error extracting text from image ${i + 1}]`);
+          }
         }
       }
 
