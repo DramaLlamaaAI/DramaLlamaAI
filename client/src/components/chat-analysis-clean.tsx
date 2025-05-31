@@ -135,17 +135,28 @@ export default function ChatAnalysis() {
 
       // Send to Google Cloud Vision API endpoint
       console.log('Sending request to /api/ocr/google with', screenshots.length, 'images');
+      console.log('FormData contents:', Array.from(formData.entries()).map(([key, value]) => ({ key, valueType: typeof value, size: value instanceof File ? value.size : 'N/A' })));
       
+      // Test basic connectivity first
+      try {
+        const testResponse = await fetch('/api/test-connection');
+        console.log('Test connection status:', testResponse.status);
+        const testData = await testResponse.text();
+        console.log('Test response (first 200 chars):', testData.substring(0, 200));
+      } catch (testError) {
+        console.error('Basic connectivity test failed:', testError);
+      }
+
       const response = await fetch('/api/ocr/google', {
         method: 'POST',
         body: formData,
-        headers: {
-          // Don't set Content-Type for FormData - browser will set it with boundary
-        }
       }).catch(error => {
         console.error('Network error during OCR request:', error);
-        console.error('Error details:', error);
-        throw new Error(`Network error: ${error.message}`);
+        console.error('Error type:', typeof error);
+        console.error('Error name:', error?.name);
+        console.error('Error message:', error?.message);
+        console.error('Error stack:', error?.stack);
+        throw new Error(`Network connection failed: ${error?.message || 'Unknown error'}`);
       });
 
       console.log('Received response:', response.status, response.statusText);

@@ -211,6 +211,12 @@ app.use(session({
     }
   });
 
+  // Test endpoint to verify basic connectivity
+  app.get('/api/test-connection', (req: Request, res: Response) => {
+    console.log('Test connection endpoint hit');
+    res.json({ success: true, message: 'Server connection working' });
+  });
+
   // Google Cloud Vision OCR endpoint with positioning
   app.post('/api/ocr/google', upload.array('images', 10), async (req: Request, res: Response) => {
     try {
