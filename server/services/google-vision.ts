@@ -62,7 +62,7 @@ export async function extractTextFromImage(imageBuffer: Buffer): Promise<string>
   }
 }
 
-// New function to extract text with positional information
+// New function to extract text with positional information using document detection
 export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
   leftMessages: string[];
   rightMessages: string[];
@@ -77,6 +77,7 @@ export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
       }
     }
 
+    // Use regular text detection but apply intelligent parsing
     const [result] = await vision!.textDetection({
       image: {
         content: imageBuffer,
@@ -89,124 +90,142 @@ export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
       return { leftMessages: [], rightMessages: [], allText: '' };
     }
 
-    // Get full text
+    // Get full text for pattern analysis
     const allText = detections[0]?.description || '';
     
-    // Skip the first detection (it's the full text) and process individual text blocks
-    const textBlocks = detections.slice(1);
-    
-    if (textBlocks.length === 0) {
-      return { leftMessages: [], rightMessages: [], allText };
-    }
+    // Use the full text and apply WhatsApp message parsing
+    const { leftMessages, rightMessages } = parseWhatsAppMessages(allText, detections.slice(1));
 
-    // Calculate screen width from bounding boxes
-    const allX = textBlocks
-      .map(block => block.boundingPoly?.vertices || [])
-      .flat()
-      .map(vertex => vertex.x || 0)
-      .filter(x => x > 0);
-    
-    const minX = Math.min(...allX);
-    const maxX = Math.max(...allX);
-    const screenWidth = maxX - minX;
-    const centerX = minX + (screenWidth / 2);
-
-    // Group text blocks by proximity to form complete messages
-    const leftBlocks: Array<{text: string, x: number, y: number}> = [];
-    const rightBlocks: Array<{text: string, x: number, y: number}> = [];
-
-    // First, categorize and prepare blocks with positions
-    for (const block of textBlocks) {
-      const text = block.description?.trim();
-      if (!text || text.length < 1) continue;
-
-      // Skip obvious UI elements
-      if (isUIElement(text)) continue;
-
-      const vertices = block.boundingPoly?.vertices || [];
-      if (vertices.length === 0) continue;
-
-      const avgX = vertices.reduce((sum, vertex) => sum + (vertex.x || 0), 0) / vertices.length;
-      const avgY = vertices.reduce((sum, vertex) => sum + (vertex.y || 0), 0) / vertices.length;
-
-      // Categorize by side
-      if (avgX < centerX) {
-        leftBlocks.push({ text, x: avgX, y: avgY });
-      } else {
-        rightBlocks.push({ text, x: avgX, y: avgY });
-      }
-    }
-
-    // Group nearby text blocks into complete messages using clustering
-    const groupTextBlocks = (blocks: Array<{text: string, x: number, y: number}>): string[] => {
-      if (blocks.length === 0) return [];
-      
-      // Sort blocks by Y position (top to bottom)
-      const sortedBlocks = blocks.sort((a, b) => a.y - b.y);
-      
-      // Create message clusters based on vertical gaps
-      const clusters: Array<Array<{text: string, x: number, y: number}>> = [];
-      let currentCluster: Array<{text: string, x: number, y: number}> = [sortedBlocks[0]];
-      
-      for (let i = 1; i < sortedBlocks.length; i++) {
-        const currentBlock = sortedBlocks[i];
-        const previousBlock = sortedBlocks[i - 1];
-        
-        // If there's a significant vertical gap, start a new cluster (new message bubble)
-        const verticalGap = Math.abs(currentBlock.y - previousBlock.y);
-        
-        if (verticalGap > 50) { // 50px gap indicates new message bubble
-          clusters.push(currentCluster);
-          currentCluster = [currentBlock];
-        } else {
-          currentCluster.push(currentBlock);
-        }
-      }
-      
-      // Don't forget the last cluster
-      if (currentCluster.length > 0) {
-        clusters.push(currentCluster);
-      }
-      
-      // Convert clusters to message strings
-      const messages: string[] = [];
-      
-      for (const cluster of clusters) {
-        // Sort cluster blocks by X position (left to right) for proper word order
-        const sortedCluster = cluster.sort((a, b) => a.x - b.x);
-        const messageWords = sortedCluster.map(block => block.text).filter(text => text.trim().length > 0);
-        
-        if (messageWords.length > 0) {
-          const messageText = messageWords.join(' ').trim();
-          
-          // Filter out obvious UI elements and very short fragments
-          if (messageText.length >= 3 && !isUIElement(messageText)) {
-            // Clean up the message text
-            const cleanedMessage = messageText
-              .replace(/^\d{1,2}:\d{2}\s*/, '') // Remove leading timestamps
-              .replace(/\s*\d{1,2}:\d{2}\s*$/, '') // Remove trailing timestamps
-              .replace(/[✓√]+\s*$/, '') // Remove read receipts
-              .replace(/\s+/g, ' ') // Normalize whitespace
-              .trim();
-            
-            if (cleanedMessage.length >= 3) {
-              messages.push(cleanedMessage);
-            }
-          }
-        }
-      }
-      
-      return messages;
-    };
-
-    const finalLeftMessages = groupTextBlocks(leftBlocks);
-    const finalRightMessages = groupTextBlocks(rightBlocks);
-
-    return { leftMessages: finalLeftMessages, rightMessages: finalRightMessages, allText };
+    return { leftMessages, rightMessages, allText };
   } catch (error) {
     console.error('Google Vision OCR with positions error:', error);
     throw new Error(`OCR processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+
+// Parse WhatsApp messages using full text and positional data
+function parseWhatsAppMessages(fullText: string, textBlocks: any[]): {
+  leftMessages: string[];
+  rightMessages: string[];
+} {
+  // Calculate screen dimensions and midpoint
+  const allX = textBlocks
+    .map(block => block.boundingPoly?.vertices || [])
+    .flat()
+    .map(vertex => vertex.x || 0)
+    .filter(x => x > 0);
+  
+  if (allX.length === 0) {
+    return { leftMessages: [], rightMessages: [] };
+  }
+  
+  const minX = Math.min(...allX);
+  const maxX = Math.max(...allX);
+  const centerX = minX + ((maxX - minX) / 2);
+
+  // Group text blocks by position
+  const leftBlocks: Array<{text: string, x: number, y: number}> = [];
+  const rightBlocks: Array<{text: string, x: number, y: number}> = [];
+
+  for (const block of textBlocks) {
+    const text = block.description?.trim();
+    if (!text || text.length < 1 || isUIElement(text)) continue;
+
+    const vertices = block.boundingPoly?.vertices || [];
+    if (vertices.length === 0) continue;
+
+    const avgX = vertices.reduce((sum: number, vertex: any) => sum + (vertex.x || 0), 0) / vertices.length;
+    const avgY = vertices.reduce((sum: number, vertex: any) => sum + (vertex.y || 0), 0) / vertices.length;
+
+    if (avgX < centerX) {
+      leftBlocks.push({ text, x: avgX, y: avgY });
+    } else {
+      rightBlocks.push({ text, x: avgX, y: avgY });
+    }
+  }
+
+  // Apply intelligent message reconstruction
+  const reconstructMessages = (blocks: Array<{text: string, x: number, y: number}>): string[] => {
+    if (blocks.length === 0) return [];
+    
+    // Sort by Y position first
+    const sortedBlocks = blocks.sort((a, b) => a.y - b.y);
+    
+    // Group into message lines with more aggressive clustering
+    const messageLines: string[][] = [];
+    let currentLine: Array<{text: string, x: number, y: number}> = [];
+    let lastY = sortedBlocks[0].y;
+    
+    for (const block of sortedBlocks) {
+      // Use much larger threshold to group words in same message bubble
+      if (Math.abs(block.y - lastY) > 80) { // Increased threshold
+        if (currentLine.length > 0) {
+          // Sort by X position for proper word order
+          const sortedLine = currentLine.sort((a, b) => a.x - b.x);
+          messageLines.push(sortedLine.map(b => b.text));
+        }
+        currentLine = [block];
+      } else {
+        currentLine.push(block);
+      }
+      lastY = block.y;
+    }
+    
+    // Add the last line
+    if (currentLine.length > 0) {
+      const sortedLine = currentLine.sort((a, b) => a.x - b.x);
+      messageLines.push(sortedLine.map(b => b.text));
+    }
+    
+    // Merge lines into complete messages
+    const messages: string[] = [];
+    let currentMessage: string[] = [];
+    
+    for (const line of messageLines) {
+      const lineText = line.join(' ').trim();
+      
+      // If line looks like start of new message (has timestamp pattern or is very short)
+      if (lineText.match(/^\d{1,2}:\d{2}/) || (currentMessage.length > 0 && lineText.length < 8)) {
+        // Finish current message
+        if (currentMessage.length > 0) {
+          const messageText = currentMessage.join(' ')
+            .replace(/^\d{1,2}:\d{2}\s*/, '')
+            .replace(/\s*\d{1,2}:\d{2}\s*$/, '')
+            .replace(/[✓√]+\s*$/, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          if (messageText.length >= 3 && !isUIElement(messageText)) {
+            messages.push(messageText);
+          }
+        }
+        currentMessage = [lineText];
+      } else {
+        currentMessage.push(lineText);
+      }
+    }
+    
+    // Add final message
+    if (currentMessage.length > 0) {
+      const messageText = currentMessage.join(' ')
+        .replace(/^\d{1,2}:\d{2}\s*/, '')
+        .replace(/\s*\d{1,2}:\d{2}\s*$/, '')
+        .replace(/[✓√]+\s*$/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (messageText.length >= 3 && !isUIElement(messageText)) {
+        messages.push(messageText);
+      }
+    }
+    
+    return messages;
+  };
+
+  return {
+    leftMessages: reconstructMessages(leftBlocks),
+    rightMessages: reconstructMessages(rightBlocks)
+  };
 }
 
 // Helper function to identify UI elements
