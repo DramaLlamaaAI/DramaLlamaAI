@@ -43,6 +43,7 @@ export default function ChatAnalysis() {
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrResults, setOcrResults] = useState<Array<{leftMessages: string[], rightMessages: string[]}> | null>(null);
   const [screenshotOrder, setScreenshotOrder] = useState<number[]>([]);
+  const [switchedMessages, setSwitchedMessages] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   // Get user tier info
@@ -59,6 +60,28 @@ export default function ChatAnalysis() {
     const [moved] = newOrder.splice(fromIndex, 1);
     newOrder.splice(toIndex, 0, moved);
     setScreenshotOrder(newOrder);
+  };
+
+  // Switch message attribution
+  const switchMessageAttribution = (messageId: string) => {
+    const newSwitched = new Set(switchedMessages);
+    if (newSwitched.has(messageId)) {
+      newSwitched.delete(messageId);
+    } else {
+      newSwitched.add(messageId);
+    }
+    setSwitchedMessages(newSwitched);
+  };
+
+  // Get unique message ID for tracking switches
+  const getMessageId = (screenshotIndex: number, side: 'left' | 'right', messageIndex: number) => {
+    return `${screenshotIndex}-${side}-${messageIndex}`;
+  };
+
+  // Check if message should be on the opposite side due to switching
+  const isMessageSwitched = (screenshotIndex: number, side: 'left' | 'right', messageIndex: number) => {
+    const messageId = getMessageId(screenshotIndex, side, messageIndex);
+    return switchedMessages.has(messageId);
   };
 
   // Update conversation when order changes
@@ -612,11 +635,25 @@ export default function ChatAnalysis() {
                             <div>
                               <h5 className="font-medium text-sm mb-2 text-blue-600">{screenshotThem} (Left/Gray bubbles)</h5>
                               <div className="space-y-1">
-                                {result.leftMessages.map((msg, i) => (
-                                  <div key={i} className="bg-gray-100 dark:bg-gray-800 rounded p-2 text-sm">
-                                    {msg}
-                                  </div>
-                                ))}
+                                {result.leftMessages.map((msg, i) => {
+                                  const messageId = getMessageId(originalIndex, 'left', i);
+                                  const isSwitched = isMessageSwitched(originalIndex, 'left', i);
+                                  return (
+                                    <div 
+                                      key={i} 
+                                      className={`rounded p-2 text-sm cursor-pointer transition-all hover:scale-[1.02] border-2 ${
+                                        isSwitched 
+                                          ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-600' 
+                                          : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600'
+                                      }`}
+                                      onClick={() => switchMessageAttribution(messageId)}
+                                      title={isSwitched ? `Click to move back to ${screenshotThem}` : `Click to switch to ${screenshotMe}`}
+                                    >
+                                      {isSwitched && <span className="text-xs text-green-700 dark:text-green-300 block mb-1">→ Switched to {screenshotMe}</span>}
+                                      {msg}
+                                    </div>
+                                  );
+                                })}
                                 {result.leftMessages.length === 0 && (
                                   <div className="text-muted-foreground text-sm italic">No messages</div>
                                 )}
@@ -626,11 +663,25 @@ export default function ChatAnalysis() {
                             <div>
                               <h5 className="font-medium text-sm mb-2 text-green-600">{screenshotMe} (Right/Green bubbles)</h5>
                               <div className="space-y-1">
-                                {result.rightMessages.map((msg, i) => (
-                                  <div key={i} className="bg-green-100 dark:bg-green-900/30 rounded p-2 text-sm">
-                                    {msg}
-                                  </div>
-                                ))}
+                                {result.rightMessages.map((msg, i) => {
+                                  const messageId = getMessageId(originalIndex, 'right', i);
+                                  const isSwitched = isMessageSwitched(originalIndex, 'right', i);
+                                  return (
+                                    <div 
+                                      key={i} 
+                                      className={`rounded p-2 text-sm cursor-pointer transition-all hover:scale-[1.02] border-2 ${
+                                        isSwitched 
+                                          ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600' 
+                                          : 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-600'
+                                      }`}
+                                      onClick={() => switchMessageAttribution(messageId)}
+                                      title={isSwitched ? `Click to move back to ${screenshotMe}` : `Click to switch to ${screenshotThem}`}
+                                    >
+                                      {isSwitched && <span className="text-xs text-blue-700 dark:text-blue-300 block mb-1">→ Switched to {screenshotThem}</span>}
+                                      {msg}
+                                    </div>
+                                  );
+                                })}
                                 {result.rightMessages.length === 0 && (
                                   <div className="text-muted-foreground text-sm italic">No messages</div>
                                 )}
