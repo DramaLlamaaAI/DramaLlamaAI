@@ -217,9 +217,15 @@ export async function analyzeImageWithAzure(
         const x = boundingBox[0];
         const y = boundingBox[1];
         
-        // Determine speaker based on X position
-        // Messages on left side are from the other person, right side are from "You"
-        const speaker = x > centerX ? 'You' : 'Other Person';
+        // Determine speaker based on X position and user's message layout preference
+        let speaker: string;
+        if (messageSide === 'left') {
+          // User's messages are on the left side
+          speaker = x < centerX ? meName : themName;
+        } else {
+          // User's messages are on the right side (default)
+          speaker = x > centerX ? meName : themName;
+        }
         
         messages.push({
           text,
