@@ -253,26 +253,38 @@ export default function ChatAnalysis() {
         
         console.log(`Processing screenshot ${i + 1}/${screenshots.length}, size: ${screenshot.file.size} bytes`);
         
-        // Use Azure Vision for precise positioning detection
-        const response = await apiRequest('POST', '/api/analyze/whatsapp-screenshot', {
-          image: base64
+        // Use Azure Computer Vision for OCR extraction
+        const formData = new FormData();
+        formData.append('images', screenshot.file);
+        
+        const response = await fetch('/api/ocr/azure', {
+          method: 'POST',
+          body: formData
         });
         
-        const result = await response.json();
-        console.log(`Azure Vision result for image ${i + 1}:`, result.messages?.length || 0, 'messages found');
+        if (!response.ok) {
+          throw new Error(`Azure processing failed: ${response.statusText}`);
+        }
         
-        if (result.messages && result.messages.length > 0) {
-          // Convert positioned messages to conversation format
-          const conversationText = result.messages
-            .map((msg: any) => `${msg.speaker}: ${msg.text}`)
-            .join('\n');
+        const azureResponse = await response.json();
+        console.log(`Azure response for image ${i + 1}:`, azureResponse);
+        
+        if (azureResponse.success && azureResponse.results && azureResponse.results.length > 0) {
+          const result = azureResponse.results[0]; // First (and only) image result
           
-          results.push({
-            text: conversationText,
-            imageIndex: i,
-            messages: result.messages, // Store structured data for correction UI
-            imageWidth: result.imageWidth
-          });
+          if (result.rawText && result.rawText.length > 0) {
+            results.push({
+              text: result.rawText,
+              imageIndex: i,
+              messages: result.messages || [], // Store structured data if available
+              imageWidth: result.imageWidth || 0
+            });
+            console.log(`Image ${i + 1}: Extracted ${result.rawText.length} characters`);
+          } else {
+            console.log(`Image ${i + 1}: No text extracted`);
+          }
+        } else {
+          console.log(`Image ${i + 1}: Azure processing returned no results`);
         }
       }
 
