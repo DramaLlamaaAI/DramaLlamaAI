@@ -201,8 +201,12 @@ app.use(session({
   // Configure multer for image uploads
   const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit per file
+    limits: { 
+      fileSize: 10 * 1024 * 1024, // 10MB limit per file
+      files: 10 // Max 10 files
+    },
     fileFilter: (req, file, cb) => {
+      console.log('Multer fileFilter - processing file:', file.mimetype, file.size);
       if (file.mimetype.startsWith('image/')) {
         cb(null, true);
       } else {
@@ -211,6 +215,20 @@ app.use(session({
     }
   });
 
+  // Multer error handler
+  const handleMulterError = (error: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('Multer error:', error);
+    if (error instanceof multer.MulterError) {
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File too large. Maximum size is 10MB per file.' });
+      }
+      if (error.code === 'LIMIT_FILE_COUNT') {
+        return res.status(400).json({ error: 'Too many files. Maximum is 10 files.' });
+      }
+    }
+    return res.status(400).json({ error: error.message || 'File upload error' });
+  };
+
   // Test endpoint to verify basic connectivity
   app.get('/api/test-connection', (req: Request, res: Response) => {
     console.log('Test connection endpoint hit');
@@ -218,9 +236,13 @@ app.use(session({
   });
 
   // Google Cloud Vision OCR endpoint with positioning
-  app.post('/api/ocr/google', upload.array('images', 10), async (req: Request, res: Response) => {
+  app.post('/api/ocr/google', (req: Request, res: Response, next: NextFunction) => {
+    console.log('OCR endpoint hit - before multer');
+    next();
+  }, upload.array('images', 10), handleMulterError, async (req: Request, res: Response) => {
     try {
       console.log('OCR request received, processing', req.files?.length || 0, 'images');
+      console.log('Request headers:', req.headers['content-type']);
       const { extractTextWithPositions } = await import('./services/google-vision');
       
       if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
