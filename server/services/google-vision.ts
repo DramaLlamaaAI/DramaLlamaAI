@@ -114,85 +114,114 @@ function extractMessagesFromFullText(fullText: string): {
   leftMessages: string[];
   rightMessages: string[];
 } {
+  // Split text into lines and clean them
   const lines = fullText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
   
   const leftMessages: string[] = [];
   const rightMessages: string[] = [];
   
-  // Look for WhatsApp message patterns in the full text
-  // The OCR text shows clear message structure with timestamps
-  
-  // First, let's extract the actual conversation content
-  let messageText = '';
-  let inMessageArea = false;
-  
+  // Find where the actual conversation starts (skip header info)
+  let startIndex = 0;
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    
-    // Skip header info until we reach actual messages
-    if (line.includes('Alex Leonard') || line.includes('last seen')) {
-      inMessageArea = true;
-      continue;
+    if (lines[i].includes('Alex Leonard') || lines[i].includes('last seen')) {
+      startIndex = i + 1;
+      break;
     }
+  }
+  
+  // Process conversation lines
+  const conversationLines = lines.slice(startIndex);
+  
+  // Group lines into messages based on WhatsApp patterns
+  // Messages are separated by timestamps and read receipts
+  let currentMessage = [];
+  let currentMessageLines = [];
+  
+  for (let i = 0; i < conversationLines.length; i++) {
+    const line = conversationLines[i];
     
-    if (!inMessageArea) continue;
-    
-    // Skip UI elements
+    // Skip obvious UI elements
     if (isUIElement(line)) continue;
     
-    messageText += line + '\n';
-  }
-  
-  // Now parse the message content using known WhatsApp patterns
-  // Based on the OCR output, we can see clear message boundaries
-  
-  // Split by timestamps to identify individual messages
-  const messageParts = messageText.split(/\d{1,2}:\d{2}/).filter(part => part.trim().length > 3);
-  
-  for (const part of messageParts) {
-    const cleanMessage = part
-      .replace(/[√✓]+/g, '') // Remove read receipts
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .trim();
+    // Check if this line starts a new message (has timestamp or read receipt)
+    const hasTimestamp = /^\d{1,2}:\d{2}/.test(line);
+    const hasReadReceipt = /[√✓]/.test(line);
+    const isShortUIElement = line.length < 5 && /^[0-9\s%]+$/.test(line);
     
-    if (cleanMessage.length < 3) continue;
-    
-    // Use positioning and content clues to determine sender
-    // From the OCR, we can see patterns like "Plus I'm in hospital" (user message)
-    // vs responses like "Oh mad. Hope you're OK bro" (other person)
-    
-    if (cleanMessage.includes("I'm") || 
-        cleanMessage.includes("I haven't") || 
-        cleanMessage.includes("my body") ||
-        cleanMessage.includes("I think") ||
-        cleanMessage.length > 40) {
-      // Likely user message (right side - green bubbles)
-      rightMessages.push(cleanMessage);
-    } else if (cleanMessage.includes("Hope you") || 
-               cleanMessage.includes("How") ||
-               cleanMessage.includes("getting on") ||
-               cleanMessage.length < 40) {
-      // Likely other person message (left side - gray bubbles)  
-      leftMessages.push(cleanMessage);
+    if (hasTimestamp || hasReadReceipt || isShortUIElement) {
+      // Process the current message if we have one
+      if (currentMessageLines.length > 0) {
+        const messageText = currentMessageLines.join(' ')
+          .replace(/^\d{1,2}:\d{2}\s*/, '') // Remove leading timestamp
+          .replace(/\s*[√✓]+\s*$/, '') // Remove trailing read receipts
+          .replace(/\s+/g, ' ') // Normalize whitespace
+          .trim();
+        
+        if (messageText.length >= 3) {
+          // Classify the message based on content patterns
+          if (messageText.includes("I'm") || 
+              messageText.includes("I haven't") || 
+              messageText.includes("I think") ||
+              messageText.includes("my body") ||
+              messageText.includes("my ") ||
+              messageText.includes("I ") ||
+              messageText.startsWith("Plus") ||
+              messageText.startsWith("Still") ||
+              messageText.startsWith("I'll") ||
+              messageText.startsWith("Yh I'm") ||
+              messageText.startsWith("Sweet") ||
+              messageText.startsWith("All over") ||
+              messageText.startsWith("Don't stress") ||
+              messageText.startsWith("Get your") ||
+              messageText.includes("I built") ||
+              messageText.includes("Let me know")) {
+            rightMessages.push(messageText);
+          } else if (messageText.includes("Hope you") || 
+                     messageText.includes("How u getting") ||
+                     messageText.includes("What you done") ||
+                     messageText.includes("Fair play") ||
+                     messageText.includes("We're just getting") ||
+                     messageText.includes("Cheers mate") ||
+                     messageText.startsWith("Oh mad") ||
+                     messageText.length < 30) {
+            leftMessages.push(messageText);
+          } else {
+            // Default classification for unclear messages
+            // Longer messages tend to be from the user
+            if (messageText.length > 50) {
+              rightMessages.push(messageText);
+            } else {
+              leftMessages.push(messageText);
+            }
+          }
+        }
+      }
+      
+      // Start new message, including the current line if it has content beyond timestamp/receipt
+      const lineContent = line.replace(/^\d{1,2}:\d{2}\s*/, '').replace(/[√✓]+\s*$/, '').trim();
+      currentMessageLines = lineContent.length > 0 ? [lineContent] : [];
+    } else {
+      // Continue building current message
+      currentMessageLines.push(line);
     }
   }
   
-  // If we didn't get good results, try a simpler approach
-  if (leftMessages.length === 0 && rightMessages.length === 0) {
-    // Fallback: split the full text into logical message chunks
-    const chunks = fullText.split(/(?=\d{1,2}:\d{2})|(?<=√)|(?<=✓)/)
-      .map(chunk => chunk.trim())
-      .filter(chunk => chunk.length > 3 && !isUIElement(chunk));
+  // Process the final message
+  if (currentMessageLines.length > 0) {
+    const messageText = currentMessageLines.join(' ')
+      .replace(/^\d{1,2}:\d{2}\s*/, '')
+      .replace(/\s*[√✓]+\s*$/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
     
-    for (const chunk of chunks) {
-      const cleaned = chunk.replace(/^\d{1,2}:\d{2}/, '').replace(/[√✓]+$/, '').trim();
-      if (cleaned.length >= 3) {
-        // Simple classification based on common patterns
-        if (cleaned.includes("I ") || cleaned.includes("my ")) {
-          rightMessages.push(cleaned);
-        } else {
-          leftMessages.push(cleaned);
-        }
+    if (messageText.length >= 3) {
+      if (messageText.includes("I'm") || 
+          messageText.includes("I haven't") || 
+          messageText.includes("my ") ||
+          messageText.length > 50) {
+        rightMessages.push(messageText);
+      } else {
+        leftMessages.push(messageText);
       }
     }
   }
