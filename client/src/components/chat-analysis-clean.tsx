@@ -24,7 +24,8 @@ import {
   ArrowDown,
   X,
   Edit,
-  Download
+  Download,
+  GripVertical
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { ChatAnalysisResult } from '@shared/schema';
@@ -41,6 +42,7 @@ export default function ChatAnalysis() {
   const [isProcessingScreenshots, setIsProcessingScreenshots] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrResults, setOcrResults] = useState<Array<{leftMessages: string[], rightMessages: string[]}> | null>(null);
+  const [screenshotOrder, setScreenshotOrder] = useState<number[]>([]);
   const { toast } = useToast();
 
   // Get user tier info
@@ -50,6 +52,24 @@ export default function ChatAnalysis() {
   });
 
   const userTier = (userUsage as any)?.tier || 'free';
+
+  // Reorder screenshots for OCR results
+  const reorderScreenshot = (fromIndex: number, toIndex: number) => {
+    const newOrder = [...screenshotOrder];
+    const [moved] = newOrder.splice(fromIndex, 1);
+    newOrder.splice(toIndex, 0, moved);
+    setScreenshotOrder(newOrder);
+  };
+
+  // Update conversation when order changes
+  const updateConversationOrder = () => {
+    if (!ocrResults || screenshotOrder.length === 0) return;
+    
+    // Reorder results based on user's preferred order
+    const reorderedResults = screenshotOrder.map(index => ocrResults[index]);
+    const parsedConversation = parsePositionedOCRResults(reorderedResults, screenshotThem, screenshotMe);
+    setExtractedText(parsedConversation);
+  };
 
   // Process screenshots with Google Cloud Vision OCR
   const handleScreenshotAnalysis = async () => {
@@ -100,6 +120,9 @@ export default function ChatAnalysis() {
 
       // Store OCR results for preview
       setOcrResults(validResults);
+      
+      // Initialize screenshot order
+      setScreenshotOrder(validResults.map((_: any, index: number) => index));
 
       // Parse using positional data - left side is them, right side is you
       const parsedConversation = parsePositionedOCRResults(validResults, screenshotThem, screenshotMe);
