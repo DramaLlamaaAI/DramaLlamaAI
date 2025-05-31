@@ -27,7 +27,7 @@ import {
   Download
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { ChatAnalysisResponse } from '@shared/schema';
+import { ChatAnalysisResult } from '@shared/schema';
 
 export default function ChatAnalysis() {
   const [conversation, setConversation] = useState('');
@@ -46,7 +46,7 @@ export default function ChatAnalysis() {
     staleTime: 30000
   });
 
-  const userTier = userUsage?.tier || 'free';
+  const userTier = (userUsage as any)?.tier || 'free';
 
   // Process screenshots with OCR
   const handleScreenshotAnalysis = async () => {
@@ -189,7 +189,7 @@ export default function ChatAnalysis() {
       const response = await apiRequest('POST', '/api/analyze', { conversation });
       return response.json();
     },
-    onSuccess: (data: ChatAnalysisResponse) => {
+    onSuccess: (data: ChatAnalysisResult) => {
       toast({
         title: "Analysis Complete",
         description: "Your conversation has been analyzed successfully.",
@@ -490,7 +490,48 @@ export default function ChatAnalysis() {
 
       {/* Analysis Results */}
       {analysisResult && (
-        <AnalysisDisplay result={analysisResult} tier={userTier} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Analysis Results</CardTitle>
+            <CardDescription>
+              AI-powered insights into your conversation
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h3 className="font-semibold mb-2">Overall Tone</h3>
+                <p>{analysisResult.toneAnalysis?.overallTone || 'Analysis complete'}</p>
+              </div>
+              
+              {analysisResult.communication && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <h3 className="font-semibold mb-2">Communication Insights</h3>
+                  {analysisResult.communication.patterns && (
+                    <div className="mb-2">
+                      <h4 className="font-medium">Patterns:</h4>
+                      <ul className="list-disc list-inside ml-2">
+                        {analysisResult.communication.patterns.map((pattern, index) => (
+                          <li key={index}>{pattern}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {analysisResult.communication.suggestions && (
+                    <div>
+                      <h4 className="font-medium">Suggestions:</h4>
+                      <ul className="list-disc list-inside ml-2">
+                        {analysisResult.communication.suggestions.map((suggestion, index) => (
+                          <li key={index}>{suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
