@@ -124,15 +124,45 @@ export default function ChatAnalysis() {
   // Parse extracted text into conversation format
   const parseScreenshotText = (text: string, side: string, myName: string, theirName: string): string => {
     const lines = text.split('\n').filter(line => line.trim());
-    return lines.map(line => {
-      const trimmedLine = line.trim();
-      if (!trimmedLine) return '';
+    
+    // Filter out common UI elements and noise
+    const cleanedLines = lines.filter(line => {
+      const trimmed = line.trim().toLowerCase();
       
-      // Simple heuristic: assume messages alternate or can be identified by position
-      // This is a basic implementation - real OCR parsing would be more sophisticated
-      const speaker = Math.random() > 0.5 ? myName : theirName; // Placeholder logic
-      return `${speaker}: ${trimmedLine}`;
-    }).filter(Boolean).join('\n');
+      // Skip UI elements, timestamps, status indicators
+      if (trimmed.length < 3) return false;
+      if (/^[\d:]+$/.test(trimmed)) return false; // Pure timestamps like "08:09"
+      if (/^[\d\s%]+$/.test(trimmed)) return false; // Numbers and percentages like "24", "000", "53%"
+      if (/^[←→↑↓]+$/.test(trimmed)) return false; // Navigation arrows
+      if (trimmed.includes('last seen')) return false;
+      if (trimmed.includes('online')) return false;
+      if (trimmed.includes('typing')) return false;
+      if (/^[✓√]+$/.test(trimmed)) return false; // Read receipts
+      if (trimmed === 'message') return false;
+      if (trimmed.length > 200) return false; // Probably corrupted text
+      
+      return true;
+    });
+    
+    // Convert to conversation format
+    const conversationLines = [];
+    let currentSpeaker = myName; // Start with user
+    
+    for (const line of cleanedLines) {
+      const trimmed = line.trim();
+      
+      // Skip contact names that appear as headers
+      if (trimmed === myName || trimmed === theirName) continue;
+      
+      // If line looks like a message (has reasonable length and content)
+      if (trimmed.length > 0) {
+        conversationLines.push(`${currentSpeaker}: ${trimmed}`);
+        // Alternate speakers for basic conversation flow
+        currentSpeaker = currentSpeaker === myName ? theirName : myName;
+      }
+    }
+    
+    return conversationLines.join('\n');
   };
 
   // Handle file upload
@@ -174,15 +204,19 @@ export default function ChatAnalysis() {
   };
 
   const handleFinalAnalysis = () => {
-    if (extractedText) {
-      analyzeConversation.mutate(extractedText);
+    if (extractedText && screenshotMe && screenshotThem) {
+      analyzeConversation.mutate({
+        conversation: extractedText,
+        me: screenshotMe,
+        them: screenshotThem
+      });
     }
   };
 
   // Analysis mutations
   const analyzeConversation = useMutation({
-    mutationFn: async (conversation: string) => {
-      const response = await apiRequest('POST', '/api/analyze', { conversation });
+    mutationFn: async (params: { conversation: string; me: string; them: string }) => {
+      const response = await apiRequest('POST', '/api/analyze', params);
       return response.json();
     },
     onSuccess: (data: ChatAnalysisResult) => {
@@ -468,8 +502,12 @@ export default function ChatAnalysis() {
               />
               
               <Button
-                onClick={() => analyzeConversation.mutate(conversation)}
-                disabled={!conversation.trim() || isAnalysisLoading}
+                onClick={() => analyzeConversation.mutate({
+                  conversation: conversation,
+                  me: me,
+                  them: them
+                })}
+                disabled={!conversation.trim() || !me.trim() || !them.trim() || isAnalysisLoading}
                 className="w-full bg-teal-500 hover:bg-teal-600"
               >
                 {isAnalysisLoading ? (
