@@ -1,4 +1,5 @@
 import { ImageAnnotatorClient } from '@google-cloud/vision';
+import Anthropic from '@anthropic-ai/sdk';
 
 // Initialize the client with credentials from environment
 let vision: ImageAnnotatorClient | null = null;
@@ -63,6 +64,70 @@ export async function extractTextFromImage(imageBuffer: Buffer): Promise<string>
 }
 
 // New function to extract text with positional information using document detection
+// AI-powered WhatsApp message parsing using Anthropic Claude
+async function parseWhatsAppWithAI(ocrText: string): Promise<{
+  leftMessages: string[];
+  rightMessages: string[];
+}> {
+  try {
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
+    const prompt = `You are an expert at parsing WhatsApp chat screenshots from OCR text. Your task is to extract messages and correctly identify who sent each message.
+
+CRITICAL RULES:
+1. In WhatsApp, messages appear in two columns:
+   - LEFT SIDE (gray bubbles): Messages from the OTHER person (Alex in this case)
+   - RIGHT SIDE (green bubbles): Messages from the USER (the phone owner)
+
+2. Extract only actual MESSAGE CONTENT - ignore:
+   - Headers like "Alex Leonard", "last seen today at"
+   - Timestamps like "08:09", "19:42"
+   - UI elements like "till 53%", arrows, icons
+   - System messages, dates
+   - Read receipts (√, ✓)
+
+3. Reconstruct complete messages from fragments
+
+Here is the OCR text from a WhatsApp screenshot:
+
+${ocrText}
+
+Return ONLY a JSON object with this exact format:
+{
+  "leftMessages": ["complete message 1", "complete message 2"],
+  "rightMessages": ["complete message 1", "complete message 2"]
+}`;
+
+    const response = await anthropic.messages.create({
+      model: 'claude-3-7-sonnet-20250219', // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const content = response.content[0];
+    if (content.type === 'text') {
+      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          leftMessages: parsed.leftMessages || [],
+          rightMessages: parsed.rightMessages || []
+        };
+      }
+    }
+
+    // Fallback if AI parsing fails
+    return { leftMessages: [], rightMessages: [] };
+    
+  } catch (error) {
+    console.error('AI parsing error:', error);
+    // Fallback to empty arrays if AI parsing fails
+    return { leftMessages: [], rightMessages: [] };
+  }
+}
+
 export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
   leftMessages: string[];
   rightMessages: string[];
@@ -96,8 +161,8 @@ export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
     // Debug: log the raw OCR text to understand the structure
     console.log('Raw OCR text from Google Vision:', allText);
     
-    // Use coordinate-based clustering with the individual text blocks
-    const { leftMessages, rightMessages } = clusterMessagesByPosition(detections.slice(1));
+    // Use AI-powered parsing instead of coordinate clustering
+    const { leftMessages, rightMessages } = await parseWhatsAppWithAI(allText);
     
     console.log('Extracted left messages:', leftMessages);
     console.log('Extracted right messages:', rightMessages);
@@ -524,4 +589,68 @@ export async function extractTextFromMultipleImages(imageBuffers: Buffer[]): Pro
   }
   
   return results;
+}
+
+// AI-powered WhatsApp message parsing using Anthropic Claude
+async function parseWhatsAppWithAI(ocrText: string): Promise<{
+  leftMessages: string[];
+  rightMessages: string[];
+}> {
+  try {
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
+    const prompt = `You are an expert at parsing WhatsApp chat screenshots from OCR text. Your task is to extract messages and correctly identify who sent each message.
+
+CRITICAL RULES:
+1. In WhatsApp, messages appear in two columns:
+   - LEFT SIDE (gray bubbles): Messages from the OTHER person (Alex in this case)
+   - RIGHT SIDE (green bubbles): Messages from the USER (the phone owner)
+
+2. Extract only actual MESSAGE CONTENT - ignore:
+   - Headers like "Alex Leonard", "last seen today at"
+   - Timestamps like "08:09", "19:42"
+   - UI elements like "till 53%", arrows, icons
+   - System messages, dates
+   - Read receipts (√, ✓)
+
+3. Reconstruct complete messages from fragments
+
+Here is the OCR text from a WhatsApp screenshot:
+
+${ocrText}
+
+Return ONLY a JSON object with this exact format:
+{
+  "leftMessages": ["complete message 1", "complete message 2"],
+  "rightMessages": ["complete message 1", "complete message 2"]
+}`;
+
+    const response = await anthropic.messages.create({
+      model: 'claude-3-7-sonnet-20250219', // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const content = response.content[0];
+    if (content.type === 'text') {
+      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          leftMessages: parsed.leftMessages || [],
+          rightMessages: parsed.rightMessages || []
+        };
+      }
+    }
+
+    // Fallback if AI parsing fails
+    return { leftMessages: [], rightMessages: [] };
+    
+  } catch (error) {
+    console.error('AI parsing error:', error);
+    // Fallback to empty arrays if AI parsing fails
+    return { leftMessages: [], rightMessages: [] };
+  }
 }
