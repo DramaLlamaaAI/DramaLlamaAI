@@ -538,12 +538,12 @@ export default function ChatAnalysis() {
                           <div className="flex items-start gap-4 mb-4">
                             {/* Screenshot thumbnail */}
                             <div className="flex-shrink-0">
-                              <div className="w-32 h-48 bg-gray-100 dark:bg-gray-800 rounded border overflow-hidden">
+                              <div className="w-48 h-72 bg-gray-100 dark:bg-gray-800 rounded border overflow-hidden">
                                 {screenshots[originalIndex] && (
                                   <img
                                     src={screenshots[originalIndex].preview}
                                     alt={`Screenshot ${displayIndex + 1}`}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                   />
                                 )}
                               </div>
