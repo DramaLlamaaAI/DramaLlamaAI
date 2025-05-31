@@ -236,6 +236,53 @@ app.use(session({
     res.json({ success: true, message: 'Server connection working' });
   });
 
+  // Azure Computer Vision OCR endpoint
+  app.post('/api/ocr/azure', (req: Request, res: Response, next: NextFunction) => {
+    console.log('Azure OCR endpoint hit - before multer');
+    next();
+  }, upload.array('images', 10), handleMulterError, async (req: Request, res: Response) => {
+    try {
+      console.log('Azure OCR request received, processing', req.files?.length || 0, 'images');
+      console.log('Request headers:', req.headers['content-type']);
+      const { analyzeImageWithAzure } = await import('./services/azure-vision');
+      
+      if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+        return res.status(400).json({ error: 'No images provided' });
+      }
+      
+      const imageBuffers = (req.files as Express.Multer.File[]).map(file => file.buffer);
+      console.log('Image buffers created, sizes:', imageBuffers.map(buf => buf.length));
+      const results = [];
+      
+      for (let i = 0; i < imageBuffers.length; i++) {
+        try {
+          console.log(`Processing image ${i + 1}/${imageBuffers.length} with Azure...`);
+          const base64Image = imageBuffers[i].toString('base64');
+          const azureResult = await analyzeImageWithAzure(base64Image);
+          results.push(azureResult);
+          console.log(`Image ${i + 1}: ${azureResult.messages.length} messages extracted`);
+        } catch (error) {
+          console.error(`Failed to process image ${i + 1} with Azure:`, error);
+          results.push({ messages: [], imageWidth: 0, rawText: '', error: error instanceof Error ? error.message : 'Unknown error' });
+        }
+      }
+      
+      console.log('Azure OCR processing complete, sending response');
+      res.json({ 
+        success: true, 
+        results: results,
+        totalImages: imageBuffers.length,
+        successfulExtractions: results.filter(r => r.rawText && r.rawText.length > 0).length
+      });
+    } catch (error) {
+      console.error('Azure OCR endpoint error:', error);
+      res.status(500).json({ 
+        error: 'Azure OCR processing failed', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
   // Google Cloud Vision OCR endpoint with positioning
   app.post('/api/ocr/google', (req: Request, res: Response, next: NextFunction) => {
     console.log('OCR endpoint hit - before multer');
@@ -280,6 +327,59 @@ app.use(session({
       res.status(500).json({ 
         error: 'OCR processing failed', 
         message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
+  // Direct screenshot analysis - bypasses OCR extraction
+  app.post('/api/analyze/screenshot-direct', upload.array('images', 10), handleMulterError, async (req: Request, res: Response) => {
+    try {
+      console.log('Direct screenshot analysis request received');
+      
+      if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+        return res.status(400).json({ error: 'No images provided' });
+      }
+
+      const results = [];
+      const imageBuffers = (req.files as Express.Multer.File[]).map(file => file.buffer);
+      
+      for (let i = 0; i < imageBuffers.length; i++) {
+        try {
+          console.log(`Analyzing screenshot ${i + 1}/${imageBuffers.length} directly with Claude Vision...`);
+          const base64Image = imageBuffers[i].toString('base64');
+          
+          // Import the analysis function
+          const { analyzeWhatsAppScreenshot } = await import('./services/direct-analysis');
+          const analysis = await analyzeWhatsAppScreenshot(base64Image);
+          
+          results.push({
+            success: true,
+            analysis: analysis,
+            imageIndex: i
+          });
+          
+        } catch (error) {
+          console.error(`Failed to analyze screenshot ${i + 1}:`, error);
+          results.push({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            imageIndex: i
+          });
+        }
+      }
+      
+      res.json({
+        success: true,
+        results: results,
+        totalImages: imageBuffers.length,
+        successfulAnalyses: results.filter(r => r.success).length
+      });
+      
+    } catch (error) {
+      console.error('Direct screenshot analysis error:', error);
+      res.status(500).json({
+        error: 'Screenshot analysis failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
