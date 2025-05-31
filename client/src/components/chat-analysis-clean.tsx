@@ -119,10 +119,12 @@ export default function ChatAnalysis() {
       }
 
       // Store OCR results for preview
+      console.log('Setting OCR results for preview:', validResults);
       setOcrResults(validResults);
       
       // Initialize screenshot order
       setScreenshotOrder(validResults.map((_: any, index: number) => index));
+      console.log('Preview should now be visible');
 
       // Parse using positional data - left side is them, right side is you
       const parsedConversation = parsePositionedOCRResults(validResults, screenshotThem, screenshotMe);
