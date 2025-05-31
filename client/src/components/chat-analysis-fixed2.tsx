@@ -430,25 +430,32 @@ export default function ChatAnalysisFixed() {
         const base64 = await base64Promise;
         console.log(`Extracting text from image ${i + 1}`);
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout per image
 
-        const response = await fetch('/api/ocr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64 }),
-          signal: controller.signal
-        });
+          const response = await fetch('/api/ocr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64 }),
+            signal: controller.signal
+          });
 
-        clearTimeout(timeoutId);
+          clearTimeout(timeoutId);
 
-        if (!response.ok) {
-          throw new Error(`Failed to extract text from image ${i + 1}`);
+          if (!response.ok) {
+            console.error(`OCR failed for image ${i + 1}:`, response.status);
+            texts.push(''); // Add empty text for failed extraction
+            continue;
+          }
+
+          const ocrResult = await response.json();
+          texts.push(ocrResult.text || '');
+          console.log(`Text extracted from image ${i + 1}:`, ocrResult.text?.length || 0, 'characters');
+        } catch (imageError) {
+          console.error(`Error processing image ${i + 1}:`, imageError);
+          texts.push(''); // Add empty text for failed extraction
         }
-
-        const ocrResult = await response.json();
-        texts.push(ocrResult.text || '');
-        console.log(`Text extracted from image ${i + 1}:`, ocrResult.text?.length || 0, 'characters');
       }
 
       setExtractedTexts(texts);
@@ -983,7 +990,7 @@ export default function ChatAnalysisFixed() {
                       <Button 
                         onClick={handleAnalyzeScreenshot}
                         disabled={!canUseFeature || analysisMutation.isPending}
-                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3"
+                        className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-3"
                       >
                         {analysisMutation.isPending ? (
                           <>
@@ -1896,7 +1903,7 @@ export default function ChatAnalysisFixed() {
                 <Button onClick={() => setShowPreview(false)} variant="outline">
                   Cancel
                 </Button>
-                <Button onClick={handleExtractText} className="flex-1">
+                <Button onClick={handleExtractText} className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
                   Extract Text from Screenshots
                 </Button>
               </div>
@@ -1940,7 +1947,7 @@ export default function ChatAnalysisFixed() {
                     <Button onClick={() => setPreviewMode('order')} variant="outline">
                       Back to Order
                     </Button>
-                    <Button onClick={handleConfirmAnalysis} className="flex-1">
+                    <Button onClick={handleConfirmAnalysis} className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
                       Confirm & Analyze Conversation
                     </Button>
                   </div>
