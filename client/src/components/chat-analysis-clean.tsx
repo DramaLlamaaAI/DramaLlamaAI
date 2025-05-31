@@ -122,36 +122,67 @@ export default function ChatAnalysis() {
       
       for (let i = 0; i < screenshots.length; i++) {
         const screenshot = screenshots[i];
-        setOcrProgress((i / screenshots.length) * 100);
+        setOcrProgress((i / screenshots.length) * 80); // Reserve 20% for final processing
 
-        // Use Tesseract.js for OCR
-        const { recognize } = await import('tesseract.js');
-        const result = await recognize(screenshot.file, 'eng', {
-          logger: (m) => console.log('OCR Progress:', m)
-        });
+        try {
+          // Use Tesseract.js for OCR with more robust configuration
+          const Tesseract = await import('tesseract.js');
+          
+          const result = await Tesseract.recognize(screenshot.file, 'eng', {
+            logger: (m) => {
+              if (m.status === 'recognizing text') {
+                console.log(`OCR Progress for image ${i + 1}: ${Math.round(m.progress * 100)}%`);
+              }
+            },
+            // Add more specific OCR options for better text detection
+            tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?:;-() \'"',
+          });
 
-        if (result.data.text.trim()) {
-          allExtractedTexts.push(result.data.text.trim());
+          if (result && result.data && result.data.text && result.data.text.trim()) {
+            allExtractedTexts.push(result.data.text.trim());
+            console.log(`Successfully extracted text from image ${i + 1}:`, result.data.text.substring(0, 100) + '...');
+          } else {
+            console.warn(`No text extracted from image ${i + 1}`);
+          }
+        } catch (imageError) {
+          console.error(`Failed to process image ${i + 1}:`, imageError);
+          // Continue with other images even if one fails
         }
       }
 
-      setOcrProgress(100);
+      setOcrProgress(90);
+
+      if (allExtractedTexts.length === 0) {
+        throw new Error('No text could be extracted from any of the screenshots. Please ensure the images contain clear, readable text.');
+      }
 
       // Combine and parse the extracted texts
       const combinedText = allExtractedTexts.join('\n\n');
+      console.log('Combined extracted text:', combinedText);
+      
       const parsedConversation = parseScreenshotText(combinedText, messageSide, screenshotMe, screenshotThem);
       
+      setOcrProgress(100);
       setExtractedText(parsedConversation);
+
+      toast({
+        title: "Text Extraction Complete",
+        description: `Successfully extracted text from ${allExtractedTexts.length} of ${screenshots.length} screenshots.`,
+      });
 
     } catch (error) {
       console.error('OCR processing failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown OCR processing error occurred';
+      
       toast({
-        title: "OCR Processing Failed",
-        description: "Unable to extract text from screenshots. Please try again or use manual text input.",
+        title: "Text Extraction Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setIsProcessingScreenshots(false);
+      setOcrProgress(0);
     }
   };
 
@@ -913,28 +944,24 @@ export default function ChatAnalysis() {
                 {screenshots.length > 0 && (
                   <div className="space-y-4 border-t pt-6">
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Message Layout</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Tell us which side your messages appear on in the screenshots.
-                      </p>
+                      <h3 className="text-lg font-semibold mb-4">Message Layout</h3>
+                      <p className="text-base mb-4">My messages are on the:</p>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="flex gap-4">
                       <Button
                         variant={messageSide === 'left' ? 'default' : 'outline'}
                         onClick={() => setMessageSide('left')}
-                        className="h-auto p-6 flex flex-col items-center space-y-3 text-center"
+                        className="flex-1 py-3"
                       >
-                        <div className="text-base font-semibold">My messages on the LEFT</div>
-                        <div className="text-sm opacity-80">Left side bubbles are mine</div>
+                        LEFT
                       </Button>
                       <Button
                         variant={messageSide === 'right' ? 'default' : 'outline'}
                         onClick={() => setMessageSide('right')}
-                        className="h-auto p-6 flex flex-col items-center space-y-3 text-center"
+                        className="flex-1 py-3"
                       >
-                        <div className="text-base font-semibold">My messages on the RIGHT</div>
-                        <div className="text-sm opacity-80">Right side bubbles are mine</div>
+                        RIGHT
                       </Button>
                     </div>
                   </div>
