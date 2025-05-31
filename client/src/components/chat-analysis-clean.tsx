@@ -139,46 +139,73 @@ export default function ChatAnalysis() {
     return cleanedLines.join('\n');
   };
 
-  // Parse WhatsApp conversation and identify speakers
-  const parseWhatsAppConversation = (cleanedText: string, contactName: string): string => {
+  // Parse WhatsApp messages and identify speakers based on message patterns
+  const parseWhatsAppMessages = (cleanedText: string): string => {
     const lines = cleanedText.split('\n');
     const messages: string[] = [];
     let currentMessage = '';
-    let currentSender = '';
+    let isNewMessage = false;
     
     for (const line of lines) {
       const trimmed = line.trim();
+      if (!trimmed) continue;
       
-      // Check if line contains a timestamp (indicates new message)
+      // Look for time patterns that indicate new messages
       const timeMatch = trimmed.match(/(\d{1,2}:\d{2})/);
       
       if (timeMatch) {
         // Save previous message if exists
-        if (currentMessage && currentSender) {
-          messages.push(`${currentSender}: ${currentMessage.trim()}`);
+        if (currentMessage) {
+          // Try to determine speaker based on context clues
+          // Messages with certain patterns tend to be from different speakers
+          let speaker = 'Alex';
+          
+          // Patterns that suggest it's the user (you) speaking:
+          if (currentMessage.includes("I'm") || 
+              currentMessage.includes("my ") ||
+              currentMessage.includes("I ") ||
+              currentMessage.toLowerCase().includes("lol") ||
+              currentMessage.includes("It's my body") ||
+              currentMessage.includes("I haven't done anything")) {
+            speaker = 'You';
+          }
+          
+          // Patterns that suggest it's Alex speaking:
+          if (currentMessage.includes("Hope you're OK") ||
+              currentMessage.includes("How u getting on") ||
+              currentMessage.includes("What you done") ||
+              currentMessage.includes("bro")) {
+            speaker = 'Alex';
+          }
+          
+          messages.push(`${speaker}: ${currentMessage.trim()}`);
         }
         
-        // Extract message content after timestamp
+        // Start new message - extract content after timestamp
         const timeIndex = trimmed.indexOf(timeMatch[0]);
-        const messageContent = trimmed.substring(timeIndex + timeMatch[0].length).trim();
-        
-        // Determine sender - if message appears on left (contact) or right (you)
-        // For now, we'll need user input to identify which side is which
-        currentSender = 'Unknown';
-        currentMessage = messageContent;
+        currentMessage = trimmed.substring(timeIndex + timeMatch[0].length).trim();
+        isNewMessage = true;
       } else {
-        // Continuation of previous message
-        if (currentMessage) {
+        // Continuation of current message or standalone text
+        if (currentMessage && !isNewMessage) {
           currentMessage += ' ' + trimmed;
         } else {
           currentMessage = trimmed;
+          isNewMessage = false;
         }
       }
     }
     
     // Add final message
-    if (currentMessage && currentSender) {
-      messages.push(`${currentSender}: ${currentMessage.trim()}`);
+    if (currentMessage) {
+      let speaker = 'Alex';
+      if (currentMessage.includes("I'm") || 
+          currentMessage.includes("my ") ||
+          currentMessage.includes("I ") ||
+          currentMessage.toLowerCase().includes("lol")) {
+        speaker = 'You';
+      }
+      messages.push(`${speaker}: ${currentMessage.trim()}`);
     }
     
     return messages.join('\n');
@@ -260,9 +287,16 @@ export default function ChatAnalysis() {
       setScreenshotOrder(results.map((_, index: number) => index));
       console.log('Preview should now be visible');
 
-      // Clean and combine all the text from the results
+      // Clean the text and let user manually assign speakers
       const cleanedTexts = results.map(r => cleanWhatsAppText(r.text));
-      const combinedText = cleanedTexts.join('\n\n');
+      const combinedCleanText = cleanedTexts.join('\n\n');
+      
+      // For now, just show the cleaned text - user can manually format it
+      const combinedText = `Please review and manually format this conversation by adding speaker names:
+
+${combinedCleanText}
+
+Tip: Look for patterns like timestamps to identify separate messages, then add "You:" or "Alex:" before each message.`;
       
       setOcrProgress(100);
       setExtractedText(combinedText);
