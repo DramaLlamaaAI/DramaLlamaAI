@@ -327,43 +327,70 @@ export default function ChatAnalysis() {
 
               {screenshots.length > 0 && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Screenshots ({screenshots.length})</h3>
-                  <div className="grid gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Screenshots ({screenshots.length})</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Review your screenshots and ensure they're in chronological order. You can reorder them using the arrow buttons.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
                     {screenshots.map((screenshot, index) => (
-                      <div key={index} className="flex items-center gap-4 p-3 border rounded-lg">
-                        <img 
-                          src={screenshot.preview} 
-                          alt={`Screenshot ${index + 1}`}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium">Screenshot {index + 1}</p>
-                          <p className="text-sm text-muted-foreground">{screenshot.file.name}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => moveUploadedScreenshot(index, 'up')}
-                            disabled={index === 0}
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => moveUploadedScreenshot(index, 'down')}
-                            disabled={index === screenshots.length - 1}
-                          >
-                            <ArrowDown className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => removeScreenshot(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                      <div key={index} className="border rounded-lg p-4 bg-card">
+                        <div className="flex items-start gap-4">
+                          {/* Large screenshot preview */}
+                          <div className="flex-shrink-0">
+                            <div className="w-48 h-72 bg-gray-100 dark:bg-gray-800 rounded border overflow-hidden">
+                              <img
+                                src={screenshot.preview}
+                                alt={`Screenshot ${index + 1}`}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Controls and info */}
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium">Screenshot {index + 1}</h4>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => moveUploadedScreenshot(index, 'up')}
+                                  disabled={index === 0}
+                                  title="Move up"
+                                >
+                                  <ArrowUp className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => moveUploadedScreenshot(index, 'down')}
+                                  disabled={index === screenshots.length - 1}
+                                  title="Move down"
+                                >
+                                  <ArrowDown className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => removeScreenshot(index)}
+                                  title="Remove screenshot"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="text-sm text-muted-foreground space-y-1">
+                              <p><strong>File:</strong> {screenshot.file.name}</p>
+                              <p><strong>Size:</strong> {(screenshot.file.size / 1024 / 1024).toFixed(2)} MB</p>
+                              <p className="text-xs mt-2 text-blue-600">
+                                💡 Tip: Make sure screenshots are in chronological order (oldest first)
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
