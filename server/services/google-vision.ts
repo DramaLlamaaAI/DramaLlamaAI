@@ -137,40 +137,65 @@ export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
       }
     }
 
-    // Group nearby text blocks into complete messages
+    // Group nearby text blocks into complete messages using clustering
     const groupTextBlocks = (blocks: Array<{text: string, x: number, y: number}>): string[] => {
       if (blocks.length === 0) return [];
       
       // Sort blocks by Y position (top to bottom)
       const sortedBlocks = blocks.sort((a, b) => a.y - b.y);
+      
+      // Create message clusters based on vertical gaps
+      const clusters: Array<Array<{text: string, x: number, y: number}>> = [];
+      let currentCluster: Array<{text: string, x: number, y: number}> = [sortedBlocks[0]];
+      
+      for (let i = 1; i < sortedBlocks.length; i++) {
+        const currentBlock = sortedBlocks[i];
+        const previousBlock = sortedBlocks[i - 1];
+        
+        // If there's a significant vertical gap, start a new cluster (new message bubble)
+        const verticalGap = Math.abs(currentBlock.y - previousBlock.y);
+        
+        if (verticalGap > 50) { // 50px gap indicates new message bubble
+          clusters.push(currentCluster);
+          currentCluster = [currentBlock];
+        } else {
+          currentCluster.push(currentBlock);
+        }
+      }
+      
+      // Don't forget the last cluster
+      if (currentCluster.length > 0) {
+        clusters.push(currentCluster);
+      }
+      
+      // Convert clusters to message strings
       const messages: string[] = [];
-      let currentMessage: string[] = [];
-      let lastY = sortedBlocks[0].y;
-
-      for (const block of sortedBlocks) {
-        // If this block is far below the last one (new message bubble)
-        if (Math.abs(block.y - lastY) > 40) { // 40px threshold for new message
-          if (currentMessage.length > 0) {
-            const messageText = currentMessage.join(' ').trim();
-            if (messageText.length > 2 && !isUIElement(messageText)) {
-              messages.push(messageText);
+      
+      for (const cluster of clusters) {
+        // Sort cluster blocks by X position (left to right) for proper word order
+        const sortedCluster = cluster.sort((a, b) => a.x - b.x);
+        const messageWords = sortedCluster.map(block => block.text).filter(text => text.trim().length > 0);
+        
+        if (messageWords.length > 0) {
+          const messageText = messageWords.join(' ').trim();
+          
+          // Filter out obvious UI elements and very short fragments
+          if (messageText.length >= 3 && !isUIElement(messageText)) {
+            // Clean up the message text
+            const cleanedMessage = messageText
+              .replace(/^\d{1,2}:\d{2}\s*/, '') // Remove leading timestamps
+              .replace(/\s*\d{1,2}:\d{2}\s*$/, '') // Remove trailing timestamps
+              .replace(/[✓√]+\s*$/, '') // Remove read receipts
+              .replace(/\s+/g, ' ') // Normalize whitespace
+              .trim();
+            
+            if (cleanedMessage.length >= 3) {
+              messages.push(cleanedMessage);
             }
           }
-          currentMessage = [block.text];
-        } else {
-          currentMessage.push(block.text);
-        }
-        lastY = block.y;
-      }
-
-      // Add the last message
-      if (currentMessage.length > 0) {
-        const messageText = currentMessage.join(' ').trim();
-        if (messageText.length > 2 && !isUIElement(messageText)) {
-          messages.push(messageText);
         }
       }
-
+      
       return messages;
     };
 
