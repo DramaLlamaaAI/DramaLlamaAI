@@ -258,7 +258,7 @@ export default function ChatAnalysis() {
       <Tabs defaultValue="screenshots" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="screenshots">Screenshot Analysis</TabsTrigger>
-          <TabsTrigger value="text">Text Analysis</TabsTrigger>
+          <TabsTrigger value="text">Import WhatsApp Chat</TabsTrigger>
         </TabsList>
 
         <TabsContent value="screenshots" className="space-y-6">
@@ -494,21 +494,32 @@ export default function ChatAnalysis() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" />
-                Direct Text Input
+                <Download className="h-5 w-5" />
+                Import WhatsApp Chat Export
               </CardTitle>
               <CardDescription>
-                Paste or type your conversation directly for analysis.
+                Import a WhatsApp chat export file for comprehensive analysis.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How to Export WhatsApp Chat:</h4>
+                <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-decimal list-inside">
+                  <li>Open WhatsApp and go to the chat you want to analyze</li>
+                  <li>Tap the contact/group name at the top</li>
+                  <li>Scroll down and tap "Export Chat"</li>
+                  <li>Choose "Without Media" for faster processing</li>
+                  <li>Save the .txt file and upload it below</li>
+                </ol>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">My Name</label>
                   <Input
                     value={me}
                     onChange={(e) => setMe(e.target.value)}
-                    placeholder="Your name"
+                    placeholder="Your name in the chat"
                   />
                 </div>
                 <div>
@@ -520,31 +531,71 @@ export default function ChatAnalysis() {
                   />
                 </div>
               </div>
-              
-              <Textarea
-                value={conversation}
-                onChange={(e) => setConversation(e.target.value)}
-                rows={15}
-                className="font-mono text-sm"
-                placeholder="Paste your conversation here..."
-              />
-              
-              <Button
-                onClick={() => analyzeConversation.mutate({
-                  conversation: conversation,
-                  me: me,
-                  them: them
-                })}
-                disabled={!conversation.trim() || !me.trim() || !them.trim() || isAnalysisLoading}
-                className="w-full bg-teal-500 hover:bg-teal-600"
+
+              <div
+                className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors cursor-pointer"
+                onClick={() => document.getElementById('chat-file-upload')?.click()}
               >
-                {isAnalysisLoading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Brain className="h-4 w-4 mr-2" />
-                )}
-                {isAnalysisLoading ? 'Analyzing...' : 'Analyze Conversation'}
-              </Button>
+                <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Upload WhatsApp Chat Export
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Click here or drag and drop your exported chat .txt file
+                </p>
+                <input
+                  id="chat-file-upload"
+                  type="file"
+                  accept=".txt"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const content = event.target?.result as string;
+                        if (content) {
+                          setConversation(content);
+                          toast({
+                            title: "Chat Imported",
+                            description: `Successfully imported ${file.name}`,
+                          });
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                />
+              </div>
+              
+              {conversation && (
+                <div className="space-y-4">
+                  <Textarea
+                    value={conversation}
+                    onChange={(e) => setConversation(e.target.value)}
+                    rows={8}
+                    className="font-mono text-sm"
+                    placeholder="Your imported chat will appear here..."
+                  />
+                  
+                  <Button
+                    onClick={() => analyzeConversation.mutate({
+                      conversation: conversation,
+                      me: me,
+                      them: them
+                    })}
+                    disabled={!conversation.trim() || !me.trim() || !them.trim() || isAnalysisLoading}
+                    className="w-full bg-teal-500 hover:bg-teal-600"
+                  >
+                    {isAnalysisLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Brain className="h-4 w-4 mr-2" />
+                    )}
+                    {isAnalysisLoading ? 'Analyzing...' : 'Analyze Imported Chat'}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -111,9 +111,6 @@ export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
     const screenWidth = maxX - minX;
     const centerX = minX + (screenWidth / 2);
 
-    const leftMessages: string[] = [];
-    const rightMessages: string[] = [];
-
     // Group text blocks by proximity to form complete messages
     const leftBlocks: Array<{text: string, x: number, y: number}> = [];
     const rightBlocks: Array<{text: string, x: number, y: number}> = [];
@@ -177,10 +174,10 @@ export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
       return messages;
     };
 
-    const leftMessages = groupTextBlocks(leftBlocks);
-    const rightMessages = groupTextBlocks(rightBlocks);
+    const finalLeftMessages = groupTextBlocks(leftBlocks);
+    const finalRightMessages = groupTextBlocks(rightBlocks);
 
-    return { leftMessages, rightMessages, allText };
+    return { leftMessages: finalLeftMessages, rightMessages: finalRightMessages, allText };
   } catch (error) {
     console.error('Google Vision OCR with positions error:', error);
     throw new Error(`OCR processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
