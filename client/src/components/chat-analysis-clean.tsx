@@ -533,25 +533,43 @@ export default function ChatAnalysis() {
                       
                       return (
                         <div key={originalIndex} className="border rounded-lg p-4 bg-card">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-medium">Screenshot {displayIndex + 1}</h4>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => reorderScreenshot(displayIndex, Math.max(0, displayIndex - 1))}
-                                disabled={displayIndex === 0}
-                              >
-                                <ArrowUp className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => reorderScreenshot(displayIndex, Math.min(screenshotOrder.length - 1, displayIndex + 1))}
-                                disabled={displayIndex === screenshotOrder.length - 1}
-                              >
-                                <ArrowDown className="h-4 w-4" />
-                              </Button>
+                          <div className="flex items-start gap-4 mb-4">
+                            {/* Screenshot thumbnail */}
+                            <div className="flex-shrink-0">
+                              <div className="w-32 h-48 bg-gray-100 dark:bg-gray-800 rounded border overflow-hidden">
+                                {screenshots[originalIndex] && (
+                                  <img
+                                    src={screenshots[originalIndex].preview}
+                                    alt={`Screenshot ${displayIndex + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Header and controls */}
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="font-medium">Screenshot {displayIndex + 1}</h4>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => reorderScreenshot(displayIndex, Math.max(0, displayIndex - 1))}
+                                    disabled={displayIndex === 0}
+                                  >
+                                    <ArrowUp className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => reorderScreenshot(displayIndex, Math.min(screenshotOrder.length - 1, displayIndex + 1))}
+                                    disabled={displayIndex === screenshotOrder.length - 1}
+                                  >
+                                    <ArrowDown className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
                             </div>
                           </div>
                           
