@@ -58,7 +58,7 @@ export default function ChatAnalysis() {
   });
 
   // Check if user can use features based on tier and usage
-  const canUseFeature = userUsage && userUsage.analysesRemaining > 0;
+  const canUseFeature = userUsage && (userUsage.limit === null || userUsage.analysesRemaining > 0);
 
   const analysisMutation = useMutation({
     mutationFn: analyzeChatConversation,

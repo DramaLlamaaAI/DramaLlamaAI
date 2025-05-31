@@ -87,9 +87,10 @@ export function useUserTier(): UseTierResult {
   // Determine if user can use features based on authentication status and usage
   let canUseFeature = true;
   
-  // If user is authenticated, they should have unlimited usage
+  // If user is authenticated, check their tier limits
   if (isAuthenticated) {
-    // For all tiers except 'instant', canUseFeature will be true if limit is null
+    // Beta tier and admin users have unlimited access (limit is null)
+    // Pro tier also has unlimited access (limit is null)
     canUseFeature = limit === null || used < limit;
   } 
   // If not authenticated, anonymous users are limited to 5 analyses per month
