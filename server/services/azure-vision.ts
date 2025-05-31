@@ -1,4 +1,5 @@
 import axios from 'axios';
+import sharp from 'sharp';
 
 interface BoundingBox {
   x: number;
@@ -17,7 +18,8 @@ interface AzureTextBlock {
 }
 
 interface AzureOCRResult {
-  analyzeResult: {
+  status?: string;
+  analyzeResult?: {
     readResults: {
       lines: AzureTextLine[];
     }[];
@@ -75,12 +77,60 @@ export async function analyzeImageWithAzure(base64Image: string): Promise<{
       throw new Error('Image too small to process');
     }
 
+    // Validate and potentially resize image for Azure API requirements
+    console.log('Processing image for Azure Vision API...');
+    let processedBuffer = imageBuffer;
+    
+    try {
+      const metadata = await sharp(imageBuffer).metadata();
+      console.log(`Original image dimensions: ${metadata.width}x${metadata.height}`);
+      
+      // Azure requires images between 50x50 and 10000x10000 pixels
+      if (!metadata.width || !metadata.height || 
+          metadata.width < 50 || metadata.height < 50 ||
+          metadata.width > 10000 || metadata.height > 10000) {
+        
+        console.log('Resizing image to meet Azure requirements...');
+        
+        // Calculate new dimensions while maintaining aspect ratio
+        let newWidth = metadata.width || 100;
+        let newHeight = metadata.height || 100;
+        
+        // If too small, scale up proportionally
+        if (newWidth < 50 || newHeight < 50) {
+          const scale = Math.max(50 / newWidth, 50 / newHeight);
+          newWidth = Math.round(newWidth * scale);
+          newHeight = Math.round(newHeight * scale);
+        }
+        
+        // If too large, scale down proportionally
+        if (newWidth > 10000 || newHeight > 10000) {
+          const scale = Math.min(10000 / newWidth, 10000 / newHeight);
+          newWidth = Math.round(newWidth * scale);
+          newHeight = Math.round(newHeight * scale);
+        }
+        
+        processedBuffer = await sharp(imageBuffer)
+          .resize(newWidth, newHeight, {
+            fit: 'inside',
+            withoutEnlargement: false
+          })
+          .png()
+          .toBuffer();
+          
+        console.log(`Resized image to: ${newWidth}x${newHeight}`);
+      }
+    } catch (sharpError) {
+      console.error('Error processing image with Sharp:', sharpError);
+      throw new Error('Failed to process image for Azure API');
+    }
+
     // Step 1: Submit image for analysis
     const cleanEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
     // Use the correct API version for F0 tier
     const analyzeUrl = `${cleanEndpoint}/vision/v3.2/read/analyze`;
     console.log('Making request to:', analyzeUrl);
-    const submitResponse = await axios.post(analyzeUrl, imageBuffer, {
+    const submitResponse = await axios.post(analyzeUrl, processedBuffer, {
       headers: {
         'Ocp-Apim-Subscription-Key': subscriptionKey,
         'Content-Type': 'application/octet-stream'
@@ -97,7 +147,7 @@ export async function analyzeImageWithAzure(base64Image: string): Promise<{
 
     // Step 2: Poll for results
     console.log('Polling Azure for OCR results...');
-    let result: AzureOCRResult;
+    let result: AzureOCRResult | undefined;
     let attempts = 0;
     const maxAttempts = 60; // Increased for F0 tier
 
@@ -112,9 +162,9 @@ export async function analyzeImageWithAzure(base64Image: string): Promise<{
         });
         
         result = resultResponse.data;
-        console.log(`Poll attempt ${attempts + 1}: Status = ${result.status || 'unknown'}`);
+        console.log(`Poll attempt ${attempts + 1}: Status = ${result?.status || 'unknown'}`);
         
-        if (result.status === 'failed') {
+        if (result?.status === 'failed') {
           throw new Error('Azure OCR processing failed');
         }
         
@@ -131,7 +181,11 @@ export async function analyzeImageWithAzure(base64Image: string): Promise<{
           throw pollError;
         }
       }
-    } while (result.status !== 'succeeded' && result.analyzeResult?.readResults?.[0]?.lines === undefined);
+    } while (result?.status !== 'succeeded' && !result?.analyzeResult?.readResults?.[0]?.lines);
+
+    if (!result?.analyzeResult?.readResults?.[0]?.lines) {
+      throw new Error('Azure OCR failed to extract text from image');
+    }
 
     console.log('Azure Vision OCR completed successfully');
 
