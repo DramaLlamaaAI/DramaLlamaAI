@@ -752,7 +752,16 @@ export default function ChatAnalysis() {
                     <p className="text-sm text-muted-foreground">{result.summary}</p>
                   </div>
                   
-                  {result.tone && (
+                  {/* Overall Emotional Tone */}
+                  {result.toneAnalysis?.overallTone && (
+                    <div>
+                      <h4 className="font-medium mb-2">Overall Emotional Tone</h4>
+                      <p className="text-sm text-muted-foreground">{result.toneAnalysis.overallTone}</p>
+                    </div>
+                  )}
+                  
+                  {/* Fallback for simple tone */}
+                  {!result.toneAnalysis?.overallTone && result.tone && (
                     <div>
                       <h4 className="font-medium mb-2">Overall Tone</h4>
                       <p className="text-sm text-muted-foreground">{result.tone}</p>
@@ -761,12 +770,99 @@ export default function ChatAnalysis() {
                 </div>
               </div>
 
+              {/* Conversation Health Meter */}
+              {result.healthScore && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <Activity className="h-5 w-5 mr-2 text-green-500" />
+                    Conversation Health Meter
+                  </h3>
+                  
+                  <div className="bg-gray-50 rounded-lg p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm font-medium">Health Score</span>
+                      <span className="text-2xl font-bold" style={{
+                        color: result.healthScore.color === 'green' ? '#22c55e' : 
+                               result.healthScore.color === 'yellow' ? '#eab308' : 
+                               result.healthScore.color === 'orange' ? '#f97316' : '#ef4444'
+                      }}>
+                        {result.healthScore.score}/100
+                      </span>
+                    </div>
+                    
+                    <Progress 
+                      value={result.healthScore.score} 
+                      className="h-3 mb-2"
+                    />
+                    
+                    <div className="flex justify-between text-xs text-muted-foreground mb-4">
+                      <span>Poor</span>
+                      <span>Neutral</span>
+                      <span>Excellent</span>
+                    </div>
+                    
+                    <div className="text-center">
+                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                        result.healthScore.color === 'green' ? 'bg-green-100 text-green-800' : 
+                        result.healthScore.color === 'yellow' ? 'bg-yellow-100 text-yellow-800' : 
+                        result.healthScore.color === 'orange' ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {result.healthScore.label}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Red Flags Section */}
               {result.redFlags && (
-                <RedFlags 
-                  redFlags={result.redFlags}
-                  redFlagTypes={result.redFlagTypes}
-                />
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <Flame className="h-5 w-5 mr-2 text-red-500" />
+                    Red Flags ({Array.isArray(result.redFlags) ? result.redFlags.length : 0})
+                  </h3>
+                  
+                  {Array.isArray(result.redFlags) && result.redFlags.length > 0 ? (
+                    <div className="space-y-4">
+                      {result.redFlags.map((flag, index) => (
+                        <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="font-medium text-red-800">{flag.type || 'Communication Issue'}</h4>
+                            <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full">
+                              {flag.participant || 'Unknown'}
+                            </span>
+                          </div>
+                          
+                          <p className="text-sm text-red-700 mb-3">
+                            {flag.description || 'Communication pattern detected'}
+                          </p>
+                          
+                          {flag.examples && flag.examples.length > 0 && (
+                            <div className="mt-3">
+                              <h5 className="text-xs font-medium text-red-800 mb-2">Key Quote:</h5>
+                              <blockquote className="bg-white border-l-4 border-red-300 pl-3 py-2 text-sm text-gray-700 italic">
+                                "{flag.examples[0].quote || flag.examples[0].text || flag.examples[0]}"
+                              </blockquote>
+                              {flag.examples[0].participant && (
+                                <p className="text-xs text-red-600 mt-1">— {flag.examples[0].participant}</p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {flag.impact && (
+                            <div className="mt-3 p-2 bg-red-100 rounded text-xs text-red-800">
+                              <strong>Impact:</strong> {flag.impact}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                      <p className="text-green-700">No significant red flags detected in this conversation.</p>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Evasion Detection */}
