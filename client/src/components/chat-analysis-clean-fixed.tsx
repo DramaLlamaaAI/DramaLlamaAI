@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { ChatAnalysisResponse } from '@shared/schema';
+import AnalysisDisplay from '@/components/ui/analysis-display';
 
 export default function ChatAnalysis() {
   const [conversation, setConversation] = useState('');
