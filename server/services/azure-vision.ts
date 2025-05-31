@@ -52,7 +52,8 @@ export async function analyzeImageWithAzure(base64Image: string): Promise<{
     const imageBuffer = Buffer.from(cleanBase64, 'base64');
 
     // Step 1: Submit image for analysis
-    const analyzeUrl = `${endpoint}/vision/v3.2/read/analyze`;
+    const cleanEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
+    const analyzeUrl = `${cleanEndpoint}/vision/v3.2/read/analyze`;
     const submitResponse = await axios.post(analyzeUrl, imageBuffer, {
       headers: {
         'Ocp-Apim-Subscription-Key': subscriptionKey,
