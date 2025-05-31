@@ -40,6 +40,7 @@ export default function ChatAnalysis() {
   const [extractedText, setExtractedText] = useState<string | null>(null);
   const [isProcessingScreenshots, setIsProcessingScreenshots] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
+  const [ocrResults, setOcrResults] = useState<Array<{leftMessages: string[], rightMessages: string[]}> | null>(null);
   const { toast } = useToast();
 
   // Get user tier info
@@ -96,6 +97,9 @@ export default function ChatAnalysis() {
       if (validResults.length === 0) {
         throw new Error('No readable text found in the screenshots. Please ensure images contain clear, visible text.');
       }
+
+      // Store OCR results for preview
+      setOcrResults(validResults);
 
       // Parse using positional data - left side is them, right side is you
       const parsedConversation = parsePositionedOCRResults(validResults, screenshotThem, screenshotMe);
