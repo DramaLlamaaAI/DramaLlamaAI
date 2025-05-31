@@ -96,8 +96,8 @@ export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
     // Debug: log the raw OCR text to understand the structure
     console.log('Raw OCR text from Google Vision:', allText);
     
-    // Try pattern-based extraction from full text
-    const { leftMessages, rightMessages } = extractMessagesFromFullText(allText);
+    // Use coordinate-based clustering with the individual text blocks
+    const { leftMessages, rightMessages } = clusterMessagesByPosition(detections.slice(1));
     
     console.log('Extracted left messages:', leftMessages);
     console.log('Extracted right messages:', rightMessages);
@@ -109,7 +109,118 @@ export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
   }
 }
 
-// Extract messages from full OCR text using WhatsApp patterns
+// Cluster OCR text blocks into message bubbles using coordinates
+function clusterMessagesByPosition(textBlocks: any[]): {
+  leftMessages: string[];
+  rightMessages: string[];
+} {
+  if (!textBlocks || textBlocks.length === 0) {
+    return { leftMessages: [], rightMessages: [] };
+  }
+
+  // Extract blocks with coordinates
+  const blocks = textBlocks
+    .map(block => {
+      const text = block.description?.trim();
+      const vertices = block.boundingPoly?.vertices;
+      
+      if (!text || !vertices || vertices.length < 4) return null;
+      
+      // Calculate center coordinates
+      const avgX = vertices.reduce((sum: number, v: any) => sum + (v.x || 0), 0) / vertices.length;
+      const avgY = vertices.reduce((sum: number, v: any) => sum + (v.y || 0), 0) / vertices.length;
+      
+      return { text, x: avgX, y: avgY };
+    })
+    .filter(block => block !== null && !isUIElement(block.text));
+
+  if (blocks.length === 0) {
+    return { leftMessages: [], rightMessages: [] };
+  }
+
+  // Determine image dimensions for positioning
+  const allX = blocks.map(b => b.x);
+  const imageWidth = Math.max(...allX) - Math.min(...allX);
+  const leftThreshold = Math.min(...allX) + (imageWidth * 0.4);
+  const rightThreshold = Math.min(...allX) + (imageWidth * 0.6);
+
+  // Step 1: Group words into lines based on Y proximity (within 15px vertically)
+  const lines: any[][] = [];
+  const sortedBlocks = [...blocks].sort((a, b) => a.y - b.y);
+  
+  let currentLine: any[] = [sortedBlocks[0]];
+  
+  for (let i = 1; i < sortedBlocks.length; i++) {
+    const block = sortedBlocks[i];
+    const lastBlock = currentLine[currentLine.length - 1];
+    
+    if (Math.abs(block.y - lastBlock.y) <= 15) {
+      // Same line
+      currentLine.push(block);
+    } else {
+      // New line
+      lines.push(currentLine);
+      currentLine = [block];
+    }
+  }
+  lines.push(currentLine);
+
+  // Step 2: Within each line, group words into bubbles based on X proximity (within 30px)
+  const bubbles: any[] = [];
+  
+  for (const line of lines) {
+    const sortedLine = line.sort((a, b) => a.x - b.x);
+    let currentBubble: any[] = [sortedLine[0]];
+    
+    for (let i = 1; i < sortedLine.length; i++) {
+      const block = sortedLine[i];
+      const lastBlock = currentBubble[currentBubble.length - 1];
+      
+      if (Math.abs(block.x - lastBlock.x) <= 30) {
+        // Same bubble
+        currentBubble.push(block);
+      } else {
+        // New bubble
+        bubbles.push(currentBubble);
+        currentBubble = [block];
+      }
+    }
+    bubbles.push(currentBubble);
+  }
+
+  // Step 3: Determine speaker and create messages
+  const leftMessages: string[] = [];
+  const rightMessages: string[] = [];
+  
+  for (const bubble of bubbles) {
+    if (bubble.length === 0) continue;
+    
+    // Calculate bubble position (average X of all words)
+    const bubbleX = bubble.reduce((sum: number, block: any) => sum + block.x, 0) / bubble.length;
+    
+    // Sort words in bubble by X position for proper reading order
+    const sortedBubble = bubble.sort((a: any, b: any) => a.x - b.x);
+    const messageText = sortedBubble.map((block: any) => block.text).join(' ')
+      .replace(/^\d{1,2}:\d{2}\s*/, '') // Remove leading timestamps
+      .replace(/\s*[√✓]+\s*$/, '') // Remove trailing read receipts
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+    
+    if (messageText.length < 3) continue;
+    
+    // Classify based on X position
+    if (bubbleX < leftThreshold) {
+      leftMessages.push(messageText);
+    } else if (bubbleX > rightThreshold) {
+      rightMessages.push(messageText);
+    }
+    // Skip middle messages (system messages, etc.)
+  }
+
+  return { leftMessages, rightMessages };
+}
+
+// Legacy text-based extraction (backup)
 function extractMessagesFromFullText(fullText: string): {
   leftMessages: string[];
   rightMessages: string[];
