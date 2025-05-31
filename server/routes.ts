@@ -211,23 +211,34 @@ app.use(session({
     }
   });
 
-  // Google Cloud Vision OCR endpoint
+  // Google Cloud Vision OCR endpoint with positioning
   app.post('/api/ocr/google', upload.array('images', 10), async (req: Request, res: Response) => {
     try {
-      const { extractTextFromMultipleImages } = await import('./services/google-vision');
+      const { extractTextWithPositions } = await import('./services/google-vision');
       
       if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
         return res.status(400).json({ error: 'No images provided' });
       }
       
       const imageBuffers = (req.files as Express.Multer.File[]).map(file => file.buffer);
-      const extractedTexts = await extractTextFromMultipleImages(imageBuffers);
+      const results = [];
+      
+      for (let i = 0; i < imageBuffers.length; i++) {
+        try {
+          const positionData = await extractTextWithPositions(imageBuffers[i]);
+          results.push(positionData);
+          console.log(`Image ${i + 1}: ${positionData.leftMessages.length} left messages, ${positionData.rightMessages.length} right messages`);
+        } catch (error) {
+          console.error(`Failed to process image ${i + 1}:`, error);
+          results.push({ leftMessages: [], rightMessages: [], allText: '' });
+        }
+      }
       
       res.json({ 
         success: true, 
-        texts: extractedTexts,
+        results: results,
         totalImages: imageBuffers.length,
-        successfulExtractions: extractedTexts.filter(text => text.length > 0).length
+        successfulExtractions: results.filter(r => r.allText.length > 0).length
       });
     } catch (error) {
       console.error('Google OCR endpoint error:', error);

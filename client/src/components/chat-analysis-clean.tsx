@@ -86,19 +86,19 @@ export default function ChatAnalysis() {
 
       setOcrProgress(90);
 
-      if (!result.success || !result.texts || result.texts.length === 0) {
+      if (!result.success || !result.results || result.results.length === 0) {
         throw new Error('No text could be extracted from the screenshots.');
       }
 
-      // Filter out empty texts and combine
-      const validTexts = result.texts.filter((text: string) => text && text.trim().length > 0);
+      // Use the new positioned OCR results
+      const validResults = result.results.filter((r: any) => r.allText && r.allText.trim().length > 0);
       
-      if (validTexts.length === 0) {
+      if (validResults.length === 0) {
         throw new Error('No readable text found in the screenshots. Please ensure images contain clear, visible text.');
       }
 
-      const combinedText = validTexts.join('\n\n');
-      const parsedConversation = parseScreenshotText(combinedText, messageSide, screenshotMe, screenshotThem);
+      // Parse using positional data - left side is them, right side is you
+      const parsedConversation = parsePositionedOCRResults(validResults, screenshotThem, screenshotMe);
       
       setOcrProgress(100);
       setExtractedText(parsedConversation);
@@ -123,83 +123,55 @@ export default function ChatAnalysis() {
     }
   };
 
-  // Parse extracted text into conversation format with smart message detection
-  const parseScreenshotText = (text: string, side: string, myName: string, theirName: string): string => {
-    const lines = text.split('\n').filter(line => line.trim());
+  // Parse positioned OCR results into conversation format
+  const parsePositionedOCRResults = (results: any[], leftName: string, rightName: string): string => {
+    const conversationLines: string[] = [];
     
-    // Filter out UI elements and extract potential messages
-    const cleanedLines = lines.filter(line => {
-      const trimmed = line.trim().toLowerCase();
+    for (const result of results) {
+      // Process left side messages (them)
+      if (result.leftMessages) {
+        for (const message of result.leftMessages) {
+          const cleanText = cleanMessage(message);
+          if (cleanText && isValidMessage(cleanText)) {
+            conversationLines.push(`${leftName}: ${cleanText}`);
+          }
+        }
+      }
       
-      // Skip obvious UI elements
-      if (trimmed.length < 2) return false;
-      if (/^[\d:]+$/.test(trimmed)) return false; // Pure timestamps
-      if (/^[\d\s%]+$/.test(trimmed)) return false; // Numbers and percentages
-      if (/^[←→↑↓]+$/.test(trimmed)) return false; // Navigation arrows
-      if (trimmed.includes('last seen')) return false;
-      if (trimmed.includes('whatsapp')) return false;
-      if (trimmed.includes('message')) return false;
-      if (/^[✓√]+\s*$/.test(trimmed)) return false; // Read receipts only
-      if (trimmed === theirName.toLowerCase()) return false; // Contact name headers
-      if (trimmed.length > 300) return false; // Probably corrupted
-      
-      return true;
-    });
-    
-    // Smart message detection based on WhatsApp patterns
-    const conversationLines = [];
-    
-    for (let i = 0; i < cleanedLines.length; i++) {
-      const line = cleanedLines[i].trim();
-      
-      // Skip if too short to be a meaningful message
-      if (line.length < 3) continue;
-      
-      // Look for actual message content patterns
-      const isLikelyMessage = 
-        // Contains common words
-        /\b(i|you|the|and|but|so|that|this|what|how|when|where|why|yes|no|ok|okay|lol|haha)\b/i.test(line) ||
-        // Contains sentence-like structure
-        /[.!?]/.test(line) ||
-        // Contains conversational patterns
-        /\b(thanks|thank you|sorry|please|hello|hi|hey|bye|good|bad|great|nice|cool)\b/i.test(line) ||
-        // Is a reasonable length for a message
-        (line.length >= 10 && line.length <= 200);
-      
-      if (isLikelyMessage) {
-        // Try to determine speaker based on context and alternating pattern
-        // In WhatsApp screenshots, messages typically alternate between speakers
-        const isMyMessage: boolean = conversationLines.length % 2 === 0;
-        const speaker: string = isMyMessage ? myName : theirName;
-        
-        // Clean up the message text
-        let messageText = line
-          .replace(/^\d{2}:\d{2}\s*/, '') // Remove leading timestamps
-          .replace(/\s*\d{2}:\d{2}\s*$/, '') // Remove trailing timestamps
-          .replace(/[✓√]+\s*$/, '') // Remove read receipts
-          .trim();
-        
-        if (messageText.length > 0) {
-          conversationLines.push(`${speaker}: ${messageText}`);
+      // Process right side messages (you)
+      if (result.rightMessages) {
+        for (const message of result.rightMessages) {
+          const cleanText = cleanMessage(message);
+          if (cleanText && isValidMessage(cleanText)) {
+            conversationLines.push(`${rightName}: ${cleanText}`);
+          }
         }
       }
     }
     
-    // If we don't have enough messages, try a simpler approach
-    if (conversationLines.length < 3) {
-      const simpleMessages = cleanedLines
-        .filter(line => line.length >= 5 && line.length <= 200)
-        .map((line, index) => {
-          const speaker = index % 2 === 0 ? myName : theirName;
-          const cleanText = line.replace(/^\d{2}:\d{2}\s*/, '').replace(/[✓√]+\s*$/, '').trim();
-          return cleanText.length > 0 ? `${speaker}: ${cleanText}` : null;
-        })
-        .filter(Boolean);
-      
-      return simpleMessages.join('\n');
-    }
-    
     return conversationLines.join('\n');
+  };
+
+  // Clean individual message text
+  const cleanMessage = (text: string): string => {
+    return text
+      .replace(/^\d{1,2}:\d{2}\s*/, '') // Remove leading timestamps
+      .replace(/\s*\d{1,2}:\d{2}\s*$/, '') // Remove trailing timestamps
+      .replace(/[✓√]+\s*$/, '') // Remove read receipts
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+  };
+
+  // Validate if text is a real message
+  const isValidMessage = (text: string): boolean => {
+    if (text.length < 3 || text.length > 500) return false;
+    
+    // Check for message-like content
+    const hasWords = /\b(i|you|the|and|but|so|that|this|what|how|when|where|why|yes|no|ok|okay|lol|haha|thanks|sorry|please|hello|hi|hey|bye)\b/i.test(text);
+    const hasSentence = /[.!?]/.test(text) || text.length >= 10;
+    const notUIElement = !/^(message|online|typing|last seen|whatsapp)$/i.test(text);
+    
+    return (hasWords || hasSentence) && notUIElement;
   };
 
   // Handle file upload

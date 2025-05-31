@@ -62,6 +62,105 @@ export async function extractTextFromImage(imageBuffer: Buffer): Promise<string>
   }
 }
 
+// New function to extract text with positional information
+export async function extractTextWithPositions(imageBuffer: Buffer): Promise<{
+  leftMessages: string[];
+  rightMessages: string[];
+  allText: string;
+}> {
+  try {
+    // Initialize client if not already done
+    if (!vision) {
+      const initialized = initializeVisionClient();
+      if (!initialized) {
+        throw new Error('Google Cloud Vision client could not be initialized');
+      }
+    }
+
+    const [result] = await vision!.textDetection({
+      image: {
+        content: imageBuffer,
+      },
+    });
+
+    const detections = result.textAnnotations;
+    
+    if (!detections || detections.length === 0) {
+      return { leftMessages: [], rightMessages: [], allText: '' };
+    }
+
+    // Get full text
+    const allText = detections[0]?.description || '';
+    
+    // Skip the first detection (it's the full text) and process individual text blocks
+    const textBlocks = detections.slice(1);
+    
+    if (textBlocks.length === 0) {
+      return { leftMessages: [], rightMessages: [], allText };
+    }
+
+    // Calculate screen width from bounding boxes
+    const allX = textBlocks
+      .map(block => block.boundingPoly?.vertices || [])
+      .flat()
+      .map(vertex => vertex.x || 0)
+      .filter(x => x > 0);
+    
+    const minX = Math.min(...allX);
+    const maxX = Math.max(...allX);
+    const screenWidth = maxX - minX;
+    const centerX = minX + (screenWidth / 2);
+
+    const leftMessages: string[] = [];
+    const rightMessages: string[] = [];
+
+    // Process each text block
+    for (const block of textBlocks) {
+      const text = block.description?.trim();
+      if (!text || text.length < 2) continue;
+
+      // Skip UI elements
+      if (isUIElement(text)) continue;
+
+      // Calculate average X position of this text block
+      const vertices = block.boundingPoly?.vertices || [];
+      if (vertices.length === 0) continue;
+
+      const avgX = vertices.reduce((sum, vertex) => sum + (vertex.x || 0), 0) / vertices.length;
+
+      // Determine if text is on left or right side
+      if (avgX < centerX) {
+        leftMessages.push(text);
+      } else {
+        rightMessages.push(text);
+      }
+    }
+
+    return { leftMessages, rightMessages, allText };
+  } catch (error) {
+    console.error('Google Vision OCR with positions error:', error);
+    throw new Error(`OCR processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Helper function to identify UI elements
+function isUIElement(text: string): boolean {
+  const trimmed = text.trim().toLowerCase();
+  
+  // Skip obvious UI elements
+  if (trimmed.length < 2) return true;
+  if (/^[\d:]+$/.test(trimmed)) return true; // Pure timestamps
+  if (/^[\d\s%]+$/.test(trimmed)) return true; // Numbers and percentages
+  if (/^[←→↑↓]+$/.test(trimmed)) return true; // Navigation arrows
+  if (trimmed.includes('last seen')) return true;
+  if (trimmed.includes('whatsapp')) return true;
+  if (trimmed.includes('message')) return true;
+  if (/^[✓√]+\s*$/.test(trimmed)) return true; // Read receipts only
+  if (trimmed.length > 300) return true; // Probably corrupted
+  
+  return false;
+}
+
 export async function extractTextFromMultipleImages(imageBuffers: Buffer[]): Promise<string[]> {
   const results: string[] = [];
   
