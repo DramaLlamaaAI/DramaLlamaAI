@@ -34,6 +34,7 @@ export default function ChatAnalysis() {
   const [conversation, setConversation] = useState('');
   const [me, setMe] = useState('');
   const [them, setThem] = useState('');
+  const [activeTab, setActiveTab] = useState("screenshots");
   const [screenshots, setScreenshots] = useState<Array<{file: File, preview: string}>>([]);
   const [messageSide, setMessageSide] = useState<string>('');
   const [screenshotMe, setScreenshotMe] = useState('');
@@ -82,6 +83,26 @@ export default function ChatAnalysis() {
   const isMessageSwitched = (screenshotIndex: number, side: 'left' | 'right', messageIndex: number) => {
     const messageId = getMessageId(screenshotIndex, side, messageIndex);
     return switchedMessages.has(messageId);
+  };
+
+  // Clear data when switching tabs
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    if (newTab === "screenshots") {
+      // Clear text analysis data when switching to screenshots
+      setConversation('');
+      setMe('');
+      setThem('');
+    } else if (newTab === "paste") {
+      // Clear screenshot data when switching to text
+      setScreenshots([]);
+      setOcrResults(null);
+      setScreenshotOrder([]);
+      setSwitchedMessages(new Set());
+      setMessageSide('');
+      setScreenshotMe('');
+      setScreenshotThem('');
+    }
   };
 
   // Update conversation when order changes
@@ -320,7 +341,7 @@ export default function ChatAnalysis() {
         </p>
       </div>
 
-      <Tabs defaultValue="screenshots" className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="screenshots">Screenshot Analysis</TabsTrigger>
           <TabsTrigger value="text">Import WhatsApp Chat</TabsTrigger>
