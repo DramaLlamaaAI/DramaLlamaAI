@@ -43,12 +43,22 @@ export default function ChatAnalysis() {
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   
+  // Screenshot functionality state
+  const [screenshots, setScreenshots] = useState<Array<{file: File, preview: string}>>([]);
+  const [messageSide, setMessageSide] = useState<'left' | 'right' | ''>('');
+  const [screenshotMe, setScreenshotMe] = useState('');
+  const [screenshotThem, setScreenshotThem] = useState('');
+  const [isProcessingScreenshots, setIsProcessingScreenshots] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
+  const [extractedText, setExtractedText] = useState('');
+  
   // Get the location for dev mode
   const [location] = useLocation();
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const isDevMode = searchParams.get('dev') === 'true';
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const screenshotInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Fetch user usage to determine feature access
@@ -59,6 +69,120 @@ export default function ChatAnalysis() {
 
   // Check if user can use features based on tier and usage
   const canUseFeature = userUsage && (userUsage.limit === null || userUsage.used < userUsage.limit);
+
+  // Screenshot upload handler
+  const handleScreenshotUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    // Limit to 10 images
+    const limitedFiles = files.slice(0, 10);
+    
+    const newScreenshots = limitedFiles.map(file => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+
+    setScreenshots(prev => [...prev, ...newScreenshots].slice(0, 10));
+  };
+
+  // Remove screenshot
+  const removeScreenshot = (index: number) => {
+    setScreenshots(prev => {
+      const newScreenshots = [...prev];
+      URL.revokeObjectURL(newScreenshots[index].preview);
+      newScreenshots.splice(index, 1);
+      return newScreenshots;
+    });
+  };
+
+  // Process screenshots with OCR
+  const handleScreenshotAnalysis = async () => {
+    if (screenshots.length === 0) return;
+
+    setIsProcessingScreenshots(true);
+    setOcrProgress(0);
+
+    try {
+      let allExtractedTexts: string[] = [];
+      
+      for (let i = 0; i < screenshots.length; i++) {
+        const screenshot = screenshots[i];
+        setOcrProgress((i / screenshots.length) * 100);
+
+        // Use Tesseract.js for OCR
+        const { recognize } = await import('tesseract.js');
+        const result = await recognize(screenshot.file, 'eng', {
+          logger: (m) => console.log('OCR Progress:', m)
+        });
+
+        if (result.data.text.trim()) {
+          allExtractedTexts.push(result.data.text.trim());
+        }
+      }
+
+      setOcrProgress(100);
+
+      // Combine and parse the extracted texts
+      const combinedText = allExtractedTexts.join('\n\n');
+      const parsedConversation = parseScreenshotText(combinedText, messageSide, screenshotMe, screenshotThem);
+      
+      setExtractedText(parsedConversation);
+
+    } catch (error) {
+      console.error('OCR processing failed:', error);
+      toast({
+        title: "OCR Processing Failed",
+        description: "Unable to extract text from screenshots. Please try again or use manual text input.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingScreenshots(false);
+    }
+  };
+
+  // Parse extracted text into conversation format
+  const parseScreenshotText = (text: string, side: string, myName: string, theirName: string): string => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const conversationLines: string[] = [];
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      // Skip timestamps, system messages, and very short lines
+      if (trimmedLine.length < 3 || 
+          /^\d{1,2}:\d{2}/.test(trimmedLine) ||
+          /^(Today|Yesterday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/.test(trimmedLine) ||
+          /^(Read|Delivered|Sent)/.test(trimmedLine)) {
+        continue;
+      }
+
+      // Simple heuristic: assume alternating messages or try to detect alignment
+      // For now, we'll use a simple alternating approach and let the user edit
+      const isMyMessage = conversationLines.length % 2 === (side === 'left' ? 0 : 1);
+      const speaker = isMyMessage ? myName : theirName;
+      
+      conversationLines.push(`${speaker}: ${trimmedLine}`);
+    }
+
+    return conversationLines.join('\n');
+  };
+
+  // Handle final analysis after text extraction
+  const handleFinalAnalysis = () => {
+    if (!extractedText.trim()) return;
+    
+    // Set the conversation and participant names for analysis
+    setConversation(extractedText);
+    setMe(screenshotMe);
+    setThem(screenshotThem);
+    
+    // Switch to paste tab and trigger analysis
+    setTabValue('paste');
+    setTimeout(() => {
+      handleSubmit();
+    }, 100);
+  };
 
   const analysisMutation = useMutation({
     mutationFn: analyzeChatConversation,
@@ -669,22 +793,224 @@ export default function ChatAnalysis() {
 
             {/* Screenshot Analysis Tab */}
             <TabsContent value="screenshot" className="mt-4">
-              <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                  <Image className="h-8 w-8 text-muted-foreground" />
+              <div className="space-y-6">
+                {/* Step 1: Upload Screenshots */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Upload Screenshots</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Upload multiple screenshots of your chat conversation. Images will be processed in order.
+                    </p>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                    <div className="text-center">
+                      <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Drop screenshots here or click to browse</p>
+                        <p className="text-xs text-muted-foreground">
+                          Supports PNG, JPG, JPEG files. Maximum 10 images.
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleScreenshotUpload}
+                        ref={screenshotInputRef}
+                      />
+                      <Button
+                        onClick={() => screenshotInputRef.current?.click()}
+                        variant="outline"
+                        className="mt-4"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Choose Files
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Image Previews */}
+                  {screenshots.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">Uploaded Screenshots ({screenshots.length})</h4>
+                        <Button
+                          onClick={() => setScreenshots([])}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Clear All
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {screenshots.map((screenshot, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={screenshot.preview}
+                              alt={`Screenshot ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button
+                                onClick={() => removeScreenshot(index)}
+                                variant="destructive"
+                                size="sm"
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                              {index + 1}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">Screenshot Analysis</h3>
-                  <p className="text-muted-foreground max-w-md">
-                    Advanced screenshot analysis with OCR text extraction is coming soon. 
-                    We're working on improving the accuracy and speed of this feature.
-                  </p>
-                </div>
-                <div className="mt-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
-                    Coming Soon
-                  </span>
-                </div>
+
+                {/* Step 2: Message Side Selection */}
+                {screenshots.length > 0 && (
+                  <div className="space-y-4 border-t pt-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Message Layout</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Tell us which side your messages appear on in the screenshots.
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button
+                        variant={messageSide === 'left' ? 'default' : 'outline'}
+                        onClick={() => setMessageSide('left')}
+                        className="h-auto p-4 flex flex-col items-center space-y-2"
+                      >
+                        <div className="text-sm font-medium">My messages on the LEFT</div>
+                        <div className="text-xs text-muted-foreground">Left side bubbles are mine</div>
+                      </Button>
+                      <Button
+                        variant={messageSide === 'right' ? 'default' : 'outline'}
+                        onClick={() => setMessageSide('right')}
+                        className="h-auto p-4 flex flex-col items-center space-y-2"
+                      >
+                        <div className="text-sm font-medium">My messages on the RIGHT</div>
+                        <div className="text-xs text-muted-foreground">Right side bubbles are mine</div>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Participant Names */}
+                {screenshots.length > 0 && messageSide && (
+                  <div className="space-y-4 border-t pt-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Participant Names</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Enter the names to identify each participant in the analysis.
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="screenshot-me">Your Name</Label>
+                        <Input
+                          id="screenshot-me"
+                          value={screenshotMe}
+                          onChange={(e) => setScreenshotMe(e.target.value)}
+                          placeholder="Enter your name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="screenshot-them">Their Name</Label>
+                        <Input
+                          id="screenshot-them"
+                          value={screenshotThem}
+                          onChange={(e) => setScreenshotThem(e.target.value)}
+                          placeholder="Enter their name"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Process Button */}
+                {screenshots.length > 0 && messageSide && screenshotMe && screenshotThem && (
+                  <div className="border-t pt-6">
+                    <Button
+                      onClick={handleScreenshotAnalysis}
+                      disabled={isProcessingScreenshots}
+                      className="w-full bg-teal-500 hover:bg-teal-600"
+                      size="lg"
+                    >
+                      {isProcessingScreenshots ? (
+                        <>
+                          <div className="h-4 w-4 mr-2 animate-spin rounded-full border-t-2 border-gray-500"></div>
+                          Processing Screenshots...
+                        </>
+                      ) : (
+                        <>
+                          <Brain className="h-4 w-4 mr-2" />
+                          Extract Text & Analyze
+                        </>
+                      )}
+                    </Button>
+                    
+                    {isProcessingScreenshots && (
+                      <div className="mt-4 space-y-2">
+                        <div className="text-sm text-muted-foreground">
+                          Processing {screenshots.length} screenshot(s)...
+                        </div>
+                        <Progress value={ocrProgress} className="h-2" />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Extracted Text Preview */}
+                {extractedText && (
+                  <div className="space-y-4 border-t pt-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Extracted Conversation</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Review the extracted text below. You can edit it before analysis.
+                      </p>
+                    </div>
+                    
+                    <Textarea
+                      value={extractedText}
+                      onChange={(e) => setExtractedText(e.target.value)}
+                      rows={10}
+                      className="font-mono text-sm"
+                      placeholder="Extracted conversation will appear here..."
+                    />
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleFinalAnalysis}
+                        disabled={!extractedText.trim()}
+                        className="bg-teal-500 hover:bg-teal-600"
+                      >
+                        <Brain className="h-4 w-4 mr-2" />
+                        Analyze Conversation
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setExtractedText('');
+                          setScreenshots([]);
+                          setMessageSide('');
+                          setScreenshotMe('');
+                          setScreenshotThem('');
+                        }}
+                        variant="outline"
+                      >
+                        Start Over
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </TabsContent>
 

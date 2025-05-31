@@ -1,0 +1,102 @@
+🎯 Overall Flow
+1️⃣ User uploads screenshots
+
+UI should accept multiple images in one batch.
+
+Thumbnails preview so user can confirm/reorder.
+
+2️⃣ User identifies which side is theirs (left or right)
+
+Provide an explicit toggle or question:
+➜ “Are your messages on the left or right side?”
+
+3️⃣ User inputs participant names
+
+Two input fields:
+➜ “Your name”
+➜ “Their name”
+
+4️⃣ OCR extraction
+
+Use an OCR engine (like Tesseract.js, Google Vision API, or AWS Textract) to extract all text from the images.
+
+5️⃣ Parsing the extracted text
+
+The AI/logic should split the extracted text into individual messages, usually by analyzing:
+➜ Bubble shapes (if visually possible)
+➜ Timestamps (if visible)
+➜ Line breaks and consistent formatting
+
+6️⃣ Assigning participant names to each message
+
+If the user selected “my messages are on the left,” then all left-aligned bubbles become “Your name,” and right-aligned become “Their name” (and vice versa).
+
+7️⃣ Prefix participant names
+
+In the final parsed text, prefix each message with the relevant participant’s name, e.g.:
+
+makefile
+Copy
+Edit
+Alex: Hey, how are you?  
+Jamie: I’m good, you?  
+8️⃣ Send to AI for analysis
+
+The parsed, labeled chat transcript is sent to your AI endpoint for red flag detection, emotional tone analysis, etc.
+
+🛠️ Technical/Implementation Steps for Your UI
+Here’s how to instruct your UI/Dev team:
+
+✅ 1) Upload UI
+Use an <input type="file" multiple> or a drag-and-drop area.
+
+Show thumbnails of uploaded images.
+
+Add reordering controls (arrows, drag-and-drop, etc.).
+
+✅ 2) “Who’s who?” Step
+Prompt:
+➜ “Are your messages on the left or right?” (radio button or toggle).
+➜ “Enter your name” and “Enter their name” fields.
+
+✅ 3) OCR Integration
+Use Tesseract.js (JavaScript) or a cloud OCR API like Google Vision.
+
+Process each screenshot, extract raw text.
+
+✅ 4) Parsing & Labeling
+UI / AI logic should:
+➜ Identify bubbles / line breaks.
+➜ Assign participant names based on side chosen by user.
+➜ If possible, use basic computer vision (edge detection, color matching) to confirm bubbles vs. timestamps.
+
+✅ 5) Final Preview
+Show a preview of the parsed text with participant prefixes:
+
+makefile
+Copy
+Edit
+Alex: Hey, are you okay?  
+Jamie: Yeah, I’m just tired.  
+Let users edit names or fix text manually if needed.
+
+✅ 6) “Analyze” button
+Send the final labeled chat to the AI endpoint for insight analysis.
+
+⚡ Key Phrases for Developers
+Here’s a concise version you can copy/paste or send to your dev team:
+
+pgsql
+Copy
+Edit
+1. Allow multi-image uploads with reordering (thumbnails).
+2. Add UI toggle: "My messages are on the left/right."
+3. Capture participant names in input fields.
+4. Use OCR (Tesseract.js or Google Vision) to extract text from each screenshot.
+5. Parse text lines into individual messages based on bubble/spacing patterns.
+6. Prefix each message with the appropriate participant name based on chosen side.
+7. Show parsed chat preview to user for confirmation.
+8. On submit, send structured chat text to AI for red flag & tone analysis.
+💡 Pro Tip:
+If your AI can also parse layout of screenshots, consider automating detection of sides using basic image processing (OpenCV.js or similar). But for most apps, a simple toggle for left/right + user names will cover 90% of scenarios and keep it user-friendly.
+
