@@ -1,0 +1,52 @@
+{
+    "id": "/subscriptions/c9a47d24-0b97-43ef-91f4-a9a97d15d902/resourceGroups/DramaLlamaai/providers/Microsoft.CognitiveServices/accounts/dramallama-vision-api",
+    "name": "dramallama-vision-api",
+    "type": "Microsoft.CognitiveServices/accounts",
+    "etag": "\"be0014d9-0000-0d00-0000-683b77890000\"",
+    "location": "westeurope",
+    "sku": {
+        "name": "F0"
+    },
+    "kind": "ComputerVision",
+    "tags": {},
+    "properties": {
+        "endpoint": "https://dramallama-vision-api.cognitiveservices.azure.com/",
+        "internalId": "609884ceee28419490a6c0c0b019eb7e",
+        "dateCreated": "2025-05-31T21:41:26.9648849Z",
+        "isMigrated": false,
+        "customSubDomainName": "dramallama-vision-api",
+        "networkAcls": {
+            "defaultAction": "Allow",
+            "virtualNetworkRules": [],
+            "ipRules": []
+        },
+        "privateEndpointConnections": [],
+        "publicNetworkAccess": "Enabled",
+        "capabilities": [
+            {
+                "name": "VirtualNetworks"
+            },
+            {
+                "name": "Container",
+                "value": "ComputerVision.VideoAnalytics,ComputerVision.ComputerVisionRead,ComputerVision.ocr,ComputerVision.readfile,ComputerVision.readfiledsd,ComputerVision.recognizetext,ComputerVision.ComputerVision,ComputerVision.ocrlayoutworker,ComputerVision.ocrcontroller,ComputerVision.ocrdispatcher,ComputerVision.ocrbillingprocessor,ComputerVision.ocranalyzer,ComputerVision.ocrpagesplitter,ComputerVision.ocrapi,ComputerVision.ocrengineworker"
+            }
+        ],
+        "endpoints": {
+            "Computer Vision": "https://dramallama-vision-api.cognitiveservices.azure.com/",
+            "Container": "https://dramallama-vision-api.cognitiveservices.azure.com/"
+        },
+        "provisioningState": "Succeeded"
+    },
+    "identity": {
+        "type": "None"
+    },
+    "systemData": {
+        "createdBy": "support@dramallama.ai",
+        "createdByType": "User",
+        "createdAt": "2025-05-31T21:41:26.5929887Z",
+        "lastModifiedBy": "support@dramallama.ai",
+        "lastModifiedByType": "User",
+        "lastModifiedAt": "2025-05-31T21:41:26.5929887Z"
+    },
+    "apiVersion": "2021-04-30"
+}

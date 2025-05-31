@@ -77,6 +77,7 @@ export async function analyzeImageWithAzure(base64Image: string): Promise<{
 
     // Step 1: Submit image for analysis
     const cleanEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
+    // Use the correct API version for F0 tier
     const analyzeUrl = `${cleanEndpoint}/vision/v3.2/read/analyze`;
     console.log('Making request to:', analyzeUrl);
     const submitResponse = await axios.post(analyzeUrl, imageBuffer, {
@@ -98,21 +99,39 @@ export async function analyzeImageWithAzure(base64Image: string): Promise<{
     console.log('Polling Azure for OCR results...');
     let result: AzureOCRResult;
     let attempts = 0;
-    const maxAttempts = 30;
+    const maxAttempts = 60; // Increased for F0 tier
 
     do {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const resultResponse = await axios.get(operationLocation, {
-        headers: { 'Ocp-Apim-Subscription-Key': subscriptionKey }
-      });
+      // Wait longer between polls for F0 tier
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      result = resultResponse.data;
-      attempts++;
+      try {
+        const resultResponse = await axios.get(operationLocation, {
+          headers: { 'Ocp-Apim-Subscription-Key': subscriptionKey },
+          timeout: 10000
+        });
+        
+        result = resultResponse.data;
+        console.log(`Poll attempt ${attempts + 1}: Status = ${result.status || 'unknown'}`);
+        
+        if (result.status === 'failed') {
+          throw new Error('Azure OCR processing failed');
+        }
+        
+        attempts++;
 
-      if (attempts >= maxAttempts) {
-        throw new Error('Azure OCR processing timed out');
+        if (attempts >= maxAttempts) {
+          throw new Error('Azure OCR processing timed out after 2 minutes');
+        }
+      } catch (pollError: any) {
+        if (pollError.response?.status === 429) {
+          console.log('Rate limited, waiting longer...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        } else {
+          throw pollError;
+        }
       }
-    } while (result.analyzeResult?.readResults?.[0]?.lines === undefined);
+    } while (result.status !== 'succeeded' && result.analyzeResult?.readResults?.[0]?.lines === undefined);
 
     console.log('Azure Vision OCR completed successfully');
 
