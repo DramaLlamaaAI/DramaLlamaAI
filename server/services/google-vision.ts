@@ -81,23 +81,33 @@ CRITICAL RULES:
    - LEFT SIDE (gray bubbles): Messages from the OTHER person (Alex in this case)
    - RIGHT SIDE (green bubbles): Messages from the USER (the phone owner)
 
-2. Extract only actual MESSAGE CONTENT - ignore:
-   - Headers like "Alex Leonard", "last seen today at"
-   - Timestamps like "08:09", "19:42"
-   - UI elements like "till 53%", arrows, icons
-   - System messages, dates
-   - Read receipts (√, ✓)
+2. IGNORE completely (do not include in any messages):
+   - Contact headers: "Alex Leonard", "last seen today at"
+   - Timestamps: "08:09", "19:42", "23:57"
+   - UI elements: "till 53%", arrows (←), battery indicators
+   - System messages, dates like "4 May 2025", "Today"
+   - Read receipts: √, ✓
+   - App notifications or promotional content like "Drama Llama"
+   - Fragmented OCR noise like "mule yet away wil", "MC KIUW as"
+   - URLs from shared content previews unless part of actual message
 
-3. Reconstruct complete messages from fragments
+3. ONLY extract conversational messages:
+   - Personal communication between two people
+   - Complete sentences or meaningful phrases
+   - Filter out obviously corrupted OCR text
+
+4. Message attribution logic:
+   - If text appears to be conversational and personal → determine speaker
+   - If text is promotional, systematic, or fragmented → exclude entirely
 
 Here is the OCR text from a WhatsApp screenshot:
 
 ${ocrText}
 
-Return ONLY a JSON object with this exact format:
+Analyze this carefully and return ONLY a JSON object:
 {
-  "leftMessages": ["complete message 1", "complete message 2"],
-  "rightMessages": ["complete message 1", "complete message 2"]
+  "leftMessages": ["actual conversation from Alex"],
+  "rightMessages": ["actual conversation from user"]
 }`;
 
     const response = await anthropic.messages.create({
