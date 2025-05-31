@@ -398,6 +398,56 @@ export default function ChatAnalysis() {
                 </div>
               )}
 
+              {/* Message Preview Section */}
+              {ocrResults && ocrResults.length > 0 && (
+                <div className="space-y-4 border-t pt-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Extracted Messages Preview</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Review the extracted messages to ensure they're correctly attributed. Left = Other person, Right = You
+                    </p>
+                  </div>
+                  
+                  {ocrResults.map((result, imageIndex) => (
+                    <div key={imageIndex} className="border rounded-lg p-4 space-y-4">
+                      <h4 className="font-medium text-sm text-muted-foreground">Screenshot {imageIndex + 1}</h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Left Messages (Other Person) */}
+                        <div className="space-y-2">
+                          <h5 className="font-medium text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 bg-gray-400 rounded"></div>
+                            {screenshotThem || "Other Person"} ({result.leftMessages?.length || 0} messages)
+                          </h5>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {result.leftMessages?.map((msg, i) => (
+                              <div key={i} className="p-2 bg-gray-100 rounded-lg text-sm">
+                                {msg}
+                              </div>
+                            )) || <div className="text-xs text-muted-foreground">No messages</div>}
+                          </div>
+                        </div>
+
+                        {/* Right Messages (User) */}
+                        <div className="space-y-2">
+                          <h5 className="font-medium text-sm flex items-center gap-2">
+                            <div className="w-3 h-3 bg-green-500 rounded"></div>
+                            {screenshotMe || "You"} ({result.rightMessages?.length || 0} messages)
+                          </h5>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {result.rightMessages?.map((msg, i) => (
+                              <div key={i} className="p-2 bg-green-100 rounded-lg text-sm">
+                                {msg}
+                              </div>
+                            )) || <div className="text-xs text-muted-foreground">No messages</div>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {screenshots.length > 0 && messageSide && screenshotMe && screenshotThem && (
                 <div className="space-y-4 border-t pt-6">
                   {isProcessingScreenshots ? (
