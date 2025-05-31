@@ -123,8 +123,13 @@ export default function ChatAnalysis() {
       if (trimmed.match(/^\d{2}:\d{2}$/)) continue; // Time stamps alone
       if (trimmed.match(/^\d{1,2}\s+[A-Z][a-z]+\s+\d{4}$/)) continue; // Date stamps like "15 February 2025"
       if (trimmed.includes('%') && trimmed.length < 20) continue; // Battery/signal indicators
-      if (trimmed.match(/^[<>\\\/\s\-\=\+\*#]+$/)) continue; // Special characters only
+      if (trimmed.match(/^[<>\\\/\s\-\=\+\*#ZA]+$/)) continue; // Special characters only
       if (trimmed.match(/^[\d\s\-\=\%\+APR]+$/)) continue; // Status bar elements
+      if (trimmed.match(/^2357|23557/)) continue; // Time in status bar
+      if (trimmed.includes('Sal 53%')) continue; // Battery indicator
+      if (trimmed.match(/^[ZA]\s*$/)) continue; // Single letters
+      if (trimmed.match(/^[r\s:]+$/)) continue; // Random characters
+      if (trimmed.match(/^[<\\>\s\*\"Ce]+$/)) continue; // UI symbols
       if (trimmed.length < 3 && !trimmed.match(/^[a-zA-Z]+$/)) continue; // Very short fragments
       
       // Keep lines that look like actual messages
