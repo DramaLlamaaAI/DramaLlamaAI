@@ -138,8 +138,9 @@ function clusterMessagesByPosition(textBlocks: any[]): {
       // More aggressive UI filtering
       const text = block.text.toLowerCase();
       
-      // Skip header elements
-      if (text.includes('alex leonard') || text.includes('last seen') || text.includes('today at')) return false;
+      // Skip header elements more comprehensively
+      if (text.includes('alex leonard') || text.includes('last seen') || text.includes('today at') || 
+          text.includes('23:57') || text.includes('23:58') || text.match(/^\d{2}:\d{2}$/)) return false;
       
       // Skip obvious UI elements
       if (isUIElement(block.text)) return false;
@@ -179,14 +180,14 @@ function clusterMessagesByPosition(textBlocks: any[]): {
       const block = sortedBlocks[i];
       const lastBlock = currentBubble[currentBubble.length - 1];
       
-      // Use adaptive threshold based on typical WhatsApp message spacing
+      // Use much larger threshold for WhatsApp message bubbles
       const verticalGap = Math.abs(block.y - lastBlock.y);
       
-      if (verticalGap <= 40) {
-        // Same message bubble - words are close together
+      if (verticalGap <= 100) {
+        // Same message bubble - be very generous with grouping
         currentBubble.push(block);
       } else {
-        // New message bubble - significant gap
+        // New message bubble - only split on very large gaps
         if (currentBubble.length > 0) {
           // Sort words in bubble by X position for proper reading order
           const sortedBubble = currentBubble.sort((a, b) => a.x - b.x);
