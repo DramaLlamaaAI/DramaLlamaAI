@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Drama Llama Color Scheme - Force Update */
+
 /* Pink button overrides */
 .pink-upload-button {
   background-color: #EC4899 !important;

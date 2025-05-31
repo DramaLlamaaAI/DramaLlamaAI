@@ -931,13 +931,25 @@ export const analysisController = {
         return res.status(400).json({ message: 'Missing required parameters' });
       }
       
-      // Process image with Tesseract OCR
-      const extractedText = await processImage(base64Image);
+      // Set a timeout for OCR processing to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('OCR processing timed out')), 45000); // 45 second timeout
+      });
+      
+      // Process image with Tesseract OCR with timeout
+      const extractedText = await Promise.race([
+        processImage(base64Image),
+        timeoutPromise
+      ]);
       
       res.json({ text: extractedText });
     } catch (error: any) {
       console.error('OCR processing error:', error);
-      res.status(500).json({ message: error.message || 'Internal server error' });
+      if (error.message.includes('timed out')) {
+        res.status(408).json({ message: 'OCR processing timed out. Please try with a clearer or smaller image.' });
+      } else {
+        res.status(500).json({ message: error.message || 'Internal server error' });
+      }
     }
   }
 };
