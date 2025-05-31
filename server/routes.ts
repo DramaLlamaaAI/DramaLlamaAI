@@ -214,6 +214,7 @@ app.use(session({
   // Google Cloud Vision OCR endpoint with positioning
   app.post('/api/ocr/google', upload.array('images', 10), async (req: Request, res: Response) => {
     try {
+      console.log('OCR request received, processing', req.files?.length || 0, 'images');
       const { extractTextWithPositions } = await import('./services/google-vision');
       
       if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
@@ -221,19 +222,23 @@ app.use(session({
       }
       
       const imageBuffers = (req.files as Express.Multer.File[]).map(file => file.buffer);
+      console.log('Image buffers created, sizes:', imageBuffers.map(buf => buf.length));
       const results = [];
       
       for (let i = 0; i < imageBuffers.length; i++) {
         try {
+          console.log(`Processing image ${i + 1}/${imageBuffers.length}...`);
           const positionData = await extractTextWithPositions(imageBuffers[i]);
           results.push(positionData);
           console.log(`Image ${i + 1}: ${positionData.leftMessages.length} left messages, ${positionData.rightMessages.length} right messages`);
         } catch (error) {
           console.error(`Failed to process image ${i + 1}:`, error);
+          console.error('Full error details:', error);
           results.push({ leftMessages: [], rightMessages: [], allText: '' });
         }
       }
       
+      console.log('OCR processing complete, sending response');
       res.json({ 
         success: true, 
         results: results,
@@ -242,6 +247,7 @@ app.use(session({
       });
     } catch (error) {
       console.error('Google OCR endpoint error:', error);
+      console.error('Full error stack:', error instanceof Error ? error.stack : error);
       res.status(500).json({ 
         error: 'OCR processing failed', 
         message: error instanceof Error ? error.message : 'Unknown error' 
