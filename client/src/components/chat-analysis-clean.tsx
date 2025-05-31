@@ -28,6 +28,7 @@ import {
   GripVertical
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { getDeviceId } from '@/lib/device-id';
 import { ChatAnalysisResult } from '@shared/schema';
 
 export default function ChatAnalysis() {
@@ -137,19 +138,14 @@ export default function ChatAnalysis() {
       console.log('Sending request to /api/ocr/google with', screenshots.length, 'images');
       console.log('FormData contents:', Array.from(formData.entries()).map(([key, value]) => ({ key, valueType: typeof value, size: value instanceof File ? value.size : 'N/A' })));
       
-      // Test basic connectivity first
-      try {
-        const testResponse = await fetch('/api/test-connection');
-        console.log('Test connection status:', testResponse.status);
-        const testData = await testResponse.text();
-        console.log('Test response (first 200 chars):', testData.substring(0, 200));
-      } catch (testError) {
-        console.error('Basic connectivity test failed:', testError);
-      }
-
+      // Use apiRequest pattern but for file uploads
       const response = await fetch('/api/ocr/google', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
+        headers: {
+          'X-Device-ID': getDeviceId()
+        }
       }).catch(error => {
         console.error('Network error during OCR request:', error);
         console.error('Error type:', typeof error);
