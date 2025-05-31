@@ -49,6 +49,9 @@ export default function ChatAnalysisFixed() {
   const [showSafetyReminder, setShowSafetyReminder] = useState(false);
   const [zoomedImageIndex, setZoomedImageIndex] = useState<number | null>(null);
   const [ocrProgress, setOcrProgress] = useState<{current: number, total: number} | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [extractedTexts, setExtractedTexts] = useState<string[]>([]);
+  const [previewMode, setPreviewMode] = useState<'order' | 'text'>('order');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -373,21 +376,20 @@ export default function ChatAnalysisFixed() {
     });
   };
 
-  const handleAnalyzeScreenshot = async () => {
-    console.log("Screenshot analysis started", { 
+  // Step 1: Start preview mode to confirm screenshot order
+  const handleAnalyzeScreenshot = () => {
+    console.log("Starting screenshot preview mode", { 
       imageCount: selectedImages.length, 
       me: screenshotMe, 
       them: screenshotThem 
     });
     
     if (selectedImages.length === 0 || !screenshotMe || !screenshotThem) {
-      console.log("Validation failed - missing data");
       setErrorMessage("Please upload at least one screenshot and enter participant names.");
       return;
     }
 
     if (!canUseFeature) {
-      console.log("Feature not available", { canUseFeature, limit, usedAnalyses });
       if (limit !== null && usedAnalyses >= limit) {
         setErrorMessage(`You've reached your monthly limit of ${limit} analyses. Please upgrade your plan to continue.`);
       } else {
@@ -396,90 +398,79 @@ export default function ChatAnalysisFixed() {
       return;
     }
 
+    setShowPreview(true);
+    setPreviewMode('order');
+    setErrorMessage(null);
+  };
+
+  // Step 2: Extract text from confirmed order
+  const handleExtractText = async () => {
     try {
-      console.log("Starting OCR processing for", selectedImages.length, "images");
+      console.log("Starting text extraction for", selectedImages.length, "images");
       setErrorMessage(null);
       setOcrProgress({ current: 0, total: selectedImages.length });
-      
-      // Process all images in parallel for faster results
-      const extractedTexts: string[] = [];
-      
-      console.log("Converting images to base64...");
-      
-      // Convert all images to base64 in parallel
-      const processedImages = await Promise.all(
-        selectedImages.map(async (image, i) => {
-          return new Promise<{index: number, base64: string}>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const base64 = (e.target?.result as string)?.split(',')[1];
-              console.log(`Image ${i + 1} converted to base64`);
-              resolve({ index: i, base64: base64 || '' });
-            };
-            reader.readAsDataURL(image);
-          });
-        })
-      );
+      setPreviewMode('text');
 
-      console.log("Starting parallel text extraction for all images...");
-      setOcrProgress({ current: 1, total: selectedImages.length });
+      const texts: string[] = [];
+      
+      // Extract text from each image one by one to avoid hanging
+      for (let i = 0; i < selectedImages.length; i++) {
+        setOcrProgress({ current: i + 1, total: selectedImages.length });
+        
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onload = (e) => {
+            const base64 = (e.target?.result as string)?.split(',')[1];
+            resolve(base64 || '');
+          };
+          reader.readAsDataURL(selectedImages[i]);
+        });
 
-      // Process all images with OCR in parallel
-      const ocrPromises = processedImages.map(async ({index, base64}) => {
-        try {
-          console.log(`Extracting text from image ${index + 1}`);
-          
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 90000); // 1.5 minute timeout
-          
-          const response = await fetch('/api/ocr', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: base64 }),
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (!response.ok) {
-            console.error(`Text extraction failed for image ${index + 1}:`, response.status);
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            throw new Error(`Text extraction failed: ${response.status}`);
-          }
-          
-          const ocrResult = await response.json();
-          console.log(`Text extracted from image ${index + 1}:`, ocrResult.text?.length || 0, 'characters');
-          return { index, text: ocrResult.text || '' };
-        } catch (ocrError: any) {
-          console.error('Text extraction error for image', index + 1, ocrError);
-          if (ocrError.name === 'AbortError') {
-            throw new Error(`Text extraction timed out for screenshot ${index + 1}`);
-          }
-          throw new Error(`Failed to extract text from screenshot ${index + 1}: ${ocrError.message}`);
+        const base64 = await base64Promise;
+        console.log(`Extracting text from image ${i + 1}`);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+
+        const response = await fetch('/api/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64 }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`Failed to extract text from image ${i + 1}`);
         }
-      });
 
-      // Wait for all text extraction to complete
-      const ocrResults = await Promise.all(ocrPromises);
-      
-      // Sort results by original image order
-      ocrResults.sort((a, b) => a.index - b.index);
-      extractedTexts.push(...ocrResults.map(result => result.text));
-      
-      // Combine extracted texts and format as conversation
+        const ocrResult = await response.json();
+        texts.push(ocrResult.text || '');
+        console.log(`Text extracted from image ${i + 1}:`, ocrResult.text?.length || 0, 'characters');
+      }
+
+      setExtractedTexts(texts);
+      setOcrProgress(null);
+      console.log("Text extraction complete, showing preview");
+
+    } catch (error) {
+      console.error('Text extraction error:', error);
+      setOcrProgress(null);
+      setErrorMessage(error instanceof Error ? error.message : "Failed to extract text from screenshots.");
+    }
+  };
+
+  // Step 3: Confirm and analyze the conversation
+  const handleConfirmAnalysis = () => {
+    try {
       const combinedText = extractedTexts.join('\n\n');
-      console.log("Combined OCR text:", combinedText.length, "characters");
-      
       const formattedConversation = formatScreenshotText(combinedText, screenshotMe, screenshotThem, messageOrientation);
-      console.log("Formatted conversation:", formattedConversation.length, "characters");
       
       if (!formattedConversation.trim()) {
-        console.log("No text extracted, showing error");
         throw new Error("No text could be extracted from the screenshots");
       }
-      
-      // Now analyze the extracted conversation text
+
       const analysisData = {
         conversation: formattedConversation,
         me: screenshotMe,
@@ -487,20 +478,13 @@ export default function ChatAnalysisFixed() {
         conversationType: conversationType
       };
 
-      console.log("Triggering analysis mutation with data:", analysisData);
-      setOcrProgress(null); // Clear OCR progress
+      console.log("Starting conversation analysis with confirmed text");
+      setShowPreview(false);
       analysisMutation.mutate(analysisData);
       
     } catch (error) {
-      console.error('Screenshot analysis error:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : 'No stack trace',
-        type: typeof error,
-        stringified: JSON.stringify(error)
-      });
-      setOcrProgress(null); // Clear OCR progress on error
-      setErrorMessage(error instanceof Error ? error.message : "Failed to analyze screenshots. Please try again.");
+      console.error('Analysis confirmation error:', error);
+      setErrorMessage(error instanceof Error ? error.message : "Failed to analyze conversation.");
     }
   };
   
@@ -997,15 +981,10 @@ export default function ChatAnalysisFixed() {
                     {selectedImages.length > 0 && screenshotMe && screenshotThem && (
                       <Button 
                         onClick={handleAnalyzeScreenshot}
-                        disabled={!canUseFeature || analysisMutation.isPending || ocrProgress !== null}
+                        disabled={!canUseFeature || analysisMutation.isPending}
                         className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3"
                       >
-                        {ocrProgress ? (
-                          <>
-                            <Brain className="animate-spin h-4 w-4 mr-2" />
-                            Processing Image {ocrProgress.current} of {ocrProgress.total}...
-                          </>
-                        ) : analysisMutation.isPending ? (
+                        {analysisMutation.isPending ? (
                           <>
                             <Brain className="animate-spin h-4 w-4 mr-2" />
                             Analyzing Conversation...
@@ -1013,7 +992,7 @@ export default function ChatAnalysisFixed() {
                         ) : (
                           <>
                             <Brain className="h-4 w-4 mr-2" />
-                            Analyze Screenshot
+                            Preview & Analyze
                           </>
                         )}
                       </Button>
@@ -1865,6 +1844,109 @@ export default function ChatAnalysisFixed() {
               </>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Preview Modal for Screenshot Order and Text Confirmation */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {previewMode === 'order' ? 'Confirm Screenshot Order' : 'Review Extracted Text'}
+            </DialogTitle>
+            <DialogDescription>
+              {previewMode === 'order' 
+                ? 'Please confirm the order of your screenshots matches the conversation flow. You can reorder them if needed.'
+                : 'Review the extracted text and confirm it looks accurate before analysis.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          {previewMode === 'order' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                <div className="text-sm">
+                  <strong>Message orientation:</strong> Your messages appear on the {messageOrientation}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setMessageOrientation(messageOrientation === 'left' ? 'right' : 'left')}
+                >
+                  Switch to {messageOrientation === 'left' ? 'Right' : 'Left'}
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {selectedImages.map((image, index) => (
+                  <div key={index} className="border rounded-lg p-2">
+                    <div className="text-sm font-medium mb-2">Screenshot {index + 1}</div>
+                    <img 
+                      src={imagePreviews[index]} 
+                      alt={`Screenshot ${index + 1}`}
+                      className="w-full h-40 object-contain border rounded cursor-pointer hover:opacity-80"
+                      onClick={() => setZoomedImageIndex(index)}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button onClick={() => setShowPreview(false)} variant="outline">
+                  Cancel
+                </Button>
+                <Button onClick={handleExtractText} className="flex-1">
+                  Extract Text from Screenshots
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {previewMode === 'text' && (
+            <div className="space-y-4">
+              {ocrProgress && (
+                <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
+                  <Brain className="animate-spin h-5 w-5" />
+                  <span>Extracting text from image {ocrProgress.current} of {ocrProgress.total}...</span>
+                </div>
+              )}
+
+              {extractedTexts.length > 0 && !ocrProgress && (
+                <>
+                  <div className="space-y-3">
+                    {extractedTexts.map((text, index) => (
+                      <div key={index} className="border rounded-lg p-3">
+                        <div className="text-sm font-medium mb-2 text-muted-foreground">
+                          Screenshot {index + 1} - Extracted Text:
+                        </div>
+                        <div className="text-sm bg-muted p-3 rounded max-h-32 overflow-y-auto">
+                          {text || 'No text detected in this image'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-4 bg-muted rounded-lg">
+                    <div className="text-sm font-medium mb-2">
+                      Formatted Conversation Preview:
+                    </div>
+                    <div className="text-sm bg-background p-3 rounded border max-h-40 overflow-y-auto">
+                      {formatScreenshotText(extractedTexts.join('\n\n'), screenshotMe, screenshotThem, messageOrientation)}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <Button onClick={() => setPreviewMode('order')} variant="outline">
+                      Back to Order
+                    </Button>
+                    <Button onClick={handleConfirmAnalysis} className="flex-1">
+                      Confirm & Analyze Conversation
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
