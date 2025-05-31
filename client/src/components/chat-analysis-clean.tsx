@@ -336,11 +336,11 @@ export default function ChatAnalysis() {
                   
                   <div className="space-y-4">
                     {screenshots.map((screenshot, index) => (
-                      <div key={index} className="border rounded-lg p-4 bg-card">
-                        <div className="flex items-start gap-4">
+                      <div key={index} className="border rounded-lg p-3 md:p-4 bg-card">
+                        <div className="flex flex-col md:flex-row items-start gap-4">
                           {/* Large screenshot preview */}
-                          <div className="flex-shrink-0">
-                            <div className="w-48 h-72 bg-gray-100 dark:bg-gray-800 rounded border overflow-hidden">
+                          <div className="flex-shrink-0 w-full md:w-auto">
+                            <div className="w-full max-w-xs mx-auto md:w-40 md:h-60 lg:w-48 lg:h-72 bg-gray-100 dark:bg-gray-800 rounded border overflow-hidden">
                               <img
                                 src={screenshot.preview}
                                 alt={`Screenshot ${index + 1}`}
@@ -350,18 +350,20 @@ export default function ChatAnalysis() {
                           </div>
                           
                           {/* Controls and info */}
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-3">
+                          <div className="flex-1 w-full">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
                               <h4 className="font-medium">Screenshot {index + 1}</h4>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 w-full sm:w-auto">
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => moveUploadedScreenshot(index, 'up')}
                                   disabled={index === 0}
                                   title="Move up"
+                                  className="flex-1 sm:flex-none"
                                 >
                                   <ArrowUp className="h-4 w-4" />
+                                  <span className="ml-1 sm:hidden">Up</span>
                                 </Button>
                                 <Button
                                   size="sm"
@@ -369,22 +371,26 @@ export default function ChatAnalysis() {
                                   onClick={() => moveUploadedScreenshot(index, 'down')}
                                   disabled={index === screenshots.length - 1}
                                   title="Move down"
+                                  className="flex-1 sm:flex-none"
                                 >
                                   <ArrowDown className="h-4 w-4" />
+                                  <span className="ml-1 sm:hidden">Down</span>
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => removeScreenshot(index)}
                                   title="Remove screenshot"
+                                  className="flex-1 sm:flex-none"
                                 >
                                   <X className="h-4 w-4" />
+                                  <span className="ml-1 sm:hidden">Remove</span>
                                 </Button>
                               </div>
                             </div>
                             
                             <div className="text-sm text-muted-foreground space-y-1">
-                              <p><strong>File:</strong> {screenshot.file.name}</p>
+                              <p><strong>File:</strong> <span className="break-all">{screenshot.file.name}</span></p>
                               <p><strong>Size:</strong> {(screenshot.file.size / 1024 / 1024).toFixed(2)} MB</p>
                               <p className="text-xs mt-2 text-blue-600">
                                 💡 Tip: Make sure screenshots are in chronological order (oldest first)
