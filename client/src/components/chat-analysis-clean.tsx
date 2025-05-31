@@ -46,6 +46,8 @@ export default function ChatAnalysis() {
   const [ocrResults, setOcrResults] = useState<Array<{leftMessages: string[], rightMessages: string[]}> | null>(null);
   const [screenshotOrder, setScreenshotOrder] = useState<number[]>([]);
   const [switchedMessages, setSwitchedMessages] = useState<Set<string>>(new Set());
+  const [extractedMessages, setExtractedMessages] = useState<any[]>([]);
+  const [showCorrectionUI, setShowCorrectionUI] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Get user tier info
@@ -251,29 +253,25 @@ export default function ChatAnalysis() {
         
         console.log(`Processing screenshot ${i + 1}/${screenshots.length}, size: ${screenshot.file.size} bytes`);
         
-        // Use Claude's vision capabilities for faster processing
+        // Use Azure Vision for precise positioning detection
         const response = await apiRequest('POST', '/api/analyze/whatsapp-screenshot', {
-          image: base64,
-          userInstruction: `Extract the WhatsApp conversation from this screenshot. 
-          
-          Return ONLY the conversation messages in this exact format:
-          [Person Name]: [Message text]
-          
-          Rules:
-          - Messages on the RIGHT side of screen are from "You"
-          - Messages on the LEFT side of screen are from the other person (use their contact name)
-          - Ignore timestamps, "last seen", status indicators, and UI elements
-          - Only extract actual conversation messages
-          - Maintain chronological order (top to bottom)`
+          image: base64
         });
         
         const result = await response.json();
-        console.log(`Claude vision result for image ${i + 1}:`, result.text?.substring(0, 100) + '...');
+        console.log(`Azure Vision result for image ${i + 1}:`, result.messages?.length || 0, 'messages found');
         
-        if (result.text) {
+        if (result.messages && result.messages.length > 0) {
+          // Convert positioned messages to conversation format
+          const conversationText = result.messages
+            .map((msg: any) => `${msg.speaker}: ${msg.text}`)
+            .join('\n');
+          
           results.push({
-            text: result.text,
-            imageIndex: i
+            text: conversationText,
+            imageIndex: i,
+            messages: result.messages, // Store structured data for correction UI
+            imageWidth: result.imageWidth
           });
         }
       }

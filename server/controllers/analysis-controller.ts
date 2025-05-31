@@ -957,28 +957,32 @@ export const analysisController = {
     }
   },
 
-  // Process WhatsApp screenshot using Claude's vision capabilities
+  // Process WhatsApp screenshot using Azure Vision API with positioning
   processWhatsAppScreenshot: async (req: Request, res: Response) => {
     try {
-      const { image, userInstruction } = req.body;
+      const { image } = req.body;
       
       if (!image) {
         return res.status(400).json({ message: 'Missing required image parameter' });
       }
 
-      console.log('Starting Claude vision processing for WhatsApp screenshot...');
+      console.log('Starting Azure Vision processing for WhatsApp screenshot...');
 
-      // Import Claude service
-      const { analyzeImageWithClaude } = await import('../services/anthropic-updated');
+      // Import Azure Vision service
+      const { analyzeImageWithAzure } = await import('../services/azure-vision');
       
-      // Process image with Claude's vision capabilities
-      const extractedText = await analyzeImageWithClaude(image, userInstruction);
+      // Process image with Azure Vision to get positioned text
+      const result = await analyzeImageWithAzure(image);
       
-      console.log('Claude vision processing completed, text length:', extractedText?.length || 0);
+      console.log('Azure Vision processing completed, found', result.messages.length, 'messages');
       
-      res.json({ text: extractedText });
+      res.json({
+        messages: result.messages,
+        imageWidth: result.imageWidth,
+        rawText: result.rawText
+      });
     } catch (error: any) {
-      console.error('Claude vision processing error:', error);
+      console.error('Azure Vision processing error:', error);
       res.status(500).json({ message: error.message || 'Internal server error' });
     }
   }
