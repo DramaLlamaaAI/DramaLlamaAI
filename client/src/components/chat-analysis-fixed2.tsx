@@ -800,53 +800,24 @@ export default function ChatAnalysisFixed() {
                 </TabsContent>
 
                 <TabsContent value="screenshot" className="mt-4">
-                  <div className="space-y-4">
-                    {/* Info about screenshot analysis */}
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2">
-                        <Info className="h-4 w-4" />
-                        <p className="text-sm text-muted-foreground">
-                          Upload a screenshot of your conversation. We'll extract the text and analyze it for you.
-                        </p>
-                      </div>
+                  <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                      <Image className="h-8 w-8 text-muted-foreground" />
                     </div>
-
-                    {/* Screenshot Upload */}
-                    <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center bg-purple-50">
-                      <input
-                        type="file"
-                        ref={imageInputRef}
-                        onChange={handleImageUpload}
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                      />
-                      
-                      {selectedImages.length === 0 ? (
-                        <div>
-                          <Image className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                          <Button
-                            onClick={() => imageInputRef.current?.click()}
-                            className="bg-purple-500 hover:bg-purple-600 text-white"
-                          >
-                            Choose Screenshots
-                          </Button>
-                          <p className="text-xs text-gray-500 mt-2">Supports JPG, PNG, and other image formats. You can select multiple files.</p>
-                        </div>
-                      ) : (
-                        <div>
-                          {selectedImages.length > 1 && (
-                            <div className="mb-3 p-3 bg-blue-50 rounded-lg border-blue-200 border">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Move className="h-4 w-4 text-blue-600" />
-                                <span className="text-sm font-medium text-blue-700">Screenshot Order</span>
-                              </div>
-                              <p className="text-xs text-blue-600">
-                                Make sure your screenshots are in the correct conversation order. Use the arrow buttons to reorder.
-                              </p>
-                            </div>
-                          )}
-                          
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold">Screenshot Analysis</h3>
+                      <p className="text-muted-foreground max-w-md">
+                        Advanced screenshot analysis with OCR text extraction is coming soon. 
+                        We're working on improving the accuracy and speed of this feature.
+                      </p>
+                    </div>
+                    <div className="mt-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+                        Coming Soon
+                      </span>
+                    </div>
+                  </div>
+                </TabsContent>
                           <div className="space-y-3 mb-4">
                             {imagePreviews.map((preview, index) => (
                               <div key={index} className="relative bg-white rounded-lg border p-3">

@@ -919,28 +919,23 @@ export default function ChatAnalysis() {
 
                   {/* Screenshot Analysis Tab */}
                   <TabsContent value="screenshot" className="mt-4">
-                    <ScreenshotWorkflowSimple 
-                      canUseFeature={canUseFeature}
-                      onAnalyze={(conversation, me, them) => {
-                        setConversation(conversation);
-                        setMe(me);
-                        setThem(them);
-                        setTabValue("paste");
-                        
-                        // Directly trigger the analysis mutation with proper device tracking
-                        setTimeout(() => {
-                          analysisMutation.mutate({
-                            conversation,
-                            me,
-                            them,
-                            extraData: {
-                              isGroupChat: false,
-                              groupParticipants: []
-                            }
-                          });
-                        }, 100);
-                      }}
-                    />
+                    <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                        <Image className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-semibold">Screenshot Analysis</h3>
+                        <p className="text-muted-foreground max-w-md">
+                          Advanced screenshot analysis with OCR text extraction is coming soon. 
+                          We're working on improving the accuracy and speed of this feature.
+                        </p>
+                      </div>
+                      <div className="mt-4">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+                          Coming Soon
+                        </span>
+                      </div>
+                    </div>
                   </TabsContent>
 
                   {/* Developer Mode Tab */}
