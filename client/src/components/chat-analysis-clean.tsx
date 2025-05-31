@@ -251,13 +251,24 @@ export default function ChatAnalysis() {
         
         console.log(`Processing screenshot ${i + 1}/${screenshots.length}, size: ${screenshot.file.size} bytes`);
         
-        // Use the existing working OCR endpoint
-        const response = await apiRequest('POST', '/api/ocr', {
-          image: base64
+        // Use Claude's vision capabilities for faster processing
+        const response = await apiRequest('POST', '/api/analyze/whatsapp-screenshot', {
+          image: base64,
+          userInstruction: `Extract the WhatsApp conversation from this screenshot. 
+          
+          Return ONLY the conversation messages in this exact format:
+          [Person Name]: [Message text]
+          
+          Rules:
+          - Messages on the RIGHT side of screen are from "You"
+          - Messages on the LEFT side of screen are from the other person (use their contact name)
+          - Ignore timestamps, "last seen", status indicators, and UI elements
+          - Only extract actual conversation messages
+          - Maintain chronological order (top to bottom)`
         });
         
         const result = await response.json();
-        console.log(`OCR result for image ${i + 1}:`, result.text?.substring(0, 100) + '...');
+        console.log(`Claude vision result for image ${i + 1}:`, result.text?.substring(0, 100) + '...');
         
         if (result.text) {
           results.push({

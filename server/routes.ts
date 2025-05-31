@@ -197,6 +197,7 @@ app.use(session({
   // These routes don't count against usage limits
   app.post('/api/analyze/detect-names', analysisController.detectNames);
   app.post('/api/ocr', analysisController.processOcr);
+  app.post('/api/analyze/whatsapp-screenshot', analysisController.processWhatsAppScreenshot);
   
   // Configure multer for image uploads
   const upload = multer({ 

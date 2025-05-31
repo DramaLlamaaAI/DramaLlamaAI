@@ -955,5 +955,31 @@ export const analysisController = {
         res.status(500).json({ message: error.message || 'Internal server error' });
       }
     }
+  },
+
+  // Process WhatsApp screenshot using Claude's vision capabilities
+  processWhatsAppScreenshot: async (req: Request, res: Response) => {
+    try {
+      const { image, userInstruction } = req.body;
+      
+      if (!image) {
+        return res.status(400).json({ message: 'Missing required image parameter' });
+      }
+
+      console.log('Starting Claude vision processing for WhatsApp screenshot...');
+
+      // Import Claude service
+      const { analyzeImageWithClaude } = await import('../services/anthropic-updated');
+      
+      // Process image with Claude's vision capabilities
+      const extractedText = await analyzeImageWithClaude(image, userInstruction);
+      
+      console.log('Claude vision processing completed, text length:', extractedText?.length || 0);
+      
+      res.json({ text: extractedText });
+    } catch (error: any) {
+      console.error('Claude vision processing error:', error);
+      res.status(500).json({ message: error.message || 'Internal server error' });
+    }
   }
 };

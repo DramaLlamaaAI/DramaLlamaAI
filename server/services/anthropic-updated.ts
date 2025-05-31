@@ -1589,3 +1589,54 @@ export async function getUserUsage(): Promise<{ used: number, limit: number, tie
     tier: 'free' // User's current tier
   };
 }
+
+// Function to analyze WhatsApp screenshots using Claude's vision capabilities
+export async function analyzeImageWithClaude(base64Image: string, userInstruction: string): Promise<string> {
+  try {
+    console.log('Starting Claude vision analysis for WhatsApp screenshot');
+    
+    // Validate API key
+    if (!process.env.ANTHROPIC_API_KEY || !process.env.ANTHROPIC_API_KEY.startsWith('sk-ant-')) {
+      throw new Error('Invalid Anthropic API key format');
+    }
+    
+    // Initialize Anthropic client
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+    
+    // Remove data URL prefix if present
+    const cleanBase64 = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
+    
+    const response = await anthropic.messages.create({
+      model: "claude-3-7-sonnet-20250219",
+      max_tokens: 1000,
+      temperature: 0.1,
+      messages: [{
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: userInstruction
+          },
+          {
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: "image/jpeg",
+              data: cleanBase64
+            }
+          }
+        ]
+      }]
+    });
+
+    const content = getTextFromContentBlock(response.content);
+    console.log('Claude vision analysis completed successfully');
+    
+    return content;
+  } catch (error: any) {
+    console.error('Claude vision analysis error:', error);
+    throw new Error(`Vision analysis failed: ${error.message}`);
+  }
+}
