@@ -44,6 +44,8 @@ export async function analyzeImageWithAzure(
   imageWidth: number;
   rawText: string;
 }> {
+  console.log('Azure Vision: Starting analysis with params:', { messageSide, meName, themName });
+  
   const endpoint = process.env.AZURE_VISION_ENDPOINT;
   const subscriptionKey = process.env.AZURE_VISION_KEY;
 
