@@ -1,13 +1,48 @@
 import { ImageAnnotatorClient } from '@google-cloud/vision';
 
 // Initialize the client with credentials from environment
-const vision = new ImageAnnotatorClient({
-  credentials: JSON.parse(process.env.GOOGLE_CLOUD_CREDENTIALS || '{}'),
-});
+let vision: ImageAnnotatorClient | null = null;
+
+function initializeVisionClient() {
+  try {
+    const credentials = process.env.GOOGLE_CLOUD_CREDENTIALS;
+    if (!credentials) {
+      throw new Error('GOOGLE_CLOUD_CREDENTIALS environment variable is not set');
+    }
+    
+    // Parse credentials with better error handling
+    let parsedCredentials;
+    try {
+      parsedCredentials = JSON.parse(credentials);
+    } catch (parseError) {
+      console.error('Failed to parse Google Cloud credentials. Please check the JSON format in your secrets.');
+      throw new Error('Invalid JSON format in GOOGLE_CLOUD_CREDENTIALS');
+    }
+    
+    vision = new ImageAnnotatorClient({
+      credentials: parsedCredentials
+    });
+    
+    console.log('Google Cloud Vision client initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize Google Cloud Vision client:', error);
+    vision = null;
+    return false;
+  }
+}
 
 export async function extractTextFromImage(imageBuffer: Buffer): Promise<string> {
   try {
-    const [result] = await vision.textDetection({
+    // Initialize client if not already done
+    if (!vision) {
+      const initialized = initializeVisionClient();
+      if (!initialized) {
+        throw new Error('Google Cloud Vision client could not be initialized');
+      }
+    }
+
+    const [result] = await vision!.textDetection({
       image: {
         content: imageBuffer,
       },
