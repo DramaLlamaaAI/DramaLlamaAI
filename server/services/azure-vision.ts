@@ -46,20 +46,48 @@ export async function analyzeImageWithAzure(base64Image: string): Promise<{
 
   try {
     console.log('Starting Azure Vision OCR analysis...');
+    console.log('Endpoint:', endpoint);
+    console.log('Image size (base64):', base64Image.length);
 
-    // Remove data URL prefix if present
+    // Remove data URL prefix if present and validate
     const cleanBase64 = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
+    console.log('Clean base64 size:', cleanBase64.length);
+    
+    // Validate base64 format
+    if (!cleanBase64 || cleanBase64.length < 100) {
+      throw new Error('Invalid or too small image data');
+    }
+    
+    // Check if base64 is valid
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(cleanBase64)) {
+      throw new Error('Invalid base64 format');
+    }
+    
     const imageBuffer = Buffer.from(cleanBase64, 'base64');
+    console.log('Image buffer size:', imageBuffer.length);
+    
+    // Validate image size (Azure has limits)
+    if (imageBuffer.length > 50 * 1024 * 1024) { // 50MB limit
+      throw new Error('Image too large for Azure Vision API');
+    }
+    
+    if (imageBuffer.length < 1024) { // Too small
+      throw new Error('Image too small to process');
+    }
 
     // Step 1: Submit image for analysis
     const cleanEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
     const analyzeUrl = `${cleanEndpoint}/vision/v3.2/read/analyze`;
+    console.log('Making request to:', analyzeUrl);
     const submitResponse = await axios.post(analyzeUrl, imageBuffer, {
       headers: {
         'Ocp-Apim-Subscription-Key': subscriptionKey,
         'Content-Type': 'application/octet-stream'
-      }
+      },
+      timeout: 30000 // 30 second timeout
     });
+    
+    console.log('Azure submission response status:', submitResponse.status);
 
     const operationLocation = submitResponse.headers['operation-location'];
     if (!operationLocation) {
@@ -136,6 +164,29 @@ export async function analyzeImageWithAzure(base64Image: string): Promise<{
 
   } catch (error: any) {
     console.error('Azure Vision OCR error:', error);
+    
+    if (error.response) {
+      console.error('Azure error response:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data,
+        headers: error.response.headers
+      });
+      
+      // Handle specific Azure error codes
+      if (error.response.status === 401) {
+        throw new Error('Azure Vision authentication failed. Please check your subscription key.');
+      } else if (error.response.status === 403) {
+        throw new Error('Azure Vision access denied. Please verify your subscription and endpoint region.');
+      } else if (error.response.status === 400) {
+        const errorCode = error.response.headers['ms-azure-ai-errorcode'];
+        if (errorCode === 'InvalidImage') {
+          throw new Error('Image format not supported. Please ensure the image is a valid JPEG or PNG.');
+        }
+        throw new Error(`Azure Vision request error: ${error.response.data?.error?.message || 'Invalid request'}`);
+      }
+    }
+    
     throw new Error(`Azure Vision analysis failed: ${error.message}`);
   }
 }

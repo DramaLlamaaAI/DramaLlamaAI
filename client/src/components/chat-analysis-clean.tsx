@@ -463,9 +463,10 @@ Tip: Look for patterns like timestamps to identify separate messages, then add "
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="screenshots">Screenshot Analysis</TabsTrigger>
-          <TabsTrigger value="text">Import WhatsApp Chat</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="screenshots">Screenshots</TabsTrigger>
+          <TabsTrigger value="export">WhatsApp Export</TabsTrigger>
+          <TabsTrigger value="text">Manual Text</TabsTrigger>
         </TabsList>
 
         <TabsContent value="screenshots" className="space-y-6">
