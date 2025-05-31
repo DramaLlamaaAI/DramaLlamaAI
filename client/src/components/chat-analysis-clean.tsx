@@ -170,20 +170,20 @@ export default function ChatAnalysis() {
 
       // Convert the results to the expected format for the existing code
       const formattedResults = results.map((result, index) => ({
-        allText: result.text,
-        imageIndex: result.imageIndex
+        leftMessages: [],
+        rightMessages: [result.text] // For now, put all text on the right side
       }));
 
-      // Store OCR results for preview
+      // Store OCR results for preview  
       console.log('Setting OCR results for preview:', formattedResults);
       setOcrResults(formattedResults);
       
       // Initialize screenshot order
-      setScreenshotOrder(formattedResults.map((_: any, index: number) => index));
+      setScreenshotOrder(results.map((_, index: number) => index));
       console.log('Preview should now be visible');
 
       // For now, simply combine all the text from the results
-      const combinedText = formattedResults.map(r => r.allText).join('\n\n');
+      const combinedText = results.map(r => r.text).join('\n\n');
       
       setOcrProgress(100);
       setExtractedText(combinedText);
