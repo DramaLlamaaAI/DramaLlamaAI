@@ -126,84 +126,71 @@ export default function ChatAnalysis() {
     try {
       setOcrProgress(10);
 
-      // Create FormData to send images to server
-      const formData = new FormData();
-      screenshots.forEach((screenshot, index) => {
-        formData.append('images', screenshot.file);
-      });
+      const results: any[] = [];
 
-      setOcrProgress(30);
-
-      // Send to Google Cloud Vision API endpoint
-      console.log('Sending request to /api/ocr/google with', screenshots.length, 'images');
-      console.log('FormData contents:', Array.from(formData.entries()).map(([key, value]) => ({ key, valueType: typeof value, size: value instanceof File ? value.size : 'N/A' })));
-      
-      // Use apiRequest pattern but for file uploads
-      const response = await fetch('/api/ocr/google', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-        headers: {
-          'X-Device-ID': getDeviceId()
+      // Process each screenshot individually using the existing OCR endpoint
+      for (let i = 0; i < screenshots.length; i++) {
+        setOcrProgress(20 + (i / screenshots.length) * 60);
+        
+        const screenshot = screenshots[i];
+        
+        // Convert to base64 for processing
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+          };
+          reader.readAsDataURL(screenshot.file);
+        });
+        
+        console.log(`Processing screenshot ${i + 1}/${screenshots.length}, size: ${screenshot.file.size} bytes`);
+        
+        // Use the existing working OCR endpoint
+        const response = await apiRequest('POST', '/api/ocr', {
+          image: base64
+        });
+        
+        const result = await response.json();
+        console.log(`OCR result for image ${i + 1}:`, result.text?.substring(0, 100) + '...');
+        
+        if (result.text) {
+          results.push({
+            text: result.text,
+            imageIndex: i
+          });
         }
-      }).catch(error => {
-        console.error('Network error during OCR request:', error);
-        console.error('Error type:', typeof error);
-        console.error('Error name:', error?.name);
-        console.error('Error message:', error?.message);
-        console.error('Error stack:', error?.stack);
-        throw new Error(`Network connection failed: ${error?.message || 'Unknown error'}`);
-      });
-
-      console.log('Received response:', response.status, response.statusText);
-      setOcrProgress(70);
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        console.error('Server error response:', errorText);
-        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { message: errorText };
-        }
-        throw new Error(errorData.message || `Server error: ${response.status} ${response.statusText}`);
       }
-
-      const result = await response.json();
-      console.log('Google OCR result:', result);
 
       setOcrProgress(90);
 
-      if (!result.success || !result.results || result.results.length === 0) {
+      if (results.length === 0) {
         throw new Error('No text could be extracted from the screenshots.');
       }
 
-      // Use the new positioned OCR results
-      const validResults = result.results.filter((r: any) => r.allText && r.allText.trim().length > 0);
-      
-      if (validResults.length === 0) {
-        throw new Error('No readable text found in the screenshots. Please ensure images contain clear, visible text.');
-      }
+      // Convert the results to the expected format for the existing code
+      const formattedResults = results.map((result, index) => ({
+        allText: result.text,
+        imageIndex: result.imageIndex
+      }));
 
       // Store OCR results for preview
-      console.log('Setting OCR results for preview:', validResults);
-      setOcrResults(validResults);
+      console.log('Setting OCR results for preview:', formattedResults);
+      setOcrResults(formattedResults);
       
       // Initialize screenshot order
-      setScreenshotOrder(validResults.map((_: any, index: number) => index));
+      setScreenshotOrder(formattedResults.map((_: any, index: number) => index));
       console.log('Preview should now be visible');
 
-      // Parse using positional data - left side is them, right side is you
-      const parsedConversation = parsePositionedOCRResults(validResults, screenshotThem, screenshotMe);
+      // For now, simply combine all the text from the results
+      const combinedText = formattedResults.map(r => r.allText).join('\n\n');
       
       setOcrProgress(100);
-      setExtractedText(parsedConversation);
+      setExtractedText(combinedText);
 
       toast({
         title: "Text Extraction Complete",
-        description: `Successfully extracted text from ${result.successfulExtractions} of ${result.totalImages} screenshots.`,
+        description: `Successfully extracted text from ${formattedResults.length} screenshots.`,
       });
 
     } catch (error) {
