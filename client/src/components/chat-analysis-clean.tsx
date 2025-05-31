@@ -226,7 +226,7 @@ export default function ChatAnalysis() {
     });
   };
 
-  const moveScreenshot = (index: number, direction: 'up' | 'down') => {
+  const moveUploadedScreenshot = (index: number, direction: 'up' | 'down') => {
     setScreenshots(prev => {
       const newScreenshots = [...prev];
       const newIndex = direction === 'up' ? index - 1 : index + 1;
@@ -342,7 +342,7 @@ export default function ChatAnalysis() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => moveScreenshot(index, 'up')}
+                            onClick={() => moveUploadedScreenshot(index, 'up')}
                             disabled={index === 0}
                           >
                             <ArrowUp className="h-4 w-4" />
@@ -350,7 +350,7 @@ export default function ChatAnalysis() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => moveScreenshot(index, 'down')}
+                            onClick={() => moveUploadedScreenshot(index, 'down')}
                             disabled={index === screenshots.length - 1}
                           >
                             <ArrowDown className="h-4 w-4" />
@@ -511,6 +511,99 @@ export default function ChatAnalysis() {
                       size="sm"
                     >
                       Skip OCR - Enter Text Manually
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* OCR Results Preview - Reorderable */}
+              {ocrResults && ocrResults.length > 0 && (
+                <div className="space-y-4 border-t pt-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Message Preview</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Review extracted messages below. You can reorder screenshots if needed, then proceed to analysis.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {screenshotOrder.map((originalIndex, displayIndex) => {
+                      const result = ocrResults[originalIndex];
+                      if (!result) return null;
+                      
+                      return (
+                        <div key={originalIndex} className="border rounded-lg p-4 bg-card">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium">Screenshot {displayIndex + 1}</h4>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => reorderScreenshot(displayIndex, Math.max(0, displayIndex - 1))}
+                                disabled={displayIndex === 0}
+                              >
+                                <ArrowUp className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => reorderScreenshot(displayIndex, Math.min(screenshotOrder.length - 1, displayIndex + 1))}
+                                disabled={displayIndex === screenshotOrder.length - 1}
+                              >
+                                <ArrowDown className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <h5 className="font-medium text-sm mb-2 text-blue-600">{screenshotThem} (Left/Gray bubbles)</h5>
+                              <div className="space-y-1">
+                                {result.leftMessages.map((msg, i) => (
+                                  <div key={i} className="bg-gray-100 dark:bg-gray-800 rounded p-2 text-sm">
+                                    {msg}
+                                  </div>
+                                ))}
+                                {result.leftMessages.length === 0 && (
+                                  <div className="text-muted-foreground text-sm italic">No messages</div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <h5 className="font-medium text-sm mb-2 text-green-600">{screenshotMe} (Right/Green bubbles)</h5>
+                              <div className="space-y-1">
+                                {result.rightMessages.map((msg, i) => (
+                                  <div key={i} className="bg-green-100 dark:bg-green-900/30 rounded p-2 text-sm">
+                                    {msg}
+                                  </div>
+                                ))}
+                                {result.rightMessages.length === 0 && (
+                                  <div className="text-muted-foreground text-sm italic">No messages</div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={updateConversationOrder}
+                      variant="outline"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Update Order
+                    </Button>
+                    <Button
+                      onClick={handleFinalAnalysis}
+                      disabled={!extractedText?.trim()}
+                      className="bg-teal-500 hover:bg-teal-600"
+                    >
+                      <Brain className="h-4 w-4 mr-2" />
+                      Analyze Conversation
                     </Button>
                   </div>
                 </div>
