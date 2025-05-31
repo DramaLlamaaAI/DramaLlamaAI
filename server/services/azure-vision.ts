@@ -34,7 +34,12 @@ interface ExtractedMessage {
   confidence: number;
 }
 
-export async function analyzeImageWithAzure(base64Image: string): Promise<{
+export async function analyzeImageWithAzure(
+  base64Image: string, 
+  messageSide: string = 'right',
+  meName: string = 'You',
+  themName: string = 'Other Person'
+): Promise<{
   messages: ExtractedMessage[];
   imageWidth: number;
   rawText: string;

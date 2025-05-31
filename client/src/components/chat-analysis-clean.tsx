@@ -256,6 +256,9 @@ export default function ChatAnalysis() {
         // Use Azure Computer Vision for OCR extraction
         const formData = new FormData();
         formData.append('images', screenshot.file);
+        formData.append('messageSide', messageSide); // Pass message layout preference
+        formData.append('meName', screenshotMe);
+        formData.append('themName', screenshotThem);
         
         const response = await fetch('/api/ocr/azure', {
           method: 'POST',

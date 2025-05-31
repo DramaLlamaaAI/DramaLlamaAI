@@ -244,11 +244,17 @@ app.use(session({
     try {
       console.log('Azure OCR request received, processing', req.files?.length || 0, 'images');
       console.log('Request headers:', req.headers['content-type']);
+      console.log('Request body params:', { messageSide: req.body.messageSide, meName: req.body.meName, themName: req.body.themName });
       const { analyzeImageWithAzure } = await import('./services/azure-vision');
       
       if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
         return res.status(400).json({ error: 'No images provided' });
       }
+      
+      // Extract message layout parameters
+      const messageSide = req.body.messageSide || 'right'; // Default to right
+      const meName = req.body.meName || 'You';
+      const themName = req.body.themName || 'Other Person';
       
       const imageBuffers = (req.files as Express.Multer.File[]).map(file => file.buffer);
       console.log('Image buffers created, sizes:', imageBuffers.map(buf => buf.length));
@@ -258,7 +264,7 @@ app.use(session({
         try {
           console.log(`Processing image ${i + 1}/${imageBuffers.length} with Azure...`);
           const base64Image = imageBuffers[i].toString('base64');
-          const azureResult = await analyzeImageWithAzure(base64Image);
+          const azureResult = await analyzeImageWithAzure(base64Image, messageSide, meName, themName);
           results.push(azureResult);
           console.log(`Image ${i + 1}: ${azureResult.messages.length} messages extracted`);
         } catch (error) {
