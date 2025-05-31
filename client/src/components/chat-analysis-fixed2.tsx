@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Info, Brain, Upload, AlertCircle, Users, Edit, Home, Image, AlertTriangle, ChevronUp, ChevronDown, Move } from "lucide-react";
 import { Link } from "wouter";
