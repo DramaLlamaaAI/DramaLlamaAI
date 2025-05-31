@@ -96,6 +96,20 @@ export default function ChatAnalysis() {
     });
   };
 
+  // Move screenshot up or down
+  const moveScreenshot = (index: number, direction: number) => {
+    setScreenshots(prev => {
+      const newScreenshots = [...prev];
+      const newIndex = index + direction;
+      
+      if (newIndex >= 0 && newIndex < newScreenshots.length) {
+        [newScreenshots[index], newScreenshots[newIndex]] = [newScreenshots[newIndex], newScreenshots[index]];
+      }
+      
+      return newScreenshots;
+    });
+  };
+
   // Process screenshots with OCR
   const handleScreenshotAnalysis = async () => {
     if (screenshots.length === 0) return;
@@ -853,16 +867,32 @@ export default function ChatAnalysis() {
                               alt={`Screenshot ${index + 1}`}
                               className="w-full h-32 object-cover rounded-lg border"
                             />
-                            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <Button
+                                onClick={() => moveScreenshot(index, -1)}
+                                disabled={index === 0}
+                                variant="secondary"
+                                size="sm"
+                              >
+                                ↑
+                              </Button>
+                              <Button
+                                onClick={() => moveScreenshot(index, 1)}
+                                disabled={index === screenshots.length - 1}
+                                variant="secondary"
+                                size="sm"
+                              >
+                                ↓
+                              </Button>
                               <Button
                                 onClick={() => removeScreenshot(index)}
                                 variant="destructive"
                                 size="sm"
                               >
-                                Remove
+                                ×
                               </Button>
                             </div>
-                            <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                            <div className="absolute top-2 left-2 bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded font-medium">
                               {index + 1}
                             </div>
                           </div>
@@ -886,18 +916,18 @@ export default function ChatAnalysis() {
                       <Button
                         variant={messageSide === 'left' ? 'default' : 'outline'}
                         onClick={() => setMessageSide('left')}
-                        className="h-auto p-4 flex flex-col items-center space-y-2"
+                        className="h-auto p-6 flex flex-col items-center space-y-3 text-center"
                       >
-                        <div className="text-sm font-medium">My messages on the LEFT</div>
-                        <div className="text-xs text-muted-foreground">Left side bubbles are mine</div>
+                        <div className="text-base font-semibold">My messages on the LEFT</div>
+                        <div className="text-sm opacity-80">Left side bubbles are mine</div>
                       </Button>
                       <Button
                         variant={messageSide === 'right' ? 'default' : 'outline'}
                         onClick={() => setMessageSide('right')}
-                        className="h-auto p-4 flex flex-col items-center space-y-2"
+                        className="h-auto p-6 flex flex-col items-center space-y-3 text-center"
                       >
-                        <div className="text-sm font-medium">My messages on the RIGHT</div>
-                        <div className="text-xs text-muted-foreground">Right side bubbles are mine</div>
+                        <div className="text-base font-semibold">My messages on the RIGHT</div>
+                        <div className="text-sm opacity-80">Right side bubbles are mine</div>
                       </Button>
                     </div>
                   </div>
