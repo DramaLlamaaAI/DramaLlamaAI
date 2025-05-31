@@ -48,7 +48,7 @@ export default function ChatAnalysis() {
 
   const userTier = (userUsage as any)?.tier || 'free';
 
-  // Process screenshots with OCR
+  // Process screenshots with Google Cloud Vision OCR
   const handleScreenshotAnalysis = async () => {
     if (screenshots.length === 0) return;
 
@@ -56,50 +56,46 @@ export default function ChatAnalysis() {
     setOcrProgress(0);
 
     try {
-      let allExtractedTexts: string[] = [];
-      
-      for (let i = 0; i < screenshots.length; i++) {
-        const screenshot = screenshots[i];
-        setOcrProgress((i / screenshots.length) * 80);
+      setOcrProgress(10);
 
-        try {
-          const Tesseract = await import('tesseract.js');
-          
-          const result = await Tesseract.recognize(screenshot.file, 'eng', {
-            logger: (m) => {
-              if (m.status === 'recognizing text') {
-                console.log(`OCR Progress for image ${i + 1}: ${Math.round(m.progress * 100)}%`);
-              }
-            }
-          });
+      // Create FormData to send images to server
+      const formData = new FormData();
+      screenshots.forEach((screenshot, index) => {
+        formData.append('images', screenshot.file);
+      });
 
-          console.log(`OCR Result for image ${i + 1}:`, result);
-          
-          if (result && result.data && result.data.text) {
-            const extractedText = result.data.text.trim();
-            console.log(`Raw text from image ${i + 1} (${extractedText.length} chars):`, extractedText);
-            
-            if (extractedText.length > 0) {
-              allExtractedTexts.push(extractedText);
-              console.log(`Successfully extracted text from image ${i + 1}`);
-            } else {
-              console.warn(`Image ${i + 1} processed but no text found`);
-            }
-          } else {
-            console.error(`Image ${i + 1} failed - invalid result structure`);
-          }
-        } catch (imageError) {
-          console.error(`Failed to process image ${i + 1}:`, imageError);
-        }
+      setOcrProgress(30);
+
+      // Send to Google Cloud Vision API endpoint
+      const response = await fetch('/api/ocr/google', {
+        method: 'POST',
+        body: formData,
+      });
+
+      setOcrProgress(70);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server error: ${response.status}`);
       }
+
+      const result = await response.json();
+      console.log('Google OCR result:', result);
 
       setOcrProgress(90);
 
-      if (allExtractedTexts.length === 0) {
-        throw new Error('No text could be extracted from any screenshots. Try manual text input instead.');
+      if (!result.success || !result.texts || result.texts.length === 0) {
+        throw new Error('No text could be extracted from the screenshots.');
       }
 
-      const combinedText = allExtractedTexts.join('\n\n');
+      // Filter out empty texts and combine
+      const validTexts = result.texts.filter((text: string) => text && text.trim().length > 0);
+      
+      if (validTexts.length === 0) {
+        throw new Error('No readable text found in the screenshots. Please ensure images contain clear, visible text.');
+      }
+
+      const combinedText = validTexts.join('\n\n');
       const parsedConversation = parseScreenshotText(combinedText, messageSide, screenshotMe, screenshotThem);
       
       setOcrProgress(100);
@@ -107,12 +103,12 @@ export default function ChatAnalysis() {
 
       toast({
         title: "Text Extraction Complete",
-        description: `Successfully extracted text from ${allExtractedTexts.length} of ${screenshots.length} screenshots.`,
+        description: `Successfully extracted text from ${result.successfulExtractions} of ${result.totalImages} screenshots.`,
       });
 
     } catch (error) {
       console.error('OCR processing failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown OCR processing error occurred';
+      const errorMessage = error instanceof Error ? error.message : 'Text extraction failed';
       
       toast({
         title: "Text Extraction Failed",

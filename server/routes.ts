@@ -13,6 +13,7 @@ import { promoCodeReportController } from "./controllers/promo-code-report-contr
 import { adminPromoCodeController } from "./controllers/admin-promo-code-controller";
 import session from "express-session";
 import memoryStore from "memorystore";
+import multer from "multer";
 
 /**
  * Validates if extracted text appears to be a valid WhatsApp chat export
@@ -195,6 +196,46 @@ app.use(session({
   // These routes don't count against usage limits
   app.post('/api/analyze/detect-names', analysisController.detectNames);
   app.post('/api/ocr', analysisController.processOcr);
+  
+  // Configure multer for image uploads
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit per file
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
+  // Google Cloud Vision OCR endpoint
+  app.post('/api/ocr/google', upload.array('images', 10), async (req: Request, res: Response) => {
+    try {
+      const { extractTextFromMultipleImages } = await import('./services/google-vision');
+      
+      if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+        return res.status(400).json({ error: 'No images provided' });
+      }
+      
+      const imageBuffers = (req.files as Express.Multer.File[]).map(file => file.buffer);
+      const extractedTexts = await extractTextFromMultipleImages(imageBuffers);
+      
+      res.json({ 
+        success: true, 
+        texts: extractedTexts,
+        totalImages: imageBuffers.length,
+        successfulExtractions: extractedTexts.filter(text => text.length > 0).length
+      });
+    } catch (error) {
+      console.error('Google OCR endpoint error:', error);
+      res.status(500).json({ 
+        error: 'OCR processing failed', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
   
   // ZIP file extraction route
   app.post('/api/extract-chat', async (req: Request, res: Response) => {
