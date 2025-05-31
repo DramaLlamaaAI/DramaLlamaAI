@@ -189,6 +189,7 @@ app.use(session({
   });
   
   // Analysis routes with trial eligibility check
+  app.post('/api/analyze', checkTrialEligibility, analysisController.analyzeChat);
   app.post('/api/analyze/chat', checkTrialEligibility, analysisController.analyzeChat);
   app.post('/api/analyze/message', checkTrialEligibility, analysisController.analyzeMessage);
   app.post('/api/analyze/de-escalate', checkTrialEligibility, analysisController.deEscalateMessage);
