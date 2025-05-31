@@ -118,7 +118,7 @@ function clusterMessagesByPosition(textBlocks: any[]): {
     return { leftMessages: [], rightMessages: [] };
   }
 
-  // Extract blocks with coordinates
+  // Extract blocks with coordinates and filter out UI elements more aggressively
   const blocks = textBlocks
     .map(block => {
       const text = block.description?.trim();
@@ -132,80 +132,114 @@ function clusterMessagesByPosition(textBlocks: any[]): {
       
       return { text, x: avgX, y: avgY };
     })
-    .filter(block => block !== null && !isUIElement(block.text));
+    .filter(block => {
+      if (!block) return false;
+      
+      // More aggressive UI filtering
+      const text = block.text.toLowerCase();
+      
+      // Skip header elements
+      if (text.includes('alex leonard') || text.includes('last seen') || text.includes('today at')) return false;
+      
+      // Skip obvious UI elements
+      if (isUIElement(block.text)) return false;
+      
+      // Skip very short standalone elements
+      if (block.text.length < 2) return false;
+      
+      return true;
+    });
 
   if (blocks.length === 0) {
     return { leftMessages: [], rightMessages: [] };
   }
 
-  // Determine image dimensions for positioning
+  // Step 1: Create a more intelligent clustering approach
+  // First, separate blocks into rough left and right regions
   const allX = blocks.map(b => b.x);
-  const imageWidth = Math.max(...allX) - Math.min(...allX);
-  const leftThreshold = Math.min(...allX) + (imageWidth * 0.4);
-  const rightThreshold = Math.min(...allX) + (imageWidth * 0.6);
-
-  // Step 1: Group words into lines based on Y proximity (much more generous - within 60px)
-  const lines: any[][] = [];
-  const sortedBlocks = [...blocks].sort((a, b) => a.y - b.y);
+  const minX = Math.min(...allX);
+  const maxX = Math.max(...allX);
+  const centerX = minX + ((maxX - minX) / 2);
   
-  let currentLine: any[] = [sortedBlocks[0]];
+  // Separate into left and right regions first
+  const leftBlocks = blocks.filter(block => block.x < centerX);
+  const rightBlocks = blocks.filter(block => block.x >= centerX);
   
-  for (let i = 1; i < sortedBlocks.length; i++) {
-    const block = sortedBlocks[i];
-    const lastBlock = currentLine[currentLine.length - 1];
+  // Function to cluster blocks within a region into message bubbles
+  const clusterRegion = (regionBlocks: any[]) => {
+    if (regionBlocks.length === 0) return [];
     
-    if (Math.abs(block.y - lastBlock.y) <= 60) {
-      // Same line/message bubble
-      currentLine.push(block);
-    } else {
-      // New message bubble
-      lines.push(currentLine);
-      currentLine = [block];
+    // Sort by Y position
+    const sortedBlocks = [...regionBlocks].sort((a, b) => a.y - b.y);
+    
+    const bubbles: any[] = [];
+    let currentBubble: any[] = [sortedBlocks[0]];
+    
+    for (let i = 1; i < sortedBlocks.length; i++) {
+      const block = sortedBlocks[i];
+      const lastBlock = currentBubble[currentBubble.length - 1];
+      
+      // Use adaptive threshold based on typical WhatsApp message spacing
+      const verticalGap = Math.abs(block.y - lastBlock.y);
+      
+      if (verticalGap <= 40) {
+        // Same message bubble - words are close together
+        currentBubble.push(block);
+      } else {
+        // New message bubble - significant gap
+        if (currentBubble.length > 0) {
+          // Sort words in bubble by X position for proper reading order
+          const sortedBubble = currentBubble.sort((a, b) => a.x - b.x);
+          bubbles.push(sortedBubble);
+        }
+        currentBubble = [block];
+      }
     }
-  }
-  lines.push(currentLine);
-
-  // Step 2: For each line/bubble, determine speaker and create complete message
-  const bubbles: any[] = [];
+    
+    // Add the last bubble
+    if (currentBubble.length > 0) {
+      const sortedBubble = currentBubble.sort((a, b) => a.x - b.x);
+      bubbles.push(sortedBubble);
+    }
+    
+    return bubbles;
+  };
   
-  for (const line of lines) {
-    if (line.length === 0) continue;
-    
-    // Calculate average X position for the entire bubble
-    const bubbleX = line.reduce((sum: number, block: any) => sum + block.x, 0) / line.length;
-    
-    // Sort words by X position for proper reading order
-    const sortedLine = line.sort((a, b) => a.x - b.x);
-    
-    bubbles.push({
-      words: sortedLine,
-      x: bubbleX
-    });
-  }
+  const leftBubbles = clusterRegion(leftBlocks);
+  const rightBubbles = clusterRegion(rightBlocks);
 
-  // Step 3: Determine speaker and create messages
+  // Step 2: Create messages from bubbles
   const leftMessages: string[] = [];
   const rightMessages: string[] = [];
   
-  for (const bubble of bubbles) {
-    if (!bubble.words || bubble.words.length === 0) continue;
+  // Process left bubbles (other person's messages)
+  for (const bubble of leftBubbles) {
+    if (!bubble || bubble.length === 0) continue;
     
-    // Create message text from all words in the bubble
-    const messageText = bubble.words.map((block: any) => block.text).join(' ')
+    const messageText = bubble.map((block: any) => block.text).join(' ')
       .replace(/^\d{1,2}:\d{2}\s*/, '') // Remove leading timestamps
       .replace(/\s*[√✓]+\s*$/, '') // Remove trailing read receipts
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
     
-    if (messageText.length < 3) continue;
-    
-    // Classify based on X position
-    if (bubble.x < leftThreshold) {
+    if (messageText.length >= 3) {
       leftMessages.push(messageText);
-    } else if (bubble.x > rightThreshold) {
+    }
+  }
+  
+  // Process right bubbles (user's messages)
+  for (const bubble of rightBubbles) {
+    if (!bubble || bubble.length === 0) continue;
+    
+    const messageText = bubble.map((block: any) => block.text).join(' ')
+      .replace(/^\d{1,2}:\d{2}\s*/, '') // Remove leading timestamps
+      .replace(/\s*[√✓]+\s*$/, '') // Remove trailing read receipts
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+    
+    if (messageText.length >= 3) {
       rightMessages.push(messageText);
     }
-    // Skip middle messages (system messages, etc.)
   }
 
   return { leftMessages, rightMessages };
