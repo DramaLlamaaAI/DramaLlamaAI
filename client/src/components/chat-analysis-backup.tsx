@@ -910,133 +910,21 @@ export default function ChatAnalysis() {
 
                   {/* Screenshot Analysis Tab */}
                   <TabsContent value="screenshot" className="mt-4">
-                    <div className="space-y-4">
-                      <div className="text-center mb-6">
-                        <div className="bg-purple-100 inline-block p-4 mb-3 rounded-full">
-                          <Image className="h-8 w-8 text-purple-600" />
-                        </div>
-                        <h3 className="text-xl font-medium text-purple-700 mb-2">Screenshot Analysis</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Upload a screenshot of your conversation and let AI extract and analyze the text
+                    <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                        <Image className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-semibold">Screenshot Analysis</h3>
+                        <p className="text-muted-foreground max-w-md">
+                          Advanced screenshot analysis with OCR text extraction is coming soon. 
+                          We're working on improving the accuracy and speed of this feature.
                         </p>
                       </div>
-
-                      {/* Participant Name Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <Label htmlFor="screenshot-me" className="block mb-2 font-medium">Your Name (Me)</Label>
-                          <Input
-                            id="screenshot-me"
-                            placeholder="Enter your name"
-                            value={screenshotMe}
-                            onChange={(e) => setScreenshotMe(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="screenshot-them" className="block mb-2 font-medium">Their Name</Label>
-                          <Input
-                            id="screenshot-them"
-                            placeholder="Enter their name"
-                            value={screenshotThem}
-                            onChange={(e) => setScreenshotThem(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Message Orientation Selector */}
-                      <div className="mb-4">
-                        <Label className="block mb-2 font-medium">Where do your messages appear?</Label>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div 
-                            className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                              messageOrientation === "left" ? "border-purple-500 bg-purple-50" : "border-gray-200"
-                            }`}
-                            onClick={() => setMessageOrientation("left")}
-                          >
-                            <div className="flex items-center mb-2">
-                              <div className="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
-                              <span className="text-sm">My messages on left</span>
-                            </div>
-                          </div>
-                          <div 
-                            className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                              messageOrientation === "right" ? "border-purple-500 bg-purple-50" : "border-gray-200"
-                            }`}
-                            onClick={() => setMessageOrientation("right")}
-                          >
-                            <div className="flex items-center mb-2 justify-end">
-                              <span className="text-sm">My messages on right</span>
-                              <div className="w-3 h-3 rounded-full bg-blue-400 ml-2"></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Screenshot Upload */}
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                        <input
-                          type="file"
-                          ref={imageInputRef}
-                          onChange={handleScreenshotUpload}
-                          accept="image/*"
-                          className="hidden"
-                        />
-                        
-                        {!selectedImage ? (
-                          <div className="text-center">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => imageInputRef.current?.click()}
-                              className="mb-2"
-                            >
-                              <Image className="h-4 w-4 mr-2" />
-                              Select Screenshot
-                            </Button>
-                            
-                            <p className="text-xs text-gray-500 mt-2">
-                              Supports: JPG, PNG, WebP
-                            </p>
-                          </div>
-                        ) : (
-                          <div>
-                            <p className="text-sm font-medium text-purple-700 mb-2">
-                              Screenshot selected: {selectedImage.name}
-                            </p>
-                            {imagePreview && (
-                              <div className="mt-4 mb-4">
-                                <img 
-                                  src={imagePreview} 
-                                  alt="Screenshot preview" 
-                                  className="max-w-full max-h-64 mx-auto rounded-lg shadow-lg"
-                                />
-                              </div>
-                            )}
-                            
-                            <div className="flex gap-2 justify-center">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedImage(null);
-                                  setImagePreview(null);
-                                }}
-                              >
-                                Remove
-                              </Button>
-                              <Button
-                                type="button"
-                                onClick={handleScreenshotAnalysis}
-                                disabled={!canUseFeature || !screenshotMe || !screenshotThem}
-                              >
-                                <Brain className="h-4 w-4 mr-2" />
-                                {canUseFeature ? 'Analyze Screenshot' : 'Usage Limit Reached'}
-                              </Button>
-                            </div>
-                          </div>
-                        )}
+                      <div className="mt-4">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+                          Coming Soon
+                        </span>
                       </div>
                     </div>
                   </TabsContent>

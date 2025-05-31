@@ -24,7 +24,7 @@ import RedFlags from "@/components/red-flags";
 import RegistrationPrompt from "@/components/registration-prompt";
 import EvasionDetection from "@/components/evasion-detection";
 import ConflictDynamics from "@/components/conflict-dynamics";
-import ScreenshotWorkflowSimple from "@/components/screenshot-workflow-simple";
+
 import LockedPreviewSections from "@/components/locked-preview-sections";
 
 export default function ChatAnalysis() {
