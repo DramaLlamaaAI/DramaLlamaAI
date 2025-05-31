@@ -113,16 +113,29 @@ export default function ChatAnalysis() {
       setOcrProgress(30);
 
       // Send to Google Cloud Vision API endpoint
+      console.log('Sending request to /api/ocr/google with', screenshots.length, 'images');
+      
       const response = await fetch('/api/ocr/google', {
         method: 'POST',
         body: formData,
+      }).catch(error => {
+        console.error('Network error during OCR request:', error);
+        throw new Error(`Network error: ${error.message}`);
       });
 
+      console.log('Received response:', response.status, response.statusText);
       setOcrProgress(70);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Server error: ${response.status}`);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('Server error response:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText };
+        }
+        throw new Error(errorData.message || `Server error: ${response.status} ${response.statusText}`);
       }
 
       const result = await response.json();
