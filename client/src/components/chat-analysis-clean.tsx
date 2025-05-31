@@ -31,6 +31,8 @@ import { ChatAnalysisResult } from '@shared/schema';
 
 export default function ChatAnalysis() {
   const [conversation, setConversation] = useState('');
+  const [me, setMe] = useState('');
+  const [them, setThem] = useState('');
   const [screenshots, setScreenshots] = useState<Array<{file: File, preview: string}>>([]);
   const [messageSide, setMessageSide] = useState<string>('');
   const [screenshotMe, setScreenshotMe] = useState('');
@@ -121,45 +123,80 @@ export default function ChatAnalysis() {
     }
   };
 
-  // Parse extracted text into conversation format
+  // Parse extracted text into conversation format with smart message detection
   const parseScreenshotText = (text: string, side: string, myName: string, theirName: string): string => {
     const lines = text.split('\n').filter(line => line.trim());
     
-    // Filter out common UI elements and noise
+    // Filter out UI elements and extract potential messages
     const cleanedLines = lines.filter(line => {
       const trimmed = line.trim().toLowerCase();
       
-      // Skip UI elements, timestamps, status indicators
-      if (trimmed.length < 3) return false;
-      if (/^[\d:]+$/.test(trimmed)) return false; // Pure timestamps like "08:09"
-      if (/^[\d\s%]+$/.test(trimmed)) return false; // Numbers and percentages like "24", "000", "53%"
+      // Skip obvious UI elements
+      if (trimmed.length < 2) return false;
+      if (/^[\d:]+$/.test(trimmed)) return false; // Pure timestamps
+      if (/^[\d\s%]+$/.test(trimmed)) return false; // Numbers and percentages
       if (/^[←→↑↓]+$/.test(trimmed)) return false; // Navigation arrows
       if (trimmed.includes('last seen')) return false;
-      if (trimmed.includes('online')) return false;
-      if (trimmed.includes('typing')) return false;
-      if (/^[✓√]+$/.test(trimmed)) return false; // Read receipts
-      if (trimmed === 'message') return false;
-      if (trimmed.length > 200) return false; // Probably corrupted text
+      if (trimmed.includes('whatsapp')) return false;
+      if (trimmed.includes('message')) return false;
+      if (/^[✓√]+\s*$/.test(trimmed)) return false; // Read receipts only
+      if (trimmed === theirName.toLowerCase()) return false; // Contact name headers
+      if (trimmed.length > 300) return false; // Probably corrupted
       
       return true;
     });
     
-    // Convert to conversation format
+    // Smart message detection based on WhatsApp patterns
     const conversationLines = [];
-    let currentSpeaker = myName; // Start with user
     
-    for (const line of cleanedLines) {
-      const trimmed = line.trim();
+    for (let i = 0; i < cleanedLines.length; i++) {
+      const line = cleanedLines[i].trim();
       
-      // Skip contact names that appear as headers
-      if (trimmed === myName || trimmed === theirName) continue;
+      // Skip if too short to be a meaningful message
+      if (line.length < 3) continue;
       
-      // If line looks like a message (has reasonable length and content)
-      if (trimmed.length > 0) {
-        conversationLines.push(`${currentSpeaker}: ${trimmed}`);
-        // Alternate speakers for basic conversation flow
-        currentSpeaker = currentSpeaker === myName ? theirName : myName;
+      // Look for actual message content patterns
+      const isLikelyMessage = 
+        // Contains common words
+        /\b(i|you|the|and|but|so|that|this|what|how|when|where|why|yes|no|ok|okay|lol|haha)\b/i.test(line) ||
+        // Contains sentence-like structure
+        /[.!?]/.test(line) ||
+        // Contains conversational patterns
+        /\b(thanks|thank you|sorry|please|hello|hi|hey|bye|good|bad|great|nice|cool)\b/i.test(line) ||
+        // Is a reasonable length for a message
+        (line.length >= 10 && line.length <= 200);
+      
+      if (isLikelyMessage) {
+        // Try to determine speaker based on context and alternating pattern
+        // In WhatsApp screenshots, messages typically alternate between speakers
+        const isMyMessage: boolean = conversationLines.length % 2 === 0;
+        const speaker: string = isMyMessage ? myName : theirName;
+        
+        // Clean up the message text
+        let messageText = line
+          .replace(/^\d{2}:\d{2}\s*/, '') // Remove leading timestamps
+          .replace(/\s*\d{2}:\d{2}\s*$/, '') // Remove trailing timestamps
+          .replace(/[✓√]+\s*$/, '') // Remove read receipts
+          .trim();
+        
+        if (messageText.length > 0) {
+          conversationLines.push(`${speaker}: ${messageText}`);
+        }
       }
+    }
+    
+    // If we don't have enough messages, try a simpler approach
+    if (conversationLines.length < 3) {
+      const simpleMessages = cleanedLines
+        .filter(line => line.length >= 5 && line.length <= 200)
+        .map((line, index) => {
+          const speaker = index % 2 === 0 ? myName : theirName;
+          const cleanText = line.replace(/^\d{2}:\d{2}\s*/, '').replace(/[✓√]+\s*$/, '').trim();
+          return cleanText.length > 0 ? `${speaker}: ${cleanText}` : null;
+        })
+        .filter(Boolean);
+      
+      return simpleMessages.join('\n');
     }
     
     return conversationLines.join('\n');
@@ -493,6 +530,25 @@ export default function ChatAnalysis() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">My Name</label>
+                  <Input
+                    value={me}
+                    onChange={(e) => setMe(e.target.value)}
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Their Name</label>
+                  <Input
+                    value={them}
+                    onChange={(e) => setThem(e.target.value)}
+                    placeholder="Other person's name"
+                  />
+                </div>
+              </div>
+              
               <Textarea
                 value={conversation}
                 onChange={(e) => setConversation(e.target.value)}
