@@ -228,9 +228,9 @@ export async function analyzeImageWithAzure(
         console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpointX}`);
         
         if (x < midpointX) {
-          speaker = themName; // Alex - left side (person in hospital)
+          speaker = meName; // Alex - left side (person in hospital) 
         } else {
-          speaker = meName; // Els - right side (supportive friend)
+          speaker = themName; // Els - right side (supportive friend)
         }
         
         console.log(`Assigned speaker: ${speaker}`);
