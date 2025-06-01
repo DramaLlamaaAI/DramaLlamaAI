@@ -231,12 +231,17 @@ export default function ChatAnalysis() {
     console.log('Screenshot me:', screenshotMe);
     console.log('Screenshot them:', screenshotThem);
     
-    if (screenshots.length === 0) return;
+    if (screenshots.length === 0) {
+      console.log('❌ No screenshots found, returning early');
+      return;
+    }
 
+    console.log('✅ Starting screenshot processing...');
     setIsProcessingScreenshots(true);
     setOcrProgress(0);
 
     try {
+      console.log('✅ Setting progress to 10%');
       setOcrProgress(10);
 
       const results: any[] = [];
@@ -364,7 +369,12 @@ Tip: Look for patterns like timestamps to identify separate messages, then add "
       });
 
     } catch (error) {
-      console.error('OCR processing failed:', error);
+      console.error('❌ OCR processing failed:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error name:', error instanceof Error ? error.name : 'Unknown');
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Full error object:', error);
+      
       const errorMessage = error instanceof Error ? error.message : 'Text extraction failed';
       
       toast({
@@ -373,6 +383,7 @@ Tip: Look for patterns like timestamps to identify separate messages, then add "
         variant: "destructive",
       });
     } finally {
+      console.log('🔄 Cleaning up - setting processing to false');
       setIsProcessingScreenshots(false);
       setOcrProgress(0);
     }
