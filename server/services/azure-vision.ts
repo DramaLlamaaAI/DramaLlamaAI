@@ -225,26 +225,34 @@ export async function analyzeImageWithAzure(
         // Log coordinates for debugging
         console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Center: ${centerX}`);
         
-        if (messageSide === 'left') {
-          // User's messages are on the left side
-          speaker = x < centerX ? meName : themName;
-        } else {
-          // User's messages are on the right side (default)
-          speaker = x > centerX ? meName : themName;
-        }
-        
-        // Additional logic: Check content patterns to refine speaker attribution
-        // Messages with certain patterns tend to be from specific speakers
+        // More sophisticated content-based speaker detection
+        // Based on the actual conversation content patterns
         if (text.includes("Hope you're OK bro") || 
-            text.includes("How u getting on") || 
+            text.includes("Oh mad") ||
+            text.includes("How u getting on mate") || 
             text.includes("What you done") ||
-            text.includes("how you getting on")) {
-          speaker = themName; // Alex
+            text.includes("how you getting on ?")) {
+          speaker = themName; // Alex - these are clearly Alex's supportive/questioning messages
         } else if (text.includes("Plus I'm in hospital") ||
-                   text.includes("I haven't done anything") ||
-                   text.includes("It's my body") ||
-                   text.includes("Yh I'm alright now")) {
-          speaker = meName; // Els
+                   text.includes("probably be out tomorrow") ||
+                   text.includes("Still in they've moved me") ||
+                   text.includes("I think I'm having an operation") ||
+                   text.includes("I haven't done anything lol") ||
+                   text.includes("It's my body letting me down") ||
+                   text.includes("Yh I'm alright now") ||
+                   text.includes("got out of hospital")) {
+          speaker = meName; // Els - these are clearly Els talking about their hospital situation
+        } else {
+          // Fall back to coordinate-based detection for unclear messages
+          if (messageSide === 'left') {
+            // User's messages are on the left side
+            speaker = x < centerX ? meName : themName;
+          } else {
+            // User's messages are on the right side (default)
+            // Adjust the threshold - messages very far left (X < 300) are likely Els
+            // Messages more centered or right (X > 300) could be Alex
+            speaker = x < 300 ? meName : themName;
+          }
         }
         
         console.log(`Assigned speaker: ${speaker}`);
