@@ -1064,8 +1064,9 @@ export const analysisController = {
             throw new Error('File does not appear to be a valid WhatsApp export');
           }
 
-          // Analyze the chat using the existing analysis function
-          const analysis = await analyzeChatConversation(chatText);
+          // Detect participants first, then analyze
+          const participants = await detectParticipants(chatText);
+          const analysis = await analyzeChatConversation(chatText, participants.participant1, participants.participant2);
           
           results.push({
             filename: file.originalname,
