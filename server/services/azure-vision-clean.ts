@@ -204,6 +204,7 @@ export async function analyzeImageWithAzure(
     const estimatedImageWidth = maxX - minX;
     
     console.log(`Image analysis: minX=${minX}, maxX=${maxX}, threshold=${threshold}, estimatedWidth=${estimatedImageWidth}`);
+    console.log(`DEBUG: Threshold calculation: ${minX} + (${maxX} - ${minX}) * 0.3 = ${threshold}`);
 
     const messages: ExtractedMessage[] = [];
     
