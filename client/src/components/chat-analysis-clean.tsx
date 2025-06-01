@@ -346,7 +346,7 @@ export default function ChatAnalysis() {
         
         if (result.messages && result.messages.length > 0) {
           // Use the structured message data with proper speaker attribution
-          result.messages.forEach(msg => {
+          result.messages.forEach((msg: any) => {
             if (msg.speaker === screenshotMe) {
               leftMessages.push(msg.text);
             } else {
