@@ -260,13 +260,19 @@ export default function ChatAnalysis() {
         // Skip base64 conversion - send file directly
         console.log(`✅ Using file directly for screenshot ${i + 1} - no conversion needed`);
         
-        // Use proper FormData approach for file upload
-        console.log(`📝 Creating FormData for screenshot ${i + 1}...`);
-        const formData = new FormData();
-        formData.append('images', screenshot.file);
-        formData.append('messageSide', messageSide);
-        formData.append('meName', screenshotMe);
-        formData.append('themName', screenshotThem);
+        // Convert image to base64 and send as JSON instead of FormData
+        console.log(`📝 Converting image to base64 for screenshot ${i + 1}...`);
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            // Remove data URL prefix to get just the base64 data
+            const base64Data = result.split(',')[1];
+            resolve(base64Data);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(screenshot.file);
+        });
         
         // Generate device ID for anonymous usage tracking
         const deviceId = localStorage.getItem('device-id') || (() => {
@@ -276,14 +282,21 @@ export default function ChatAnalysis() {
         })();
         
         console.log(`🔑 Using device ID: ${deviceId} for screenshot ${i + 1}`);
-        console.log(`🌐 About to make FormData request to: /api/ocr/azure`);
+        console.log(`🌐 About to make JSON request to: /api/ocr/azure-base64`);
         
-        const response = await fetch('/api/ocr/azure', {
+        const response = await fetch('/api/ocr/azure-base64', {
           method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             'X-Device-ID': deviceId
           },
-          body: formData
+          body: JSON.stringify({
+            image: base64,
+            messageSide: messageSide,
+            meName: screenshotMe,
+            themName: screenshotThem,
+            filename: screenshot.file.name
+          })
         });
         
         console.log(`✅ Fetch completed for screenshot ${i + 1}! Status: ${response.status} ${response.statusText}`);

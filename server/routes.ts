@@ -250,6 +250,54 @@ app.use(session({
     res.json({ success: true, message: 'Server connection working' });
   });
 
+  // Azure OCR endpoint for base64 images (bypasses FormData issues)
+  app.post('/api/ocr/azure-base64', checkTrialEligibility, async (req: Request, res: Response) => {
+    try {
+      console.log('Azure base64 OCR endpoint hit');
+      console.log('Request body keys:', Object.keys(req.body || {}));
+      console.log('Image data length:', req.body?.image?.length || 0);
+      console.log('Parameters:', {
+        messageSide: req.body?.messageSide,
+        meName: req.body?.meName,
+        themName: req.body?.themName,
+        filename: req.body?.filename
+      });
+
+      const { image, messageSide, meName, themName, filename } = req.body;
+
+      if (!image) {
+        return res.status(400).json({ error: 'No image data provided' });
+      }
+
+      if (!messageSide || !meName || !themName) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+
+      console.log('Processing image with Azure Vision...');
+      const { analyzeImageWithAzure } = await import('./services/azure-vision');
+      const result = await analyzeImageWithAzure(image, messageSide, meName, themName);
+
+      console.log('Azure processing completed successfully');
+      console.log('Messages found:', result.messages.length);
+      console.log('Raw text length:', result.rawText.length);
+
+      res.json({
+        success: true,
+        results: [{
+          rawText: result.rawText,
+          messages: result.messages,
+          imageWidth: result.imageWidth || 0
+        }]
+      });
+    } catch (error) {
+      console.error('Azure base64 OCR error:', error);
+      res.status(500).json({ 
+        error: 'Azure processing failed', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Test Azure connection without file upload
   app.get('/api/test-azure', async (req: Request, res: Response) => {
     try {
