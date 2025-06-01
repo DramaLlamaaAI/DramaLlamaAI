@@ -199,7 +199,8 @@ export async function analyzeImageWithAzure(
     const minX = Math.min(...allXCoordinates);
     const maxX = Math.max(...allXCoordinates);
     // Calculate proper threshold based on actual image dimensions
-    const threshold = minX + (maxX - minX) * 0.6; // 60% from left edge
+    // Most messages are on the right, so use a lower threshold to separate properly
+    const threshold = minX + (maxX - minX) * 0.3; // 30% from left edge
     const estimatedImageWidth = maxX - minX;
     
     console.log(`Image analysis: minX=${minX}, maxX=${maxX}, threshold=${threshold}, estimatedWidth=${estimatedImageWidth}`);
