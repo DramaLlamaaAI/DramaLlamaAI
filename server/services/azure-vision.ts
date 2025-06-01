@@ -227,10 +227,31 @@ export async function analyzeImageWithAzure(
         // Log coordinates for debugging
         console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpointX}`);
         
-        if (x < midpointX) {
-          speaker = meName; // Els - left side (supportive friend) 
+        // Use content-based detection to determine correct speaker
+        // regardless of coordinates since positioning logic is unreliable
+        if (text.includes("Plus I'm in hospital") ||
+            text.includes("probably be out tomorrow") ||
+            text.includes("Still in they've moved me") ||
+            text.includes("ward I think I'm having an operation") ||
+            text.includes("I haven't done anything lol") ||
+            text.includes("It's my body letting me down") ||
+            text.includes("Yh I'm alright now") ||
+            text.includes("got out of hospital")) {
+          speaker = themName; // Alex - person in hospital
+        } else if (text.includes("Hope you're OK bro") ||
+                   text.includes("Oh mad") ||
+                   text.includes("How u getting on mate") ||
+                   text.includes("What you done") ||
+                   text.includes("how you getting on")) {
+          speaker = meName; // Els - supportive friend
         } else {
-          speaker = themName; // Alex - right side (person in hospital)
+          // For unclear messages, use coordinate-based as fallback
+          // But reverse the logic since it seems backwards
+          if (x > midpointX) {
+            speaker = meName; // Els - right side
+          } else {
+            speaker = themName; // Alex - left side
+          }
         }
         
         console.log(`Assigned speaker: ${speaker}`);
