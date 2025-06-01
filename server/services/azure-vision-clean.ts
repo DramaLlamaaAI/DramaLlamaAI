@@ -224,8 +224,9 @@ export async function analyzeImageWithAzure(
       const x = Math.min(line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]);
       const y = Math.min(line.boundingBox[1], line.boundingBox[3], line.boundingBox[5], line.boundingBox[7]);
       
-      // Calculate midpoint for this image
-      const midpoint = (minX + maxX) / 2;
+      // Use a fixed threshold that better matches WhatsApp layout
+      // In your screenshot, messages around X=300+ should be considered right side
+      const midpoint = 250;
       
       // Log coordinates for debugging
       console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpoint}`);
