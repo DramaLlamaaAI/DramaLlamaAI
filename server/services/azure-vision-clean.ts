@@ -198,13 +198,9 @@ export async function analyzeImageWithAzure(
     const allXCoordinates = lines.flatMap(line => [line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]]);
     const minX = Math.min(...allXCoordinates);
     const maxX = Math.max(...allXCoordinates);
-    // Adjust threshold based on actual message distribution
-    // For this specific screenshot layout, use 75% to account for centered positioning
-    const threshold = minX + (maxX - minX) * 0.75; // 75% from left edge
     const estimatedImageWidth = maxX - minX;
     
-    console.log(`Image analysis: minX=${minX}, maxX=${maxX}, threshold=${threshold}, estimatedWidth=${estimatedImageWidth}`);
-    console.log(`DEBUG: Threshold calculation: ${minX} + (${maxX} - ${minX}) * 0.75 = ${threshold}`);
+    console.log(`Image analysis: minX=${minX}, maxX=${maxX}, estimatedWidth=${estimatedImageWidth}`);
 
     // First pass: filter out timestamps and get valid content lines
     const contentLines = [];
@@ -262,16 +258,36 @@ export async function analyzeImageWithAzure(
 
     console.log(`Grouped into ${messageGroups.length} message bubbles`);
 
+    // Use clustering approach: group messages by X coordinate similarity
+    const xCoordinates = messageGroups.map(g => g.avgX);
+    xCoordinates.sort((a, b) => a - b);
+    
+    console.log(`X coordinates sorted: ${xCoordinates.join(', ')}`);
+    
+    // Find the natural gap in X coordinates to split left/right
+    let bestGap = 0;
+    let splitPoint = 0;
+    
+    for (let i = 1; i < xCoordinates.length; i++) {
+      const gap = xCoordinates[i] - xCoordinates[i-1];
+      if (gap > bestGap) {
+        bestGap = gap;
+        splitPoint = (xCoordinates[i-1] + xCoordinates[i]) / 2;
+      }
+    }
+    
+    console.log(`Best gap: ${bestGap}, Split point: ${splitPoint}`);
+
     const messages: ExtractedMessage[] = [];
     
     for (const group of messageGroups) {
       const text = group.text.trim();
       if (!text) continue;
       
-      console.log(`BUBBLE: "${text}" | X: ${group.avgX} | Y: ${group.avgY} | Threshold: ${threshold}`);
+      console.log(`BUBBLE: "${text}" | X: ${group.avgX} | Y: ${group.avgY} | Split: ${splitPoint}`);
       
       let speaker: string;
-      if (group.avgX < threshold) {
+      if (group.avgX < splitPoint) {
         speaker = leftSideName;
         console.log(`→ Assigning to LEFT: ${leftSideName}`);
       } else {
