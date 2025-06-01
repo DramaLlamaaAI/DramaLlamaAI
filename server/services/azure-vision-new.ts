@@ -179,31 +179,46 @@ export async function processScreenshotMessages(
 
   console.log(`Grouped into ${bubbles.length} message bubbles`);
 
-  // Step 3: Determine left/right based on bubble center positions
+  // Step 3: Use margin-based detection for accurate WhatsApp bubble identification
   const bubbleCenters = bubbles.map(b => b.centerX).sort((a, b) => a - b);
   console.log(`Bubble center X coordinates: ${bubbleCenters.join(', ')}`);
   
-  // Smart split detection: Look for isolated left messages vs clustered right messages
   const imageMinX = Math.min(...bubbleCenters);
   const imageMaxX = Math.max(...bubbleCenters);
+  const imageWidth = imageMaxX - imageMinX;
   
-  // Check if there's a single isolated bubble on the far left
-  const leftmostBubble = bubbleCenters[0];
-  const secondBubble = bubbleCenters[1];
-  const gapToSecond = secondBubble - leftmostBubble;
+  console.log(`Image bounds: ${imageMinX} to ${imageMaxX}, width: ${imageWidth}`);
   
+  // Identify exclusive margin zones (left and right edges where only one participant appears)
+  const leftMarginZone = imageMinX + (imageWidth * 0.15); // First 15% from left edge
+  const rightMarginZone = imageMaxX - (imageWidth * 0.15); // Last 15% from right edge
+  
+  // Count bubbles in each margin zone to identify which participant uses which side
+  const leftMarginBubbles = bubbles.filter(b => b.centerX <= leftMarginZone);
+  const rightMarginBubbles = bubbles.filter(b => b.centerX >= rightMarginZone);
+  
+  console.log(`Left margin zone (≤${leftMarginZone}): ${leftMarginBubbles.length} bubbles`);
+  console.log(`Right margin zone (≥${rightMarginZone}): ${rightMarginBubbles.length} bubbles`);
+  
+  // Determine split point based on margin analysis
   let splitPoint;
-  if (gapToSecond > 50 && bubbleCenters.filter(x => x <= leftmostBubble + 20).length === 1) {
-    // Single isolated bubble on left - split just after it
-    splitPoint = leftmostBubble + (gapToSecond / 2);
-    console.log(`Detected isolated left bubble at ${leftmostBubble}, split at ${splitPoint}`);
+  if (leftMarginBubbles.length > 0 && rightMarginBubbles.length > 0) {
+    // Clear margin separation - use midpoint between margin zones
+    splitPoint = (leftMarginZone + rightMarginZone) / 2;
+    console.log(`Using margin-based split point: ${splitPoint}`);
+  } else if (leftMarginBubbles.length > 0) {
+    // Only left margin bubbles - split after left margin
+    splitPoint = leftMarginZone + 30;
+    console.log(`Only left margin bubbles found, split at: ${splitPoint}`);
+  } else if (rightMarginBubbles.length > 0) {
+    // Only right margin bubbles - split before right margin  
+    splitPoint = rightMarginZone - 30;
+    console.log(`Only right margin bubbles found, split at: ${splitPoint}`);
   } else {
-    // Use 25% point from left edge as split (more conservative than 50%)
-    splitPoint = imageMinX + (imageMaxX - imageMinX) * 0.25;
-    console.log(`Using 25% split point: ${splitPoint}`);
+    // Fallback to 30% split for centered conversations
+    splitPoint = imageMinX + (imageWidth * 0.3);
+    console.log(`No clear margins, using 30% split: ${splitPoint}`);
   }
-  
-  console.log(`Image bounds: ${imageMinX} to ${imageMaxX}, split point: ${splitPoint}`);
 
   const leftMessages: ExtractedMessage[] = [];
   const rightMessages: ExtractedMessage[] = [];
