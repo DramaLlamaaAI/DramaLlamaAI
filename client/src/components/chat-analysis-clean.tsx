@@ -259,13 +259,31 @@ export default function ChatAnalysis() {
         
         // Convert to base64 for processing
         console.log(`🔄 Converting screenshot ${i + 1} to base64...`);
-        const base64 = await new Promise<string>((resolve) => {
+        const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
+          
           reader.onload = () => {
             console.log(`✅ FileReader completed for screenshot ${i + 1}`);
             const result = reader.result as string;
-            resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+            if (result) {
+              resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+            } else {
+              reject(new Error('FileReader returned null result'));
+            }
           };
+          
+          reader.onerror = () => {
+            console.error(`❌ FileReader error for screenshot ${i + 1}:`, reader.error);
+            reject(new Error(`Failed to read file: ${reader.error?.message || 'Unknown error'}`));
+          };
+          
+          // Add timeout for large files
+          setTimeout(() => {
+            reader.abort();
+            reject(new Error('File reading timeout - file may be too large'));
+          }, 30000); // 30 second timeout
+          
+          console.log(`📂 Starting FileReader.readAsDataURL for screenshot ${i + 1}`);
           reader.readAsDataURL(screenshot.file);
         });
         
