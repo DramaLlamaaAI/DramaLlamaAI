@@ -263,8 +263,11 @@ app.use(session({
       for (let i = 0; i < imageBuffers.length; i++) {
         try {
           console.log(`Processing image ${i + 1}/${imageBuffers.length} with Azure...`);
+          console.log('Converting to base64...');
           const base64Image = imageBuffers[i].toString('base64');
+          console.log(`Base64 conversion complete, calling Azure with params: ${messageSide}, ${meName}, ${themName}`);
           const azureResult = await analyzeImageWithAzure(base64Image, messageSide, meName, themName);
+          console.log('Azure processing completed successfully');
           results.push(azureResult);
           console.log(`Image ${i + 1}: ${azureResult.messages.length} messages extracted`);
         } catch (error) {
