@@ -231,12 +231,13 @@ export async function analyzeImageWithAzure(
         // Right side (higher X coordinates): user's messages (meName)
         // Left side (lower X coordinates): other person's messages (themName)
         console.log(`Debug: x=${x}, midpointX=${midpointX}, meName=${meName}, themName=${themName}`);
+        // Based on screenshot: els sends from RIGHT side (green bubbles), Lucy responds from LEFT side (gray bubble)
         if (x > midpointX) {
-          speaker = themName; // Lucy - right side (timestamps)
-          console.log(`Assigning RIGHT side to ${themName}`);
+          speaker = meName; // els - right side (green bubbles) 
+          console.log(`Assigning RIGHT side to ${meName}`);
         } else {
-          speaker = meName; // els - left side (green bubbles)
-          console.log(`Assigning LEFT side to ${meName}`);
+          speaker = themName; // Lucy - left side (gray bubble)
+          console.log(`Assigning LEFT side to ${themName}`);
         }
         
         console.log(`Final assigned speaker: ${speaker}`);
