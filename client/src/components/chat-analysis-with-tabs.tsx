@@ -15,7 +15,7 @@ interface ExtractedMessage {
   id: string;
 }
 
-export default function ScreenshotAnalysisNew() {
+export default function ChatAnalysisWithTabs() {
   // Screenshot analysis state
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const [messageSide, setMessageSide] = useState<'LEFT' | 'RIGHT'>('RIGHT');
@@ -47,7 +47,7 @@ export default function ScreenshotAnalysisNew() {
     }
     
     setScreenshots(imageFiles);
-    setShowPreview(false); // Reset preview when new files are uploaded
+    setShowPreview(false);
   };
 
   const extractText = async () => {
@@ -93,7 +93,6 @@ export default function ScreenshotAnalysisNew() {
 
         const result = await response.json();
         
-        // Convert the response to our format
         if (result.success && result.results?.[0]) {
           const messages = result.results[0].messages || [];
           
@@ -137,31 +136,6 @@ export default function ScreenshotAnalysisNew() {
     }
   };
 
-  const updateMessage = (id: string, newText: string) => {
-    setExtractedMessages(prev => ({
-      left: prev.left.map(msg => msg.id === id ? { ...msg, text: newText } : msg),
-      right: prev.right.map(msg => msg.id === id ? { ...msg, text: newText } : msg)
-    }));
-  };
-
-  const moveMessage = (id: string, fromSide: 'left' | 'right') => {
-    const toSide = fromSide === 'left' ? 'right' : 'left';
-    
-    setExtractedMessages(prev => {
-      const message = prev[fromSide].find(msg => msg.id === id);
-      if (!message) return prev;
-
-      return {
-        left: fromSide === 'left' 
-          ? prev.left.filter(msg => msg.id !== id)
-          : [...prev.left, { ...message, side: 'left' }],
-        right: fromSide === 'right'
-          ? prev.right.filter(msg => msg.id !== id)
-          : [...prev.right, { ...message, side: 'right' }]
-      };
-    });
-  };
-
   const analyzeImportedChat = async () => {
     if (!chatText.trim()) {
       toast({
@@ -191,8 +165,6 @@ export default function ScreenshotAnalysisNew() {
 
       const result = await response.json();
       
-      // Handle the analysis result - you may want to navigate to results page
-      // or display results inline
       toast({
         title: "Analysis complete",
         description: "Your conversation has been analyzed successfully"
@@ -230,169 +202,88 @@ export default function ScreenshotAnalysisNew() {
               <CardTitle>Screenshot Analysis</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-          {/* Step 1: Upload Screenshots */}
-          <div className="space-y-4">
-            <Label htmlFor="screenshots">Upload Screenshots</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <input
-                id="screenshots"
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <label htmlFor="screenshots" className="cursor-pointer">
-                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-600">
-                  Click to upload screenshots or drag and drop
-                </p>
-              </label>
-            </div>
-            
-            {screenshots.length > 0 && (
-              <div className="grid grid-cols-3 gap-4">
-                {screenshots.map((file, index) => (
-                  <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
-                    <FileImage className="h-4 w-4" />
-                    <span className="text-sm truncate">{file.name}</span>
+              <div className="space-y-4">
+                <Label htmlFor="screenshots">Upload Screenshots</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <input
+                    id="screenshots"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <label htmlFor="screenshots" className="cursor-pointer">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                    <p className="mt-2 text-sm text-gray-600">
+                      Click to upload screenshots or drag and drop
+                    </p>
+                  </label>
+                </div>
+                
+                {screenshots.length > 0 && (
+                  <div className="grid grid-cols-3 gap-4">
+                    {screenshots.map((file, index) => (
+                      <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                        <FileImage className="h-4 w-4" />
+                        <span className="text-sm truncate">{file.name}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Step 2: User Configuration */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="myName">My Name</Label>
-              <Input
-                id="myName"
-                value={myName}
-                onChange={(e) => setMyName(e.target.value)}
-                placeholder="Enter your name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="theirName">Their Name</Label>
-              <Input
-                id="theirName"
-                value={theirName}
-                onChange={(e) => setTheirName(e.target.value)}
-                placeholder="Enter their name"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Label>My messages are on the:</Label>
-            <RadioGroup value={messageSide} onValueChange={(value) => setMessageSide(value as 'LEFT' | 'RIGHT')}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="LEFT" id="left" />
-                <Label htmlFor="left">Left side (Gray bubbles)</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="RIGHT" id="right" />
-                <Label htmlFor="right">Right side (Green/Blue bubbles)</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Step 3: Extract Button */}
-          <Button 
-            onClick={extractText} 
-            disabled={isExtracting || screenshots.length === 0}
-            className="w-full"
-          >
-            {isExtracting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Extracting Text...
-              </>
-            ) : (
-              'Extract Text'
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Step 4: Preview and Edit */}
-      {showPreview && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Extracted Messages Preview</CardTitle>
-            <p className="text-sm text-gray-600">
-              Edit any message if OCR made errors, or click the arrow to move messages between sides
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Side Messages */}
-              <div>
-                <h3 className="font-semibold mb-3 text-gray-700">
-                  Left Side ({messageSide === 'LEFT' ? myName : theirName})
-                </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  {extractedMessages.left.map((message) => (
-                    <div key={message.id} className="flex items-center space-x-2">
-                      <Input
-                        value={message.text}
-                        onChange={(e) => updateMessage(message.id, e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => moveMessage(message.id, 'left')}
-                      >
-                        →
-                      </Button>
-                    </div>
-                  ))}
-                  {extractedMessages.left.length === 0 && (
-                    <p className="text-gray-500 italic">No messages</p>
-                  )}
+                  <Label htmlFor="myName">My Name</Label>
+                  <Input
+                    id="myName"
+                    value={myName}
+                    onChange={(e) => setMyName(e.target.value)}
+                    placeholder="Enter your name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="theirName">Their Name</Label>
+                  <Input
+                    id="theirName"
+                    value={theirName}
+                    onChange={(e) => setTheirName(e.target.value)}
+                    placeholder="Enter their name"
+                  />
                 </div>
               </div>
 
-              {/* Right Side Messages */}
-              <div>
-                <h3 className="font-semibold mb-3 text-gray-700">
-                  Right Side ({messageSide === 'RIGHT' ? myName : theirName})
-                </h3>
-                <div className="space-y-2">
-                  {extractedMessages.right.map((message) => (
-                    <div key={message.id} className="flex items-center space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => moveMessage(message.id, 'right')}
-                      >
-                        ←
-                      </Button>
-                      <Input
-                        value={message.text}
-                        onChange={(e) => updateMessage(message.id, e.target.value)}
-                        className="flex-1"
-                      />
-                    </div>
-                  ))}
-                  {extractedMessages.right.length === 0 && (
-                    <p className="text-gray-500 italic">No messages</p>
-                  )}
-                </div>
+              <div className="space-y-3">
+                <Label>My messages are on the:</Label>
+                <RadioGroup value={messageSide} onValueChange={(value) => setMessageSide(value as 'LEFT' | 'RIGHT')}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="LEFT" id="left" />
+                    <Label htmlFor="left">Left side (Gray bubbles)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="RIGHT" id="right" />
+                    <Label htmlFor="right">Right side (Green/Blue bubbles)</Label>
+                  </div>
+                </RadioGroup>
               </div>
-            </div>
 
-            {/* Step 5: Submit for Analysis */}
-            <div className="mt-6 pt-6 border-t">
-              <Button className="w-full" size="lg">
-                Analyze Conversation
+              <Button 
+                onClick={extractText} 
+                disabled={isExtracting || screenshots.length === 0}
+                className="w-full"
+              >
+                {isExtracting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Extracting Text...
+                  </>
+                ) : (
+                  'Extract Text'
+                )}
               </Button>
-            </div>
             </CardContent>
           </Card>
-        )}
         </TabsContent>
 
         <TabsContent value="import" className="space-y-6">
