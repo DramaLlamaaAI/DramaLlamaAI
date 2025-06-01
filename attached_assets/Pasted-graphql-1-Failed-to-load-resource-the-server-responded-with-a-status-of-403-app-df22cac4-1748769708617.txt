@@ -1,0 +1,111 @@
+graphql:1 
+ 
+ Failed to load resource: the server responded with a status of 403 ()
+_app-df22cac495f72ea1.js:9 
+ WebSocket connection to 'wss://replit.com/graphql_subscriptions' failed: 
+ 
+ initEternlDomAPI: domId 76615-827059-353787 true
+ 
+ initEternlDomAPI: href about:blank
+_app-df22cac495f72ea1.js:38 
+ task queue exceeded allotted deadline by 327ms
+ 
+ initEternlDomAPI: domId 76629-252854-10632 true
+ 
+ initEternlDomAPI: href about:blank
+_app-df22cac495f72ea1.js:38 
+ task queue exceeded allotted deadline by 128ms
+4899-e451efb66e978cf7.js:1 
+ WebSocket connection to 'wss://eval.spock.platform.replit.com/wsv2/v2.public.Q2dZSSs5Ym93UVlTQmdpYTg…Yg-DShKCmLRSgbUEKocEI_7g-IGdwZrVkwc.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+ 
+ initEternlDomAPI: domId 107968-371000-242738 true
+ 
+ initEternlDomAPI: href about:blank
+events.launchdarkly.…65152ab14c5942820:1 
+ 
+ Failed to load resource: net::ERR_NETWORK_CHANGED
+attached_assets/Scre…062818_Replit.jpg:1 
+ 
+ Failed to load resource: the server responded with a status of 404 ()
+4899-e451efb66e978cf7.js:1 
+ WebSocket connection to 'wss://eval.spock.platform.replit.com/wsv2/v2.public.Q2dZSTdQdnF3UVlTQmdpTG1…Xfx_WXls9xDqdJr4s9IsBy7ZiEC6CpPUNcP.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+ 
+ initEternlDomAPI: domId 579525-396751-171582 true
+ 
+ initEternlDomAPI: href about:blank
+stallwart.build.js:1 stallwart: failed ping 1
+ 
+ initEternlDomAPI: domId 487442-63603-760364 true
+ 
+ initEternlDomAPI: href about:blank
+attached_assets/Scre…124614_Replit.jpg:1 
+ 
+ Failed to load resource: the server responded with a status of 404 ()
+attached_assets/Scre…124802_Replit.jpg:1 
+ 
+ Failed to load resource: the server responded with a status of 404 ()
+4899-e451efb66e978cf7.js:1 
+ WebSocket connection to 'wss://eval.spock.platform.replit.com/wsv2/v2.public.Q2dZSW5NenN3UVlTQmdpNzZ…wJA9O_wl1nTWuGmogPkoDvQQ6UIP9kDRdcH.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+_app-df22cac495f72ea1.js:38 
+ task queue exceeded allotted deadline by 90ms
+ 
+ initEternlDomAPI: domId 363040-659564-269597 true
+ 
+ initEternlDomAPI: href about:blank
+2
+_app-df22cac495f72ea1.js:38 
+ WARN: A component changed from uncontrolled to controlled.
+ 
+ initEternlDomAPI: domId 154437-150881-189040 true
+ 
+ initEternlDomAPI: href about:blank
+ 
+ initEternlDomAPI: domId 518101-365467-242472 true
+ 
+ initEternlDomAPI: href about:blank
+_app-df22cac495f72ea1.js:38 
+ WARN: A component changed from uncontrolled to controlled.
+ 
+ initEternlDomAPI: domId 831332-954819-536624 true
+ 
+ initEternlDomAPI: href about:blank
+ 
+ initEternlDomAPI: domId 141612-31955-238775 true
+ 
+ initEternlDomAPI: href about:blank
+ 
+ initEternlDomAPI: domId 69181-605973-369536 true
+ 
+ initEternlDomAPI: href about:blank
+_app-df22cac495f72ea1.js:38 
+ WARN: A component changed from uncontrolled to controlled.
+ 
+ initEternlDomAPI: domId 131190-830105-929885 true
+ 
+ initEternlDomAPI: href about:blank
+4899-e451efb66e978cf7.js:1 
+ WebSocket connection to 'wss://eval.spock.platform.replit.com/wsv2/v2.public.Q2dZSWdzUHR3UVlTQmdpaDM…27gBnwtZWhxOuAzI629gCCdBArzxqb6Ax0L.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+dom.js?token=946730-660813-960658:883 
+ initEternlDomAPI: domId 622589-572269-461173 true
+dom.js?token=946730-660813-960658:884 
+ initEternlDomAPI: href about:blank
+dom.js?token=912852-163742-734665:883 
+ initEternlDomAPI: domId 442587-253070-788210 true
+dom.js?token=912852-163742-734665:884 
+ initEternlDomAPI: href https://www.google.com/recaptcha/enterprise/anchor?ar=2&k=6LdqhwwoAAAAAFPdw…9tOjQ0Mw..&hl=en&v=jt8Oh2-Ue1u7nEbJQUIdocyd&size=invisible&cb=v118b8wdmchq
+dom.js?token=731226-481899-969200:883 
+ initEternlDomAPI: domId 529747-717984-303735 true
+dom.js?token=731226-481899-969200:884 
+ initEternlDomAPI: href about:blank
+
+ Microsoft Edge is moving towards a new experience that allows users to choose to browse without third-party cookies.
+[NEW] Explain Console errors by using Copilot in Edge: click 
+ to explain an error. Learn more
+Don't show again
+
+ Microsoft Edge is moving towards a new experience that allows users to choose to browse without third-party cookies.
+2
+_app-df22cac495f72ea1.js:38 
+ WARN: A component changed from uncontrolled to controlled.
+﻿
+

@@ -281,6 +281,10 @@ export default function ChatAnalysis() {
           return id;
         })();
         
+        console.log('About to make fetch request with device ID:', deviceId);
+        console.log('Request URL: /api/ocr/azure');
+        console.log('Request method: POST');
+        
         const response = await fetch('/api/ocr/azure', {
           method: 'POST',
           headers: {
@@ -288,7 +292,9 @@ export default function ChatAnalysis() {
           },
           body: formData
         });
-        console.log('Response received:', response.status, response.statusText);
+        
+        console.log('✅ Fetch completed! Response received:', response.status, response.statusText);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
         
         if (!response.ok) {
           const errorText = await response.text();
