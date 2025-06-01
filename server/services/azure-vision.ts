@@ -219,40 +219,18 @@ export async function analyzeImageWithAzure(
         const x = boundingBox[0];
         const y = boundingBox[1];
         
-        // Determine speaker based on X position and user's message layout preference
+        // Assign speaker based on bounding box positioning
+        // Alex (person in hospital) is on the left side, Els (supportive friend) is on the right
+        const midpointX = estimatedImageWidth / 2;
         let speaker: string;
         
         // Log coordinates for debugging
-        console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Center: ${centerX}`);
+        console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpointX}`);
         
-        // More sophisticated content-based speaker detection
-        // Based on the actual conversation content patterns
-        if (text.includes("Hope you're OK bro") || 
-            text.includes("Oh mad") ||
-            text.includes("How u getting on mate") || 
-            text.includes("What you done") ||
-            text.includes("how you getting on ?")) {
-          speaker = meName; // Els - these are clearly Els's supportive/questioning messages
-        } else if (text.includes("Plus I'm in hospital") ||
-                   text.includes("probably be out tomorrow") ||
-                   text.includes("Still in they've moved me") ||
-                   text.includes("I think I'm having an operation") ||
-                   text.includes("I haven't done anything lol") ||
-                   text.includes("It's my body letting me down") ||
-                   text.includes("Yh I'm alright now") ||
-                   text.includes("got out of hospital")) {
-          speaker = themName; // Alex - these are clearly Alex talking about their hospital situation
+        if (x < midpointX) {
+          speaker = themName; // Alex - left side (person in hospital)
         } else {
-          // Fall back to coordinate-based detection for unclear messages
-          if (messageSide === 'left') {
-            // User's messages are on the left side
-            speaker = x < centerX ? meName : themName;
-          } else {
-            // User's messages are on the right side (default)
-            // Adjust the threshold - messages very far left (X < 300) are likely Els
-            // Messages more centered or right (X > 300) could be Alex
-            speaker = x < 300 ? meName : themName;
-          }
+          speaker = meName; // Els - right side (supportive friend)
         }
         
         console.log(`Assigned speaker: ${speaker}`);
