@@ -207,12 +207,26 @@ app.use(session({
       files: 10 // Max 10 files
     },
     fileFilter: (req, file, cb) => {
-      console.log('Multer fileFilter - processing file:', file.mimetype, file.size);
+      console.log('Multer fileFilter - processing file:', file.mimetype, file.originalname, file.size);
+      
+      // Accept files with proper image MIME types
       if (file.mimetype.startsWith('image/')) {
         cb(null, true);
-      } else {
-        cb(new Error('Only image files are allowed'));
+        return;
       }
+      
+      // Also accept files with image extensions, even if MIME type is wrong
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+      const fileExtension = file.originalname.toLowerCase().match(/\.[^.]*$/)?.[0];
+      
+      if (fileExtension && imageExtensions.includes(fileExtension)) {
+        console.log('Accepting file based on extension:', fileExtension);
+        cb(null, true);
+        return;
+      }
+      
+      console.log('Rejecting file - not an image:', file.mimetype, file.originalname);
+      cb(new Error('Only image files are allowed'));
     }
   });
 
