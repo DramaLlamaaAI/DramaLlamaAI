@@ -232,11 +232,11 @@ export async function analyzeImageWithAzure(
         // Left side (lower X coordinates): other person's messages (themName)
         console.log(`Debug: x=${x}, midpointX=${midpointX}, meName=${meName}, themName=${themName}`);
         if (x > midpointX) {
-          speaker = meName; // els - right side
-          console.log(`Assigning RIGHT side to ${meName}`);
+          speaker = themName; // Lucy - right side (timestamps)
+          console.log(`Assigning RIGHT side to ${themName}`);
         } else {
-          speaker = themName; // Lucy - left side
-          console.log(`Assigning LEFT side to ${themName}`);
+          speaker = meName; // els - left side (green bubbles)
+          console.log(`Assigning LEFT side to ${meName}`);
         }
         
         console.log(`Final assigned speaker: ${speaker}`);
