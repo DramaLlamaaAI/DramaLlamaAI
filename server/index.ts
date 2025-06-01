@@ -10,6 +10,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   const host = req.get('host');
   console.log(`Request host: ${host}`); // Debug log to see what host we're getting
   
+  // Skip redirect for API routes
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  
   // Check if request is coming from the old Replit domain
   if (host && (host.includes('replit.app') || host.includes('drama-llama-ai-elskieproductio'))) {
     // Redirect to the new custom domain

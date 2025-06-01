@@ -250,36 +250,33 @@ app.use(session({
     res.json({ success: true, message: 'Server connection working' });
   });
 
-  // Test endpoint to debug JSON requests (bypassing FormData)
-  app.post('/api/test-upload', checkTrialEligibility, async (req: Request, res: Response) => {
+  // Test Azure connection without file upload
+  app.get('/api/test-azure', async (req: Request, res: Response) => {
     try {
-      console.log('Test upload endpoint hit');
-      console.log('Content-Type:', req.headers['content-type']);
-      console.log('Body keys:', Object.keys(req.body || {}));
-      console.log('Has image data:', !!req.body?.image);
-      console.log('Image data length:', req.body?.image?.length || 0);
-      console.log('Other params:', {
-        messageSide: req.body?.messageSide,
-        meName: req.body?.meName,
-        themName: req.body?.themName,
-        filename: req.body?.filename
-      });
+      console.log('Testing Azure Vision connection...');
       
+      // Test with a simple 1x1 pixel image to verify Azure connection
+      const testImageBase64 = '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wB8=';
+      
+      const { analyzeImageWithAzure } = await import('./services/azure-vision');
+      const result = await analyzeImageWithAzure(testImageBase64, 'right', 'Test', 'User');
+      
+      console.log('Azure test successful');
       res.json({ 
         success: true, 
-        message: 'JSON request test successful',
-        hasImageData: !!req.body?.image,
-        imageLength: req.body?.image?.length || 0,
-        params: {
-          messageSide: req.body?.messageSide,
-          meName: req.body?.meName,
-          themName: req.body?.themName,
-          filename: req.body?.filename
+        message: 'Azure Vision connection working',
+        hasCredentials: true,
+        testResult: {
+          messagesFound: result.messages.length,
+          rawTextLength: result.rawText.length
         }
       });
     } catch (error) {
-      console.error('Test upload error:', error);
-      res.status(500).json({ error: 'Test request failed' });
+      console.error('Azure test error:', error);
+      res.status(500).json({ 
+        error: 'Azure connection failed', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
