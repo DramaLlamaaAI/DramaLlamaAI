@@ -250,6 +250,29 @@ app.use(session({
     res.json({ success: true, message: 'Server connection working' });
   });
 
+  // Test file upload endpoint to debug FormData issues
+  app.post('/api/test-upload', checkTrialEligibility, (req: Request, res: Response, next: NextFunction) => {
+    console.log('Test upload endpoint hit - before multer');
+    next();
+  }, upload.array('images', 10), handleMulterError, async (req: Request, res: Response) => {
+    try {
+      console.log('Test upload request received');
+      console.log('Files count:', req.files?.length || 0);
+      console.log('Headers:', req.headers['content-type']);
+      console.log('Body params:', req.body);
+      
+      res.json({ 
+        success: true, 
+        message: 'File upload test successful',
+        filesReceived: req.files?.length || 0,
+        bodyParams: req.body
+      });
+    } catch (error) {
+      console.error('Test upload error:', error);
+      res.status(500).json({ error: 'Test upload failed' });
+    }
+  });
+
   // Azure Computer Vision OCR endpoint
   app.post('/api/ocr/azure', checkTrialEligibility, (req: Request, res: Response, next: NextFunction) => {
     console.log('Azure OCR endpoint hit - before multer');

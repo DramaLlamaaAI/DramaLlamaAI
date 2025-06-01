@@ -284,9 +284,9 @@ export default function ChatAnalysis() {
         })();
         
         console.log(`🔑 Using device ID: ${deviceId} for screenshot ${i + 1}`);
-        console.log(`🌐 About to make fetch request to: /api/ocr/azure`);
+        console.log(`🌐 About to make fetch request to: /api/test-upload`);
         
-        const response = await fetch('/api/ocr/azure', {
+        const response = await fetch('/api/test-upload', {
           method: 'POST',
           headers: {
             'X-Device-ID': deviceId
