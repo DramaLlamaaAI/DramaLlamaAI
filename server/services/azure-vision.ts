@@ -245,12 +245,13 @@ export async function analyzeImageWithAzure(
                    text.includes("how you getting on")) {
           speaker = meName; // Els - supportive friend
         } else {
-          // For unclear messages, use coordinate-based as fallback
-          // But reverse the logic since it seems backwards
+          // For unclear messages, use coordinate-based detection
+          // Green bubbles (els) appear on RIGHT side with higher X coordinates
+          // Gray bubbles (other person) appear on LEFT side with lower X coordinates
           if (x > midpointX) {
-            speaker = meName; // Els - right side
+            speaker = meName; // els - right side (green bubbles)
           } else {
-            speaker = themName; // Alex - left side
+            speaker = themName; // Lucy - left side (gray bubbles)
           }
         }
         
