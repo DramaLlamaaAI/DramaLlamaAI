@@ -211,24 +211,33 @@ export async function analyzeImageWithAzure(
       const text = line.text.trim();
       if (!text || text.length < 2) continue;
       
+      // Filter out timestamps and delivery indicators
+      const timestampPattern = /^\d{1,2}:\d{2}[\s\/]*$/;
+      const deliveryPattern = /^(86V\/|87V\/|884\/|✓|✓✓)$/;
+      
+      if (timestampPattern.test(text) || deliveryPattern.test(text)) {
+        console.log(`Filtering out timestamp/delivery indicator: "${text}"`);
+        continue;
+      }
+      
       // Get the leftmost X coordinate of the bounding box
       const x = Math.min(line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]);
       const y = Math.min(line.boundingBox[1], line.boundingBox[3], line.boundingBox[5], line.boundingBox[7]);
       
-      // Log coordinates for debugging
-      console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Threshold: ${threshold}`);
+      // Calculate midpoint for this image
+      const midpoint = (minX + maxX) / 2;
       
-      // Use pure coordinate-based detection - left/right positioning only
-      console.log(`Debug: x=${x}, threshold=${threshold}, leftSideName=${leftSideName}, rightSideName=${rightSideName}`);
+      // Log coordinates for debugging
+      console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpoint}`);
       
       let speaker: string;
-      // Simple coordinate logic: higher X = right side, lower X = left side
-      if (x > threshold) {
-        speaker = rightSideName; // Right side messages get assigned to rightSideName
-        console.log(`Assigning RIGHT side to ${rightSideName}`);
-      } else {
-        speaker = leftSideName; // Left side messages get assigned to leftSideName
+      // Coordinate logic: left of midpoint = left side, right of midpoint = right side
+      if (x < midpoint) {
+        speaker = leftSideName; // Left side messages
         console.log(`Assigning LEFT side to ${leftSideName}`);
+      } else {
+        speaker = rightSideName; // Right side messages
+        console.log(`Assigning RIGHT side to ${rightSideName}`);
       }
       
       console.log(`Final assigned speaker: ${speaker}`);
