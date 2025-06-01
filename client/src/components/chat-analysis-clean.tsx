@@ -36,7 +36,7 @@ export default function ChatAnalysis() {
   const [me, setMe] = useState('');
   const [them, setThem] = useState('');
   const [activeTab, setActiveTab] = useState("screenshots");
-  const [screenshots, setScreenshots] = useState<Array<{file: File, preview: string}>>([]);
+  const [screenshots, setScreenshots] = useState<Array<{file: File, preview: string, base64?: string}>>([]);
   const [messageSide, setMessageSide] = useState<string>('');
   const [screenshotMe, setScreenshotMe] = useState('');
   const [screenshotThem, setScreenshotThem] = useState('');
@@ -260,41 +260,22 @@ export default function ChatAnalysis() {
         // Skip base64 conversion - send file directly
         console.log(`✅ Using file directly for screenshot ${i + 1} - no conversion needed`);
         
-        // Convert image to base64 and send as JSON instead of FormData
-        console.log(`📝 Converting image to base64 for screenshot ${i + 1}...`);
+        // Use pre-converted base64 data to avoid browser security restrictions
+        console.log(`📝 Using pre-converted base64 data for screenshot ${i + 1}...`);
         console.log(`File details:`, {
           name: screenshot.file.name,
           size: screenshot.file.size,
           type: screenshot.file.type,
-          lastModified: screenshot.file.lastModified
+          hasBase64: !!screenshot.base64
         });
         
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            console.log(`✅ FileReader loaded successfully for screenshot ${i + 1}`);
-            const result = event.target?.result as string;
-            if (!result) {
-              reject(new Error('FileReader result is empty'));
-              return;
-            }
-            // Remove data URL prefix to get just the base64 data
-            const base64Data = result.split(',')[1];
-            console.log(`Base64 data length: ${base64Data.length} characters`);
-            resolve(base64Data);
-          };
-          reader.onerror = (event) => {
-            console.error(`❌ FileReader error for screenshot ${i + 1}:`, event);
-            reject(new Error(`FileReader failed: ${reader.error?.message || 'Unknown error'}`));
-          };
-          reader.onabort = (event) => {
-            console.error(`❌ FileReader aborted for screenshot ${i + 1}:`, event);
-            reject(new Error('FileReader was aborted'));
-          };
-          
-          console.log(`Starting FileReader.readAsDataURL for screenshot ${i + 1}...`);
-          reader.readAsDataURL(screenshot.file);
-        });
+        if (!screenshot.base64) {
+          throw new Error(`No base64 data available for ${screenshot.file.name}. Please re-upload the image.`);
+        }
+        
+        const base64 = screenshot.base64;
+        console.log(`✅ Using pre-converted base64 data (${base64.length} characters)`);
+        
         
         // Generate device ID for anonymous usage tracking
         const deviceId = localStorage.getItem('device-id') || (() => {
@@ -464,17 +445,45 @@ Tip: Look for patterns like timestamps to identify separate messages, then add "
   };
 
   // Handle file upload
-  const handleFileUpload = (files: FileList | null) => {
+  const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
     
-    const newScreenshots: Array<{file: File, preview: string}> = [];
+    const newScreenshots: Array<{file: File, preview: string, base64?: string}> = [];
     
-    Array.from(files).forEach(file => {
+    // Process each file and convert to base64 immediately
+    for (const file of Array.from(files)) {
       if (file.type.startsWith('image/')) {
         const preview = URL.createObjectURL(file);
-        newScreenshots.push({ file, preview });
+        
+        try {
+          // Convert to base64 immediately to avoid browser security restrictions
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const result = event.target?.result as string;
+              if (!result) {
+                reject(new Error('FileReader result is empty'));
+                return;
+              }
+              // Remove data URL prefix to get just the base64 data
+              const base64Data = result.split(',')[1];
+              resolve(base64Data);
+            };
+            reader.onerror = () => {
+              reject(new Error(`FileReader failed: ${reader.error?.message || 'Unknown error'}`));
+            };
+            reader.readAsDataURL(file);
+          });
+          
+          newScreenshots.push({ file, preview, base64 });
+          console.log(`✅ Converted ${file.name} to base64 (${base64.length} characters)`);
+        } catch (error) {
+          console.error(`❌ Failed to convert ${file.name} to base64:`, error);
+          // Still add the screenshot without base64 as fallback
+          newScreenshots.push({ file, preview });
+        }
       }
-    });
+    }
     
     setScreenshots(prev => [...prev, ...newScreenshots]);
   };
