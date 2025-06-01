@@ -247,31 +247,39 @@ export default function ChatAnalysis() {
       const results: any[] = [];
 
       // Process each screenshot individually using the existing OCR endpoint
+      console.log(`📷 Starting to process ${screenshots.length} screenshots`);
+      
       for (let i = 0; i < screenshots.length; i++) {
-        setOcrProgress(20 + (i / screenshots.length) * 60);
+        const progressPercent = 20 + (i / screenshots.length) * 60;
+        console.log(`📊 Setting progress to ${progressPercent}% for screenshot ${i + 1}`);
+        setOcrProgress(progressPercent);
         
         const screenshot = screenshots[i];
+        console.log(`📷 Processing screenshot ${i + 1}/${screenshots.length}, file:`, screenshot.file.name, 'size:', screenshot.file.size, 'bytes');
         
         // Convert to base64 for processing
+        console.log(`🔄 Converting screenshot ${i + 1} to base64...`);
         const base64 = await new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onload = () => {
+            console.log(`✅ FileReader completed for screenshot ${i + 1}`);
             const result = reader.result as string;
             resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
           };
           reader.readAsDataURL(screenshot.file);
         });
         
-        console.log(`Processing screenshot ${i + 1}/${screenshots.length}, size: ${screenshot.file.size} bytes`);
+        console.log(`📄 Base64 conversion complete for screenshot ${i + 1}, length:`, base64.length, 'characters');
         
         // Use Azure Computer Vision for OCR extraction
+        console.log(`📝 Creating FormData for screenshot ${i + 1}...`);
         const formData = new FormData();
         formData.append('images', screenshot.file);
         formData.append('messageSide', messageSide); // Pass message layout preference
         formData.append('meName', screenshotMe);
         formData.append('themName', screenshotThem);
         
-        console.log('Sending request to Azure endpoint...');
+        console.log(`📤 Preparing to send request to Azure endpoint for screenshot ${i + 1}...`);
         console.log('FormData contents:', {
           files: formData.has('images'),
           messageSide: formData.get('messageSide'),
@@ -286,9 +294,8 @@ export default function ChatAnalysis() {
           return id;
         })();
         
-        console.log('About to make fetch request with device ID:', deviceId);
-        console.log('Request URL: /api/ocr/azure');
-        console.log('Request method: POST');
+        console.log(`🔑 Using device ID: ${deviceId} for screenshot ${i + 1}`);
+        console.log(`🌐 About to make fetch request to: /api/ocr/azure`);
         
         const response = await fetch('/api/ocr/azure', {
           method: 'POST',
@@ -298,8 +305,8 @@ export default function ChatAnalysis() {
           body: formData
         });
         
-        console.log('✅ Fetch completed! Response received:', response.status, response.statusText);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        console.log(`✅ Fetch completed for screenshot ${i + 1}! Status: ${response.status} ${response.statusText}`);
+        console.log(`📊 Response headers:`, Object.fromEntries(response.headers.entries()));
         
         if (!response.ok) {
           const errorText = await response.text();
