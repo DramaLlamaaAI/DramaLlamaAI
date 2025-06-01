@@ -261,6 +261,13 @@ export default function ChatAnalysis() {
         formData.append('themName', screenshotThem);
         
         console.log('Sending request to Azure endpoint...');
+        console.log('FormData contents:', {
+          files: formData.has('images'),
+          messageSide: formData.get('messageSide'),
+          meName: formData.get('meName'),
+          themName: formData.get('themName')
+        });
+        
         const response = await fetch('/api/ocr/azure', {
           method: 'POST',
           body: formData
@@ -268,7 +275,9 @@ export default function ChatAnalysis() {
         console.log('Response received:', response.status, response.statusText);
         
         if (!response.ok) {
-          throw new Error(`Azure processing failed: ${response.statusText}`);
+          const errorText = await response.text();
+          console.error('Error response body:', errorText);
+          throw new Error(`Azure processing failed: ${response.statusText} - ${errorText}`);
         }
         
         const azureResponse = await response.json();
