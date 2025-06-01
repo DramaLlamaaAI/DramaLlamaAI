@@ -273,8 +273,7 @@ app.use(session({
       }
 
       console.log('Processing image with Azure Vision...');
-      const { analyzeImageWithAzure } = await import('./services/azure-vision');
-      // Temporarily use the old function signature until we fix the service
+      const { analyzeImageWithAzure } = await import('./services/azure-vision-clean');
       const result = await analyzeImageWithAzure(image, 'right', leftSideName, rightSideName);
 
       console.log('Azure processing completed successfully');

@@ -1,20 +1,9 @@
 import axios from 'axios';
 import sharp from 'sharp';
 
-interface BoundingBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 interface AzureTextLine {
   text: string;
   boundingBox: number[];
-}
-
-interface AzureTextBlock {
-  lines: AzureTextLine[];
 }
 
 interface AzureOCRResult {
@@ -61,11 +50,6 @@ export async function analyzeImageWithAzure(
     // Remove data URL prefix if present and validate
     const cleanBase64 = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
     console.log('Clean base64 size:', cleanBase64.length);
-    
-    // Validate base64 format
-    if (!cleanBase64 || cleanBase64.length < 100) {
-      throw new Error('Invalid or too small image data');
-    }
     
     // Validate base64 format
     if (!cleanBase64 || cleanBase64.length < 100) {
@@ -123,32 +107,31 @@ export async function analyzeImageWithAzure(
           newHeight = Math.round(newHeight * scale);
         }
         
+        console.log(`Resizing to: ${newWidth}x${newHeight}`);
+        
         processedBuffer = await sharp(imageBuffer)
-          .resize(newWidth, newHeight, {
-            fit: 'inside',
-            withoutEnlargement: false
-          })
-          .png()
+          .resize(newWidth, newHeight)
+          .jpeg({ quality: 85 })
           .toBuffer();
           
-        console.log(`Resized image to: ${newWidth}x${newHeight}`);
+        console.log('Image resized successfully, new size:', processedBuffer.length);
       }
     } catch (sharpError) {
-      console.error('Error processing image with Sharp:', sharpError);
-      throw new Error('Failed to process image for Azure API');
+      console.warn('Sharp processing failed, using original image:', sharpError);
+      processedBuffer = imageBuffer;
     }
 
     // Step 1: Submit image for analysis
     const cleanEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
-    // Use the correct API version for F0 tier
     const analyzeUrl = `${cleanEndpoint}/vision/v3.2/read/analyze`;
     console.log('Making request to:', analyzeUrl);
+    
     const submitResponse = await axios.post(analyzeUrl, processedBuffer, {
       headers: {
         'Ocp-Apim-Subscription-Key': subscriptionKey,
         'Content-Type': 'application/octet-stream'
       },
-      timeout: 30000 // 30 second timeout
+      timeout: 30000
     });
     
     console.log('Azure submission response status:', submitResponse.status);
@@ -162,98 +145,99 @@ export async function analyzeImageWithAzure(
     console.log('Polling Azure for OCR results...');
     let result: AzureOCRResult | undefined;
     let attempts = 0;
-    const maxAttempts = 60; // Increased for F0 tier
+    const maxAttempts = 60;
 
-    do {
-      // Wait longer between polls for F0 tier
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      attempts++;
       
       try {
         const resultResponse = await axios.get(operationLocation, {
-          headers: { 'Ocp-Apim-Subscription-Key': subscriptionKey },
+          headers: {
+            'Ocp-Apim-Subscription-Key': subscriptionKey
+          },
           timeout: 10000
         });
         
-        result = resultResponse.data;
-        console.log(`Poll attempt ${attempts + 1}: Status = ${result?.status || 'unknown'}`);
+        result = resultResponse.data as AzureOCRResult;
+        console.log(`Attempt ${attempts}: Status = ${result.status}`);
         
-        if (result?.status === 'failed') {
+        if (result.status === 'succeeded') {
+          console.log('Azure OCR completed successfully');
+          break;
+        } else if (result.status === 'failed') {
           throw new Error('Azure OCR processing failed');
         }
         
-        attempts++;
-
-        if (attempts >= maxAttempts) {
-          throw new Error('Azure OCR processing timed out after 2 minutes');
-        }
-      } catch (pollError: any) {
-        if (pollError.response?.status === 429) {
-          console.log('Rate limited, waiting longer...');
-          await new Promise(resolve => setTimeout(resolve, 5000));
-        } else {
-          throw pollError;
+      } catch (pollError) {
+        console.error(`Polling attempt ${attempts} failed:`, pollError);
+        if (attempts === maxAttempts) {
+          throw new Error('Failed to get results from Azure after maximum attempts');
         }
       }
-    } while (result?.status !== 'succeeded' && !result?.analyzeResult?.readResults?.[0]?.lines);
-
-    if (!result?.analyzeResult?.readResults?.[0]?.lines) {
-      throw new Error('Azure OCR failed to extract text from image');
     }
 
-    console.log('Azure Vision OCR completed successfully');
+    if (!result || result.status !== 'succeeded' || !result.analyzeResult) {
+      throw new Error('Azure OCR did not complete successfully');
+    }
 
-    // Step 3: Process results and determine speaker positioning
+    // Step 3: Process results with coordinate-based speaker assignment
     const lines = result.analyzeResult.readResults[0]?.lines || [];
+    console.log(`Azure found ${lines.length} text lines`);
+    
+    if (lines.length === 0) {
+      console.log('No text found in image');
+      return {
+        messages: [],
+        imageWidth: 0,
+        rawText: 'No text detected in image'
+      };
+    }
+
+    // Calculate image midpoint for left/right detection
+    const allXCoordinates = lines.flatMap(line => [line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]]);
+    const minX = Math.min(...allXCoordinates);
+    const maxX = Math.max(...allXCoordinates);
+    const midpointX = (minX + maxX) / 2;
+    const estimatedImageWidth = maxX - minX;
+    
+    console.log(`Image analysis: minX=${minX}, maxX=${maxX}, midpointX=${midpointX}, estimatedWidth=${estimatedImageWidth}`);
+
     const messages: ExtractedMessage[] = [];
     
-    // Estimate image width from bounding boxes (Azure gives normalized coordinates)
-    const estimatedImageWidth = 1080; // Typical phone screenshot width
-    const centerX = estimatedImageWidth / 2; // 540
-
-    // Process each line of text
     for (const line of lines) {
       const text = line.text.trim();
+      if (!text || text.length < 2) continue;
       
-      // Skip WhatsApp UI elements
-      if (isWhatsAppUIElement(text)) {
-        continue;
+      // Get the leftmost X coordinate of the bounding box
+      const x = Math.min(line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]);
+      const y = Math.min(line.boundingBox[1], line.boundingBox[3], line.boundingBox[5], line.boundingBox[7]);
+      
+      // Log coordinates for debugging
+      console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpointX}`);
+      
+      // Use pure coordinate-based detection - left/right positioning only
+      console.log(`Debug: x=${x}, midpointX=${midpointX}, leftSideName=${leftSideName}, rightSideName=${rightSideName}`);
+      
+      let speaker: string;
+      // Simple coordinate logic: higher X = right side, lower X = left side
+      if (x > midpointX) {
+        speaker = rightSideName; // Right side messages
+        console.log(`Assigning RIGHT side to ${rightSideName}`);
+      } else {
+        speaker = leftSideName; // Left side messages  
+        console.log(`Assigning LEFT side to ${leftSideName}`);
       }
-
-      // Get bounding box coordinates
-      const boundingBox = line.boundingBox;
-      if (boundingBox && boundingBox.length >= 4) {
-        const x = boundingBox[0];
-        const y = boundingBox[1];
-        
-        // Assign speaker based on bounding box positioning
-        // Alex (person in hospital) is on the left side, Els (supportive friend) is on the right
-        const midpointX = estimatedImageWidth / 2;
-        let speaker: string;
-        
-        // Log coordinates for debugging
-        console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpointX}`);
-        
-        // Use pure coordinate-based detection - left/right positioning only
-        console.log(`Debug: x=${x}, midpointX=${midpointX}, leftSideName=${leftSideName}, rightSideName=${rightSideName}`);
-        // Simple coordinate logic: higher X = right side, lower X = left side
-        if (x > midpointX) {
-          speaker = rightSideName; // Right side messages
-          console.log(`Assigning RIGHT side to ${rightSideName}`);
-        } else {
-          speaker = leftSideName; // Left side messages  
-          console.log(`Assigning LEFT side to ${leftSideName}`);
-        }
-        
-        console.log(`Final assigned speaker: ${speaker}`);
-        
-        messages.push({
-          text,
-          speaker,
-          x,
-          y,
-          confidence: 0.9 // Azure generally has high confidence
-        });
-      }
+      
+      console.log(`Final assigned speaker: ${speaker}`);
+      
+      messages.push({
+        text,
+        speaker,
+        x,
+        y,
+        confidence: 0.9
+      });
     }
 
     // Sort messages by Y position (top to bottom)
@@ -292,44 +276,4 @@ export async function analyzeImageWithAzure(
     
     throw new Error(`Azure Vision analysis failed: ${error.message}`);
   }
-}
-
-function isWhatsAppUIElement(text: string): boolean {
-  const cleanText = text.trim();
-  
-  // Skip very short or meaningless text
-  if (cleanText.length <= 1) return true;
-  if (/^[O0o]{1,3}$/.test(cleanText)) return true; // Single O characters
-  if (/^[\.]{1,3}$/.test(cleanText)) return true; // Just dots
-  if (/^[0]{3,}$/.test(cleanText)) return true; // Multiple zeros
-  if (/^[mMuU]$/.test(cleanText)) return true; // Single letters
-  
-  const uiPatterns = [
-    /^last seen/i,
-    /^online$/i,
-    /^typing\.\.\.$/i,
-    /^type a message$/i,
-    /^\d{1,2}:\d{2}$/,
-    /^\d{1,2}:\d{2}\s*[\/V\\]+$/,  // Time with status indicators
-    /^today$/i,
-    /^yesterday$/i,
-    /^delivered$/i,
-    /^read$/i,
-    /^sent$/i,
-    /^WhatsApp$/i,
-    /^Camera$/i,
-    /^Microphone$/i,
-    /^Gallery$/i,
-    /^Document$/i,
-    /^Contact$/i,
-    /^Location$/i,
-    /^Message$/i,
-    /^\d{1,2}\s+\w+\s+\d{4}$/,  // Date format like "15 February 2025"
-    /^🎤$/,
-    /^📷$/,
-    /^📎$/,
-    /^😊$/
-  ];
-
-  return uiPatterns.some(pattern => pattern.test(cleanText));
 }
