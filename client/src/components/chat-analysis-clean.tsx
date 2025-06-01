@@ -37,6 +37,9 @@ export default function ChatAnalysis() {
   const [them, setThem] = useState('');
   const [activeTab, setActiveTab] = useState("screenshots");
   const [screenshots, setScreenshots] = useState<Array<{file: File, preview: string, base64?: string}>>([]);
+  const [messageSide, setMessageSide] = useState<string>('');
+  const [screenshotMe, setScreenshotMe] = useState('');
+  const [screenshotThem, setScreenshotThem] = useState('');
   const [leftSideName, setLeftSideName] = useState('');
   const [rightSideName, setRightSideName] = useState('');
   const [extractedText, setExtractedText] = useState<string | null>(null);
@@ -692,27 +695,53 @@ Tip: Look for patterns like timestamps to identify separate messages, then add "
               {screenshots.length > 0 && (
                 <div className="space-y-4 border-t pt-6">
                   <div>
+                    <h3 className="text-lg font-semibold mb-4">Message Layout</h3>
+                    <p className="text-base mb-4">My messages are on the:</p>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <Button
+                      variant={messageSide === 'left' ? 'default' : 'outline'}
+                      onClick={() => setMessageSide('left')}
+                      className="flex-1 py-3"
+                    >
+                      LEFT
+                    </Button>
+                    <Button
+                      variant={messageSide === 'right' ? 'default' : 'outline'}
+                      onClick={() => setMessageSide('right')}
+                      className="flex-1 py-3"
+                    >
+                      RIGHT
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {screenshots.length > 0 && messageSide && (
+                <div className="space-y-4 border-t pt-6">
+                  <div>
                     <h3 className="text-lg font-semibold mb-2">Participant Names</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Enter the names based on where their messages appear in the WhatsApp screenshot.
+                      Enter the names of the conversation participants for better analysis.
                     </p>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Left Side Messages</label>
+                      <label className="block text-sm font-medium mb-2">My Name</label>
                       <Input
-                        value={leftSideName}
-                        onChange={(e) => setLeftSideName(e.target.value)}
-                        placeholder="Name of person on left"
+                        value={screenshotMe}
+                        onChange={(e) => setScreenshotMe(e.target.value)}
+                        placeholder="Your name"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Right Side Messages</label>
+                      <label className="block text-sm font-medium mb-2">Their Name</label>
                       <Input
-                        value={rightSideName}
-                        onChange={(e) => setRightSideName(e.target.value)}
-                        placeholder="Name of person on right"
+                        value={screenshotThem}
+                        onChange={(e) => setScreenshotThem(e.target.value)}
+                        placeholder="Other person's name"
                       />
                     </div>
                   </div>
