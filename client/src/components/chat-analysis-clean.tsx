@@ -257,37 +257,8 @@ export default function ChatAnalysis() {
         const screenshot = screenshots[i];
         console.log(`📷 Processing screenshot ${i + 1}/${screenshots.length}, file:`, screenshot.file.name, 'size:', screenshot.file.size, 'bytes');
         
-        // Convert to base64 for processing
-        console.log(`🔄 Converting screenshot ${i + 1} to base64...`);
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          
-          reader.onload = () => {
-            console.log(`✅ FileReader completed for screenshot ${i + 1}`);
-            const result = reader.result as string;
-            if (result) {
-              resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
-            } else {
-              reject(new Error('FileReader returned null result'));
-            }
-          };
-          
-          reader.onerror = () => {
-            console.error(`❌ FileReader error for screenshot ${i + 1}:`, reader.error);
-            reject(new Error(`Failed to read file: ${reader.error?.message || 'Unknown error'}`));
-          };
-          
-          // Add timeout for large files
-          setTimeout(() => {
-            reader.abort();
-            reject(new Error('File reading timeout - file may be too large'));
-          }, 30000); // 30 second timeout
-          
-          console.log(`📂 Starting FileReader.readAsDataURL for screenshot ${i + 1}`);
-          reader.readAsDataURL(screenshot.file);
-        });
-        
-        console.log(`📄 Base64 conversion complete for screenshot ${i + 1}, length:`, base64.length, 'characters');
+        // Skip base64 conversion - send file directly
+        console.log(`✅ Using file directly for screenshot ${i + 1} - no conversion needed`);
         
         // Use Azure Computer Vision for OCR extraction
         console.log(`📝 Creating FormData for screenshot ${i + 1}...`);
