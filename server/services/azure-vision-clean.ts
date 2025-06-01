@@ -222,11 +222,11 @@ export async function analyzeImageWithAzure(
       let speaker: string;
       // Simple coordinate logic: higher X = right side, lower X = left side
       if (x > midpointX) {
-        speaker = leftSideName; // Right side messages get assigned to leftSideName
-        console.log(`Assigning RIGHT side to ${leftSideName}`);
+        speaker = rightSideName; // Right side messages get assigned to rightSideName
+        console.log(`Assigning RIGHT side to ${rightSideName}`);
       } else {
-        speaker = rightSideName; // Left side messages get assigned to rightSideName
-        console.log(`Assigning LEFT side to ${rightSideName}`);
+        speaker = leftSideName; // Left side messages get assigned to leftSideName
+        console.log(`Assigning LEFT side to ${leftSideName}`);
       }
       
       console.log(`Final assigned speaker: ${speaker}`);
