@@ -198,9 +198,8 @@ export async function analyzeImageWithAzure(
     const allXCoordinates = lines.flatMap(line => [line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]]);
     const minX = Math.min(...allXCoordinates);
     const maxX = Math.max(...allXCoordinates);
-    // Use fixed threshold instead of calculated midpoint
-    // Messages around X=300+ are typically right side in WhatsApp screenshots
-    const threshold = 300;
+    // Calculate proper threshold based on actual image dimensions
+    const threshold = minX + (maxX - minX) * 0.6; // 60% from left edge
     const estimatedImageWidth = maxX - minX;
     
     console.log(`Image analysis: minX=${minX}, maxX=${maxX}, threshold=${threshold}, estimatedWidth=${estimatedImageWidth}`);
@@ -211,11 +210,12 @@ export async function analyzeImageWithAzure(
       const text = line.text.trim();
       if (!text || text.length < 2) continue;
       
-      // Filter out timestamps and delivery indicators
-      const timestampPattern = /^\d{1,2}:\d{2}[\s\/]*$/;
-      const deliveryPattern = /^(86V\/|87V\/|884\/|✓|✓✓)$/;
+      // Filter out timestamps and delivery indicators more precisely
+      const timestampPattern = /^\d{1,2}:\d{2}(\s*(AM|PM))?\s*[\/\s]*$/;
+      const deliveryPattern = /^(86V\/|87V\/|884\/|8:\d{2}\s*V\/|\d{1,2}\s*V\/|✓|✓✓)$/;
+      const shortPattern = /^[\/\s\d]{1,6}$/; // Very short strings that are likely artifacts
       
-      if (timestampPattern.test(text) || deliveryPattern.test(text)) {
+      if (timestampPattern.test(text) || deliveryPattern.test(text) || shortPattern.test(text)) {
         console.log(`Filtering out timestamp/delivery indicator: "${text}"`);
         continue;
       }
