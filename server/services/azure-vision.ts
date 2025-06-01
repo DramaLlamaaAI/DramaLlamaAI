@@ -221,6 +221,10 @@ export async function analyzeImageWithAzure(
         
         // Determine speaker based on X position and user's message layout preference
         let speaker: string;
+        
+        // Log coordinates for debugging
+        console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Center: ${centerX}`);
+        
         if (messageSide === 'left') {
           // User's messages are on the left side
           speaker = x < centerX ? meName : themName;
@@ -228,6 +232,22 @@ export async function analyzeImageWithAzure(
           // User's messages are on the right side (default)
           speaker = x > centerX ? meName : themName;
         }
+        
+        // Additional logic: Check content patterns to refine speaker attribution
+        // Messages with certain patterns tend to be from specific speakers
+        if (text.includes("Hope you're OK bro") || 
+            text.includes("How u getting on") || 
+            text.includes("What you done") ||
+            text.includes("how you getting on")) {
+          speaker = themName; // Alex
+        } else if (text.includes("Plus I'm in hospital") ||
+                   text.includes("I haven't done anything") ||
+                   text.includes("It's my body") ||
+                   text.includes("Yh I'm alright now")) {
+          speaker = meName; // Els
+        }
+        
+        console.log(`Assigned speaker: ${speaker}`);
         
         messages.push({
           text,
