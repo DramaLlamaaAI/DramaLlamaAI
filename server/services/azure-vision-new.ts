@@ -183,21 +183,36 @@ export async function processScreenshotMessages(
   const bubbleCenters = bubbles.map(b => b.centerX).sort((a, b) => a - b);
   console.log(`Bubble center X coordinates: ${bubbleCenters.join(', ')}`);
   
-  // Calculate image center for left/right split
+  // Smart split detection: Look for isolated left messages vs clustered right messages
   const imageMinX = Math.min(...bubbleCenters);
   const imageMaxX = Math.max(...bubbleCenters);
-  const imageCenterX = (imageMinX + imageMaxX) / 2;
   
-  console.log(`Image bounds: ${imageMinX} to ${imageMaxX}, center: ${imageCenterX}`);
+  // Check if there's a single isolated bubble on the far left
+  const leftmostBubble = bubbleCenters[0];
+  const secondBubble = bubbleCenters[1];
+  const gapToSecond = secondBubble - leftmostBubble;
+  
+  let splitPoint;
+  if (gapToSecond > 50 && bubbleCenters.filter(x => x <= leftmostBubble + 20).length === 1) {
+    // Single isolated bubble on left - split just after it
+    splitPoint = leftmostBubble + (gapToSecond / 2);
+    console.log(`Detected isolated left bubble at ${leftmostBubble}, split at ${splitPoint}`);
+  } else {
+    // Use 25% point from left edge as split (more conservative than 50%)
+    splitPoint = imageMinX + (imageMaxX - imageMinX) * 0.25;
+    console.log(`Using 25% split point: ${splitPoint}`);
+  }
+  
+  console.log(`Image bounds: ${imageMinX} to ${imageMaxX}, split point: ${splitPoint}`);
 
   const leftMessages: ExtractedMessage[] = [];
   const rightMessages: ExtractedMessage[] = [];
 
   bubbles.forEach(bubble => {
-    console.log(`BUBBLE: "${bubble.text}" | Center X: ${bubble.centerX} | Center Y: ${bubble.centerY} | Image Center: ${imageCenterX}`);
+    console.log(`BUBBLE: "${bubble.text}" | Center X: ${bubble.centerX} | Center Y: ${bubble.centerY} | Split Point: ${splitPoint}`);
 
-    // Determine side based on bubble center relative to image center
-    const isLeftSide = bubble.centerX < imageCenterX;
+    // Determine side based on bubble center relative to split point
+    const isLeftSide = bubble.centerX < splitPoint;
     
     let speaker: string;
     if (messageSide === 'LEFT') {
