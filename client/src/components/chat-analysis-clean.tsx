@@ -348,9 +348,9 @@ export default function ChatAnalysis() {
         if (result.messages && result.messages.length > 0) {
           // Use the structured message data with proper speaker attribution
           result.messages.forEach((msg: any) => {
-            if (msg.speaker === screenshotMe) {
+            if (msg.speaker === rightSideName) {
               rightMessages.push(msg.text);
-            } else {
+            } else if (msg.speaker === leftSideName) {
               leftMessages.push(msg.text);
             }
           });
