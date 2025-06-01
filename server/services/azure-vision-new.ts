@@ -128,26 +128,39 @@ export async function processScreenshotMessages(
   const xCoordinates = contentLines.map(line => line.x1).sort((a, b) => a - b);
   console.log(`X coordinates sorted: ${xCoordinates.join(', ')}`);
   
-  // Find the largest gap between X coordinates
-  let bestGap = 0;
-  let splitPoint = 0;
+  // Analyze the coordinate distribution to find natural clusters
+  // Look for the leftmost message (likely the actual left side)
+  const leftmostX = Math.min(...xCoordinates);
+  const rightmostX = Math.max(...xCoordinates);
   
-  for (let i = 1; i < xCoordinates.length; i++) {
-    const gap = xCoordinates[i] - xCoordinates[i-1];
-    if (gap > bestGap) {
-      bestGap = gap;
-      splitPoint = (xCoordinates[i-1] + xCoordinates[i]) / 2;
+  // Count messages in different ranges to identify the actual left vs right distribution
+  const quarterPoint = leftmostX + (rightmostX - leftmostX) * 0.25;
+  const leftQuarterCount = xCoordinates.filter(x => x <= quarterPoint).length;
+  
+  console.log(`Leftmost: ${leftmostX}, Rightmost: ${rightmostX}, Quarter point: ${quarterPoint}, Left quarter count: ${leftQuarterCount}`);
+  
+  // If there's only 1-2 messages in the leftmost quarter, that's likely the true left side
+  let splitPoint;
+  if (leftQuarterCount <= 2) {
+    // Use a point that separates the isolated left messages from the rest
+    splitPoint = quarterPoint + 20; // Give some buffer
+    console.log(`Using isolated left detection, split point: ${splitPoint}`);
+  } else {
+    // Fall back to gap analysis
+    let bestGap = 0;
+    splitPoint = 0;
+    
+    for (let i = 1; i < xCoordinates.length; i++) {
+      const gap = xCoordinates[i] - xCoordinates[i-1];
+      if (gap > bestGap) {
+        bestGap = gap;
+        splitPoint = (xCoordinates[i-1] + xCoordinates[i]) / 2;
+      }
     }
+    console.log(`Using gap analysis, best gap: ${bestGap}, split point: ${splitPoint}`);
   }
   
-  // If no significant gap found, fall back to analyzing the distribution
-  if (bestGap < 50) {
-    const minX = Math.min(...xCoordinates);
-    const maxX = Math.max(...xCoordinates);
-    splitPoint = minX + (maxX - minX) * 0.3; // 30% from left edge
-  }
-  
-  console.log(`Best gap: ${bestGap}, Split point: ${splitPoint}`);
+  console.log(`Final split point: ${splitPoint}`);
 
   const leftMessages: ExtractedMessage[] = [];
   const rightMessages: ExtractedMessage[] = [];
