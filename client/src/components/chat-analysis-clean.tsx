@@ -339,11 +339,27 @@ export default function ChatAnalysis() {
         throw new Error('No text could be extracted from the screenshots.');
       }
 
-      // Convert the results to the expected format for the existing code
-      const formattedResults = results.map((result, index) => ({
-        leftMessages: [],
-        rightMessages: [result.text] // For now, put all text on the right side
-      }));
+      // Convert the results to the expected format using proper speaker separation
+      const formattedResults = results.map((result, index) => {
+        const leftMessages: string[] = [];
+        const rightMessages: string[] = [];
+        
+        if (result.messages && result.messages.length > 0) {
+          // Use the structured message data with proper speaker attribution
+          result.messages.forEach(msg => {
+            if (msg.speaker === screenshotMe) {
+              leftMessages.push(msg.text);
+            } else {
+              rightMessages.push(msg.text);
+            }
+          });
+        } else {
+          // Fallback to raw text if no structured data
+          rightMessages.push(result.text);
+        }
+        
+        return { leftMessages, rightMessages };
+      });
 
       // Store OCR results for preview  
       console.log('Setting OCR results for preview:', formattedResults);
