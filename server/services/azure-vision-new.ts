@@ -105,37 +105,61 @@ export async function processScreenshotMessages(
     return { leftMessages: [], rightMessages: [] };
   }
 
-  // Calculate image boundaries
-  const allX = lines.map(line => line.x1);
-  const minX = Math.min(...allX);
-  const maxX = Math.max(...allX);
-  const threshold = (minX + maxX) / 2;
+  // Filter out timestamps and delivery indicators first
+  const contentLines = lines.filter(line => {
+    const text = line.text.trim();
+    const timestampPattern = /^\d{1,2}:\d{2}[\s\/]*$/;
+    const deliveryPattern = /^(86V\/|87V\/|88\d\/|8:\d{2}\s*V\/|\d{1,2}\s*V\/|✓|✓✓)$/;
+    
+    if (timestampPattern.test(text) || deliveryPattern.test(text) || text.length < 2) {
+      console.log(`Filtering out timestamp/delivery indicator: "${text}"`);
+      return false;
+    }
+    return true;
+  });
 
-  console.log(`Image analysis: minX=${minX}, maxX=${maxX}, threshold=${threshold}`);
+  console.log(`After filtering: ${contentLines.length} content lines`);
+
+  if (contentLines.length === 0) {
+    return { leftMessages: [], rightMessages: [] };
+  }
+
+  // Use clustering approach: find natural gap in X coordinates
+  const xCoordinates = contentLines.map(line => line.x1).sort((a, b) => a - b);
+  console.log(`X coordinates sorted: ${xCoordinates.join(', ')}`);
+  
+  // Find the largest gap between X coordinates
+  let bestGap = 0;
+  let splitPoint = 0;
+  
+  for (let i = 1; i < xCoordinates.length; i++) {
+    const gap = xCoordinates[i] - xCoordinates[i-1];
+    if (gap > bestGap) {
+      bestGap = gap;
+      splitPoint = (xCoordinates[i-1] + xCoordinates[i]) / 2;
+    }
+  }
+  
+  // If no significant gap found, fall back to analyzing the distribution
+  if (bestGap < 50) {
+    const minX = Math.min(...xCoordinates);
+    const maxX = Math.max(...xCoordinates);
+    splitPoint = minX + (maxX - minX) * 0.3; // 30% from left edge
+  }
+  
+  console.log(`Best gap: ${bestGap}, Split point: ${splitPoint}`);
 
   const leftMessages: ExtractedMessage[] = [];
   const rightMessages: ExtractedMessage[] = [];
 
-  lines.forEach((line, index) => {
+  contentLines.forEach(line => {
     const text = line.text.trim();
     
-    // Filter out timestamps and delivery indicators
-    const timestampPattern = /^\d{1,2}:\d{2}[\s\/]*$/;
-    const deliveryPattern = /^(86V\/|87V\/|88\d\/|✓|✓✓)$/;
-    
-    if (timestampPattern.test(text) || deliveryPattern.test(text)) {
-      console.log(`Filtering out timestamp/delivery indicator: "${text}"`);
-      return;
-    }
+    console.log(`BUBBLE: "${text}" | X: ${line.x1} | Y: ${line.y1} | Split: ${splitPoint}`);
 
-    // Skip very short text that's likely noise
-    if (text.length < 2) return;
-
-    console.log(`Text: "${text}" | X: ${line.x1} | Y: ${line.y1} | Threshold: ${threshold}`);
-
-    // Determine speaker based on coordinate and user preference
+    // Determine speaker based on split point and user preference
     let speaker: string;
-    const isLeftSide = line.x1 < threshold;
+    const isLeftSide = line.x1 < splitPoint;
     
     if (messageSide === 'LEFT') {
       // User's messages are on the left
@@ -145,7 +169,7 @@ export async function processScreenshotMessages(
       speaker = isLeftSide ? theirName : myName;
     }
 
-    console.log(`Assigning to ${speaker} (${isLeftSide ? 'LEFT' : 'RIGHT'} side)`);
+    console.log(`→ Assigning to ${speaker} (${isLeftSide ? 'LEFT' : 'RIGHT'} side)`);
 
     const message: ExtractedMessage = {
       text,
