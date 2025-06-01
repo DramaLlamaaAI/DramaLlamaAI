@@ -131,6 +131,7 @@ export async function processScreenshotMessages(
     centerY: number;
     text: string;
     boundingBox: { minX: number; maxX: number; minY: number; maxY: number };
+    side?: 'left' | 'right';
   }> = [];
 
   for (const line of contentLines) {
@@ -179,66 +180,93 @@ export async function processScreenshotMessages(
 
   console.log(`Grouped into ${bubbles.length} message bubbles`);
 
-  // Step 3: Use margin-based detection for accurate WhatsApp bubble identification
+  // Step 3: Use k-means clustering to automatically detect left/right groups
   const bubbleCenters = bubbles.map(b => b.centerX).sort((a, b) => a - b);
   console.log(`Bubble center X coordinates: ${bubbleCenters.join(', ')}`);
   
-  const imageMinX = Math.min(...bubbleCenters);
-  const imageMaxX = Math.max(...bubbleCenters);
-  const imageWidth = imageMaxX - imageMinX;
-  
-  console.log(`Image bounds: ${imageMinX} to ${imageMaxX}, width: ${imageWidth}`);
-  
-  // Identify exclusive margin zones (left and right edges where only one participant appears)
-  const leftMarginZone = imageMinX + (imageWidth * 0.15); // First 15% from left edge
-  const rightMarginZone = imageMaxX - (imageWidth * 0.15); // Last 15% from right edge
-  
-  // Count bubbles in each margin zone to identify which participant uses which side
-  const leftMarginBubbles = bubbles.filter(b => b.centerX <= leftMarginZone);
-  const rightMarginBubbles = bubbles.filter(b => b.centerX >= rightMarginZone);
-  
-  console.log(`Left margin zone (≤${leftMarginZone}): ${leftMarginBubbles.length} bubbles`);
-  console.log(`Right margin zone (≥${rightMarginZone}): ${rightMarginBubbles.length} bubbles`);
-  
-  // Determine split point based on margin analysis
-  let splitPoint;
-  if (leftMarginBubbles.length > 0 && rightMarginBubbles.length > 0) {
-    // Clear margin separation - use midpoint between margin zones
-    splitPoint = (leftMarginZone + rightMarginZone) / 2;
-    console.log(`Using margin-based split point: ${splitPoint}`);
-  } else if (leftMarginBubbles.length > 0) {
-    // Only left margin bubbles - split after left margin
-    splitPoint = leftMarginZone + 30;
-    console.log(`Only left margin bubbles found, split at: ${splitPoint}`);
-  } else if (rightMarginBubbles.length > 0) {
-    // Only right margin bubbles - split before right margin  
-    splitPoint = rightMarginZone - 30;
-    console.log(`Only right margin bubbles found, split at: ${splitPoint}`);
+  if (bubbleCenters.length < 2) {
+    console.log('Not enough bubbles for clustering, assigning all to left');
+    bubbles.forEach(bubble => {
+      bubble.side = 'left';
+    });
   } else {
-    // Fallback to 30% split for centered conversations
-    splitPoint = imageMinX + (imageWidth * 0.3);
-    console.log(`No clear margins, using 30% split: ${splitPoint}`);
+    // Simple k-means clustering for 2 groups (left/right)
+    let leftCenter = bubbleCenters[0];
+    let rightCenter = bubbleCenters[bubbleCenters.length - 1];
+    
+    console.log(`Initial cluster centers: left=${leftCenter}, right=${rightCenter}`);
+    
+    // Iterate k-means algorithm
+    for (let iteration = 0; iteration < 10; iteration++) {
+      const leftGroup: number[] = [];
+      const rightGroup: number[] = [];
+      
+      // Assign each bubble to nearest cluster center
+      bubbleCenters.forEach(x => {
+        const distToLeft = Math.abs(x - leftCenter);
+        const distToRight = Math.abs(x - rightCenter);
+        
+        if (distToLeft < distToRight) {
+          leftGroup.push(x);
+        } else {
+          rightGroup.push(x);
+        }
+      });
+      
+      // Calculate new cluster centers
+      const newLeftCenter = leftGroup.length > 0 ? 
+        leftGroup.reduce((sum, x) => sum + x, 0) / leftGroup.length : leftCenter;
+      const newRightCenter = rightGroup.length > 0 ? 
+        rightGroup.reduce((sum, x) => sum + x, 0) / rightGroup.length : rightCenter;
+      
+      // Check for convergence
+      const leftShift = Math.abs(newLeftCenter - leftCenter);
+      const rightShift = Math.abs(newRightCenter - rightCenter);
+      
+      console.log(`Iteration ${iteration + 1}: left=${newLeftCenter} (shift: ${leftShift}), right=${newRightCenter} (shift: ${rightShift})`);
+      console.log(`Left group: ${leftGroup.length} bubbles, Right group: ${rightGroup.length} bubbles`);
+      
+      leftCenter = newLeftCenter;
+      rightCenter = newRightCenter;
+      
+      if (leftShift < 1 && rightShift < 1) {
+        console.log('K-means converged');
+        break;
+      }
+    }
+    
+    // Calculate split point as midpoint between final cluster centers
+    const splitPoint = (leftCenter + rightCenter) / 2;
+    console.log(`Final cluster centers: left=${leftCenter}, right=${rightCenter}, split=${splitPoint}`);
+    
+    // Assign bubbles to sides based on final clustering
+    bubbles.forEach(bubble => {
+      const distToLeft = Math.abs(bubble.centerX - leftCenter);
+      const distToRight = Math.abs(bubble.centerX - rightCenter);
+      bubble.side = distToLeft < distToRight ? 'left' : 'right';
+    });
   }
 
   const leftMessages: ExtractedMessage[] = [];
   const rightMessages: ExtractedMessage[] = [];
 
   bubbles.forEach(bubble => {
-    console.log(`BUBBLE: "${bubble.text}" | Center X: ${bubble.centerX} | Center Y: ${bubble.centerY} | Split Point: ${splitPoint}`);
+    const clusterSide = bubble.side || 'left';
+    console.log(`BUBBLE: "${bubble.text}" | Center X: ${bubble.centerX} | Cluster: ${clusterSide}`);
 
-    // Determine side based on bubble center relative to split point
-    const isLeftSide = bubble.centerX < splitPoint;
-    
+    // Determine speaker based on cluster assignment and user preference
     let speaker: string;
+    const isLeftCluster = clusterSide === 'left';
+    
     if (messageSide === 'LEFT') {
       // User's messages are on the left
-      speaker = isLeftSide ? myName : theirName;
+      speaker = isLeftCluster ? myName : theirName;
     } else {
       // User's messages are on the right
-      speaker = isLeftSide ? theirName : myName;
+      speaker = isLeftCluster ? theirName : myName;
     }
 
-    console.log(`→ Assigning to ${speaker} (${isLeftSide ? 'LEFT' : 'RIGHT'} side)`);
+    console.log(`→ Assigning to ${speaker} (${clusterSide.toUpperCase()} cluster)`);
 
     const message: ExtractedMessage = {
       text: bubble.text,
@@ -248,7 +276,7 @@ export async function processScreenshotMessages(
       confidence: 0.9
     };
 
-    if (isLeftSide) {
+    if (isLeftCluster) {
       leftMessages.push(message);
     } else {
       rightMessages.push(message);
