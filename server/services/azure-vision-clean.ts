@@ -198,54 +198,91 @@ export async function analyzeImageWithAzure(
     const allXCoordinates = lines.flatMap(line => [line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]]);
     const minX = Math.min(...allXCoordinates);
     const maxX = Math.max(...allXCoordinates);
-    // Calculate proper threshold based on actual image dimensions
-    // Most messages are on the right, so use a lower threshold to separate properly
-    const threshold = minX + (maxX - minX) * 0.3; // 30% from left edge
+    // Use 50% threshold for more accurate left/right detection
+    const threshold = minX + (maxX - minX) * 0.5; // 50% from left edge
     const estimatedImageWidth = maxX - minX;
     
     console.log(`Image analysis: minX=${minX}, maxX=${maxX}, threshold=${threshold}, estimatedWidth=${estimatedImageWidth}`);
-    console.log(`DEBUG: Threshold calculation: ${minX} + (${maxX} - ${minX}) * 0.3 = ${threshold}`);
+    console.log(`DEBUG: Threshold calculation: ${minX} + (${maxX} - ${minX}) * 0.5 = ${threshold}`);
 
-    const messages: ExtractedMessage[] = [];
-    
+    // First pass: filter out timestamps and get valid content lines
+    const contentLines = [];
     for (const line of lines) {
       const text = line.text.trim();
       if (!text || text.length < 2) continue;
       
-      // Filter out timestamps and delivery indicators more precisely
+      // Filter out timestamps and delivery indicators
       const timestampPattern = /^\d{1,2}:\d{2}(\s*(AM|PM))?\s*[\/\s]*$/;
       const deliveryPattern = /^(86V\/|87V\/|884\/|8:\d{2}\s*V\/|\d{1,2}\s*V\/|✓|✓✓)$/;
-      const shortPattern = /^[\/\s\d]{1,6}$/; // Very short strings that are likely artifacts
+      const shortPattern = /^[\/\s\d]{1,6}$/;
       
       if (timestampPattern.test(text) || deliveryPattern.test(text) || shortPattern.test(text)) {
         console.log(`Filtering out timestamp/delivery indicator: "${text}"`);
         continue;
       }
       
-      // Get the leftmost X coordinate of the bounding box
       const x = Math.min(line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]);
       const y = Math.min(line.boundingBox[1], line.boundingBox[3], line.boundingBox[5], line.boundingBox[7]);
       
-      // Log coordinates for debugging
-      console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Threshold: ${threshold}`);
+      contentLines.push({ text, x, y, originalLine: line });
+    }
+
+    console.log(`After filtering: ${contentLines.length} content lines`);
+
+    // Group lines into message bubbles based on Y proximity and X position
+    const messageGroups = [];
+    for (const contentLine of contentLines) {
+      let foundGroup = false;
       
-      let speaker: string;
-      // Use the calculated threshold based on image dimensions
-      if (x < threshold) {
-        speaker = leftSideName; // Left side messages
-        console.log(`Assigning LEFT side to ${leftSideName}`);
-      } else {
-        speaker = rightSideName; // Right side messages
-        console.log(`Assigning RIGHT side to ${rightSideName}`);
+      // Look for existing group within 25px vertically and similar X position (within 100px)
+      for (const group of messageGroups) {
+        const yDiff = Math.abs(contentLine.y - group.avgY);
+        const xDiff = Math.abs(contentLine.x - group.avgX);
+        
+        if (yDiff < 25 && xDiff < 100) {
+          group.lines.push(contentLine);
+          group.text += ' ' + contentLine.text;
+          group.avgY = group.lines.reduce((sum, l) => sum + l.y, 0) / group.lines.length;
+          group.avgX = group.lines.reduce((sum, l) => sum + l.x, 0) / group.lines.length;
+          foundGroup = true;
+          break;
+        }
       }
       
-      console.log(`Final assigned speaker: ${speaker}`);
+      if (!foundGroup) {
+        messageGroups.push({
+          lines: [contentLine],
+          text: contentLine.text,
+          avgX: contentLine.x,
+          avgY: contentLine.y
+        });
+      }
+    }
+
+    console.log(`Grouped into ${messageGroups.length} message bubbles`);
+
+    const messages: ExtractedMessage[] = [];
+    
+    for (const group of messageGroups) {
+      const text = group.text.trim();
+      if (!text) continue;
+      
+      console.log(`BUBBLE: "${text}" | X: ${group.avgX} | Y: ${group.avgY} | Threshold: ${threshold}`);
+      
+      let speaker: string;
+      if (group.avgX < threshold) {
+        speaker = leftSideName;
+        console.log(`→ Assigning to LEFT: ${leftSideName}`);
+      } else {
+        speaker = rightSideName;
+        console.log(`→ Assigning to RIGHT: ${rightSideName}`);
+      }
       
       messages.push({
         text,
         speaker,
-        x,
-        y,
+        x: group.avgX,
+        y: group.avgY,
         confidence: 0.9
       });
     }

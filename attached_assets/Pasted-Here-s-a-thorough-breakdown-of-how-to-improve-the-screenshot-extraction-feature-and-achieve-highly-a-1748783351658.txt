@@ -1,0 +1,131 @@
+Here’s a thorough breakdown of how to improve the screenshot extraction feature and achieve highly accurate results for your WhatsApp-style interface, leveraging Azure’s OCR APIs and well-tested logic for precise left/right bubble detection and participant labeling.
+
+🚀 Key Improvements for Screenshot Extraction
+1️⃣ Better OCR Configuration with Azure Computer Vision
+Use Read API (latest version) from Azure Computer Vision for better text extraction compared to older OCR APIs.
+
+Make sure the images are being sent to the Read API in high quality (JPEG/PNG, max 4 MB for best results).
+
+Enable bounding box detection so that you get the X/Y coordinates for each piece of text.
+
+Example Azure OCR call:
+
+javascript
+Copy
+Edit
+const response = await fetch(`https://<your-region>.api.cognitive.microsoft.com/vision/v3.2/read/analyze`, {
+  method: 'POST',
+  headers: {
+    'Ocp-Apim-Subscription-Key': '<your-key>',
+    'Content-Type': 'application/octet-stream'
+  },
+  body: screenshotBuffer
+});
+2️⃣ Smart Bubble Grouping
+Your current extraction logic seems to assign every single line as a new message, which is causing split sentences and confusion. Fix by:
+
+✅ Group words by vertical (Y) proximity
+
+If two lines have close Y coordinates (like within 10–20px), group them together as one message.
+
+✅ Horizontal (X) position detection
+
+X < 50% of image width = left speaker
+
+X > 50% of image width = right speaker
+
+Example grouping logic:
+
+javascript
+Copy
+Edit
+const groupedMessages = [];
+let currentMessage = [];
+let lastY = null;
+
+for (const word of words) {
+  if (lastY === null || Math.abs(word.y - lastY) < 20) {
+    currentMessage.push(word.text);
+  } else {
+    groupedMessages.push(currentMessage.join(' '));
+    currentMessage = [word.text];
+  }
+  lastY = word.y;
+}
+if (currentMessage.length > 0) {
+  groupedMessages.push(currentMessage.join(' '));
+}
+3️⃣ Auto-Assign Left/Right Participants
+Using X position of each bubble:
+
+X < 50% → Left speaker
+
+X ≥ 50% → Right speaker
+
+Let users manually confirm these participants (like you already do with the “My Name” and “Their Name” inputs).
+
+4️⃣ Remove Timestamps/Status Lines
+Currently, the timestamps (like 8:28 V/) are getting mixed in.
+✅ Strip lines that match a time pattern (\d{1,2}:\d{2}) or match tick marks (like ✓ or V/).
+✅ Only keep bubbles that contain actual conversational text.
+
+5️⃣ Enhance UI for Clear User Flow
+✅ Instead of listing them all together (like “Left/Gray” and “Right/Green”), split them into 2 scrollable columns side-by-side, showing the actual conversation flow.
+
+✅ Let users:
+
+Edit any message directly
+
+Drag/drop to reorder (if needed)
+
+Re-assign speaker for any bubble if OCR was slightly off
+
+6️⃣ Handle Edge Cases
+✅ Allow for multi-image uploads and merge text from multiple screenshots by sorting them by file upload order.
+✅ Provide a “Focus on Recent Messages” date filter to only include messages with dates in that range (date parsing logic needed).
+
+💡 Example Final Flow
+1️⃣ Upload screenshots
+2️⃣ User sets: "Left side = Me" / "Right side = Other"
+3️⃣ Backend:
+
+Azure OCR extracts text & coordinates
+
+Group words into bubbles
+
+Determine left/right by X coordinate
+
+Remove timestamps/status
+
+Output structured JSON with speaker names and message text
+4️⃣ Frontend:
+
+Show editable conversation preview
+
+Let user confirm messages & participants
+
+Analyze conversation
+
+🏗️ Next Steps for Implementation
+1️⃣ Backend:
+
+Use Azure Read API with bounding boxes.
+
+Implement grouping logic to merge bubble lines.
+
+Filter out timestamps/status markers.
+
+2️⃣ Frontend:
+
+Create 2-column preview that clearly shows who said what.
+
+Let user adjust speaker names if OCR messed up.
+
+Keep “My messages are on the left/right” toggle to override auto-assignment.
+
+3️⃣ Integration:
+
+Test different phone types (iOS/Android/WhatsApp/Facebook styles) to ensure bubble positions work correctly in all screenshots.
+
+Provide fallback manual assignment if automated logic fails (for edge cases).
+
