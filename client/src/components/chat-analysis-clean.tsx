@@ -262,15 +262,37 @@ export default function ChatAnalysis() {
         
         // Convert image to base64 and send as JSON instead of FormData
         console.log(`📝 Converting image to base64 for screenshot ${i + 1}...`);
+        console.log(`File details:`, {
+          name: screenshot.file.name,
+          size: screenshot.file.size,
+          type: screenshot.file.type,
+          lastModified: screenshot.file.lastModified
+        });
+        
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = () => {
-            const result = reader.result as string;
+          reader.onload = (event) => {
+            console.log(`✅ FileReader loaded successfully for screenshot ${i + 1}`);
+            const result = event.target?.result as string;
+            if (!result) {
+              reject(new Error('FileReader result is empty'));
+              return;
+            }
             // Remove data URL prefix to get just the base64 data
             const base64Data = result.split(',')[1];
+            console.log(`Base64 data length: ${base64Data.length} characters`);
             resolve(base64Data);
           };
-          reader.onerror = reject;
+          reader.onerror = (event) => {
+            console.error(`❌ FileReader error for screenshot ${i + 1}:`, event);
+            reject(new Error(`FileReader failed: ${reader.error?.message || 'Unknown error'}`));
+          };
+          reader.onabort = (event) => {
+            console.error(`❌ FileReader aborted for screenshot ${i + 1}:`, event);
+            reject(new Error('FileReader was aborted'));
+          };
+          
+          console.log(`Starting FileReader.readAsDataURL for screenshot ${i + 1}...`);
           reader.readAsDataURL(screenshot.file);
         });
         
