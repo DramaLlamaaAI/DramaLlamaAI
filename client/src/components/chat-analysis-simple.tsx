@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Upload, FileImage, Loader2, Camera, MessageSquare } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Upload, FileImage, Loader2, Camera, FileText, Archive, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ChatAnalysisSimple() {
@@ -17,8 +17,8 @@ export default function ChatAnalysisSimple() {
   const [isExtracting, setIsExtracting] = useState(false);
   
   // Import chat state
-  const [chatText, setChatText] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [chatFiles, setChatFiles] = useState<File[]>([]);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
   
   const { toast } = useToast();
 

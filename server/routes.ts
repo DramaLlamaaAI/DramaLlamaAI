@@ -199,6 +199,32 @@ app.use(session({
   app.post('/api/ocr', analysisController.processOcr);
   app.post('/api/analyze/whatsapp-screenshot', analysisController.processWhatsAppScreenshot);
   
+  // Chat import endpoint for WhatsApp export files
+  const chatUpload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { 
+      fileSize: 50 * 1024 * 1024, // 50MB limit for chat files
+      files: 5 // Max 5 files
+    },
+    fileFilter: (req, file, cb) => {
+      console.log('Chat file upload - processing file:', file.mimetype, file.originalname);
+      
+      // Accept text files and zip files
+      if (file.mimetype === 'text/plain' || 
+          file.mimetype === 'application/zip' ||
+          file.originalname.toLowerCase().endsWith('.txt') ||
+          file.originalname.toLowerCase().endsWith('.zip')) {
+        cb(null, true);
+        return;
+      }
+      
+      console.log('Rejecting file - not a valid chat file:', file.mimetype, file.originalname);
+      cb(new Error('Only .txt and .zip files are allowed'));
+    }
+  });
+  
+  app.post('/api/chat/import', chatUpload.array('file', 5), analysisController.importChatFiles);
+  
   // Configure multer for image uploads
   const upload = multer({ 
     storage: multer.memoryStorage(),

@@ -10,6 +10,37 @@ import { enhanceWithEvasionDetection } from '../services/evasion-detection';
 import { enhanceWithConflictDynamics } from '../services/conflict-dynamics';
 import { enhanceWithDirectRedFlags, detectRedFlagsDirectly } from '../services/direct-red-flag-detector';
 
+// Import validation function from routes
+function isValidWhatsAppFormat(text: string): boolean {
+  if (!text || text.trim().length < 20) return false;
+  
+  const lines = text.split('\n').filter(line => line.trim().length > 0);
+  if (lines.length < 3) return false;
+  
+  const whatsappPatterns = [
+    /\d{1,2}\/\d{1,2}\/\d{2,4},?\s*\d{1,2}:\d{2}(\s*(AM|PM))?\s*-\s*.+:\s*.+/i,
+    /\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s*\d{1,2}:\d{2}(:\d{2})?(\s*(AM|PM))?\]\s*.+:\s*.+/i,
+    /\d{1,2}:\d{2}(\s*(AM|PM))?\s*-\s*.+:\s*.+/i,
+    /\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4},?\s*\d{1,2}:\d{2}.*-.*:\s*.+/i,
+    /^[^:\[\(]*:\s*.+/,
+    /\s*-\s*.+:\s*.+/
+  ];
+  
+  let validLines = 0;
+  let totalChecked = 0;
+  
+  for (const line of lines.slice(0, Math.min(20, lines.length))) {
+    totalChecked++;
+    if (whatsappPatterns.some(pattern => pattern.test(line))) {
+      validLines++;
+    }
+  }
+  
+  const validRatio = validLines / totalChecked;
+  console.log(`WhatsApp validation: ${validLines}/${totalChecked} lines valid (${(validRatio * 100).toFixed(1)}%)`);
+  return validRatio >= 0.3;
+}
+
 // Get the user's tier from the authenticated session
 const getUserTier = (req: Request): string => {
   // Regular authentication flow
@@ -984,6 +1015,83 @@ export const analysisController = {
     } catch (error: any) {
       console.error('Azure Vision processing error:', error);
       res.status(500).json({ message: error.message || 'Internal server error' });
+    }
+  },
+
+  // Import and analyze WhatsApp chat files
+  importChatFiles: async (req: Request, res: Response) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: 'No files uploaded' });
+      }
+
+      console.log(`Processing ${files.length} chat files`);
+      const results = [];
+
+      for (const file of files) {
+        let chatText = '';
+        
+        try {
+          if (file.originalname.toLowerCase().endsWith('.txt')) {
+            // Handle text files
+            chatText = file.buffer.toString('utf-8');
+          } else if (file.originalname.toLowerCase().endsWith('.zip')) {
+            // Handle ZIP files using JSZip
+            const JSZip = require('jszip');
+            const zip = new JSZip();
+            const zipContents = await zip.loadAsync(file.buffer);
+            
+            // Look for .txt files in the ZIP
+            const txtFiles = Object.keys(zipContents.files).filter(filename => 
+              filename.toLowerCase().endsWith('.txt') && !zipContents.files[filename].dir
+            );
+            
+            if (txtFiles.length === 0) {
+              throw new Error('No .txt files found in ZIP archive');
+            }
+            
+            // Process the first .txt file found
+            const txtFile = zipContents.files[txtFiles[0]];
+            chatText = await txtFile.async('text');
+          } else {
+            throw new Error('Unsupported file type');
+          }
+
+          // Validate that this looks like a WhatsApp export
+          if (!isValidWhatsAppFormat(chatText)) {
+            throw new Error('File does not appear to be a valid WhatsApp export');
+          }
+
+          // Analyze the chat using the existing analysis function
+          const analysis = await analyzeChatConversation(chatText);
+          
+          results.push({
+            filename: file.originalname,
+            success: true,
+            analysis: analysis
+          });
+
+        } catch (fileError) {
+          console.error(`Error processing file ${file.originalname}:`, fileError);
+          results.push({
+            filename: file.originalname,
+            success: false,
+            error: fileError instanceof Error ? fileError.message : 'Unknown error'
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Processed ${files.length} files`,
+        results: results
+      });
+
+    } catch (error: any) {
+      console.error('Chat import error:', error);
+      res.status(500).json({ error: error.message || 'Internal server error' });
     }
   }
 };
