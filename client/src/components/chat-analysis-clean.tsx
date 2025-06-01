@@ -225,6 +225,12 @@ export default function ChatAnalysis() {
 
   // Process screenshots with Google Cloud Vision OCR
   const handleScreenshotAnalysis = async () => {
+    console.log('=== EXTRACT TEXT BUTTON CLICKED ===');
+    console.log('Screenshots length:', screenshots.length);
+    console.log('Message side:', messageSide);
+    console.log('Screenshot me:', screenshotMe);
+    console.log('Screenshot them:', screenshotThem);
+    
     if (screenshots.length === 0) return;
 
     setIsProcessingScreenshots(true);
