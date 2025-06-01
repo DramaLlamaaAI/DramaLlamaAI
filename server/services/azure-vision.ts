@@ -227,32 +227,13 @@ export async function analyzeImageWithAzure(
         // Log coordinates for debugging
         console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpointX}`);
         
-        // Use content-based detection to determine correct speaker
-        // regardless of coordinates since positioning logic is unreliable
-        if (text.includes("Plus I'm in hospital") ||
-            text.includes("probably be out tomorrow") ||
-            text.includes("Still in they've moved me") ||
-            text.includes("ward I think I'm having an operation") ||
-            text.includes("I haven't done anything lol") ||
-            text.includes("It's my body letting me down") ||
-            text.includes("Yh I'm alright now") ||
-            text.includes("got out of hospital")) {
-          speaker = themName; // Alex - person in hospital
-        } else if (text.includes("Hope you're OK bro") ||
-                   text.includes("Oh mad") ||
-                   text.includes("How u getting on mate") ||
-                   text.includes("What you done") ||
-                   text.includes("how you getting on")) {
-          speaker = meName; // Els - supportive friend
+        // Use pure coordinate-based detection - left/right positioning only
+        // Right side (higher X coordinates): user's messages (meName)
+        // Left side (lower X coordinates): other person's messages (themName)
+        if (x > midpointX) {
+          speaker = meName; // els - right side
         } else {
-          // For unclear messages, use coordinate-based detection
-          // Green bubbles (els) appear on RIGHT side with higher X coordinates
-          // Gray bubbles (other person) appear on LEFT side with lower X coordinates
-          if (x > midpointX) {
-            speaker = meName; // els - right side (green bubbles)
-          } else {
-            speaker = themName; // Lucy - left side (gray bubbles)
-          }
+          speaker = themName; // Lucy - left side
         }
         
         console.log(`Assigned speaker: ${speaker}`);
