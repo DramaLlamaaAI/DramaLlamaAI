@@ -35,18 +35,16 @@ interface ExtractedMessage {
 }
 
 export async function analyzeImageWithAzure(
-  imageBuffer: Buffer,
-  params: {
-    leftSideName: string;
-    rightSideName: string;
-  }
+  base64Image: string, 
+  messageSide: string = 'right',
+  leftSideName: string = 'Left Person',
+  rightSideName: string = 'Right Person'
 ): Promise<{
   messages: ExtractedMessage[];
   imageWidth: number;
   rawText: string;
 }> {
-  const { leftSideName, rightSideName } = params;
-  console.log('Azure Vision: Starting analysis with params:', { leftSideName, rightSideName });
+  console.log('Azure Vision: Starting analysis with params:', { messageSide, leftSideName, rightSideName });
   
   const endpoint = process.env.AZURE_VISION_ENDPOINT;
   const subscriptionKey = process.env.AZURE_VISION_KEY;
@@ -58,9 +56,22 @@ export async function analyzeImageWithAzure(
   try {
     console.log('Starting Azure Vision OCR analysis...');
     console.log('Endpoint:', endpoint);
-    console.log('Image buffer size:', imageBuffer.length);
+    console.log('Image size (base64):', base64Image.length);
 
-    // Process the image buffer directly
+    // Remove data URL prefix if present and validate
+    const cleanBase64 = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
+    console.log('Clean base64 size:', cleanBase64.length);
+    
+    // Validate base64 format
+    if (!cleanBase64 || cleanBase64.length < 100) {
+      throw new Error('Invalid or too small image data');
+    }
+    
+    // Convert base64 to buffer
+    const imageBuffer = Buffer.from(cleanBase64, 'base64');
+    console.log('Image buffer size:', imageBuffer.length);
+    
+    // Process the image buffer
     let processedBuffer = imageBuffer;
     
     // Validate base64 format
