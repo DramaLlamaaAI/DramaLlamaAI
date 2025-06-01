@@ -268,8 +268,18 @@ export default function ChatAnalysis() {
           themName: formData.get('themName')
         });
         
+        // Generate device ID for anonymous usage tracking
+        const deviceId = localStorage.getItem('device-id') || (() => {
+          const id = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+          localStorage.setItem('device-id', id);
+          return id;
+        })();
+        
         const response = await fetch('/api/ocr/azure', {
           method: 'POST',
+          headers: {
+            'X-Device-ID': deviceId
+          },
           body: formData
         });
         console.log('Response received:', response.status, response.statusText);

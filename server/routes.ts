@@ -237,7 +237,7 @@ app.use(session({
   });
 
   // Azure Computer Vision OCR endpoint
-  app.post('/api/ocr/azure', (req: Request, res: Response, next: NextFunction) => {
+  app.post('/api/ocr/azure', checkTrialEligibility, (req: Request, res: Response, next: NextFunction) => {
     console.log('Azure OCR endpoint hit - before multer');
     next();
   }, upload.array('images', 10), handleMulterError, async (req: Request, res: Response) => {
