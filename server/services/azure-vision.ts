@@ -229,16 +229,14 @@ export async function analyzeImageWithAzure(
         console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpointX}`);
         
         // Use pure coordinate-based detection - left/right positioning only
-        // Right side (higher X coordinates): user's messages (meName)
-        // Left side (lower X coordinates): other person's messages (themName)
-        console.log(`Debug: x=${x}, midpointX=${midpointX}, meName=${meName}, themName=${themName}`);
+        console.log(`Debug: x=${x}, midpointX=${midpointX}, leftSideName=${leftSideName}, rightSideName=${rightSideName}`);
         // Simple coordinate logic: higher X = right side, lower X = left side
         if (x > midpointX) {
-          speaker = themName; // Right side messages
-          console.log(`Assigning RIGHT side to ${themName}`);
+          speaker = rightSideName; // Right side messages
+          console.log(`Assigning RIGHT side to ${rightSideName}`);
         } else {
-          speaker = meName; // Left side messages  
-          console.log(`Assigning LEFT side to ${meName}`);
+          speaker = leftSideName; // Left side messages  
+          console.log(`Assigning LEFT side to ${leftSideName}`);
         }
         
         console.log(`Final assigned speaker: ${speaker}`);

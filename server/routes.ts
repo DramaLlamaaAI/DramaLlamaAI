@@ -257,9 +257,8 @@ app.use(session({
       console.log('Request body keys:', Object.keys(req.body || {}));
       console.log('Image data length:', req.body?.image?.length || 0);
       console.log('Parameters:', {
-        messageSide: req.body?.messageSide,
-        meName: req.body?.meName,
-        themName: req.body?.themName,
+        leftSideName: req.body?.leftSideName,
+        rightSideName: req.body?.rightSideName,
         filename: req.body?.filename
       });
 
@@ -275,10 +274,8 @@ app.use(session({
 
       console.log('Processing image with Azure Vision...');
       const { analyzeImageWithAzure } = await import('./services/azure-vision');
-      const result = await analyzeImageWithAzure(Buffer.from(image, 'base64'), {
-        leftSideName,
-        rightSideName
-      });
+      // Temporarily use the old function signature until we fix the service
+      const result = await analyzeImageWithAzure(image, 'right', leftSideName, rightSideName);
 
       console.log('Azure processing completed successfully');
       console.log('Messages found:', result.messages.length);
