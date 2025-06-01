@@ -202,7 +202,7 @@ export async function analyzeImageWithAzure(
     
     // Estimate image width from bounding boxes (Azure gives normalized coordinates)
     const estimatedImageWidth = 1080; // Typical phone screenshot width
-    const centerX = estimatedImageWidth / 2;
+    const centerX = estimatedImageWidth / 2; // 540
 
     // Process each line of text
     for (const line of lines) {
@@ -228,9 +228,9 @@ export async function analyzeImageWithAzure(
         console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpointX}`);
         
         if (x < midpointX) {
-          speaker = themName; // Alex - left side (person in hospital) 
+          speaker = meName; // Els - left side (supportive friend) 
         } else {
-          speaker = meName; // Els - right side (supportive friend)
+          speaker = themName; // Alex - right side (person in hospital)
         }
         
         console.log(`Assigned speaker: ${speaker}`);
@@ -284,12 +284,22 @@ export async function analyzeImageWithAzure(
 }
 
 function isWhatsAppUIElement(text: string): boolean {
+  const cleanText = text.trim();
+  
+  // Skip very short or meaningless text
+  if (cleanText.length <= 1) return true;
+  if (/^[O0o]{1,3}$/.test(cleanText)) return true; // Single O characters
+  if (/^[\.]{1,3}$/.test(cleanText)) return true; // Just dots
+  if (/^[0]{3,}$/.test(cleanText)) return true; // Multiple zeros
+  if (/^[mMuU]$/.test(cleanText)) return true; // Single letters
+  
   const uiPatterns = [
     /^last seen/i,
     /^online$/i,
     /^typing\.\.\.$/i,
     /^type a message$/i,
     /^\d{1,2}:\d{2}$/,
+    /^\d{1,2}:\d{2}\s*[\/V\\]+$/,  // Time with status indicators
     /^today$/i,
     /^yesterday$/i,
     /^delivered$/i,
@@ -302,11 +312,13 @@ function isWhatsAppUIElement(text: string): boolean {
     /^Document$/i,
     /^Contact$/i,
     /^Location$/i,
+    /^Message$/i,
+    /^\d{1,2}\s+\w+\s+\d{4}$/,  // Date format like "15 February 2025"
     /^🎤$/,
     /^📷$/,
     /^📎$/,
     /^😊$/
   ];
 
-  return uiPatterns.some(pattern => pattern.test(text.trim()));
+  return uiPatterns.some(pattern => pattern.test(cleanText));
 }
