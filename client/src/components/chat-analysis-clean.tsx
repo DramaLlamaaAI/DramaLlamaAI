@@ -260,33 +260,13 @@ export default function ChatAnalysis() {
         // Skip base64 conversion - send file directly
         console.log(`✅ Using file directly for screenshot ${i + 1} - no conversion needed`);
         
-        // Convert image to base64 for JSON request as a workaround
-        console.log(`📝 Converting screenshot ${i + 1} to base64...`);
-        const reader = new FileReader();
-        const base64Promise = new Promise<string>((resolve, reject) => {
-          reader.onload = (event) => {
-            try {
-              const result = event.target?.result as string;
-              if (!result) {
-                throw new Error('No result from FileReader');
-              }
-              const base64 = result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
-              console.log(`📝 Base64 conversion successful, length: ${base64.length}`);
-              resolve(base64);
-            } catch (error) {
-              console.error('Error processing FileReader result:', error);
-              reject(error);
-            }
-          };
-          reader.onerror = (error) => {
-            console.error('FileReader error:', error);
-            reject(new Error('Failed to read file'));
-          };
-          reader.readAsDataURL(screenshot.file);
-        });
-        
-        const base64Image = await base64Promise;
-        console.log(`📝 Base64 conversion complete for screenshot ${i + 1}`);
+        // Use proper FormData approach for file upload
+        console.log(`📝 Creating FormData for screenshot ${i + 1}...`);
+        const formData = new FormData();
+        formData.append('images', screenshot.file);
+        formData.append('messageSide', messageSide);
+        formData.append('meName', screenshotMe);
+        formData.append('themName', screenshotThem);
         
         // Generate device ID for anonymous usage tracking
         const deviceId = localStorage.getItem('device-id') || (() => {
@@ -296,21 +276,14 @@ export default function ChatAnalysis() {
         })();
         
         console.log(`🔑 Using device ID: ${deviceId} for screenshot ${i + 1}`);
-        console.log(`🌐 About to make JSON fetch request to: /api/test-upload`);
+        console.log(`🌐 About to make FormData request to: /api/ocr/azure`);
         
-        const response = await fetch('/api/test-upload', {
+        const response = await fetch('/api/ocr/azure', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
             'X-Device-ID': deviceId
           },
-          body: JSON.stringify({
-            image: base64Image,
-            messageSide: messageSide,
-            meName: screenshotMe,
-            themName: screenshotThem,
-            filename: screenshot.file.name
-          })
+          body: formData
         });
         
         console.log(`✅ Fetch completed for screenshot ${i + 1}! Status: ${response.status} ${response.statusText}`);
