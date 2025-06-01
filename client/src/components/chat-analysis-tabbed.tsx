@@ -15,6 +15,10 @@ export default function ChatAnalysisTabbed() {
   const [myName, setMyName] = useState('');
   const [theirName, setTheirName] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
+  const [extractedMessages, setExtractedMessages] = useState<any[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
   
   // Import chat state
   const [chatFiles, setChatFiles] = useState<File[]>([]);
@@ -79,6 +83,8 @@ export default function ChatAnalysisTabbed() {
     setIsExtracting(true);
 
     try {
+      const allMessages = [];
+      
       for (let i = 0; i < screenshots.length; i++) {
         const formData = new FormData();
         formData.append('image', screenshots[i]);
@@ -97,11 +103,18 @@ export default function ChatAnalysisTabbed() {
 
         const result = await response.json();
         console.log('Extraction result:', result);
+        
+        if (result.success && result.results?.[0]?.messages) {
+          allMessages.push(...result.results[0].messages);
+        }
       }
+
+      setExtractedMessages(allMessages);
+      setShowResults(true);
 
       toast({
         title: "Text extracted successfully",
-        description: "Screenshots processed successfully"
+        description: `Found ${allMessages.length} messages. Ready to analyze!`
       });
 
     } catch (error) {
@@ -113,6 +126,58 @@ export default function ChatAnalysisTabbed() {
       });
     } finally {
       setIsExtracting(false);
+    }
+  };
+
+  const analyzeExtractedMessages = async () => {
+    if (extractedMessages.length === 0) {
+      toast({
+        title: "No messages to analyze",
+        description: "Please extract text from screenshots first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+
+    try {
+      // Convert extracted messages to conversation format
+      const conversationText = extractedMessages
+        .map(msg => `${msg.speaker}: ${msg.text}`)
+        .join('\n');
+
+      const response = await fetch('/api/analyze/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversationText: conversationText
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Analysis failed');
+      }
+
+      const result = await response.json();
+      setAnalysisResults(result);
+      
+      toast({
+        title: "Analysis complete",
+        description: "Your conversation has been analyzed successfully"
+      });
+
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast({
+        title: "Analysis failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -266,6 +331,61 @@ export default function ChatAnalysisTabbed() {
                   'Extract Text from Screenshots'
                 )}
               </Button>
+
+              {showResults && extractedMessages.length > 0 && (
+                <div className="space-y-4 border-t pt-6">
+                  <h3 className="text-lg font-medium">Extracted Messages ({extractedMessages.length})</h3>
+                  <div className="max-h-60 overflow-y-auto space-y-2 border rounded p-4 bg-gray-50">
+                    {extractedMessages.map((msg, index) => (
+                      <div key={index} className="flex items-start space-x-2">
+                        <span className="font-medium text-sm text-blue-600">{msg.speaker}:</span>
+                        <span className="text-sm">{msg.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button 
+                    onClick={analyzeExtractedMessages}
+                    disabled={isAnalyzing}
+                    className="w-full"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Analyzing Conversation...
+                      </>
+                    ) : (
+                      'Analyze Extracted Conversation'
+                    )}
+                  </Button>
+
+                  {analysisResults && (
+                    <div className="space-y-4 border-t pt-6">
+                      <h3 className="text-lg font-medium">Analysis Results</h3>
+                      <div className="space-y-3 border rounded p-4 bg-green-50">
+                        {analysisResults.overallTone && (
+                          <div>
+                            <span className="font-medium">Overall Tone:</span>
+                            <span className="ml-2">{analysisResults.overallTone.tone} ({analysisResults.overallTone.confidence}%)</span>
+                          </div>
+                        )}
+                        {analysisResults.healthScore && (
+                          <div>
+                            <span className="font-medium">Health Score:</span>
+                            <span className="ml-2">{analysisResults.healthScore.score}/100</span>
+                          </div>
+                        )}
+                        {analysisResults.redFlagsDetected && (
+                          <div>
+                            <span className="font-medium text-red-600">Red Flags Detected:</span>
+                            <span className="ml-2">Yes</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
