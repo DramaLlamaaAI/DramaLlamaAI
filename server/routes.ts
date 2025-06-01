@@ -250,26 +250,36 @@ app.use(session({
     res.json({ success: true, message: 'Server connection working' });
   });
 
-  // Test file upload endpoint to debug FormData issues
-  app.post('/api/test-upload', checkTrialEligibility, (req: Request, res: Response, next: NextFunction) => {
-    console.log('Test upload endpoint hit - before multer');
-    next();
-  }, upload.array('images', 10), handleMulterError, async (req: Request, res: Response) => {
+  // Test endpoint to debug JSON requests (bypassing FormData)
+  app.post('/api/test-upload', checkTrialEligibility, async (req: Request, res: Response) => {
     try {
-      console.log('Test upload request received');
-      console.log('Files count:', req.files?.length || 0);
-      console.log('Headers:', req.headers['content-type']);
-      console.log('Body params:', req.body);
+      console.log('Test upload endpoint hit');
+      console.log('Content-Type:', req.headers['content-type']);
+      console.log('Body keys:', Object.keys(req.body || {}));
+      console.log('Has image data:', !!req.body?.image);
+      console.log('Image data length:', req.body?.image?.length || 0);
+      console.log('Other params:', {
+        messageSide: req.body?.messageSide,
+        meName: req.body?.meName,
+        themName: req.body?.themName,
+        filename: req.body?.filename
+      });
       
       res.json({ 
         success: true, 
-        message: 'File upload test successful',
-        filesReceived: req.files?.length || 0,
-        bodyParams: req.body
+        message: 'JSON request test successful',
+        hasImageData: !!req.body?.image,
+        imageLength: req.body?.image?.length || 0,
+        params: {
+          messageSide: req.body?.messageSide,
+          meName: req.body?.meName,
+          themName: req.body?.themName,
+          filename: req.body?.filename
+        }
       });
     } catch (error) {
       console.error('Test upload error:', error);
-      res.status(500).json({ error: 'Test upload failed' });
+      res.status(500).json({ error: 'Test request failed' });
     }
   });
 
