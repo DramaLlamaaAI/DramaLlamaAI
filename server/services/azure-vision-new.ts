@@ -105,7 +105,7 @@ export async function processScreenshotMessages(
     return { leftMessages: [], rightMessages: [] };
   }
 
-  // Filter out timestamps and delivery indicators first
+  // Step 1: Filter out timestamps and delivery indicators
   const contentLines = lines.filter(line => {
     const text = line.text.trim();
     const timestampPattern = /^\d{1,2}:\d{2}[\s\/]*$/;
@@ -124,56 +124,82 @@ export async function processScreenshotMessages(
     return { leftMessages: [], rightMessages: [] };
   }
 
-  // Use clustering approach: find natural gap in X coordinates
-  const xCoordinates = contentLines.map(line => line.x1).sort((a, b) => a - b);
-  console.log(`X coordinates sorted: ${xCoordinates.join(', ')}`);
-  
-  // Analyze the coordinate distribution to find natural clusters
-  // Look for the leftmost message (likely the actual left side)
-  const leftmostX = Math.min(...xCoordinates);
-  const rightmostX = Math.max(...xCoordinates);
-  
-  // Count messages in different ranges to identify the actual left vs right distribution
-  const quarterPoint = leftmostX + (rightmostX - leftmostX) * 0.25;
-  const leftQuarterCount = xCoordinates.filter(x => x <= quarterPoint).length;
-  
-  console.log(`Leftmost: ${leftmostX}, Rightmost: ${rightmostX}, Quarter point: ${quarterPoint}, Left quarter count: ${leftQuarterCount}`);
-  
-  // If there's only 1-2 messages in the leftmost quarter, that's likely the true left side
-  let splitPoint;
-  if (leftQuarterCount <= 2) {
-    // Use a point that separates the isolated left messages from the rest
-    splitPoint = quarterPoint + 20; // Give some buffer
-    console.log(`Using isolated left detection, split point: ${splitPoint}`);
-  } else {
-    // Fall back to gap analysis
-    let bestGap = 0;
-    splitPoint = 0;
+  // Step 2: Group lines into message bubbles based on Y proximity and X similarity
+  const bubbles: Array<{
+    lines: typeof contentLines;
+    centerX: number;
+    centerY: number;
+    text: string;
+    boundingBox: { minX: number; maxX: number; minY: number; maxY: number };
+  }> = [];
+
+  for (const line of contentLines) {
+    // Calculate line's center position for bubble grouping
+    const lineX = line.x1;
+    const lineY = line.y1;
     
-    for (let i = 1; i < xCoordinates.length; i++) {
-      const gap = xCoordinates[i] - xCoordinates[i-1];
-      if (gap > bestGap) {
-        bestGap = gap;
-        splitPoint = (xCoordinates[i-1] + xCoordinates[i]) / 2;
+    // Find existing bubble within proximity (50px Y, 100px X tolerance)
+    let foundBubble = false;
+    for (const bubble of bubbles) {
+      const yDiff = Math.abs(lineY - bubble.centerY);
+      const xDiff = Math.abs(lineX - bubble.centerX);
+      
+      if (yDiff < 50 && xDiff < 100) {
+        // Add line to existing bubble
+        bubble.lines.push(line);
+        bubble.text += ' ' + line.text.trim();
+        
+        // Recalculate bubble center and bounds
+        const allX = bubble.lines.map(l => l.x1);
+        const allY = bubble.lines.map(l => l.y1);
+        bubble.centerX = allX.reduce((sum, x) => sum + x, 0) / allX.length;
+        bubble.centerY = allY.reduce((sum, y) => sum + y, 0) / allY.length;
+        bubble.boundingBox = {
+          minX: Math.min(...allX),
+          maxX: Math.max(...allX),
+          minY: Math.min(...allY),
+          maxY: Math.max(...allY)
+        };
+        foundBubble = true;
+        break;
       }
     }
-    console.log(`Using gap analysis, best gap: ${bestGap}, split point: ${splitPoint}`);
+    
+    // Create new bubble if no match found
+    if (!foundBubble) {
+      bubbles.push({
+        lines: [line],
+        centerX: lineX,
+        centerY: lineY,
+        text: line.text.trim(),
+        boundingBox: { minX: lineX, maxX: lineX, minY: lineY, maxY: lineY }
+      });
+    }
   }
+
+  console.log(`Grouped into ${bubbles.length} message bubbles`);
+
+  // Step 3: Determine left/right based on bubble center positions
+  const bubbleCenters = bubbles.map(b => b.centerX).sort((a, b) => a - b);
+  console.log(`Bubble center X coordinates: ${bubbleCenters.join(', ')}`);
   
-  console.log(`Final split point: ${splitPoint}`);
+  // Calculate image center for left/right split
+  const imageMinX = Math.min(...bubbleCenters);
+  const imageMaxX = Math.max(...bubbleCenters);
+  const imageCenterX = (imageMinX + imageMaxX) / 2;
+  
+  console.log(`Image bounds: ${imageMinX} to ${imageMaxX}, center: ${imageCenterX}`);
 
   const leftMessages: ExtractedMessage[] = [];
   const rightMessages: ExtractedMessage[] = [];
 
-  contentLines.forEach(line => {
-    const text = line.text.trim();
-    
-    console.log(`BUBBLE: "${text}" | X: ${line.x1} | Y: ${line.y1} | Split: ${splitPoint}`);
+  bubbles.forEach(bubble => {
+    console.log(`BUBBLE: "${bubble.text}" | Center X: ${bubble.centerX} | Center Y: ${bubble.centerY} | Image Center: ${imageCenterX}`);
 
-    // Determine speaker based on split point and user preference
-    let speaker: string;
-    const isLeftSide = line.x1 < splitPoint;
+    // Determine side based on bubble center relative to image center
+    const isLeftSide = bubble.centerX < imageCenterX;
     
+    let speaker: string;
     if (messageSide === 'LEFT') {
       // User's messages are on the left
       speaker = isLeftSide ? myName : theirName;
@@ -185,10 +211,10 @@ export async function processScreenshotMessages(
     console.log(`→ Assigning to ${speaker} (${isLeftSide ? 'LEFT' : 'RIGHT'} side)`);
 
     const message: ExtractedMessage = {
-      text,
+      text: bubble.text,
       speaker,
-      x: line.x1,
-      y: line.y1,
+      x: bubble.centerX,
+      y: bubble.centerY,
       confidence: 0.9
     };
 
