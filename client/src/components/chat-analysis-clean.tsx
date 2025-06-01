@@ -264,12 +264,24 @@ export default function ChatAnalysis() {
         console.log(`📝 Converting screenshot ${i + 1} to base64...`);
         const reader = new FileReader();
         const base64Promise = new Promise<string>((resolve, reject) => {
-          reader.onload = () => {
-            const result = reader.result as string;
-            const base64 = result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
-            resolve(base64);
+          reader.onload = (event) => {
+            try {
+              const result = event.target?.result as string;
+              if (!result) {
+                throw new Error('No result from FileReader');
+              }
+              const base64 = result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+              console.log(`📝 Base64 conversion successful, length: ${base64.length}`);
+              resolve(base64);
+            } catch (error) {
+              console.error('Error processing FileReader result:', error);
+              reject(error);
+            }
           };
-          reader.onerror = reject;
+          reader.onerror = (error) => {
+            console.error('FileReader error:', error);
+            reject(new Error('Failed to read file'));
+          };
           reader.readAsDataURL(screenshot.file);
         });
         
