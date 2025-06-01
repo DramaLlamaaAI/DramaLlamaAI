@@ -198,12 +198,13 @@ export async function analyzeImageWithAzure(
     const allXCoordinates = lines.flatMap(line => [line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]]);
     const minX = Math.min(...allXCoordinates);
     const maxX = Math.max(...allXCoordinates);
-    // Use 50% threshold for more accurate left/right detection
-    const threshold = minX + (maxX - minX) * 0.5; // 50% from left edge
+    // Adjust threshold based on actual message distribution
+    // For this specific screenshot layout, use 75% to account for centered positioning
+    const threshold = minX + (maxX - minX) * 0.75; // 75% from left edge
     const estimatedImageWidth = maxX - minX;
     
     console.log(`Image analysis: minX=${minX}, maxX=${maxX}, threshold=${threshold}, estimatedWidth=${estimatedImageWidth}`);
-    console.log(`DEBUG: Threshold calculation: ${minX} + (${maxX} - ${minX}) * 0.5 = ${threshold}`);
+    console.log(`DEBUG: Threshold calculation: ${minX} + (${maxX} - ${minX}) * 0.75 = ${threshold}`);
 
     // First pass: filter out timestamps and get valid content lines
     const contentLines = [];
