@@ -290,6 +290,7 @@ export default function ChatAnalysis() {
           method: 'POST',
           headers: {
             'X-Device-ID': deviceId
+            // Note: Don't set Content-Type for FormData - browser sets it automatically with boundary
           },
           body: formData
         });
