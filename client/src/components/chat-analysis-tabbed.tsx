@@ -284,37 +284,23 @@ export default function ChatAnalysisTabbed() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="myName">My Name</Label>
+                  <Label htmlFor="leftParticipant">Left Side Participant</Label>
                   <Input
-                    id="myName"
-                    value={myName}
-                    onChange={(e) => setMyName(e.target.value)}
-                    placeholder="Enter your name"
+                    id="leftParticipant"
+                    value={theirName}
+                    onChange={(e) => setTheirName(e.target.value)}
+                    placeholder="Name of person on left"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="theirName">Their Name</Label>
+                  <Label htmlFor="rightParticipant">Right Side Participant</Label>
                   <Input
-                    id="theirName"
-                    value={theirName}
-                    onChange={(e) => setTheirName(e.target.value)}
-                    placeholder="Enter their name"
+                    id="rightParticipant"
+                    value={myName}
+                    onChange={(e) => setMyName(e.target.value)}
+                    placeholder="Name of person on right"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label>My messages are on the:</Label>
-                <RadioGroup value={messageSide} onValueChange={(value) => setMessageSide(value as 'LEFT' | 'RIGHT')}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="LEFT" id="left" />
-                    <Label htmlFor="left">Left side (Gray bubbles)</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="RIGHT" id="right" />
-                    <Label htmlFor="right">Right side (Green/Blue bubbles)</Label>
-                  </div>
-                </RadioGroup>
               </div>
 
               <Button 

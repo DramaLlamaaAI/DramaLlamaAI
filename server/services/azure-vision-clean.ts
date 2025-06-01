@@ -224,16 +224,12 @@ export async function analyzeImageWithAzure(
       const x = Math.min(line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]);
       const y = Math.min(line.boundingBox[1], line.boundingBox[3], line.boundingBox[5], line.boundingBox[7]);
       
-      // Use a fixed threshold that better matches WhatsApp layout
-      // In your screenshot, messages around X=300+ should be considered right side
-      const midpoint = 250;
-      
       // Log coordinates for debugging
-      console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpoint}`);
+      console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Threshold: ${threshold}`);
       
       let speaker: string;
-      // Coordinate logic: left of midpoint = left side, right of midpoint = right side
-      if (x < midpoint) {
+      // Use the calculated threshold based on image dimensions
+      if (x < threshold) {
         speaker = leftSideName; // Left side messages
         console.log(`Assigning LEFT side to ${leftSideName}`);
       } else {
