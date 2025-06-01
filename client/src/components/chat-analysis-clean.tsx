@@ -297,9 +297,8 @@ export default function ChatAnalysis() {
           },
           body: JSON.stringify({
             image: base64,
-            messageSide: messageSide,
-            meName: screenshotMe,
-            themName: screenshotThem,
+            leftSideName: leftSideName,
+            rightSideName: rightSideName,
             filename: screenshot.file.name
           })
         });

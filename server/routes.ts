@@ -263,19 +263,22 @@ app.use(session({
         filename: req.body?.filename
       });
 
-      const { image, messageSide, meName, themName, filename } = req.body;
+      const { image, leftSideName, rightSideName, filename } = req.body;
 
       if (!image) {
         return res.status(400).json({ error: 'No image data provided' });
       }
 
-      if (!messageSide || !meName || !themName) {
+      if (!leftSideName || !rightSideName) {
         return res.status(400).json({ error: 'Missing required parameters' });
       }
 
       console.log('Processing image with Azure Vision...');
       const { analyzeImageWithAzure } = await import('./services/azure-vision');
-      const result = await analyzeImageWithAzure(image, messageSide, meName, themName);
+      const result = await analyzeImageWithAzure(Buffer.from(image, 'base64'), {
+        leftSideName,
+        rightSideName
+      });
 
       console.log('Azure processing completed successfully');
       console.log('Messages found:', result.messages.length);

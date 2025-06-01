@@ -35,16 +35,18 @@ interface ExtractedMessage {
 }
 
 export async function analyzeImageWithAzure(
-  base64Image: string, 
-  messageSide: string = 'right',
-  meName: string = 'You',
-  themName: string = 'Other Person'
+  imageBuffer: Buffer,
+  params: {
+    leftSideName: string;
+    rightSideName: string;
+  }
 ): Promise<{
   messages: ExtractedMessage[];
   imageWidth: number;
   rawText: string;
 }> {
-  console.log('Azure Vision: Starting analysis with params:', { messageSide, meName, themName });
+  const { leftSideName, rightSideName } = params;
+  console.log('Azure Vision: Starting analysis with params:', { leftSideName, rightSideName });
   
   const endpoint = process.env.AZURE_VISION_ENDPOINT;
   const subscriptionKey = process.env.AZURE_VISION_KEY;
@@ -56,11 +58,10 @@ export async function analyzeImageWithAzure(
   try {
     console.log('Starting Azure Vision OCR analysis...');
     console.log('Endpoint:', endpoint);
-    console.log('Image size (base64):', base64Image.length);
+    console.log('Image buffer size:', imageBuffer.length);
 
-    // Remove data URL prefix if present and validate
-    const cleanBase64 = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
-    console.log('Clean base64 size:', cleanBase64.length);
+    // Process the image buffer directly
+    let processedBuffer = imageBuffer;
     
     // Validate base64 format
     if (!cleanBase64 || cleanBase64.length < 100) {
