@@ -198,10 +198,12 @@ export async function analyzeImageWithAzure(
     const allXCoordinates = lines.flatMap(line => [line.boundingBox[0], line.boundingBox[2], line.boundingBox[4], line.boundingBox[6]]);
     const minX = Math.min(...allXCoordinates);
     const maxX = Math.max(...allXCoordinates);
-    const midpointX = (minX + maxX) / 2;
+    // Use fixed threshold instead of calculated midpoint
+    // Messages around X=300+ are typically right side in WhatsApp screenshots
+    const threshold = 300;
     const estimatedImageWidth = maxX - minX;
     
-    console.log(`Image analysis: minX=${minX}, maxX=${maxX}, midpointX=${midpointX}, estimatedWidth=${estimatedImageWidth}`);
+    console.log(`Image analysis: minX=${minX}, maxX=${maxX}, threshold=${threshold}, estimatedWidth=${estimatedImageWidth}`);
 
     const messages: ExtractedMessage[] = [];
     
@@ -214,14 +216,14 @@ export async function analyzeImageWithAzure(
       const y = Math.min(line.boundingBox[1], line.boundingBox[3], line.boundingBox[5], line.boundingBox[7]);
       
       // Log coordinates for debugging
-      console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Midpoint: ${midpointX}`);
+      console.log(`Text: "${text}" | X: ${x} | Y: ${y} | Threshold: ${threshold}`);
       
       // Use pure coordinate-based detection - left/right positioning only
-      console.log(`Debug: x=${x}, midpointX=${midpointX}, leftSideName=${leftSideName}, rightSideName=${rightSideName}`);
+      console.log(`Debug: x=${x}, threshold=${threshold}, leftSideName=${leftSideName}, rightSideName=${rightSideName}`);
       
       let speaker: string;
       // Simple coordinate logic: higher X = right side, lower X = left side
-      if (x > midpointX) {
+      if (x > threshold) {
         speaker = rightSideName; // Right side messages get assigned to rightSideName
         console.log(`Assigning RIGHT side to ${rightSideName}`);
       } else {
