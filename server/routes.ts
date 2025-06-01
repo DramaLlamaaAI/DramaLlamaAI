@@ -327,6 +327,46 @@ app.use(session({
     }
   });
 
+  // New clean Azure OCR endpoint
+  app.post('/api/ocr/azure-clean', upload.single('image'), async (req: Request, res: Response) => {
+    try {
+      const { messageSide, myName, theirName } = req.body;
+      
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      console.log('Clean Azure OCR endpoint hit');
+      console.log('Parameters:', { messageSide, myName, theirName });
+      console.log('Image size:', req.file.size);
+
+      const { processScreenshotMessages } = await import('./services/azure-vision-new');
+      const { leftMessages, rightMessages } = await processScreenshotMessages(
+        req.file.buffer,
+        messageSide as 'LEFT' | 'RIGHT',
+        myName,
+        theirName
+      );
+
+      res.json({
+        success: true,
+        results: [{
+          messages: [...leftMessages, ...rightMessages],
+          leftMessages: leftMessages.map(m => m.text),
+          rightMessages: rightMessages.map(m => m.text),
+          rawText: [...leftMessages, ...rightMessages].map(m => m.text).join('\n')
+        }]
+      });
+
+    } catch (error) {
+      console.error('Clean Azure OCR error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+      });
+    }
+  });
+
   // Azure Computer Vision OCR endpoint
   app.post('/api/ocr/azure', checkTrialEligibility, (req: Request, res: Response, next: NextFunction) => {
     console.log('Azure OCR endpoint hit - before multer');
