@@ -260,10 +260,12 @@ export default function ChatAnalysis() {
         formData.append('meName', screenshotMe);
         formData.append('themName', screenshotThem);
         
+        console.log('Sending request to Azure endpoint...');
         const response = await fetch('/api/ocr/azure', {
           method: 'POST',
           body: formData
         });
+        console.log('Response received:', response.status, response.statusText);
         
         if (!response.ok) {
           throw new Error(`Azure processing failed: ${response.statusText}`);
