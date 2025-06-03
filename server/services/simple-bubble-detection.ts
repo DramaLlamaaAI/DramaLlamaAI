@@ -100,12 +100,13 @@ async function analyzeAreaAroundText(
 
       totalRelevantPixels++;
 
-      // Check for WhatsApp green (more generous thresholds)
-      if (g > 100 && g > r + 15 && g > b + 15) {
+      // More specific WhatsApp green detection
+      // WhatsApp green is approximately RGB(37, 211, 102) or similar bright greens
+      if (g > 150 && g > r * 1.8 && g > b * 1.5 && r < 120) {
         greenPixelCount++;
       }
-      // Check for dark/gray bubble areas
-      else if (r < 100 && g < 100 && b < 100 && (r + g + b) > 60) {
+      // Check for dark/gray bubble areas (much more lenient)
+      else if ((r + g + b) < 200 && (r + g + b) > 40) {
         darkPixelCount++;
       }
     }
