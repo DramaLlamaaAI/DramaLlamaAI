@@ -415,10 +415,10 @@ export default function ChatAnalysis() {
                   </div>
                 </div>
 
-                {/* Potential Issues Detected */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-2">
-                    Potential Issues Detected
+                {/* Potential Red Flags */}
+                <div className="mb-8 mt-8">
+                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    🚩 Potential Red Flags
                     <span className="ml-2 text-sm font-normal text-red-500">
                       {result.redFlags?.length || 3} red flags
                     </span>
