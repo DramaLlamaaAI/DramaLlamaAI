@@ -108,8 +108,8 @@ export default function ChatAnalysisSimple() {
           const speakerSet = new Set(data.messages.map((m: any) => m.speaker).filter(Boolean));
           const speakers = Array.from(speakerSet);
           if (speakers.length >= 2) {
-            setMyName(speakers[0]);
-            setTheirName(speakers[1]);
+            setMyName(String(speakers[0]));
+            setTheirName(String(speakers[1]));
           }
         }
         
