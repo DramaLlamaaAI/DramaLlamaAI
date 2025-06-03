@@ -105,178 +105,128 @@ export async function processScreenshotMessages(
     return { leftMessages: [], rightMessages: [] };
   }
 
-  // Step 1: Filter out timestamps and delivery indicators
+  // Enhanced filtering for timestamps, dates, and noise
+  const timestampPattern = /^\d{1,2}:\d{2}$/;
+  const datePattern = /^\d{1,2}\s+(may|june|july|august)\s+\d{4}$/i;
+  const noiseWords = new Set(['today', 'yesterday', 'may', 'june', 'july', 'august', '21', '2025', 'message', '...', '..', '.']);
+  
   const contentLines = lines.filter(line => {
-    const text = line.text.trim();
-    const timestampPattern = /^\d{1,2}:\d{2}[\s\/]*$/;
-    const deliveryPattern = /^(86V\/|87V\/|88\d\/|8:\d{2}\s*V\/|\d{1,2}\s*V\/|✓|✓✓)$/;
+    const text = line.text.trim().toLowerCase();
     
-    if (timestampPattern.test(text) || deliveryPattern.test(text) || text.length < 2) {
-      console.log(`Filtering out timestamp/delivery indicator: "${text}"`);
+    // Filter timestamps (hh:mm format)
+    if (timestampPattern.test(text)) {
+      console.log(`Filtering out timestamp: "${text}"`);
       return false;
     }
+    
+    // Filter delivery indicators
+    if (/^(86v\/|87v\/|88\d\/|8:\d{2}\s*v\/|\d{1,2}\s*v\/|✓|✓✓)$/i.test(text)) {
+      console.log(`Filtering out delivery indicator: "${text}"`);
+      return false;
+    }
+    
+    // Filter date patterns
+    if (datePattern.test(text)) {
+      console.log(`Filtering out date: "${text}"`);
+      return false;
+    }
+    
+    // Filter noise words
+    if (noiseWords.has(text)) {
+      console.log(`Filtering out noise word: "${text}"`);
+      return false;
+    }
+    
+    // Filter very short text
+    if (text.length < 3) {
+      console.log(`Filtering out short text: "${text}"`);
+      return false;
+    }
+    
     return true;
   });
 
-  console.log(`After filtering: ${contentLines.length} content lines`);
+  console.log(`After enhanced filtering: ${contentLines.length} content lines`);
 
   if (contentLines.length === 0) {
     return { leftMessages: [], rightMessages: [] };
   }
 
-  // Step 2: Group lines into message bubbles based on Y proximity and X similarity
-  const bubbles: Array<{
-    lines: typeof contentLines;
-    centerX: number;
-    centerY: number;
-    text: string;
-    boundingBox: { minX: number; maxX: number; minY: number; maxY: number };
-    side?: 'left' | 'right';
-  }> = [];
-
-  for (const line of contentLines) {
-    // Calculate line's center position for bubble grouping
-    const lineX = line.x1;
-    const lineY = line.y1;
-    
-    // Find existing bubble within proximity (50px Y, 100px X tolerance)
-    let foundBubble = false;
-    for (const bubble of bubbles) {
-      const yDiff = Math.abs(lineY - bubble.centerY);
-      const xDiff = Math.abs(lineX - bubble.centerX);
-      
-      if (yDiff < 50 && xDiff < 100) {
-        // Add line to existing bubble
-        bubble.lines.push(line);
-        bubble.text += ' ' + line.text.trim();
-        
-        // Recalculate bubble center and bounds
-        const allX = bubble.lines.map(l => l.x1);
-        const allY = bubble.lines.map(l => l.y1);
-        bubble.centerX = allX.reduce((sum, x) => sum + x, 0) / allX.length;
-        bubble.centerY = allY.reduce((sum, y) => sum + y, 0) / allY.length;
-        bubble.boundingBox = {
-          minX: Math.min(...allX),
-          maxX: Math.max(...allX),
-          minY: Math.min(...allY),
-          maxY: Math.max(...allY)
-        };
-        foundBubble = true;
-        break;
-      }
-    }
-    
-    // Create new bubble if no match found
-    if (!foundBubble) {
-      bubbles.push({
-        lines: [line],
-        centerX: lineX,
-        centerY: lineY,
-        text: line.text.trim(),
-        boundingBox: { minX: lineX, maxX: lineX, minY: lineY, maxY: lineY }
-      });
-    }
-  }
-
-  console.log(`Grouped into ${bubbles.length} message bubbles`);
-
-  // Step 3: Use k-means clustering to automatically detect left/right groups
-  const bubbleCenters = bubbles.map(b => b.centerX).sort((a, b) => a - b);
-  console.log(`Bubble center X coordinates: ${bubbleCenters.join(', ')}`);
+  // Simple approach: Use image width-based threshold
+  const allX = contentLines.map(line => line.x1);
+  const imageMinX = Math.min(...allX);
+  const imageMaxX = Math.max(...allX);
+  const imageWidth = imageMaxX - imageMinX;
+  const threshold = imageMinX + (imageWidth * 0.5); // 50% threshold
   
-  if (bubbleCenters.length < 2) {
-    console.log('Not enough bubbles for clustering, assigning all to left');
-    bubbles.forEach(bubble => {
-      bubble.side = 'left';
-    });
-  } else {
-    // Simple k-means clustering for 2 groups (left/right)
-    let leftCenter = bubbleCenters[0];
-    let rightCenter = bubbleCenters[bubbleCenters.length - 1];
-    
-    console.log(`Initial cluster centers: left=${leftCenter}, right=${rightCenter}`);
-    
-    // Iterate k-means algorithm
-    for (let iteration = 0; iteration < 10; iteration++) {
-      const leftGroup: number[] = [];
-      const rightGroup: number[] = [];
-      
-      // Assign each bubble to nearest cluster center
-      bubbleCenters.forEach(x => {
-        const distToLeft = Math.abs(x - leftCenter);
-        const distToRight = Math.abs(x - rightCenter);
-        
-        if (distToLeft < distToRight) {
-          leftGroup.push(x);
-        } else {
-          rightGroup.push(x);
-        }
+  console.log(`Image bounds: ${imageMinX} to ${imageMaxX}, width: ${imageWidth}, threshold: ${threshold}`);
+  console.log(`X coordinates: ${allX.join(', ')}`);
+  
+  // Group lines into bubbles based on proximity and create messages
+  const processedBubbles: Array<{
+    text: string;
+    x: number;
+    y: number;
+    side: 'left' | 'right';
+  }> = [];
+  
+  // Simple bubble grouping by Y proximity
+  const sortedLines = [...contentLines].sort((a, b) => a.y1 - b.y1);
+  
+  for (const line of sortedLines) {
+    // Check if this line should be merged with the previous bubble
+    const lastBubble = processedBubbles[processedBubbles.length - 1];
+    if (lastBubble && Math.abs(line.y1 - lastBubble.y) < 30 && Math.abs(line.x1 - lastBubble.x) < 100) {
+      // Merge with previous bubble
+      lastBubble.text += ' ' + line.text.trim();
+    } else {
+      // Create new bubble
+      const side = line.x1 < threshold ? 'left' : 'right';
+      processedBubbles.push({
+        text: line.text.trim(),
+        x: line.x1,
+        y: line.y1,
+        side
       });
-      
-      // Calculate new cluster centers
-      const newLeftCenter = leftGroup.length > 0 ? 
-        leftGroup.reduce((sum, x) => sum + x, 0) / leftGroup.length : leftCenter;
-      const newRightCenter = rightGroup.length > 0 ? 
-        rightGroup.reduce((sum, x) => sum + x, 0) / rightGroup.length : rightCenter;
-      
-      // Check for convergence
-      const leftShift = Math.abs(newLeftCenter - leftCenter);
-      const rightShift = Math.abs(newRightCenter - rightCenter);
-      
-      console.log(`Iteration ${iteration + 1}: left=${newLeftCenter} (shift: ${leftShift}), right=${newRightCenter} (shift: ${rightShift})`);
-      console.log(`Left group: ${leftGroup.length} bubbles, Right group: ${rightGroup.length} bubbles`);
-      
-      leftCenter = newLeftCenter;
-      rightCenter = newRightCenter;
-      
-      if (leftShift < 1 && rightShift < 1) {
-        console.log('K-means converged');
-        break;
-      }
     }
-    
-    // Calculate split point as midpoint between final cluster centers
-    const splitPoint = (leftCenter + rightCenter) / 2;
-    console.log(`Final cluster centers: left=${leftCenter}, right=${rightCenter}, split=${splitPoint}`);
-    
-    // Assign bubbles to sides based on final clustering
-    bubbles.forEach(bubble => {
-      const distToLeft = Math.abs(bubble.centerX - leftCenter);
-      const distToRight = Math.abs(bubble.centerX - rightCenter);
-      bubble.side = distToLeft < distToRight ? 'left' : 'right';
-    });
   }
+  
+  console.log(`Created ${processedBubbles.length} message bubbles using 50% threshold`);
+  
+  // Count distribution
+  const leftCount = processedBubbles.filter(b => b.side === 'left').length;
+  const rightCount = processedBubbles.filter(b => b.side === 'right').length;
+  console.log(`Distribution: ${leftCount} left bubbles, ${rightCount} right bubbles`);
 
   const leftMessages: ExtractedMessage[] = [];
   const rightMessages: ExtractedMessage[] = [];
 
-  bubbles.forEach(bubble => {
-    const clusterSide = bubble.side || 'left';
-    console.log(`BUBBLE: "${bubble.text}" | Center X: ${bubble.centerX} | Cluster: ${clusterSide}`);
+  processedBubbles.forEach(bubble => {
+    console.log(`BUBBLE: "${bubble.text}" | X: ${bubble.x} | Side: ${bubble.side} | Threshold: ${threshold}`);
 
-    // Determine speaker based on cluster assignment and user preference
+    // Determine speaker based on side and user preference
     let speaker: string;
-    const isLeftCluster = clusterSide === 'left';
+    const isLeftSide = bubble.side === 'left';
     
     if (messageSide === 'LEFT') {
       // User's messages are on the left
-      speaker = isLeftCluster ? myName : theirName;
+      speaker = isLeftSide ? myName : theirName;
     } else {
       // User's messages are on the right
-      speaker = isLeftCluster ? theirName : myName;
+      speaker = isLeftSide ? theirName : myName;
     }
 
-    console.log(`→ Assigning to ${speaker} (${clusterSide.toUpperCase()} cluster)`);
+    console.log(`→ Assigning to ${speaker} (${bubble.side.toUpperCase()} side)`);
 
     const message: ExtractedMessage = {
       text: bubble.text,
       speaker,
-      x: bubble.centerX,
-      y: bubble.centerY,
+      x: bubble.x,
+      y: bubble.y,
       confidence: 0.9
     };
 
-    if (isLeftCluster) {
+    if (isLeftSide) {
       leftMessages.push(message);
     } else {
       rightMessages.push(message);
