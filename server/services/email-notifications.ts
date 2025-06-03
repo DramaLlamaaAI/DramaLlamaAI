@@ -3,8 +3,9 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Helper function to determine if tier change is an upgrade
+// Correct hierarchy: Free > Beta > Personal > Pro
 function isUpgradeChange(fromTier: string, toTier: string): boolean {
-  const tierHierarchy = ['free', 'personal', 'beta', 'pro'];
+  const tierHierarchy = ['free', 'beta', 'personal', 'pro'];
   const fromIndex = tierHierarchy.indexOf(fromTier.toLowerCase());
   const toIndex = tierHierarchy.indexOf(toTier.toLowerCase());
   return toIndex > fromIndex;
@@ -139,18 +140,23 @@ function getTierBenefits(tier: string): string[] {
   switch (tier.toLowerCase()) {
     case 'free':
       return [
-        '1 chat analysis per month',
-        'Basic conversation health score',
-        'Red flag indicators',
-        'Export to PDF'
+        '2 chat analyses per month',
+        'Overall Emotional Tone Summary',
+        'Conversation Health Score (0–100 gauge)',
+        'Red Flags Detected (Count & Brief Descriptions)',
+        'Simple PDF Export'
       ];
     case 'personal':
       return [
-        '5 chat analyses per month',
-        'Detailed red flag analysis',
-        'Communication patterns detection',
-        'Unlimited message analysis',
-        'PDF and mobile exports'
+        '5 Chat Uploads per Month',
+        'Everything in the Free Tier, plus:',
+        'Full Emotional Tone Analysis (by participant)',
+        'Red Flag Detection with Named Participants & Supporting Quotes',
+        'Conversation Health Gauge with Individual Impact',
+        'Communication Style Comparison (You vs. Them)',
+        'Accountability & Tension Contributions (Named)',
+        'Standout Quotes with Behavioral Signals',
+        'One-Click PDF Export'
       ];
     case 'beta':
       return [
@@ -162,17 +168,22 @@ function getTierBenefits(tier: string): string[] {
       ];
     case 'pro':
       return [
-        'Unlimited chat analyses',
-        'Psychological profiles',
-        'Tension contribution insights',
-        'De-escalation rewrites',
-        'Audio transcription & analysis'
+        'Unlimited Chat Uploads',
+        'Everything in the Personal Plan, plus:',
+        'Behavioral Pattern Detection (repeated avoidance, blame-shifting)',
+        'Escalation Markers: When and how tension rises',
+        'Power Balance Overview (Simple Participant Meter)',
+        'Extended Participant Summary Cards (More Detail, More Clarity)',
+        'Enhanced PDF Export (With Timeline and Key Insights)'
       ];
     case 'instant':
       return [
-        'One-time Pro-level analysis',
-        'Comprehensive conversation insights',
-        'No subscription required'
+        '1 Chat Upload (Single Use)',
+        'Everything in the Free Tier, plus:',
+        'Red Flag Count with Key Quotes',
+        'Participant Summary Cards (Style & Role in Tension)',
+        'Conversation Dynamics Overview',
+        'PDF Export'
       ];
     default:
       return [
