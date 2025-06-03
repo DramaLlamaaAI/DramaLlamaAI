@@ -27,6 +27,7 @@ const registerSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string().min(1, "Please confirm your password"),
   country: z.string().min(1, "Please select your country"),
+  referralCode: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -67,6 +68,7 @@ export default function AuthPage() {
       password: "",
       confirmPassword: "",
       country: "",
+      referralCode: "",
     },
   });
 

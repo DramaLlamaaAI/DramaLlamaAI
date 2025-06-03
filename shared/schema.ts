@@ -18,6 +18,8 @@ export const users = pgTable("users", {
   discountPercentage: integer("discount_percentage").default(0),
   discountExpiryDate: timestamp("discount_expiry_date"),
   country: text("country"),
+  referralCode: text("referral_code"), // The referral code this user used when signing up
+  referredBy: integer("referred_by"), // ID of the user who referred this user
 });
 
 // Promotional codes schema
@@ -47,6 +49,19 @@ export const promoUsage = pgTable("promo_usage", {
   targetTier: text("target_tier").notNull(),
 });
 
+// Referral codes for marketer tracking
+export const referralCodes = pgTable("referral_codes", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(), // e.g., "SARAH2025", "MIKE_PROMO"
+  marketerName: text("marketer_name").notNull(), // Name of the marketer
+  marketerEmail: text("marketer_email"), // Optional email for contact
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdById: integer("created_by_id").notNull(), // Admin who created this code
+  totalSignups: integer("total_signups").default(0), // Track total signups
+  totalConversions: integer("total_conversions").default(0), // Track paid conversions
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -55,6 +70,16 @@ export const insertUserSchema = createInsertSchema(users).pick({
   isAdmin: true,
   emailVerified: true,
   country: true,
+  referralCode: true,
+  referredBy: true,
+});
+
+export const insertReferralCodeSchema = createInsertSchema(referralCodes).pick({
+  code: true,
+  marketerName: true,
+  marketerEmail: true,
+  isActive: true,
+  createdById: true,
 });
 
 export const insertPromoCodeSchema = createInsertSchema(promoCodes).pick({
