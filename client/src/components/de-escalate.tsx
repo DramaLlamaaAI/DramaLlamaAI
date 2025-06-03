@@ -62,8 +62,18 @@ export default function VentMode() {
       });
       return;
     }
+
+    // Check minimum length for meaningful processing
+    if (message.trim().length < 10) {
+      toast({
+        title: "Message Too Short",
+        description: "Please provide a longer message for better analysis and rewriting.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    ventModeMutation.mutate({ message });
+    ventModeMutation.mutate(message.trim());
   };
   
   // Export the de-escalated message as PDF
@@ -164,42 +174,75 @@ export default function VentMode() {
           
           <div className="mb-6">
             <Textarea
-              placeholder="Type your emotional message here..."
-              className="w-full h-32 resize-none"
+              placeholder="Example: 'I can't believe you did that! This is so frustrating and I'm really upset about how you handled this situation...'"
+              className="w-full h-40 resize-none"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              maxLength={2000}
             />
+            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+              <span>Minimum 10 characters for processing</span>
+              <span>{message.length}/2000 characters</span>
+            </div>
           </div>
           
-          <div className="mb-6">
+          <div className="mb-6 flex gap-3">
             <div className="relative inline-block">
               <Button
                 onClick={handleVentMode}
-                disabled={ventModeMutation.isPending || message.length === 0 || !canUseFeature}
+                disabled={ventModeMutation.isPending || message.length < 10 || !canUseFeature}
                 variant="default"
                 className="flex items-center pr-12 shadow-md rounded-lg"
                 style={{ background: 'linear-gradient(90deg, #22C9C9, #FF69B4)', color: 'white' }}
               >
-                {ventModeMutation.isPending ? "Processing..." : "Vent Message"}
+                {ventModeMutation.isPending ? "Processing..." : "Transform Message"}
                 <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold shadow-lg border border-white">
                   FREE
                 </span>
               </Button>
             </div>
+            
+            {message.length > 0 && (
+              <Button
+                onClick={() => {
+                  setMessage("");
+                  setResult(null);
+                }}
+                variant="outline"
+                className="flex items-center gap-2"
+                disabled={ventModeMutation.isPending}
+              >
+                Clear
+              </Button>
+            )}
           </div>
+
+          {ventModeMutation.isPending && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                <div>
+                  <p className="text-blue-800 font-medium">Analyzing your message...</p>
+                  <p className="text-blue-600 text-sm">Creating a calmer, more effective version</p>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Registration prompt moved to bottom */}
           
           {result && (
-            <div className="rounded-lg border border-border p-4 mb-6 bg-muted slide-in" ref={resultsRef}>
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-medium text-foreground">Calmer Version</h3>
+            <div className="rounded-lg border border-green-200 bg-green-50 p-6 mb-6 slide-in" ref={resultsRef}>
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <h3 className="font-semibold text-green-800">Your Calmer Message</h3>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs flex items-center gap-1 h-8"
+                  className="text-xs flex items-center gap-1 h-8 border-green-300 text-green-700 hover:bg-green-100"
                   onClick={() => {
-                    // Copy the rewritten text to clipboard
                     navigator.clipboard.writeText(result.rewritten);
                     toast({
                       title: "Copied to Clipboard",
@@ -211,17 +254,29 @@ export default function VentMode() {
                   Copy Text
                 </Button>
               </div>
-              <div className="relative bg-background p-3 rounded border border-border mb-4">
-                <p>{result.rewritten}</p>
+              
+              <div className="bg-white p-4 rounded-lg border border-green-200 mb-4 shadow-sm">
+                <p className="text-gray-800 leading-relaxed">{result.rewritten}</p>
               </div>
               
-              <h4 className="text-sm font-medium text-muted-foreground mb-1">Why This Works Better</h4>
-              <p className="text-sm text-muted-foreground">
-                {result.explanation}
-              </p>
-              
-              {/* Export buttons removed */}
+              <div className="border-t border-green-200 pt-4">
+                <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-green-600" />
+                  Why This Works Better
+                </h4>
+                <p className="text-sm text-green-700 leading-relaxed">
+                  {result.explanation}
+                </p>
+              </div>
             </div>
+          )}
+
+          {ventModeMutation.isError && (
+            <Alert className="mb-6 border-red-200 bg-red-50">
+              <AlertDescription className="text-red-700">
+                We encountered an issue processing your message. Please try again or check your internet connection.
+              </AlertDescription>
+            </Alert>
           )}
           
           <Alert className="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
