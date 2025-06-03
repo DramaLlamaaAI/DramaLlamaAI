@@ -322,10 +322,17 @@ app.use(session({
     });
   }, async (req: Request, res: Response) => {
     try {
-      console.log('Name detection endpoint hit');
+      console.log('=== NAME DETECTION ENDPOINT DEBUG ===');
       console.log('Content-Type:', req.headers['content-type']);
       console.log('Has file:', !!req.file);
-      console.log('Body:', Object.keys(req.body));
+      console.log('File details:', req.file ? {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      } : 'No file');
+      console.log('Body keys:', Object.keys(req.body));
+      console.log('Body content:', req.body);
+      console.log('Has conversation in body:', !!req.body.conversation);
       
       let chatText = '';
 
