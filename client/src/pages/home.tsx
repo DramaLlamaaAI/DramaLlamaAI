@@ -11,9 +11,12 @@ import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info, AlertTriangle } from "lucide-react";
+import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info, AlertTriangle, Crown, ArrowUp } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/use-auth";
+
 export default function Home() {
+  const { user } = useAuth();
   // For now, redirect PRO features to auth page for anonymous users
   // This will be enhanced when proper authentication routing is implemented
   const getWhatsAppGroupsRoute = () => "/auth";
@@ -46,6 +49,38 @@ export default function Home() {
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <HeroSection />
+        
+        {/* Upgrade Section for Authenticated Users */}
+        {user && (
+          <div className="my-8">
+            <div className="max-w-2xl mx-auto bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Crown className="h-6 w-6 text-purple-600" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      Current Plan: <Badge variant="secondary" className="ml-1 capitalize">{user.tier}</Badge>
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {user.tier === 'free' ? 'Upgrade to unlock more features' : 
+                       user.tier === 'personal' ? 'Upgrade to Pro for unlimited access' :
+                       user.tier === 'pro' ? 'Upgrade to Deep Dive for premium insights' :
+                       'You have access to all features'}
+                    </p>
+                  </div>
+                </div>
+                {user.tier !== 'deepdive' && (
+                  <Link href="/subscription">
+                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+                      <ArrowUp className="h-4 w-4 mr-2" />
+                      Upgrade Plan
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="my-10">
           <h2 className="text-2xl font-bold text-center mb-6">Choose Your Tool</h2>
