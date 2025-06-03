@@ -100,14 +100,20 @@ export default function ChatAnalysisSimple() {
         }
 
         const data = await response.json();
+        console.log('Chat extraction response:', data);
         
         // Convert text to messages format and detect names
         if (data.text) {
+          console.log('Found text data, length:', data.text.length);
           const messages = parseTextToMessages(data.text);
+          console.log('Parsed messages count:', messages.length);
           setExtractedMessages(messages);
           
           // Auto-detect names using the extracted text
+          console.log('Starting name detection...');
           await detectNamesFromText(data.text);
+        } else {
+          console.error('No text data found in response:', data);
         }
         
         setProgress(100);
