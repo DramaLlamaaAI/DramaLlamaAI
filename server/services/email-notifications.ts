@@ -120,7 +120,7 @@ The Drama Llama Team
     `;
 
     const result = await resend.emails.send({
-      from: 'Drama Llama <onboarding@resend.dev>',
+      from: 'Drama Llama <noreply@dramallama.ai>',
       to: [userEmail],
       subject: subject,
       html: htmlContent,
