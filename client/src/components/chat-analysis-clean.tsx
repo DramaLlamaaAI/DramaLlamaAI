@@ -22,7 +22,8 @@ import {
   Heart,
   Zap,
   Crown,
-  Star
+  Star,
+  Loader2
 } from "lucide-react";
 
 // Types
@@ -89,6 +90,8 @@ export default function ChatAnalysis() {
   const [result, setResult] = useState<ChatAnalysisResult | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileUploaded, setFileUploaded] = useState(false);
   const [participants, setParticipants] = useState([
     { id: 1, name: "", placeholder: "Your name (optional - we'll auto-detect)" },
     { id: 2, name: "", placeholder: "Other person's name (optional - we'll auto-detect)" }
@@ -109,7 +112,7 @@ export default function ChatAnalysis() {
   const usedAnalyses = usage?.used || 0;
   const limit = usage?.limit;
 
-  // File upload handler
+  // File upload handler - only detects names, doesn't analyze
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -118,6 +121,66 @@ export default function ChatAnalysis() {
       toast({
         title: "Invalid file type",
         description: "Please upload a .txt or .zip file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Store the uploaded file
+      setUploadedFile(file);
+      setFileUploaded(true);
+      
+      // Auto-detect participant names from the file
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/analyze/detect-names', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const detectedNames = await response.json();
+        if (detectedNames.me && detectedNames.them) {
+          setParticipants([
+            { id: 1, name: detectedNames.me, placeholder: "Your name (optional - we'll auto-detect)" },
+            { id: 2, name: detectedNames.them, placeholder: "Other person's name (optional - we'll auto-detect)" }
+          ]);
+          
+          toast({
+            title: "File Uploaded",
+            description: `Detected participants: ${detectedNames.me} and ${detectedNames.them}`,
+          });
+        } else {
+          toast({
+            title: "File Uploaded",
+            description: "Auto-detection didn't find clear names. You can enter them manually or proceed with analysis.",
+          });
+        }
+      } else {
+        // If name detection fails, just show that file was uploaded
+        toast({
+          title: "File Uploaded",
+          description: "Ready for analysis. You can enter participant names or proceed.",
+        });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  // Separate analysis handler
+  const handleAnalyzeChat = useCallback(async () => {
+    if (!uploadedFile) {
+      toast({
+        title: "No file uploaded",
+        description: "Please upload a chat file first.",
         variant: "destructive",
       });
       return;
@@ -137,7 +200,7 @@ export default function ChatAnalysis() {
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', uploadedFile);
       
       // Add participant names to the form data
       participantNames.forEach((name, index) => {
@@ -151,14 +214,14 @@ export default function ChatAnalysis() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Upload failed:', response.status, errorText);
+        console.error('Analysis failed:', response.status, errorText);
         let errorData;
         try {
           errorData = JSON.parse(errorText);
         } catch {
           errorData = { error: errorText };
         }
-        throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+        throw new Error(errorData.error || `Analysis failed with status ${response.status}`);
       }
 
       const analysisResult = await response.json();
@@ -182,7 +245,7 @@ export default function ChatAnalysis() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [toast, queryClient, participants]);
+  }, [toast, queryClient, participants, uploadedFile]);
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
@@ -208,24 +271,30 @@ export default function ChatAnalysis() {
               <div className="flex items-center justify-center mb-8">
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-teal-500 text-white rounded-full flex items-center justify-center font-semibold">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                      fileUploaded ? 'bg-teal-500 text-white' : 'bg-teal-500 text-white'
+                    }`}>
                       1
                     </div>
                     <span className="ml-2 text-sm font-medium text-gray-700">Upload</span>
                   </div>
                   <ArrowRight className="text-gray-400" />
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                      fileUploaded ? 'bg-teal-500 text-white' : 'bg-gray-200 text-gray-500'
+                    }`}>
                       2
                     </div>
-                    <span className="ml-2 text-sm font-medium text-gray-500">Analyze</span>
+                    <span className={`ml-2 text-sm font-medium ${fileUploaded ? 'text-gray-700' : 'text-gray-500'}`}>Analyze</span>
                   </div>
                   <ArrowRight className="text-gray-400" />
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                      showResults ? 'bg-teal-500 text-white' : 'bg-gray-200 text-gray-500'
+                    }`}>
                       3
                     </div>
-                    <span className="ml-2 text-sm font-medium text-gray-500">Results</span>
+                    <span className={`ml-2 text-sm font-medium ${showResults ? 'text-gray-700' : 'text-gray-500'}`}>Results</span>
                   </div>
                 </div>
               </div>
@@ -346,6 +415,35 @@ export default function ChatAnalysis() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Analyze Chat Button - only show when file is uploaded */}
+                    {fileUploaded && (
+                      <div className="mt-6 text-center">
+                        <Button
+                          onClick={handleAnalyzeChat}
+                          disabled={isAnalyzing || (limit !== null && usedAnalyses >= limit)}
+                          className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-8 py-3 text-lg font-semibold"
+                        >
+                          {isAnalyzing ? (
+                            <>
+                              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                              Analyzing Chat...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-5 w-5 mr-2" />
+                              Analyze Chat
+                            </>
+                          )}
+                        </Button>
+                        
+                        {limit !== null && usedAnalyses >= limit && (
+                          <p className="text-sm text-red-500 mt-2">
+                            Analysis limit reached for this month
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>
