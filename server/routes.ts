@@ -257,6 +257,32 @@ app.use(session({
     }
   });
 
+  // Separate multer configuration for text files (chat imports)
+  const uploadText = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { 
+      fileSize: 10 * 1024 * 1024, // 10MB limit per file
+      files: 1 // Single file for chat import
+    },
+    fileFilter: (req, file, cb) => {
+      console.log('Text file filter - processing file:', file.mimetype, file.originalname);
+      
+      // Accept text files and zip files
+      if (file.mimetype === 'text/plain' || 
+          file.mimetype === 'application/zip' ||
+          file.mimetype === 'application/x-zip-compressed' ||
+          file.originalname.toLowerCase().endsWith('.txt') ||
+          file.originalname.toLowerCase().endsWith('.zip')) {
+        console.log('Accepting text/zip file:', file.originalname);
+        cb(null, true);
+        return;
+      }
+      
+      console.log('Rejecting file - not a text or zip file:', file.mimetype, file.originalname);
+      cb(new Error('Only .txt and .zip files are allowed for chat import'));
+    }
+  });
+
   // Multer error handler
   const handleMulterError = (error: any, req: Request, res: Response, next: NextFunction) => {
     console.error('Multer error:', error);
@@ -279,12 +305,21 @@ app.use(session({
 
   // Name detection endpoint for file uploads and JSON requests
   app.post('/api/analyze/detect-names', (req: Request, res: Response, next: NextFunction) => {
+    console.log('Name detection middleware - Content-Type:', req.headers['content-type']);
     // Handle JSON requests (from test scripts)
     if (req.headers['content-type']?.includes('application/json')) {
+      console.log('Skipping file upload middleware for JSON request');
       return next();
     }
-    // Handle file uploads
-    upload.single('file')(req, res, next);
+    // Handle file uploads with text file filter
+    console.log('Applying text file upload middleware');
+    uploadText.single('file')(req, res, (err) => {
+      if (err) {
+        console.error('Multer error in name detection:', err);
+        return res.status(400).json({ message: 'File upload error: ' + err.message });
+      }
+      next();
+    });
   }, async (req: Request, res: Response) => {
     try {
       console.log('Name detection endpoint hit');
