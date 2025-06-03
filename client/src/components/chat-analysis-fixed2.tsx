@@ -652,7 +652,7 @@ export default function ChatAnalysisFixed() {
                 }}
                 className="mt-6"
               >
-                <TabsList className="grid grid-cols-3 bg-purple-50 border-purple-200">
+                <TabsList className="grid grid-cols-2 bg-purple-50 border-purple-200">
                   <TabsTrigger value="screenshot" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
                     <Image className="h-4 w-4 mr-2" />
                     Screenshot Analysis
@@ -661,71 +661,9 @@ export default function ChatAnalysisFixed() {
                     <Upload className="h-4 w-4 mr-2" />
                     Upload File
                   </TabsTrigger>
-                  <TabsTrigger value="paste" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Paste Text
-                  </TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="paste" className="mt-4">
-                  <div className="space-y-4">
-                    {/* Info about chat analysis */}
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2">
-                        <Info className="h-4 w-4" />
-                        <p className="text-sm text-muted-foreground">
-                          For group chat analysis, please use the <Link to="/group-chat-analysis" className="text-teal-500 hover:underline">WhatsApp Group Chat Analysis</Link> page
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Paste your conversation here:</label>
-                      <Textarea
-                        value={conversation}
-                        onChange={(e) => setConversation(e.target.value)}
-                        placeholder="Paste your conversation or WhatsApp chat export..."
-                        className="min-h-[200px]"
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        <Info className="h-4 w-4 inline-block mr-1" />
-                        For best results, include at least 10-20 message exchanges
-                      </p>
-                    </div>
-                    
-                    {/* Paste tab participant form */}
-                    <ParticipantNameForm />
-                    
-                    <div className="text-sm text-muted-foreground">
-                      <div className="flex items-start mb-2">
-                        <Info className="h-4 w-4 mr-2 mt-0.5" />
-                        <span>
-                          We don't store your conversation data. All analysis is performed securely.
-                        </span>
-                      </div>
-                      
-                      <div className="mt-4">
-                        {usage && (
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <span>Analyses used this month: {usedAnalyses}{limit !== null && ` of ${limit}`}</span>
-                              <span className="text-xs">
-                                {tier === 'free' && 'Free Tier'}
-                                {tier === 'personal' && 'Personal Tier'}
-                                {tier === 'pro' && 'Pro Tier'}
-                                {tier === 'instant' && 'Instant Deep Dive'}
-                              </span>
-                            </div>
-                            
-                            {limit !== null && (
-                              <Progress value={(usedAnalyses / limit) * 100} className="h-2" />
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
+
                 
                 <TabsContent value="upload" className="mt-4">
                   <div className="space-y-4">

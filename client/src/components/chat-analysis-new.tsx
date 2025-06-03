@@ -227,38 +227,60 @@ export default function ChatAnalysis() {
             </Alert>
           )}
           
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold mb-2">Chat Analysis</h1>
-            <p className="text-muted-foreground">
-              Analyze your text conversation to understand communication patterns,
-              emotional tones and potential issues
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold mb-2 text-pink-800">Chat Analysis</h1>
+            <p className="text-muted-foreground mb-6">
+              Analyze your text conversation to understand communication patterns, emotional tones and potential issues
             </p>
+            
+            {/* Step Indicators */}
+            <div className="flex items-center justify-center space-x-4 mb-6">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  1
+                </div>
+                <span className="ml-2 text-sm font-medium text-pink-700">Input Chat</span>
+              </div>
+              
+              <div className="w-8 h-px bg-gradient-to-r from-pink-300 to-teal-300"></div>
+              
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-bold">
+                  2
+                </div>
+                <span className="ml-2 text-sm font-medium text-gray-600">Set Names</span>
+              </div>
+              
+              <div className="w-8 h-px bg-gradient-to-r from-teal-300 to-pink-300"></div>
+              
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-bold">
+                  3
+                </div>
+                <span className="ml-2 text-sm font-medium text-gray-600">Get Results</span>
+              </div>
+            </div>
           </div>
           
           {!showResults ? (
-            <>
-              <Tabs
-                defaultValue={tabValue} 
-                value={tabValue}
-                onValueChange={(value) => {
-                  setTabValue(value);
-                  setErrorMessage(null); // Clear error message when switching tabs
-                }}
-                className="mt-6"
-              >
-                <TabsList className="grid grid-cols-2">
-                  <TabsTrigger value="paste">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Paste Text
-                  </TabsTrigger>
-                  <TabsTrigger value="upload">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload File
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="paste" className="mt-4">
-                  <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Upload File Section - Main Content */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <Button variant="outline" className="text-sm">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Paste Text
+                </Button>
+                <Button className="text-sm bg-teal-500 hover:bg-teal-600 text-white">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload File
+                </Button>
+                <Button variant="outline" className="text-sm">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Screenshot
+                </Button>
+              </div>
+
+              <div className="space-y-4">
                     {/* Conversation Type Selector */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium mb-2">Conversation Type:</label>
