@@ -421,7 +421,7 @@ export default function ChatAnalysis() {
                       <div className="mt-6 text-center">
                         <Button
                           onClick={handleAnalyzeChat}
-                          disabled={isAnalyzing || (limit !== null && usedAnalyses >= limit)}
+                          disabled={isAnalyzing || (limit !== null && limit !== undefined && usedAnalyses >= limit)}
                           className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-8 py-3 text-lg font-semibold"
                         >
                           {isAnalyzing ? (
@@ -437,7 +437,7 @@ export default function ChatAnalysis() {
                           )}
                         </Button>
                         
-                        {limit !== null && usedAnalyses >= limit && (
+                        {limit !== null && limit !== undefined && usedAnalyses >= limit && (
                           <p className="text-sm text-red-500 mt-2">
                             Analysis limit reached for this month
                           </p>
