@@ -1311,23 +1311,43 @@ export async function detectParticipants(conversation: string) {
     const excerptText = typeof conversation === 'string' ? conversation : JSON.stringify(conversation);
     const excerpt = excerptText.substring(0, 500);
     
-    // Direct pattern matching approach first
-    const namePatterns = excerpt.match(/(?:^|\n|\[)[^:[\]]*?([A-Z][a-z]+)(?::|:)/g);
+    // Enhanced direct pattern matching for WhatsApp and other chat formats
+    const whatsappPatterns = [
+      // WhatsApp format: [date, time] Name: message
+      /\[\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\]\s*([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s*:/g,
+      // Alternative format: date, time - Name: message
+      /\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\s*-\s*([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s*:/g,
+      // Simple format: Name: message (at start of line)
+      /^([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s*:/gm,
+      // Format with brackets: Name: message
+      /(?:^|\n)([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s*:/g
+    ];
     
-    if (namePatterns && namePatterns.length >= 1) {
-      const names = namePatterns
-        .map(match => {
-          // Extract just the name part
-          const nameMatch = match.match(/([A-Z][a-z]+)(?::|:)/);
-          return nameMatch ? nameMatch[1] : null;
-        })
-        .filter(Boolean)
-        .filter((name, index, self) => self.indexOf(name) === index); // Unique names
-      
-      if (names.length >= 2) {
-        console.log('Direct pattern matching found participants:', names[0], 'and', names[1]);
-        return { me: names[0], them: names[1] };
+    const detectedNames = new Set<string>();
+    
+    for (const pattern of whatsappPatterns) {
+      let match;
+      while ((match = pattern.exec(excerpt)) !== null) {
+        const name = match[1].trim();
+        // Filter out system messages and short names
+        if (name.length >= 2 && 
+            !name.includes('changed') && 
+            !name.includes('added') && 
+            !name.includes('left') &&
+            !name.includes('joined') &&
+            name !== 'You' && name !== 'Me' && name !== 'Them') {
+          detectedNames.add(name);
+        }
       }
+    }
+    
+    const names = Array.from(detectedNames);
+    if (names.length >= 2) {
+      console.log('Direct pattern matching found participants:', names[0], 'and', names[1]);
+      return { me: names[0], them: names[1] };
+    } else if (names.length === 1) {
+      console.log('Found one participant:', names[0], 'using generic name for second');
+      return { me: names[0], them: 'Contact' };
     }
     
     // If direct pattern fails, try AI-based detection
