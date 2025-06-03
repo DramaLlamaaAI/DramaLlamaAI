@@ -100,18 +100,18 @@ export default function ChatAnalysisSimple() {
         }
 
         const data = await response.json();
-        setExtractedMessages(data.messages || []);
-        setProgress(100);
+        console.log('Extracted data:', data);
         
-        // Auto-detect names if possible
-        if (data.messages?.length > 0) {
-          const speakerSet = new Set(data.messages.map((m: any) => m.speaker).filter(Boolean));
-          const speakers = Array.from(speakerSet);
-          if (speakers.length >= 2) {
-            setMyName(String(speakers[0]));
-            setTheirName(String(speakers[1]));
-          }
+        // Convert text to messages format and detect names
+        if (data.text) {
+          const messages = parseTextToMessages(data.text);
+          setExtractedMessages(messages);
+          
+          // Auto-detect names using the extracted text
+          await detectNamesFromText(data.text);
         }
+        
+        setProgress(100);
         
         toast({
           title: "Chat extracted successfully",
@@ -166,12 +166,18 @@ export default function ChatAnalysisSimple() {
     setCurrentStep(3);
 
     try {
+      // Convert messages to conversation format expected by the server
+      const conversationText = extractedMessages
+        .map(msg => `${msg.speaker}: ${msg.content}`)
+        .join('\n');
+
       const response = await fetch('/api/analyze/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: extractedMessages,
-          participants: [myName.trim(), theirName.trim()]
+          conversation: conversationText,
+          me: myName.trim(),
+          them: theirName.trim()
         })
       });
 
@@ -197,6 +203,93 @@ export default function ChatAnalysisSimple() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Helper function to parse text into messages
+  const parseTextToMessages = (text: string) => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const messages: any[] = [];
+    
+    // Common WhatsApp message patterns
+    const patterns = [
+      // [date, time] Name: Message
+      /\[\d+[\/-]\d+[\/-]\d+(?:,|\s+)\s*\d+:\d+(?::\d+)?(?:\s*[AP]M)?\]\s*(.*?):\s*(.*)/,
+      // date, time - Name: Message  
+      /\d+[\/-]\d+[\/-]\d+(?:,|\s+)\s*\d+:\d+(?::\d+)?(?:\s*[AP]M)?\s+-\s*(.*?):\s*(.*)/
+    ];
+    
+    lines.forEach(line => {
+      for (const pattern of patterns) {
+        const match = line.match(pattern);
+        if (match && match[1] && match[2]) {
+          const speaker = match[1].trim();
+          const content = match[2].trim();
+          
+          // Skip system messages
+          if (!speaker.includes('changed the subject') && 
+              !speaker.includes('added') && 
+              !speaker.includes('removed') &&
+              !speaker.includes('left') &&
+              !speaker.includes('joined')) {
+            messages.push({
+              speaker,
+              content,
+              timestamp: new Date().toISOString()
+            });
+          }
+          break;
+        }
+      }
+    });
+    
+    return messages;
+  };
+
+  // Auto-detect names using the server endpoint
+  const detectNamesFromText = async (text: string) => {
+    try {
+      const response = await fetch('/api/analyze/detect-names', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversation: text })
+      });
+
+      if (response.ok) {
+        const names = await response.json();
+        console.log('Detected names:', names);
+        if (names.me && names.them) {
+          setMyName(names.me);
+          setTheirName(names.them);
+          toast({
+            title: "Names detected",
+            description: `Found: ${names.me} and ${names.them}`,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Name detection failed:', error);
+      // Fallback to manual parsing if server detection fails
+      const messages = parseTextToMessages(text);
+      if (messages.length > 0) {
+        const speakerSet = new Set(messages.map(m => m.speaker));
+        const speakers = Array.from(speakerSet);
+        if (speakers.length >= 2) {
+          setMyName(speakers[0]);
+          setTheirName(speakers[1]);
+        }
+      }
+    }
+  };
+
+  // Switch names function
+  const switchNames = () => {
+    const temp = myName;
+    setMyName(theirName);
+    setTheirName(temp);
+    toast({
+      title: "Names switched",
+      description: "Swapped 'Your name' and 'Their name'",
+    });
   };
 
   const resetAnalysis = () => {
@@ -327,6 +420,20 @@ export default function ChatAnalysisSimple() {
                     onChange={(e) => setTheirName(e.target.value)}
                   />
                 </div>
+              </div>
+              
+              {/* Switch names button */}
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={switchNames}
+                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                  disabled={!myName || !theirName}
+                >
+                  ↔ Switch Names
+                </Button>
               </div>
 
               <div className="flex gap-2 justify-center">
