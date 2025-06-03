@@ -23,7 +23,7 @@ import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
 import ContactUs from "@/pages/contact-us";
 // Support helplines converted to dialog component
-import ChatAnalysisNew from "./components/chat-analysis-clean";
+import ChatAnalysisNew from "./components/chat-analysis-restored";
 import ScreenshotAnalysis from "./components/screenshot-analysis";
 import GroupChatAnalysis from "./components/group-chat-analysis";
 import GroupChatAnalysisImproved from "./components/group-chat-analysis-improved";
