@@ -277,39 +277,59 @@ app.use(session({
     res.json({ success: true, message: 'Server connection working' });
   });
 
-  // Name detection endpoint for file uploads
-  app.post('/api/analyze/detect-names', upload.single('file'), async (req: Request, res: Response) => {
+  // Name detection endpoint for file uploads and JSON requests
+  app.post('/api/analyze/detect-names', (req: Request, res: Response, next: NextFunction) => {
+    // Handle JSON requests (from test scripts)
+    if (req.headers['content-type']?.includes('application/json')) {
+      return next();
+    }
+    // Handle file uploads
+    upload.single('file')(req, res, next);
+  }, async (req: Request, res: Response) => {
     try {
       console.log('Name detection endpoint hit');
+      console.log('Content-Type:', req.headers['content-type']);
+      console.log('Has file:', !!req.file);
+      console.log('Body:', Object.keys(req.body));
       
-      if (!req.file) {
-        return res.status(400).json({ message: 'Missing required parameter: file' });
-      }
-
-      const file = req.file;
       let chatText = '';
 
-      // Handle different file types
-      if (file.originalname.toLowerCase().endsWith('.txt')) {
-        chatText = file.buffer.toString('utf-8');
-      } else if (file.originalname.toLowerCase().endsWith('.zip')) {
-        const JSZip = require('jszip');
-        const zip = new JSZip();
-        const zipContents = await zip.loadAsync(file.buffer);
-        
-        const txtFiles = Object.keys(zipContents.files).filter(filename => 
-          filename.toLowerCase().endsWith('.txt') && !zipContents.files[filename].dir
-        );
-        
-        if (txtFiles.length === 0) {
-          return res.status(400).json({ message: 'No .txt files found in ZIP archive' });
-        }
-        
-        const txtFile = zipContents.files[txtFiles[0]];
-        chatText = await txtFile.async('text');
-      } else {
-        return res.status(400).json({ message: 'Unsupported file type' });
+      // Handle JSON request (from test scripts)
+      if (req.body.conversation) {
+        chatText = req.body.conversation;
+        console.log('Using conversation from JSON body');
       }
+      // Handle file upload
+      else if (req.file) {
+        const file = req.file;
+        console.log('Processing uploaded file:', file.originalname);
+
+        // Handle different file types
+        if (file.originalname.toLowerCase().endsWith('.txt')) {
+          chatText = file.buffer.toString('utf-8');
+        } else if (file.originalname.toLowerCase().endsWith('.zip')) {
+          const JSZip = require('jszip');
+          const zip = new JSZip();
+          const zipContents = await zip.loadAsync(file.buffer);
+          
+          const txtFiles = Object.keys(zipContents.files).filter(filename => 
+            filename.toLowerCase().endsWith('.txt') && !zipContents.files[filename].dir
+          );
+          
+          if (txtFiles.length === 0) {
+            return res.status(400).json({ message: 'No .txt files found in ZIP archive' });
+          }
+          
+          const txtFile = zipContents.files[txtFiles[0]];
+          chatText = await txtFile.async('text');
+        } else {
+          return res.status(400).json({ message: 'Unsupported file type' });
+        }
+      } else {
+        return res.status(400).json({ message: 'Missing required parameter: file or conversation' });
+      }
+
+      console.log('Chat text length:', chatText.length);
 
       // Use the existing name detection logic from the analysis controller
       const { detectParticipantNames } = await import('./controllers/analysis-controller');
