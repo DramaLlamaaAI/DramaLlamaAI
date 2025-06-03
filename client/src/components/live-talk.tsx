@@ -10,28 +10,33 @@ import { analyzeChatConversation } from "@/lib/openai";
 import { useLocation } from "wouter";
 
 export default function LiveTalk() {
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [transcript, setTranscript] = useState("");
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [participants, setParticipants] = useState<{me: string, them: string}>({me: "", them: ""});
-  const [showParticipantsPrompt, setShowParticipantsPrompt] = useState(false);
-  
-  const { tier, canUseFeature } = useUserTier();
-  const isPro = tier === 'pro' || tier === 'instant';
-  const { toast } = useToast();
-  const [_, setLocation] = useLocation();
-  
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  
-  // Check for browser compatibility
-  const isMediaRecorderSupported = 'MediaRecorder' in window;
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl mb-2">Live Talk</CardTitle>
+            <CardDescription>Real-time conversation recording and analysis</CardDescription>
+          </CardHeader>
+          <CardContent className="p-8">
+            <div className="border-2 border-dashed border-orange-300 bg-orange-50 rounded-lg p-8 text-center">
+              <BrainCircuit className="mx-auto h-16 w-16 text-orange-500 mb-4" />
+              <h3 className="text-lg font-semibold text-orange-800 mb-2">
+                Coming Soon
+              </h3>
+              <p className="text-orange-700 mb-4">
+                Live Talk recording and analysis is currently under development and will be available in a future update.
+              </p>
+              <p className="text-sm text-orange-600">
+                This feature will allow you to record live conversations and get real-time analysis. Stay tuned for updates!
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
   // Function to handle starting the recording with enhanced audio quality
   const startRecording = async () => {
