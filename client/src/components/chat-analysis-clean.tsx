@@ -394,7 +394,7 @@ export default function ChatAnalysis() {
                         <div>
                           <h3 className="font-semibold text-gray-900 mb-2">Participants</h3>
                           <div className="space-y-2">
-                            {result.participants.map((participant, index) => (
+                            {result.participants?.map((participant, index) => (
                               <div key={index} className="bg-white rounded-lg p-3 border">
                                 <div className="flex items-center gap-2 mb-1">
                                   <Users className="h-4 w-4 text-teal-500" />
@@ -422,7 +422,7 @@ export default function ChatAnalysis() {
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-2">
-                              {result.redFlags.map((flag, index) => (
+                              {result.redFlags?.map((flag, index) => (
                                 <li key={index} className="text-red-700 text-sm flex items-start gap-2">
                                   <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
                                   {flag}
@@ -443,7 +443,7 @@ export default function ChatAnalysis() {
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-2">
-                              {result.recommendations.map((rec, index) => (
+                              {result.recommendations?.map((rec, index) => (
                                 <li key={index} className="text-green-700 text-sm flex items-start gap-2">
                                   <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                                   {rec}
