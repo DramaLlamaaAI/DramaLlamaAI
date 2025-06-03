@@ -663,29 +663,28 @@ export default function ChatAnalysisFixed() {
                   </TabsTrigger>
                 </TabsList>
                 
-
-                
-                <TabsContent value="upload" className="mt-4">
+                <TabsContent value="screenshot" className="mt-4">
                   <div className="space-y-4">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                       <input
                         type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileUpload}
-                        accept=".txt,.text,.zip"
+                        ref={imageInputRef}
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        multiple
                         className="hidden"
                       />
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => imageInputRef.current?.click()}
                         className="mb-2"
                       >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload WhatsApp Export
+                        <Image className="h-4 w-4 mr-2" />
+                        Upload Screenshots
                       </Button>
                       <p className="text-sm text-muted-foreground">
-                        Upload a .txt file with WhatsApp chat exports,<br /> or a .zip of WhatsApp chat exports
+                        Upload screenshots of your conversation (max 10 images)
                       </p>
                     </div>
                     
@@ -949,6 +948,79 @@ export default function ChatAnalysisFixed() {
                             )}
                           </div>
                         )}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="upload" className="mt-4">
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        accept=".txt,.text,.zip"
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="mb-2"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload WhatsApp Export
+                      </Button>
+                      <p className="text-sm text-muted-foreground">
+                        Upload a .txt file with WhatsApp chat exports,<br /> or a .zip of WhatsApp chat exports
+                      </p>
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground mt-6">
+                      <h3 className="font-medium mb-2">How to export a WhatsApp chat:</h3>
+                      <ol className="list-decimal pl-5 space-y-1">
+                        <li>Open the individual or group chat</li>
+                        <li>Tap the three dots in the top right</li>
+                        <li>Select "More" then "Export chat"</li>
+                        <li>Choose "Without media"</li>
+                        <li>Save the file and upload it here</li>
+                      </ol>
+                    </div>
+                    
+                    {/* Participant Names Form */}
+                    <div className="mt-6 space-y-4">
+                      <h3 className="font-medium text-sm">Enter Participant Names:</h3>
+                      
+                      <ParticipantNameForm />
+                      
+                      <div className="text-sm text-muted-foreground">
+                        <div className="flex items-start mb-2">
+                          <Info className="h-4 w-4 mr-2 mt-0.5" />
+                          <span>
+                            We don't store your conversation data. All analysis is performed securely.
+                          </span>
+                        </div>
+                        
+                        <div className="mt-4">
+                          {usage && (
+                            <div>
+                              <div className="flex justify-between items-center mb-1">
+                                <span>Analyses used this month: {usedAnalyses}{limit !== null && ` of ${limit}`}</span>
+                                <span className="text-xs">
+                                  {tier === 'free' && 'Free Tier'}
+                                  {tier === 'personal' && 'Personal Tier'}
+                                  {tier === 'pro' && 'Pro Tier'}
+                                  {tier === 'instant' && 'Instant Deep Dive'}
+                                </span>
+                              </div>
+                              
+                              {limit !== null && (
+                                <Progress value={(usedAnalyses / limit) * 100} className="h-2" />
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
