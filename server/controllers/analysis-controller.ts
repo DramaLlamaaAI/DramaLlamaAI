@@ -1076,9 +1076,27 @@ export const analysisController = {
             throw new Error('File does not appear to be a valid WhatsApp export');
           }
 
-          // Use provided participant names instead of auto-detection
-          const me = participantNames[0];
-          const them = participantNames[1];
+          // Try auto-detection first, then use provided names if auto-detection fails
+          let me = participantNames[0];
+          let them = participantNames[1];
+          
+          try {
+            // Attempt auto-detection if no names provided or if names are empty
+            if (!me || !them || me.trim() === '' || them.trim() === '') {
+              const detectedParticipants = await detectParticipants(chatText);
+              if (detectedParticipants.me && detectedParticipants.them) {
+                me = detectedParticipants.me;
+                them = detectedParticipants.them;
+                console.log(`Auto-detected participants: ${me} and ${them}`);
+              } else {
+                console.log(`Auto-detection failed, using provided names: ${me} and ${them}`);
+              }
+            } else {
+              console.log(`Using provided participant names: ${me} and ${them}`);
+            }
+          } catch (detectionError) {
+            console.log(`Auto-detection failed, using provided names: ${me} and ${them}`);
+          }
           
           // For group chats with more than 2 participants
           if (participantNames.length > 2) {

@@ -53,21 +53,6 @@ function ParticipantNameForm({ participants, setParticipants }: {
   participants: Array<{ id: number; name: string; placeholder: string }>;
   setParticipants: React.Dispatch<React.SetStateAction<Array<{ id: number; name: string; placeholder: string }>>>;
 }) {
-  const addParticipant = () => {
-    if (participants.length < 10) {
-      setParticipants([
-        ...participants,
-        { id: Date.now(), name: "", placeholder: `Person ${participants.length + 1}'s name` }
-      ]);
-    }
-  };
-
-  const removeParticipant = (id: number) => {
-    if (participants.length > 2) {
-      setParticipants(participants.filter(p => p.id !== id));
-    }
-  };
-
   const updateParticipantName = (id: number, name: string) => {
     setParticipants(participants.map(p => 
       p.id === id ? { ...p, name } : p
@@ -88,29 +73,8 @@ function ParticipantNameForm({ participants, setParticipants }: {
             placeholder={participant.placeholder}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
-          {participants.length > 2 && (
-            <Button
-              onClick={() => removeParticipant(participant.id)}
-              variant="outline"
-              size="sm"
-              className="text-red-500 hover:text-red-700"
-            >
-              ×
-            </Button>
-          )}
         </div>
       ))}
-      
-      {participants.length < 10 && (
-        <Button
-          onClick={addParticipant}
-          variant="outline"
-          size="sm"
-          className="w-full mt-2"
-        >
-          + Add Another Person
-        </Button>
-      )}
     </div>
   );
 }
@@ -126,9 +90,14 @@ export default function ChatAnalysis() {
   const [showResults, setShowResults] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [participants, setParticipants] = useState([
-    { id: 1, name: "", placeholder: "Your name" },
-    { id: 2, name: "", placeholder: "Other person's name" }
+    { id: 1, name: "", placeholder: "Your name (optional - we'll auto-detect)" },
+    { id: 2, name: "", placeholder: "Other person's name (optional - we'll auto-detect)" }
   ]);
+
+  // Switch participant names
+  const switchNames = () => {
+    setParticipants([participants[1], participants[0]]);
+  };
 
   // Fetch usage data
   const { data: usage } = useQuery<UsageData>({
@@ -154,15 +123,14 @@ export default function ChatAnalysis() {
       return;
     }
 
-    // Validate participant names
-    const participantNames = participants.filter(p => p.name.trim().length > 0).map(p => p.name.trim());
-    if (participantNames.length < 2) {
-      toast({
-        title: "Missing participant names",
-        description: "Please enter at least 2 participant names before uploading.",
-        variant: "destructive",
-      });
-      return;
+    // Get participant names (can be empty for auto-detection)
+    const participantNames = participants.map(p => p.name.trim()).filter(name => name.length > 0);
+    
+    // If no names provided, send empty strings for auto-detection
+    if (participantNames.length === 0) {
+      participantNames.push("", ""); // Empty strings for auto-detection
+    } else if (participantNames.length === 1) {
+      participantNames.push(""); // Add empty second name for auto-detection
     }
 
     setIsAnalyzing(true);
@@ -327,9 +295,20 @@ export default function ChatAnalysis() {
                     
                     {/* Participant Names Form */}
                     <div className="mt-6 space-y-4">
-                      <h3 className="font-medium text-sm">Enter Participant Names:</h3>
+                      <h3 className="font-medium text-sm">Enter Participant Names (Optional):</h3>
                       
                       <ParticipantNameForm participants={participants} setParticipants={setParticipants} />
+                      
+                      <div className="flex justify-center mt-4">
+                        <Button
+                          onClick={switchNames}
+                          variant="outline"
+                          size="sm"
+                          className="text-sm"
+                        >
+                          ↔ Switch Names
+                        </Button>
+                      </div>
                       
                       <div className="text-sm text-muted-foreground">
                         <div className="flex items-start mb-2">
