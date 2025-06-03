@@ -150,8 +150,15 @@ export default function ChatAnalysis() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Analysis failed');
+        const errorText = await response.text();
+        console.error('Upload failed:', response.status, errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText };
+        }
+        throw new Error(errorData.error || `Upload failed with status ${response.status}`);
       }
 
       const analysisResult = await response.json();
