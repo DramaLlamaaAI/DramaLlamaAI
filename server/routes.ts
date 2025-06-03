@@ -855,6 +855,13 @@ app.use(session({
   app.get('/api/promo-codes/active', isAuthenticated, isAdmin, promoCodeController.getAllActive);
   app.get('/api/user/promo-usage', isAuthenticated, promoCodeController.getUserPromoUsage);
   
+  // Referral code routes
+  app.post('/api/admin/referral-codes', isAuthenticated, isAdmin, referralCodeController.createReferralCode);
+  app.get('/api/admin/referral-codes', isAuthenticated, isAdmin, referralCodeController.getAllReferralCodes);
+  app.get('/api/admin/referral-codes/stats/:id?', isAuthenticated, isAdmin, referralCodeController.getReferralStats);
+  app.put('/api/admin/referral-codes/:id', isAuthenticated, isAdmin, referralCodeController.updateReferralCode);
+  app.get('/api/referral-codes/validate/:code', referralCodeController.validateReferralCode);
+  
   // Update create-subscription endpoint to handle promo codes (called from checkout page)
   app.post('/api/create-subscription', async (req: Request, res: Response) => {
     try {

@@ -117,12 +117,14 @@ export class MemStorage implements IStorage {
   private promoCodes: Map<number, PromoCode>;
   private promoUsages: Map<number, PromoUsage>;
   private systemSettings: Map<string, SystemSetting>;
+  private referralCodes: Map<number, ReferralCode>;
   private userId: number;
   private analysisId: number;
   private usageLimitId: number;
   private userEventId: number;
   private promoCodeId: number;
   private promoUsageId: number;
+  private referralCodeId: number;
 
   constructor() {
     this.users = new Map();
@@ -133,12 +135,14 @@ export class MemStorage implements IStorage {
     this.promoCodes = new Map();
     this.promoUsages = new Map();
     this.systemSettings = new Map();
+    this.referralCodes = new Map();
     this.userId = 1;
     this.analysisId = 1;
     this.usageLimitId = 1;
     this.userEventId = 1;
     this.promoCodeId = 1;
     this.promoUsageId = 1;
+    this.referralCodeId = 1;
     
     // Initialize beta mode as enabled by default
     this.systemSettings.set('beta_mode', {
@@ -169,7 +173,10 @@ export class MemStorage implements IStorage {
       stripeSubscriptionId: null,
       isAdmin: false,
       discountPercentage: 0,
-      discountExpiryDate: null
+      discountExpiryDate: null,
+      country: "USA",
+      referralCode: null,
+      referredBy: null
     };
     this.users.set(id, user);
     
@@ -215,6 +222,17 @@ export class MemStorage implements IStorage {
     const normalizedEmail = insertUser.email.toLowerCase().trim();
     console.log(`Creating user with normalized email: "${normalizedEmail}"`);
     
+    // Handle referral code tracking
+    let referredBy: number | null = null;
+    if (insertUser.referralCode) {
+      const referralCode = await this.getReferralCodeByCode(insertUser.referralCode);
+      if (referralCode && referralCode.isActive) {
+        referredBy = referralCode.id;
+        // Track the signup
+        await this.trackReferralSignup(referralCode.id);
+      }
+    }
+    
     // Apply defaults while preserving provided values
     const user: User = { 
       id,
@@ -229,7 +247,10 @@ export class MemStorage implements IStorage {
       stripeSubscriptionId: null,
       isAdmin: insertUser.isAdmin !== undefined ? insertUser.isAdmin : false,
       discountPercentage: 0,
-      discountExpiryDate: null
+      discountExpiryDate: null,
+      country: insertUser.country || "Other",
+      referralCode: insertUser.referralCode || null,
+      referredBy: referredBy
     };
     
     console.log(`Creating user: ${user.username}, Email: ${user.email}, Admin: ${user.isAdmin}, Tier: ${user.tier}`);
@@ -894,6 +915,112 @@ export class MemStorage implements IStorage {
   
   async getAllPromoUsages(): Promise<PromoUsage[]> {
     return Array.from(this.promoUsages.values());
+  }
+
+  // Referral Code Management Methods
+  
+  async createReferralCode(referralCode: InsertReferralCode): Promise<ReferralCode> {
+    const id = this.referralCodeId++;
+    
+    const now = new Date();
+    const newReferralCode: ReferralCode = {
+      id,
+      code: referralCode.code.toUpperCase(),
+      marketerName: referralCode.marketerName,
+      marketerEmail: referralCode.marketerEmail,
+      isActive: referralCode.isActive !== undefined ? referralCode.isActive : true,
+      signupCount: 0,
+      conversionCount: 0,
+      createdAt: now,
+      createdById: referralCode.createdById
+    };
+    
+    this.referralCodes.set(id, newReferralCode);
+    return newReferralCode;
+  }
+  
+  async getReferralCode(id: number): Promise<ReferralCode | undefined> {
+    return this.referralCodes.get(id);
+  }
+  
+  async getReferralCodeByCode(code: string): Promise<ReferralCode | undefined> {
+    const normalizedCode = code.toUpperCase();
+    return Array.from(this.referralCodes.values()).find(
+      referral => referral.code === normalizedCode
+    );
+  }
+  
+  async updateReferralCode(id: number, updates: Partial<ReferralCode>): Promise<ReferralCode> {
+    const existingReferral = this.referralCodes.get(id);
+    if (!existingReferral) {
+      throw new Error(`Referral code with ID ${id} not found`);
+    }
+    
+    const updatedReferral: ReferralCode = {
+      ...existingReferral,
+      ...updates,
+    };
+    
+    this.referralCodes.set(id, updatedReferral);
+    return updatedReferral;
+  }
+  
+  async getAllReferralCodes(): Promise<ReferralCode[]> {
+    return Array.from(this.referralCodes.values());
+  }
+  
+  async getActiveReferralCodes(): Promise<ReferralCode[]> {
+    return Array.from(this.referralCodes.values()).filter(referral => referral.isActive);
+  }
+  
+  async validateReferralCode(code: string): Promise<{ valid: boolean; referralCodeId?: number; marketerName?: string }> {
+    const referralCode = await this.getReferralCodeByCode(code);
+    
+    if (!referralCode || !referralCode.isActive) {
+      return { valid: false };
+    }
+    
+    return {
+      valid: true,
+      referralCodeId: referralCode.id,
+      marketerName: referralCode.marketerName
+    };
+  }
+  
+  async trackReferralSignup(referralCodeId: number): Promise<void> {
+    const referralCode = this.referralCodes.get(referralCodeId);
+    if (referralCode) {
+      referralCode.signupCount = (referralCode.signupCount || 0) + 1;
+      this.referralCodes.set(referralCodeId, referralCode);
+    }
+  }
+  
+  async trackReferralConversion(referralCodeId: number): Promise<void> {
+    const referralCode = this.referralCodes.get(referralCodeId);
+    if (referralCode) {
+      referralCode.conversionCount = (referralCode.conversionCount || 0) + 1;
+      this.referralCodes.set(referralCodeId, referralCode);
+    }
+  }
+  
+  async getReferralStats(referralCodeId?: number): Promise<{
+    totalSignups: number;
+    totalConversions: number;
+    conversionRate: number;
+    marketerName?: string;
+  }[]> {
+    const referralCodes = referralCodeId 
+      ? [this.referralCodes.get(referralCodeId)].filter(Boolean) as ReferralCode[]
+      : Array.from(this.referralCodes.values());
+    
+    return referralCodes.map(referral => ({
+      totalSignups: referral.signupCount || 0,
+      totalConversions: referral.conversionCount || 0,
+      conversionRate: (referral.signupCount || 0) > 0 
+        ? Math.round(((referral.conversionCount || 0) / (referral.signupCount || 0)) * 10000) / 100
+        : 0,
+      marketerName: referral.marketerName
+    }));
   }
 }
 
