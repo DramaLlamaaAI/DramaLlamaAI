@@ -85,6 +85,22 @@ export const adminController = {
         newValue: tier
       });
       
+      // Send tier upgrade email notification if tier changed
+      if (oldTier !== tier && currentUser?.email) {
+        try {
+          const { sendTierUpgradeEmail } = await import('../services/email-notifications');
+          await sendTierUpgradeEmail(
+            currentUser.email,
+            currentUser.username,
+            oldTier,
+            tier
+          );
+        } catch (emailError) {
+          console.error('Failed to send tier upgrade email:', emailError);
+          // Don't fail the tier update if email fails
+        }
+      }
+      
       const { password, verificationCode, ...safeUser } = updatedUser;
       return res.status(200).json(safeUser);
     } catch (error: any) {
