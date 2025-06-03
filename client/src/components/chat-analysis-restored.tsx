@@ -277,50 +277,18 @@ export default function ChatAnalysis() {
 
               <TabsContent value="image" className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload a screenshot:
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <input
-                      ref={imageInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = () => setImagePreview(reader.result as string);
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="hidden"
-                    />
-                    <Image className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-600 mb-2">
-                      Upload a screenshot of your conversation
+                  <div className="border-2 border-dashed border-yellow-300 bg-yellow-50 rounded-lg p-8 text-center">
+                    <AlertCircle className="mx-auto h-16 w-16 text-yellow-500 mb-4" />
+                    <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                      Coming Soon
+                    </h3>
+                    <p className="text-yellow-700 mb-4">
+                      Screenshot analysis is currently under development and will be available in a future update.
                     </p>
-                    <p className="text-sm text-gray-500">
-                      We'll extract the text automatically
+                    <p className="text-sm text-yellow-600">
+                      In the meantime, please use the paste or upload options to analyze your conversations.
                     </p>
-                    <Button
-                      onClick={() => imageInputRef.current?.click()}
-                      disabled={!canUseFeature}
-                      className="mt-4"
-                    >
-                      <Image className="mr-2 h-4 w-4" />
-                      Choose Image
-                    </Button>
                   </div>
-                  
-                  {imagePreview && (
-                    <div className="mt-4">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="max-w-full h-auto rounded-lg border"
-                      />
-                    </div>
-                  )}
                 </div>
               </TabsContent>
             </Tabs>
