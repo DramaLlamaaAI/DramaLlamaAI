@@ -1,12 +1,13 @@
 import { 
-  users, analyses, usageLimits, userEvents, promoCodes, promoUsage, systemSettings,
+  users, analyses, usageLimits, userEvents, promoCodes, promoUsage, systemSettings, referralCodes,
   type User, type InsertUser, 
   type Analysis, type InsertAnalysis, 
   type UsageLimit, type InsertUsageLimit,
   type UserEvent, type InsertUserEvent,
   type PromoCode, type InsertPromoCode,
   type PromoUsage, type InsertPromoUsage,
-  type SystemSetting, type InsertSystemSetting
+  type SystemSetting, type InsertSystemSetting,
+  type ReferralCode, type InsertReferralCode
 } from "@shared/schema";
 
 // Interface for tracking anonymous usage
@@ -62,6 +63,23 @@ export interface IStorage {
   }>;
   getPromoUsageByUser(userId: number): Promise<PromoUsage[]>;
   getAllPromoUsages(): Promise<PromoUsage[]>;
+  
+  // Referral Codes Management
+  createReferralCode(referralCode: InsertReferralCode): Promise<ReferralCode>;
+  getReferralCode(id: number): Promise<ReferralCode | undefined>;
+  getReferralCodeByCode(code: string): Promise<ReferralCode | undefined>;
+  updateReferralCode(id: number, updates: Partial<ReferralCode>): Promise<ReferralCode>;
+  getAllReferralCodes(): Promise<ReferralCode[]>;
+  getActiveReferralCodes(): Promise<ReferralCode[]>;
+  validateReferralCode(code: string): Promise<{ valid: boolean; referralCodeId?: number; marketerName?: string }>;
+  trackReferralSignup(referralCodeId: number): Promise<void>;
+  trackReferralConversion(referralCodeId: number): Promise<void>;
+  getReferralStats(referralCodeId?: number): Promise<{
+    totalSignups: number;
+    totalConversions: number;
+    conversionRate: number;
+    marketerName?: string;
+  }[]>;
   
   // Analytics
   trackUserEvent(event: InsertUserEvent): Promise<UserEvent>;

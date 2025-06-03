@@ -11,6 +11,7 @@ import { adminEmailController } from "./controllers/admin-email-controller";
 import { promoCodeController } from "./controllers/promo-code-controller";
 import { promoCodeReportController } from "./controllers/promo-code-report-controller";
 import { adminPromoCodeController } from "./controllers/admin-promo-code-controller";
+import { referralCodeController } from "./controllers/referral-code-controller";
 import session from "express-session";
 import memoryStore from "memorystore";
 import multer from "multer";

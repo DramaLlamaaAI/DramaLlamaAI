@@ -82,6 +82,9 @@ export const insertReferralCodeSchema = createInsertSchema(referralCodes).pick({
   createdById: true,
 });
 
+export type ReferralCode = typeof referralCodes.$inferSelect;
+export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
+
 export const insertPromoCodeSchema = createInsertSchema(promoCodes).pick({
   code: true,
   description: true,

@@ -354,6 +354,24 @@ export default function AuthPage() {
                         )}
                       />
                       
+                      <FormField
+                        control={registerForm.control}
+                        name="referralCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Referral Code (Optional)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Enter referral code if you have one" 
+                                {...field} 
+                                value={field.value || ''}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
                       <Button type="submit" className="w-full" disabled={isLoading}>
                         {isLoading ? "Creating account..." : "Sign Up"}
                       </Button>
