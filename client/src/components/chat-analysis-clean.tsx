@@ -127,43 +127,45 @@ export default function ChatAnalysis() {
     }
 
     try {
-      // Store the uploaded file
+      // Store the uploaded file and immediately run analysis (original working approach)
       setUploadedFile(file);
       setFileUploaded(true);
-      
-      // Auto-detect participant names from the file
+      setIsAnalyzing(true);
+
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/analyze/detect-names', {
+      // Use the original working chat import endpoint
+      const response = await fetch('/api/chat/import', {
         method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
-        const detectedNames = await response.json();
-        if (detectedNames.me && detectedNames.them) {
-          setParticipants([
-            { id: 1, name: detectedNames.me, placeholder: "Your name (optional - we'll auto-detect)" },
-            { id: 2, name: detectedNames.them, placeholder: "Other person's name (optional - we'll auto-detect)" }
-          ]);
-          
-          toast({
-            title: "File Uploaded",
-            description: `Detected participants: ${detectedNames.me} and ${detectedNames.them}`,
-          });
-        } else {
-          toast({
-            title: "File Uploaded",
-            description: "Auto-detection didn't find clear names. You can enter them manually or proceed with analysis.",
-          });
+        const analysisResult = await response.json();
+        console.log('Analysis result received:', analysisResult);
+        
+        setResult(analysisResult);
+        setShowResults(true);
+        
+        // Extract participant names from the result if available
+        if (analysisResult.participantTones) {
+          const names = Object.keys(analysisResult.participantTones);
+          if (names.length >= 2) {
+            setParticipants([
+              { id: 1, name: names[0], placeholder: "Your name" },
+              { id: 2, name: names[1], placeholder: "Other person's name" }
+            ]);
+          }
         }
-      } else {
-        // If name detection fails, just show that file was uploaded
+        
         toast({
-          title: "File Uploaded",
-          description: "Ready for analysis. You can enter participant names or proceed.",
+          title: "Analysis Complete",
+          description: "Your chat has been analyzed successfully.",
         });
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(errorData.message || 'Analysis failed');
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -172,10 +174,12 @@ export default function ChatAnalysis() {
         description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsAnalyzing(false);
     }
   }, [toast]);
 
-  // Separate analysis handler
+  // Legacy analysis handler - no longer needed since analysis runs on upload
   const handleAnalyzeChat = useCallback(async () => {
     if (!uploadedFile) {
       toast({
