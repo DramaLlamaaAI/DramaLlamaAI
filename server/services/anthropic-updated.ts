@@ -1307,33 +1307,39 @@ export async function detectParticipants(conversation: string) {
   try {
     console.log('Attempting to use Anthropic for participant detection');
     
-    // Make sure conversation is a string and extract the first 500 characters for a faster name detection
+    // Make sure conversation is a string and extract the first 1000 characters for better name detection
     const excerptText = typeof conversation === 'string' ? conversation : JSON.stringify(conversation);
-    const excerpt = excerptText.substring(0, 500);
+    const excerpt = excerptText.substring(0, 1000);
     
     // Enhanced direct pattern matching for WhatsApp and other chat formats
     const whatsappPatterns = [
       // Standard WhatsApp format: DD/MM/YYYY, HH:MM - Name: message
-      /\d{1,2}\/\d{1,2}\/\d{4},\s+\d{1,2}:\d{2}\s+-\s+([A-Za-z][A-Za-z\s]*?):/g,
-      // WhatsApp format with brackets: [date, time] Name: message
-      /\[\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\]\s*([A-Za-z][A-Za-z\s]*?):/g,
+      /\d{1,2}\/\d{1,2}\/\d{4},\s+\d{1,2}:\d{2}\s+-\s+([A-Za-z]+(?:\s+[A-Za-z]+)*)\s*:/g,
+      // WhatsApp format with brackets: [date, time] Name: message  
+      /\[\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\]\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)\s*:/g,
       // Alternative format: date, time - Name: message
-      /\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\s*-\s*([A-Za-z][A-Za-z\s]*?):/g,
+      /\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\s*-\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)\s*:/g,
       // Simple format: Name: message (at start of line)
-      /^([A-Za-z][A-Za-z\s]*?)\s*:/gm,
+      /^([A-Za-z]+(?:\s+[A-Za-z]+)*)\s*:/gm,
       // Format with line breaks: Name: message
-      /(?:^|\n)([A-Za-z][A-Za-z\s]*?)\s*:/g
+      /(?:^|\n)([A-Za-z]+(?:\s+[A-Za-z]+)*)\s*:/g
     ];
     
     const detectedNames = new Set<string>();
     
+    console.log('Participant detection - excerpt first 200 chars:', excerpt.substring(0, 200));
+    
     for (const pattern of whatsappPatterns) {
       let match;
+      let patternMatches = 0;
       while ((match = pattern.exec(excerpt)) !== null) {
         const rawName = match[1].trim();
+        patternMatches++;
         
         // Clean up the name - remove any trailing spaces or special characters
         const name = rawName.replace(/[^\w\s]/g, '').trim();
+        
+        console.log(`Pattern match ${patternMatches}: raw="${rawName}" cleaned="${name}"`);
         
         // Filter out system messages, short names, and common non-names
         if (name.length >= 2 && 
@@ -1349,11 +1355,19 @@ export async function detectParticipants(conversation: string) {
             !/^\d+$/.test(name) && // Not just numbers
             name.length <= 50) { // Reasonable name length
           detectedNames.add(name);
+          console.log(`Added participant: "${name}"`);
+        } else {
+          console.log(`Filtered out: "${name}" (failed validation)`);
         }
+      }
+      if (patternMatches > 0) {
+        console.log(`Pattern found ${patternMatches} matches`);
       }
     }
     
     const names = Array.from(detectedNames);
+    console.log('All detected participants:', names);
+    
     if (names.length >= 2) {
       console.log('Direct pattern matching found participants:', names[0], 'and', names[1]);
       return { me: names[0], them: names[1] };
