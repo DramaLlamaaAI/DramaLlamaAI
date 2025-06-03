@@ -23,7 +23,7 @@ import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
 import ContactUs from "@/pages/contact-us";
 // Support helplines converted to dialog component
-import ChatAnalysisSimple from "./components/chat-analysis-simple";
+import ChatAnalysisNew from "./components/chat-analysis-new";
 import ScreenshotAnalysis from "./components/screenshot-analysis";
 import GroupChatAnalysis from "./components/group-chat-analysis";
 import GroupChatAnalysisImproved from "./components/group-chat-analysis-improved";
@@ -38,7 +38,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       {/* Re-enabled using the fixed component */}
-      <Route path="/chat-analysis" component={ChatAnalysisSimple} />
+      <Route path="/chat-analysis" component={ChatAnalysisNew} />
       <Route path="/screenshot-analysis" component={ScreenshotAnalysis} />
       <Route path="/group-chat-analysis" component={GroupChatAnalysisPage} />
       <Route path="/message-analysis" component={MessageAnalysis} />
