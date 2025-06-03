@@ -376,25 +376,47 @@ export default function ChatAnalysis() {
                   
                   <div className="flex items-center gap-6">
                     <div className="relative w-24 h-24">
-                      <div className={`w-24 h-24 rounded-full border-8 flex items-center justify-center ${
-                        (result.healthScore?.score || 35) <= 35 ? 'border-red-200' :
-                        (result.healthScore?.score || 35) <= 50 ? 'border-orange-200' :
-                        (result.healthScore?.score || 35) <= 65 ? 'border-yellow-200' :
-                        (result.healthScore?.score || 35) <= 80 ? 'border-green-200' :
-                        'border-green-200'
-                      }`}>
+                      <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                        {/* Background circle */}
+                        <path
+                          d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                          fill="none"
+                          stroke={
+                            (result.healthScore?.score || 35) <= 35 ? '#fee2e2' :
+                            (result.healthScore?.score || 35) <= 50 ? '#fed7aa' :
+                            (result.healthScore?.score || 35) <= 65 ? '#fef3c7' :
+                            (result.healthScore?.score || 35) <= 80 ? '#dcfce7' :
+                            '#dcfce7'
+                          }
+                          strokeWidth="3"
+                        />
+                        {/* Progress circle */}
+                        <path
+                          d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                          fill="none"
+                          stroke={
+                            (result.healthScore?.score || 35) <= 35 ? '#ef4444' :
+                            (result.healthScore?.score || 35) <= 50 ? '#f97316' :
+                            (result.healthScore?.score || 35) <= 65 ? '#eab308' :
+                            (result.healthScore?.score || 35) <= 80 ? '#22c55e' :
+                            '#16a34a'
+                          }
+                          strokeWidth="3"
+                          strokeDasharray={`${(result.healthScore?.score || 35)}, 100`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      {/* Center content */}
+                      <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center">
                           <div className="text-2xl font-bold">{result.healthScore?.score || 35}</div>
                           <div className="text-xs text-gray-500">Out of 100 points</div>
                         </div>
                       </div>
-                      <div className={`absolute inset-0 rounded-full border-8 border-transparent transform rotate-45 ${
-                        (result.healthScore?.score || 35) <= 35 ? 'border-t-red-500' :
-                        (result.healthScore?.score || 35) <= 50 ? 'border-t-orange-500' :
-                        (result.healthScore?.score || 35) <= 65 ? 'border-t-yellow-500' :
-                        (result.healthScore?.score || 35) <= 80 ? 'border-t-green-400' :
-                        'border-t-green-600'
-                      }`}></div>
                     </div>
                     
                     <div>
