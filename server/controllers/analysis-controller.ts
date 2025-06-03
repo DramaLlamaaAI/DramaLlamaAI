@@ -1051,6 +1051,7 @@ export const analysisController = {
           } else if (file.originalname.toLowerCase().endsWith('.zip')) {
             // Handle ZIP files using JSZip
             const JSZip = require('jszip');
+            
             const zip = new JSZip();
             const zipContents = await zip.loadAsync(file.buffer);
             
