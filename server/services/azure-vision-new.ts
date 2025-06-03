@@ -153,81 +153,80 @@ export async function processScreenshotMessages(
     return { leftMessages: [], rightMessages: [] };
   }
 
-  // Use simplified visual analysis to classify message bubbles
-  const classifications = await classifyMessagesByVisualCues(imageBuffer, contentLines);
+  // Use simple coordinate-based assignment since we have manual review
+  const allX = contentLines.map(line => line.x1);
+  const imageMinX = Math.min(...allX);
+  const imageMaxX = Math.max(...allX);
+  const threshold = imageMinX + ((imageMaxX - imageMinX) * 0.5); // 50% threshold
   
-  // Group related text lines into complete messages
+  console.log(`Using coordinate-based assignment with threshold: ${threshold}`);
+  console.log(`X range: ${imageMinX} to ${imageMaxX}`);
+  
+  // Group lines into bubbles and assign speakers
   const processedBubbles: Array<{
     text: string;
     x: number;
     y: number;
-    isGreen: boolean;
+    speaker: string;
     confidence: number;
   }> = [];
   
   // Sort lines by Y position for proper grouping
-  const sortedClassifications = [...classifications].sort((a, b) => a.y - b.y);
+  const sortedLines = [...contentLines].sort((a, b) => a.y1 - b.y1);
   
-  for (const item of sortedClassifications) {
+  for (const line of sortedLines) {
     // Check if this line should be merged with the previous bubble
     const lastBubble = processedBubbles[processedBubbles.length - 1];
-    if (lastBubble && 
-        Math.abs(item.y - lastBubble.y) < 30 && 
-        Math.abs(item.x - lastBubble.x) < 100 &&
-        lastBubble.isGreen === item.isGreenBubble) {
+    if (lastBubble && Math.abs(line.y1 - lastBubble.y) < 30 && Math.abs(line.x1 - lastBubble.x) < 100) {
       // Merge with previous bubble
-      lastBubble.text += ' ' + item.text.trim();
+      lastBubble.text += ' ' + line.text.trim();
     } else {
-      // Create new bubble
+      // Simple coordinate-based speaker assignment
+      const isLeft = line.x1 < threshold;
+      let speaker: string;
+      
+      if (messageSide === 'LEFT') {
+        speaker = isLeft ? myName : theirName;
+      } else {
+        speaker = isLeft ? theirName : myName;
+      }
+      
       processedBubbles.push({
-        text: item.text.trim(),
-        x: item.x,
-        y: item.y,
-        isGreen: item.isGreenBubble,
-        confidence: item.confidence
+        text: line.text.trim(),
+        x: line.x1,
+        y: line.y1,
+        speaker,
+        confidence: 0.75 // Lower confidence since it will be manually reviewed
       });
     }
   }
   
-  console.log(`Created ${processedBubbles.length} message bubbles using visual analysis`);
+  console.log(`Created ${processedBubbles.length} message bubbles using coordinate assignment`);
   
-  // Count distribution
-  const greenCount = processedBubbles.filter(b => b.isGreen).length;
-  const grayCount = processedBubbles.filter(b => !b.isGreen).length;
-  console.log(`Distribution: ${greenCount} green bubbles, ${grayCount} gray bubbles`);
+  // Count distribution by speaker
+  const myCount = processedBubbles.filter(b => b.speaker === myName).length;
+  const theirCount = processedBubbles.filter(b => b.speaker === theirName).length;
+  console.log(`Distribution: ${myCount} messages for ${myName}, ${theirCount} messages for ${theirName}`);
 
   const leftMessages: ExtractedMessage[] = [];
   const rightMessages: ExtractedMessage[] = [];
 
   processedBubbles.forEach(bubble => {
-    console.log(`BUBBLE: "${bubble.text}" | Green: ${bubble.isGreen} | Confidence: ${bubble.confidence}`);
-
-    // Determine speaker based on bubble color
-    // Green bubbles = sent messages (always the user)
-    // Gray/dark bubbles = received messages (always the other person)
-    let speaker: string;
-    
-    if (bubble.isGreen) {
-      speaker = myName; // Green bubbles are always sent by the user
-    } else {
-      speaker = theirName; // Gray/dark bubbles are always from the other person
-    }
-
-    console.log(`→ Assigning to ${speaker} (${bubble.isGreen ? 'GREEN' : 'GRAY'} bubble)`);
+    console.log(`BUBBLE: "${bubble.text}" | Speaker: ${bubble.speaker} | Confidence: ${bubble.confidence}`);
 
     const message: ExtractedMessage = {
       text: bubble.text,
-      speaker,
+      speaker: bubble.speaker,
       x: bubble.x,
       y: bubble.y,
       confidence: bubble.confidence
     };
 
-    // Organize messages by bubble type for proper display
-    if (bubble.isGreen) {
-      rightMessages.push(message); // Green/sent messages go to right
+    // Organize messages by speaker for display
+    if (bubble.speaker === myName) {
+      rightMessages.push(message); // User's messages go to right
     } else {
-      leftMessages.push(message); // Gray/received messages go to left
+      leftMessages.push(message); // Other person's messages go to left
     }
   });
 

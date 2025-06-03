@@ -17,6 +17,7 @@ export default function ChatAnalysisTabbed() {
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractedMessages, setExtractedMessages] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [showReviewStep, setShowReviewStep] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
   
@@ -25,6 +26,17 @@ export default function ChatAnalysisTabbed() {
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
   
   const { toast } = useToast();
+
+  const changeSpeaker = (messageIndex: number, newSpeaker: string) => {
+    const updatedMessages = [...extractedMessages];
+    updatedMessages[messageIndex].speaker = newSpeaker;
+    setExtractedMessages(updatedMessages);
+  };
+
+  const proceedToAnalysis = () => {
+    setShowReviewStep(false);
+    setShowResults(true);
+  };
 
   const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -110,11 +122,11 @@ export default function ChatAnalysisTabbed() {
       }
 
       setExtractedMessages(allMessages);
-      setShowResults(true);
+      setShowReviewStep(true);
 
       toast({
         title: "Text extracted successfully",
-        description: `Found ${allMessages.length} messages. Ready to analyze!`
+        description: `Found ${allMessages.length} messages. Please review speaker assignments.`
       });
 
     } catch (error) {
@@ -317,6 +329,54 @@ export default function ChatAnalysisTabbed() {
                   'Extract Text from Screenshots'
                 )}
               </Button>
+
+              {showReviewStep && extractedMessages.length > 0 && (
+                <div className="space-y-4 border-t pt-6">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Review Speaker Assignments</h3>
+                    <p className="text-sm text-gray-600">
+                      Check each message assignment below. Click on a speaker name to change it.
+                    </p>
+                  </div>
+                  
+                  <div className="max-h-80 overflow-y-auto space-y-3 border rounded p-4 bg-gray-50">
+                    {extractedMessages.map((msg, index) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-white rounded border">
+                        <div className="flex-shrink-0">
+                          <select
+                            value={msg.speaker}
+                            onChange={(e) => changeSpeaker(index, e.target.value)}
+                            className="text-sm font-medium text-blue-600 border rounded px-2 py-1"
+                          >
+                            <option value={myName}>{myName}</option>
+                            <option value={theirName}>{theirName}</option>
+                          </select>
+                        </div>
+                        <span className="text-sm flex-1">{msg.text}</span>
+                        <span className="text-xs text-gray-400">
+                          {(msg.confidence * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <Button 
+                      onClick={() => setShowReviewStep(false)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Back to Upload
+                    </Button>
+                    <Button 
+                      onClick={proceedToAnalysis}
+                      className="flex-1"
+                    >
+                      Proceed to Analysis
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {showResults && extractedMessages.length > 0 && (
                 <div className="space-y-4 border-t pt-6">
