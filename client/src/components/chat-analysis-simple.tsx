@@ -100,7 +100,6 @@ export default function ChatAnalysisSimple() {
         }
 
         const data = await response.json();
-        console.log('Extracted data:', data);
         
         // Convert text to messages format and detect names
         if (data.text) {
@@ -248,6 +247,7 @@ export default function ChatAnalysisSimple() {
   // Auto-detect names using the server endpoint
   const detectNamesFromText = async (text: string) => {
     try {
+      console.log('Attempting name detection with text length:', text.length);
       const response = await fetch('/api/analyze/detect-names', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -265,6 +265,22 @@ export default function ChatAnalysisSimple() {
             description: `Found: ${names.me} and ${names.them}`,
           });
         }
+      } else {
+        console.error('Name detection API failed:', response.status, response.statusText);
+        // Fallback to manual parsing if server detection fails
+        const messages = parseTextToMessages(text);
+        if (messages.length > 0) {
+          const speakerSet = new Set(messages.map(m => m.speaker));
+          const speakers = Array.from(speakerSet);
+          if (speakers.length >= 2) {
+            setMyName(speakers[0]);
+            setTheirName(speakers[1]);
+            toast({
+              title: "Names detected locally",
+              description: `Found: ${speakers[0]} and ${speakers[1]}`,
+            });
+          }
+        }
       }
     } catch (error) {
       console.error('Name detection failed:', error);
@@ -276,6 +292,10 @@ export default function ChatAnalysisSimple() {
         if (speakers.length >= 2) {
           setMyName(speakers[0]);
           setTheirName(speakers[1]);
+          toast({
+            title: "Names detected locally",
+            description: `Found: ${speakers[0]} and ${speakers[1]}`,
+          });
         }
       }
     }
