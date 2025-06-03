@@ -1313,14 +1313,16 @@ export async function detectParticipants(conversation: string) {
     
     // Enhanced direct pattern matching for WhatsApp and other chat formats
     const whatsappPatterns = [
-      // WhatsApp format: [date, time] Name: message
-      /\[\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\]\s*([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s*:/g,
+      // Standard WhatsApp format: DD/MM/YYYY, HH:MM - Name: message
+      /\d{1,2}\/\d{1,2}\/\d{4},\s+\d{1,2}:\d{2}\s+-\s+([A-Za-z][A-Za-z\s]*?):/g,
+      // WhatsApp format with brackets: [date, time] Name: message
+      /\[\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\]\s*([A-Za-z][A-Za-z\s]*?):/g,
       // Alternative format: date, time - Name: message
-      /\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\s*-\s*([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s*:/g,
+      /\d+[\/-]\d+[\/-]\d+[,\s]+\d+:\d+[:\d]*\s*[AP]?M?\s*-\s*([A-Za-z][A-Za-z\s]*?):/g,
       // Simple format: Name: message (at start of line)
-      /^([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s*:/gm,
-      // Format with brackets: Name: message
-      /(?:^|\n)([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s*:/g
+      /^([A-Za-z][A-Za-z\s]*?)\s*:/gm,
+      // Format with line breaks: Name: message
+      /(?:^|\n)([A-Za-z][A-Za-z\s]*?)\s*:/g
     ];
     
     const detectedNames = new Set<string>();
@@ -1328,14 +1330,24 @@ export async function detectParticipants(conversation: string) {
     for (const pattern of whatsappPatterns) {
       let match;
       while ((match = pattern.exec(excerpt)) !== null) {
-        const name = match[1].trim();
-        // Filter out system messages and short names
+        const rawName = match[1].trim();
+        
+        // Clean up the name - remove any trailing spaces or special characters
+        const name = rawName.replace(/[^\w\s]/g, '').trim();
+        
+        // Filter out system messages, short names, and common non-names
         if (name.length >= 2 && 
-            !name.includes('changed') && 
-            !name.includes('added') && 
-            !name.includes('left') &&
-            !name.includes('joined') &&
-            name !== 'You' && name !== 'Me' && name !== 'Them') {
+            !name.toLowerCase().includes('changed') && 
+            !name.toLowerCase().includes('added') && 
+            !name.toLowerCase().includes('left') &&
+            !name.toLowerCase().includes('joined') &&
+            !name.toLowerCase().includes('created') &&
+            !name.toLowerCase().includes('messages') &&
+            !name.toLowerCase().includes('calls') &&
+            name !== 'You' && name !== 'Me' && name !== 'Them' &&
+            name !== 'Media omitted' && name !== 'null' &&
+            !/^\d+$/.test(name) && // Not just numbers
+            name.length <= 50) { // Reasonable name length
           detectedNames.add(name);
         }
       }
