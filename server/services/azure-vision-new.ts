@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { detectMessageBubbleColors, matchTextToColorRegion, ColorRegion } from './color-detection';
+import { classifyMessagesByVisualCues } from './simple-bubble-detection';
 
 const AZURE_ENDPOINT = process.env.AZURE_VISION_ENDPOINT;
 const AZURE_KEY = process.env.AZURE_VISION_KEY;
@@ -153,118 +153,81 @@ export async function processScreenshotMessages(
     return { leftMessages: [], rightMessages: [] };
   }
 
-  // Use color detection to identify green vs gray message bubbles
-  console.log('Starting color-based bubble detection...');
-  const colorRegions = await detectMessageBubbleColors(imageBuffer);
+  // Use simplified visual analysis to classify message bubbles
+  const classifications = await classifyMessagesByVisualCues(imageBuffer, contentLines);
   
-  if (colorRegions.length === 0) {
-    console.log('No colored regions detected, falling back to coordinate method');
-    // Fallback to simple coordinate-based detection
-    const allX = contentLines.map(line => line.x1);
-    const imageMinX = Math.min(...allX);
-    const imageMaxX = Math.max(...allX);
-    const threshold = imageMinX + ((imageMaxX - imageMinX) * 0.5);
-    
-    contentLines.forEach(line => {
-      const side = line.x1 < threshold ? 'gray' : 'green';
-      console.log(`FALLBACK: "${line.text}" | X: ${line.x1} | Side: ${side}`);
-    });
-  }
-  
-  // Group lines into bubbles and determine color
+  // Group related text lines into complete messages
   const processedBubbles: Array<{
     text: string;
     x: number;
     y: number;
-    bubbleType: 'green' | 'gray' | 'unknown';
+    isGreen: boolean;
+    confidence: number;
   }> = [];
   
   // Sort lines by Y position for proper grouping
-  const sortedLines = [...contentLines].sort((a, b) => a.y1 - b.y1);
+  const sortedClassifications = [...classifications].sort((a, b) => a.y - b.y);
   
-  for (const line of sortedLines) {
+  for (const item of sortedClassifications) {
     // Check if this line should be merged with the previous bubble
     const lastBubble = processedBubbles[processedBubbles.length - 1];
-    if (lastBubble && Math.abs(line.y1 - lastBubble.y) < 30 && Math.abs(line.x1 - lastBubble.x) < 100) {
+    if (lastBubble && 
+        Math.abs(item.y - lastBubble.y) < 30 && 
+        Math.abs(item.x - lastBubble.x) < 100 &&
+        lastBubble.isGreen === item.isGreenBubble) {
       // Merge with previous bubble
-      lastBubble.text += ' ' + line.text.trim();
+      lastBubble.text += ' ' + item.text.trim();
     } else {
-      // Determine bubble color based on text position
-      const isGreen = matchTextToColorRegion(line.x1, line.y1, colorRegions);
-      const bubbleType = isGreen === true ? 'green' : isGreen === false ? 'gray' : 'unknown';
-      
+      // Create new bubble
       processedBubbles.push({
-        text: line.text.trim(),
-        x: line.x1,
-        y: line.y1,
-        bubbleType
+        text: item.text.trim(),
+        x: item.x,
+        y: item.y,
+        isGreen: item.isGreenBubble,
+        confidence: item.confidence
       });
-      
-      console.log(`TEXT: "${line.text}" | X: ${line.x1}, Y: ${line.y1} | Bubble: ${bubbleType}`);
     }
   }
   
-  console.log(`Created ${processedBubbles.length} message bubbles using color detection`);
+  console.log(`Created ${processedBubbles.length} message bubbles using visual analysis`);
   
   // Count distribution
-  const greenCount = processedBubbles.filter(b => b.bubbleType === 'green').length;
-  const grayCount = processedBubbles.filter(b => b.bubbleType === 'gray').length;
-  const unknownCount = processedBubbles.filter(b => b.bubbleType === 'unknown').length;
-  console.log(`Distribution: ${greenCount} green bubbles, ${grayCount} gray bubbles, ${unknownCount} unknown`);
+  const greenCount = processedBubbles.filter(b => b.isGreen).length;
+  const grayCount = processedBubbles.filter(b => !b.isGreen).length;
+  console.log(`Distribution: ${greenCount} green bubbles, ${grayCount} gray bubbles`);
 
   const leftMessages: ExtractedMessage[] = [];
   const rightMessages: ExtractedMessage[] = [];
 
   processedBubbles.forEach(bubble => {
-    console.log(`BUBBLE: "${bubble.text}" | Type: ${bubble.bubbleType}`);
+    console.log(`BUBBLE: "${bubble.text}" | Green: ${bubble.isGreen} | Confidence: ${bubble.confidence}`);
 
-    // Determine speaker based on bubble color and user preference
+    // Determine speaker based on bubble color
+    // Green bubbles = sent messages (always the user)
+    // Gray/dark bubbles = received messages (always the other person)
     let speaker: string;
     
-    if (bubble.bubbleType === 'green') {
-      // Green bubbles are sent messages (outgoing)
-      if (messageSide === 'LEFT') {
-        speaker = myName; // User is sending on left, so green = user
-      } else {
-        speaker = myName; // User is sending on right, so green = user
-      }
-    } else if (bubble.bubbleType === 'gray') {
-      // Gray bubbles are received messages (incoming)
-      if (messageSide === 'LEFT') {
-        speaker = theirName; // User is on left, so gray = other person
-      } else {
-        speaker = theirName; // User is on right, so gray = other person
-      }
+    if (bubble.isGreen) {
+      speaker = myName; // Green bubbles are always sent by the user
     } else {
-      // Unknown bubble type, fallback to coordinate-based assignment
-      const allX = processedBubbles.map(b => b.x);
-      const threshold = (Math.min(...allX) + Math.max(...allX)) / 2;
-      const isLeft = bubble.x < threshold;
-      
-      if (messageSide === 'LEFT') {
-        speaker = isLeft ? myName : theirName;
-      } else {
-        speaker = isLeft ? theirName : myName;
-      }
-      
-      console.log(`→ Unknown bubble type, using coordinates: ${speaker}`);
+      speaker = theirName; // Gray/dark bubbles are always from the other person
     }
 
-    console.log(`→ Assigning to ${speaker} (${bubble.bubbleType} bubble)`);
+    console.log(`→ Assigning to ${speaker} (${bubble.isGreen ? 'GREEN' : 'GRAY'} bubble)`);
 
     const message: ExtractedMessage = {
       text: bubble.text,
       speaker,
       x: bubble.x,
       y: bubble.y,
-      confidence: bubble.bubbleType === 'unknown' ? 0.7 : 0.95
+      confidence: bubble.confidence
     };
 
-    // Organize by bubble color rather than screen position
-    if (bubble.bubbleType === 'green' || (bubble.bubbleType === 'unknown' && speaker === myName)) {
-      rightMessages.push(message); // Green/sent messages
+    // Organize messages by bubble type for proper display
+    if (bubble.isGreen) {
+      rightMessages.push(message); // Green/sent messages go to right
     } else {
-      leftMessages.push(message); // Gray/received messages
+      leftMessages.push(message); // Gray/received messages go to left
     }
   });
 
