@@ -352,7 +352,11 @@ export default function ChatAnalysis() {
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-pink-600 mb-2">Analysis Results</h2>
                   <p className="text-gray-600">
-                    Conversation between <span className="font-semibold text-pink-500">Rae</span> and <span className="font-semibold text-blue-500">Dani</span>
+                    {result.participants ? (
+                      <>Conversation between <span className="font-semibold text-pink-500">{result.participants.me}</span> and <span className="font-semibold text-blue-500">{result.participants.them}</span></>
+                    ) : (
+                      "Conversation Analysis Complete"
+                    )}
                   </p>
                 </div>
 

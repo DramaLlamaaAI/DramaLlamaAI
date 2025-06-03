@@ -865,6 +865,9 @@ export const analysisController = {
         });
       }
       
+      // Add participant information to the response
+      filteredResults.participants = { me, them };
+      
       res.json(filteredResults);
     } catch (error: any) {
       console.error(error);
