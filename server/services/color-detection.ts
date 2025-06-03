@@ -18,17 +18,18 @@ export async function detectMessageBubbleColors(imageBuffer: Buffer): Promise<Co
       throw new Error('Unable to get image dimensions');
     }
 
-    // Extract raw pixel data
-    const { data } = await image
-      .raw()
-      .toBuffer({ resolveWithObject: true });
+    console.log(`Image dimensions: ${width}x${height}`);
 
     const regions: ColorRegion[] = [];
-    const regionSize = 50; // Size of regions to sample
+    const regionSize = 40; // Smaller regions for better accuracy
+    let sampledRegions = 0;
+    let detectedRegions = 0;
     
     // Sample the image in a grid to find colored regions
     for (let y = 0; y < height - regionSize; y += regionSize) {
       for (let x = 0; x < width - regionSize; x += regionSize) {
+        sampledRegions++;
+        
         // Extract a small region
         const regionBuffer = await image
           .extract({ left: x, top: y, width: regionSize, height: regionSize })
@@ -39,6 +40,7 @@ export async function detectMessageBubbleColors(imageBuffer: Buffer): Promise<Co
         const isGreen = analyzeRegionForGreen(regionBuffer, regionSize);
         
         if (isGreen !== null) {
+          detectedRegions++;
           regions.push({
             x,
             y,
@@ -46,11 +48,17 @@ export async function detectMessageBubbleColors(imageBuffer: Buffer): Promise<Co
             height: regionSize,
             isGreen
           });
+          
+          console.log(`Region at (${x}, ${y}): ${isGreen ? 'GREEN' : 'GRAY/DARK'} bubble detected`);
         }
       }
     }
     
-    console.log(`Detected ${regions.length} colored regions`);
+    console.log(`Sampled ${sampledRegions} regions, detected ${detectedRegions} colored regions`);
+    const greenRegions = regions.filter(r => r.isGreen).length;
+    const grayRegions = regions.filter(r => !r.isGreen).length;
+    console.log(`Final count: ${greenRegions} green regions, ${grayRegions} gray/dark regions`);
+    
     return regions;
     
   } catch (error) {
@@ -63,6 +71,9 @@ function analyzeRegionForGreen(buffer: Buffer, size: number): boolean | null {
   let greenPixels = 0;
   let grayPixels = 0;
   let totalPixels = 0;
+  let darkPixels = 0;
+  
+  const colorCounts = { green: 0, gray: 0, dark: 0, other: 0 };
   
   // Analyze each pixel in the region
   for (let i = 0; i < buffer.length; i += 3) {
@@ -70,29 +81,43 @@ function analyzeRegionForGreen(buffer: Buffer, size: number): boolean | null {
     const g = buffer[i + 1];
     const b = buffer[i + 2];
     
-    // Skip very dark pixels (likely background)
-    if (r + g + b < 100) continue;
-    
     totalPixels++;
     
-    // Check if pixel is green-ish (WhatsApp green bubbles)
-    if (g > r + 30 && g > b + 30 && g > 100) {
+    // WhatsApp green detection (more lenient)
+    // WhatsApp green is around RGB(37, 211, 102) or similar
+    if (g > 150 && g > r + 20 && g > b + 20) {
       greenPixels++;
+      colorCounts.green++;
     }
-    // Check if pixel is gray-ish (received message bubbles)
-    else if (Math.abs(r - g) < 20 && Math.abs(g - b) < 20 && Math.abs(r - b) < 20 && r > 80) {
+    // Dark bubble detection (WhatsApp dark mode received messages)
+    else if (r < 80 && g < 80 && b < 80 && (r + g + b) > 30) {
+      darkPixels++;
+      colorCounts.dark++;
+    }
+    // Light gray bubble detection (WhatsApp light mode received messages)
+    else if (r > 200 && g > 200 && b > 200 && Math.abs(r - g) < 30 && Math.abs(g - b) < 30) {
       grayPixels++;
+      colorCounts.gray++;
+    }
+    else {
+      colorCounts.other++;
     }
   }
   
-  // Return true if predominantly green, false if predominantly gray, null if neither
   if (totalPixels < 10) return null; // Not enough data
   
   const greenRatio = greenPixels / totalPixels;
   const grayRatio = grayPixels / totalPixels;
+  const darkRatio = darkPixels / totalPixels;
   
-  if (greenRatio > 0.3) return true;   // Green bubble
-  if (grayRatio > 0.3) return false;   // Gray bubble
+  // Log detailed color analysis for debugging
+  if (greenRatio > 0.1 || grayRatio > 0.1 || darkRatio > 0.1) {
+    console.log(`Color analysis: Green: ${(greenRatio * 100).toFixed(1)}%, Gray: ${(grayRatio * 100).toFixed(1)}%, Dark: ${(darkRatio * 100).toFixed(1)}%, Total pixels: ${totalPixels}`);
+  }
+  
+  // More lenient thresholds
+  if (greenRatio > 0.15) return true;   // Green bubble
+  if (grayRatio > 0.2 || darkRatio > 0.2) return false;   // Gray/dark bubble
   
   return null; // Neither
 }
