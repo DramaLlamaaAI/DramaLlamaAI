@@ -2,6 +2,14 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Helper function to determine if tier change is an upgrade
+function isUpgradeChange(fromTier: string, toTier: string): boolean {
+  const tierHierarchy = ['free', 'personal', 'beta', 'pro'];
+  const fromIndex = tierHierarchy.indexOf(fromTier.toLowerCase());
+  const toIndex = tierHierarchy.indexOf(toTier.toLowerCase());
+  return toIndex > fromIndex;
+}
+
 export async function sendTierUpgradeEmail(
   userEmail: string,
   username: string,
@@ -9,17 +17,18 @@ export async function sendTierUpgradeEmail(
   toTier: string
 ) {
   try {
-    console.log(`Sending tier upgrade email: ${userEmail} upgraded from ${fromTier} to ${toTier}`);
+    console.log(`Sending tier change email: ${userEmail} changed from ${fromTier} to ${toTier}`);
 
     const tierBenefits = getTierBenefits(toTier);
-    const subject = `Welcome to Drama Llama ${toTier.charAt(0).toUpperCase() + toTier.slice(1)}!`;
+    const isUpgrade = isUpgradeChange(fromTier, toTier);
+    const subject = `We've made changes to your account`;
 
     const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
-          <title>Drama Llama - Tier Upgrade</title>
+          <title>Drama Llama - Account Changes</title>
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -30,30 +39,44 @@ export async function sendTierUpgradeEmail(
             .benefit-item:last-child { border-bottom: none; }
             .cta-button { display: inline-block; background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
             .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
+            .promo-code { background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>🎉 Congratulations ${username}!</h1>
-              <p>You've been upgraded to Drama Llama ${toTier.charAt(0).toUpperCase() + toTier.slice(1)}</p>
+              ${isUpgrade ? 
+                `<h1>🎉 Congratulations ${username}!</h1>
+                 <p>You've been upgraded to Drama Llama ${toTier.charAt(0).toUpperCase() + toTier.slice(1)}</p>` :
+                `<h1>Account Update for ${username}</h1>
+                 <p>Your account has been changed to ${toTier.charAt(0).toUpperCase() + toTier.slice(1)}</p>`
+              }
             </div>
             
             <div class="content">
-              <h2>Your account has been upgraded!</h2>
-              <p>Great news! Your Drama Llama account has been upgraded from <strong>${fromTier}</strong> to <strong>${toTier.charAt(0).toUpperCase() + toTier.slice(1)}</strong>.</p>
+              ${isUpgrade ? 
+                `<h2>Your account has been upgraded!</h2>
+                 <p>Great news! Your Drama Llama account has been upgraded from <strong>${fromTier}</strong> to <strong>${toTier.charAt(0).toUpperCase() + toTier.slice(1)}</strong>.</p>` :
+                `<h2>Account downgrade notification</h2>
+                 <p>Sorry to hear you've downgraded your account from <strong>${fromTier}</strong> to <strong>${toTier.charAt(0).toUpperCase() + toTier.slice(1)}</strong>.</p>
+                 
+                 <div class="promo-code">
+                   <h3>Want to upgrade again?</h3>
+                   <p>Use promo code <strong>"Upgrade2025"</strong> for 50% off your first month!</p>
+                 </div>`
+              }
               
               <div class="benefits">
-                <h3>Your new ${toTier} benefits include:</h3>
+                <h3>Your ${toTier} plan includes:</h3>
                 ${tierBenefits.map(benefit => `<div class="benefit-item">✓ ${benefit}</div>`).join('')}
               </div>
               
               <p>These features are now active on your account and ready to use!</p>
               
-              <a href="https://drama-llama.replit.app/chat-analysis" class="cta-button">Start Using Your New Features</a>
+              <a href="https://77f6210a-876e-4707-b36b-d35568d5f4a1-00-1pmrqgq45ycpw.spock.replit.dev/chat-analysis" class="cta-button">${isUpgrade ? 'Start Using Your New Features' : 'Continue Using Your Features'}</a>
               
               <h3>Need Help?</h3>
-              <p>If you have any questions about your new features or need assistance, don't hesitate to reach out to our support team.</p>
+              <p>If you have any questions about your features or need assistance, contact our support team at <a href="mailto:support@dramallama.ai">support@dramallama.ai</a>.</p>
               
               <p>Thank you for being part of the Drama Llama community!</p>
               
@@ -62,6 +85,7 @@ export async function sendTierUpgradeEmail(
             
             <div class="footer">
               <p>Drama Llama AI - Intelligent Communication Analysis</p>
+              <p>Support: <a href="mailto:support@dramallama.ai">support@dramallama.ai</a></p>
               <p>This email was sent automatically. Please do not reply to this email.</p>
             </div>
           </div>
@@ -70,16 +94,23 @@ export async function sendTierUpgradeEmail(
     `;
 
     const textContent = `
-Congratulations ${username}!
+${isUpgrade ? `Congratulations ${username}!` : `Account Update for ${username}`}
 
-Your Drama Llama account has been upgraded from ${fromTier} to ${toTier.charAt(0).toUpperCase() + toTier.slice(1)}.
+${isUpgrade ? 
+  `Your Drama Llama account has been upgraded from ${fromTier} to ${toTier.charAt(0).toUpperCase() + toTier.slice(1)}.` :
+  `Sorry to hear you've downgraded your account from ${fromTier} to ${toTier.charAt(0).toUpperCase() + toTier.slice(1)}.
+  
+Want to upgrade again? Use promo code "Upgrade2025" for 50% off your first month!`
+}
 
-Your new ${toTier} benefits include:
+Your ${toTier} plan includes:
 ${tierBenefits.map(benefit => `• ${benefit}`).join('\n')}
 
 These features are now active and ready to use!
 
-Visit https://drama-llama.replit.app/chat-analysis to start using your new features.
+Visit https://77f6210a-876e-4707-b36b-d35568d5f4a1-00-1pmrqgq45ycpw.spock.replit.dev/chat-analysis to ${isUpgrade ? 'start using your new features' : 'continue using your features'}.
+
+Need help? Contact support at support@dramallama.ai
 
 Thank you for being part of the Drama Llama community!
 
@@ -95,17 +126,32 @@ The Drama Llama Team
       text: textContent,
     });
 
-    console.log(`Tier upgrade email sent successfully to ${userEmail}:`, result.data?.id);
+    console.log(`Tier change email sent successfully to ${userEmail}:`, result.data?.id);
     return { success: true, emailId: result.data?.id };
 
   } catch (error) {
-    console.error(`Failed to send tier upgrade email to ${userEmail}:`, error);
+    console.error(`Failed to send tier change email to ${userEmail}:`, error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 
 function getTierBenefits(tier: string): string[] {
   switch (tier.toLowerCase()) {
+    case 'free':
+      return [
+        '1 chat analysis per month',
+        'Basic conversation health score',
+        'Red flag indicators',
+        'Export to PDF'
+      ];
+    case 'personal':
+      return [
+        '5 chat analyses per month',
+        'Detailed red flag analysis',
+        'Communication patterns detection',
+        'Unlimited message analysis',
+        'PDF and mobile exports'
+      ];
     case 'beta':
       return [
         'Unlimited chat analysis',
@@ -116,27 +162,22 @@ function getTierBenefits(tier: string): string[] {
       ];
     case 'pro':
       return [
-        'Everything in Beta',
-        'Bulk conversation processing',
-        'Advanced analytics dashboard',
-        'Custom analysis parameters',
-        'API access for integrations',
-        'White-label options'
+        'Unlimited chat analyses',
+        'Psychological profiles',
+        'Tension contribution insights',
+        'De-escalation rewrites',
+        'Audio transcription & analysis'
       ];
-    case 'enterprise':
+    case 'instant':
       return [
-        'Everything in Pro',
-        'Dedicated account manager',
-        'Custom integrations',
-        'Advanced security features',
-        'SLA guarantees',
-        'Custom training and onboarding'
+        'One-time Pro-level analysis',
+        'Comprehensive conversation insights',
+        'No subscription required'
       ];
     default:
       return [
         'Access to Drama Llama features',
-        'Basic conversation analysis',
-        'Community support'
+        'Basic conversation analysis'
       ];
   }
 }
