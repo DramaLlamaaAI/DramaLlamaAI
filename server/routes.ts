@@ -277,6 +277,52 @@ app.use(session({
     res.json({ success: true, message: 'Server connection working' });
   });
 
+  // Name detection endpoint for file uploads
+  app.post('/api/analyze/detect-names', upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      console.log('Name detection endpoint hit');
+      
+      if (!req.file) {
+        return res.status(400).json({ message: 'Missing required parameter: file' });
+      }
+
+      const file = req.file;
+      let chatText = '';
+
+      // Handle different file types
+      if (file.originalname.toLowerCase().endsWith('.txt')) {
+        chatText = file.buffer.toString('utf-8');
+      } else if (file.originalname.toLowerCase().endsWith('.zip')) {
+        const JSZip = require('jszip');
+        const zip = new JSZip();
+        const zipContents = await zip.loadAsync(file.buffer);
+        
+        const txtFiles = Object.keys(zipContents.files).filter(filename => 
+          filename.toLowerCase().endsWith('.txt') && !zipContents.files[filename].dir
+        );
+        
+        if (txtFiles.length === 0) {
+          return res.status(400).json({ message: 'No .txt files found in ZIP archive' });
+        }
+        
+        const txtFile = zipContents.files[txtFiles[0]];
+        chatText = await txtFile.async('text');
+      } else {
+        return res.status(400).json({ message: 'Unsupported file type' });
+      }
+
+      // Use the existing name detection logic from the analysis controller
+      const { detectParticipantNames } = await import('./controllers/analysis-controller');
+      const detectedNames = await detectParticipantNames(chatText);
+      
+      console.log('Name detection result:', detectedNames);
+      res.json(detectedNames);
+    } catch (error) {
+      console.error('Name detection error:', error);
+      res.status(500).json({ message: 'Name detection failed', error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
   // Azure OCR endpoint for base64 images (bypasses FormData issues)
   app.post('/api/ocr/azure-base64', checkTrialEligibility, async (req: Request, res: Response) => {
     try {

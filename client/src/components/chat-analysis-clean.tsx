@@ -225,6 +225,9 @@ export default function ChatAnalysis() {
       }
 
       const analysisResult = await response.json();
+      console.log('Analysis result received:', analysisResult);
+      console.log('Analysis result keys:', Object.keys(analysisResult));
+      console.log('Analysis result type:', typeof analysisResult);
       setResult(analysisResult);
       setShowResults(true);
       
