@@ -94,6 +94,10 @@ export interface IStorage {
     usersByTier: { [tier: string]: number };
     registrationsByDate: { date: string; count: number }[];
     tierConversionRate: { fromTier: string; toTier: string; count: number }[];
+    referralStats: {
+      totalReferralSignups: number;
+      topReferralCodes: { code: string; marketerName: string; signups: number; conversions: number }[];
+    };
     anonymousStats: {
       totalAnonymousUsers: number;
       totalAnonymousAnalyses: number;
@@ -743,11 +747,28 @@ export class MemStorage implements IStorage {
       ? Math.round((totalAnonymousAnalyses / totalAnonymousUsers) * 100) / 100 
       : 0;
 
+    // Calculate referral statistics
+    const referralCodes = Array.from(this.referralCodes.values());
+    const totalReferralSignups = referralCodes.reduce((sum, code) => sum + (code.totalSignups || 0), 0);
+    const topReferralCodes = referralCodes
+      .map(code => ({
+        code: code.code,
+        marketerName: code.marketerName,
+        signups: code.totalSignups || 0,
+        conversions: code.totalConversions || 0
+      }))
+      .sort((a, b) => b.signups - a.signups)
+      .slice(0, 5);
+
     return {
       totalUsers,
       usersByTier,
       registrationsByDate,
       tierConversionRate,
+      referralStats: {
+        totalReferralSignups,
+        topReferralCodes
+      },
       anonymousStats: {
         totalAnonymousUsers,
         totalAnonymousAnalyses,
