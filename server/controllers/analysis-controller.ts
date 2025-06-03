@@ -1027,7 +1027,19 @@ export const analysisController = {
         return res.status(400).json({ error: 'No files uploaded' });
       }
 
-      console.log(`Processing ${files.length} chat files`);
+      // Extract participant names from form data
+      const participantNames: string[] = [];
+      let index = 0;
+      while (req.body[`participant_${index}`]) {
+        participantNames.push(req.body[`participant_${index}`]);
+        index++;
+      }
+
+      if (participantNames.length < 2) {
+        return res.status(400).json({ error: 'At least 2 participant names are required' });
+      }
+
+      console.log(`Processing ${files.length} chat files with participants:`, participantNames);
       const results = [];
 
       for (const file of files) {
@@ -1064,15 +1076,27 @@ export const analysisController = {
             throw new Error('File does not appear to be a valid WhatsApp export');
           }
 
-          // Detect participants first, then analyze
-          const participants = await detectParticipants(chatText);
-          const analysis = await analyzeChatConversation(chatText, participants.participant1, participants.participant2);
+          // Use provided participant names instead of auto-detection
+          const me = participantNames[0];
+          const them = participantNames[1];
           
-          results.push({
-            filename: file.originalname,
-            success: true,
-            analysis: analysis
-          });
+          // For group chats with more than 2 participants
+          if (participantNames.length > 2) {
+            const analysis = await analyzeGroupChatConversation(chatText, participantNames);
+            results.push({
+              filename: file.originalname,
+              success: true,
+              analysis: analysis
+            });
+          } else {
+            // Regular 1-on-1 chat analysis
+            const analysis = await analyzeChatConversation(chatText, me, them);
+            results.push({
+              filename: file.originalname,
+              success: true,
+              analysis: analysis
+            });
+          }
 
         } catch (fileError) {
           console.error(`Error processing file ${file.originalname}:`, fileError);
@@ -1084,6 +1108,12 @@ export const analysisController = {
         }
       }
 
+      // For single file upload, return the analysis directly
+      if (files.length === 1 && results.length === 1 && results[0].success) {
+        return res.json(results[0].analysis);
+      }
+
+      // For multiple files, return the full results array
       res.json({
         success: true,
         message: `Processed ${files.length} files`,

@@ -49,12 +49,10 @@ interface UsageData {
 }
 
 // Participant Name Form Component
-function ParticipantNameForm() {
-  const [participants, setParticipants] = useState([
-    { id: 1, name: "", placeholder: "Your name" },
-    { id: 2, name: "", placeholder: "Other person's name" }
-  ]);
-
+function ParticipantNameForm({ participants, setParticipants }: {
+  participants: Array<{ id: number; name: string; placeholder: string }>;
+  setParticipants: React.Dispatch<React.SetStateAction<Array<{ id: number; name: string; placeholder: string }>>>;
+}) {
   const addParticipant = () => {
     if (participants.length < 10) {
       setParticipants([
@@ -127,6 +125,10 @@ export default function ChatAnalysis() {
   const [result, setResult] = useState<ChatAnalysisResult | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [participants, setParticipants] = useState([
+    { id: 1, name: "", placeholder: "Your name" },
+    { id: 2, name: "", placeholder: "Other person's name" }
+  ]);
 
   // Fetch usage data
   const { data: usage } = useQuery<UsageData>({
@@ -152,13 +154,29 @@ export default function ChatAnalysis() {
       return;
     }
 
+    // Validate participant names
+    const participantNames = participants.filter(p => p.name.trim().length > 0).map(p => p.name.trim());
+    if (participantNames.length < 2) {
+      toast({
+        title: "Missing participant names",
+        description: "Please enter at least 2 participant names before uploading.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
+      
+      // Add participant names to the form data
+      participantNames.forEach((name, index) => {
+        formData.append(`participant_${index}`, name);
+      });
 
-      const response = await fetch('/api/analyze/chat', {
+      const response = await fetch('/api/chat/import', {
         method: 'POST',
         body: formData,
       });
@@ -189,7 +207,7 @@ export default function ChatAnalysis() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [toast, queryClient]);
+  }, [toast, queryClient, participants]);
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
@@ -311,7 +329,7 @@ export default function ChatAnalysis() {
                     <div className="mt-6 space-y-4">
                       <h3 className="font-medium text-sm">Enter Participant Names:</h3>
                       
-                      <ParticipantNameForm />
+                      <ParticipantNameForm participants={participants} setParticipants={setParticipants} />
                       
                       <div className="text-sm text-muted-foreground">
                         <div className="flex items-start mb-2">
