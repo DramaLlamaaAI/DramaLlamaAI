@@ -1035,9 +1035,8 @@ export const analysisController = {
         index++;
       }
 
-      if (participantNames.length < 2) {
-        return res.status(400).json({ error: 'At least 2 participant names are required' });
-      }
+      // Allow empty participant names for auto-detection
+      // If no names provided, we'll use auto-detection in the processing loop
 
       console.log(`Processing ${files.length} chat files with participants:`, participantNames);
       const results = [];
@@ -1076,9 +1075,9 @@ export const analysisController = {
             throw new Error('File does not appear to be a valid WhatsApp export');
           }
 
-          // Try auto-detection first, then use provided names if auto-detection fails
-          let me = participantNames[0];
-          let them = participantNames[1];
+          // Handle participant names - use provided names or set defaults for auto-detection
+          let me = participantNames[0] || "";
+          let them = participantNames[1] || "";
           
           try {
             // Attempt auto-detection if no names provided or if names are empty
