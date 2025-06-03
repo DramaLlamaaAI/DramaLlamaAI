@@ -113,12 +113,12 @@ export default function Home() {
               </div>
               
               <div className="flex items-center gap-3">
-                <Link href="/vent-mode" className="flex-1">
+                <Link href="/screenshot-analysis" className="flex-1">
                   <Button 
                     size="lg" 
-                    className="bg-[#2CCFCF] hover:bg-[#2CCFCF]/90 text-white w-full justify-start"
+                    className="bg-purple-600 hover:bg-purple-700 text-white w-full justify-start"
                   >
-                    <Zap className="h-5 w-5 mr-2" /> Vent Mode
+                    <RefreshCcw className="h-5 w-5 mr-2" /> Screenshot Analysis
                   </Button>
                 </Link>
                 <Dialog>
@@ -127,11 +127,11 @@ export default function Home() {
                       <Info className="h-4 w-4 text-gray-600" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="bg-gradient-to-br from-teal-50 to-white border-teal-200">
+                  <DialogContent className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
                     <DialogHeader>
-                      <DialogTitle className="text-teal-700 text-xl font-bold">Vent Mode</DialogTitle>
+                      <DialogTitle className="text-purple-700 text-xl font-bold">Screenshot Analysis</DialogTitle>
                     </DialogHeader>
-                    <p className="text-gray-700 leading-relaxed">Rewrite emotional messages into calmer, more effective communication while preserving intent.</p>
+                    <p className="text-gray-700 leading-relaxed">Upload screenshots of your conversations to extract text and analyze communication patterns and emotional tone.</p>
                   </DialogContent>
                 </Dialog>
               </div>
