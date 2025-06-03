@@ -1144,3 +1144,51 @@ export const analysisController = {
     }
   }
 };
+
+// Function to detect participant names from chat text
+export async function detectParticipantNames(chatText: string): Promise<{ me: string | null, them: string | null }> {
+  try {
+    console.log('Detecting participant names from chat text...');
+    
+    // Parse the chat text to extract unique speakers
+    const lines = chatText.split('\n').filter(line => line.trim());
+    const speakers = new Set<string>();
+    
+    // WhatsApp format: [date, time] Speaker: message
+    for (const line of lines) {
+      const match = line.match(/\[.*?\]\s*([^:]+):/);
+      if (match && match[1]) {
+        const speaker = match[1].trim();
+        if (speaker && !speaker.includes('joined') && !speaker.includes('left')) {
+          speakers.add(speaker);
+        }
+      }
+    }
+    
+    const speakerArray = Array.from(speakers);
+    console.log('Detected speakers:', speakerArray);
+    
+    if (speakerArray.length >= 2) {
+      return {
+        me: speakerArray[0],
+        them: speakerArray[1]
+      };
+    } else if (speakerArray.length === 1) {
+      return {
+        me: speakerArray[0],
+        them: null
+      };
+    } else {
+      return {
+        me: null,
+        them: null
+      };
+    }
+  } catch (error) {
+    console.error('Error detecting participant names:', error);
+    return {
+      me: null,
+      them: null
+    };
+  }
+}
