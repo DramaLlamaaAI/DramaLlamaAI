@@ -525,7 +525,7 @@ export class MemStorage implements IStorage {
     }
     
     // Set tier-specific limits
-    if (user.tier === 'pro') {
+    if (user.tier === 'pro' || user.tier === 'beta') {
       limit = null; // unlimited
     } else if (user.tier === 'personal') {
       limit = 5; // 5 per month
