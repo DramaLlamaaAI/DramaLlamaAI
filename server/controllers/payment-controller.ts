@@ -51,8 +51,23 @@ export const paymentController = {
         return res.status(404).json({ error: 'User not found' });
       }
       
-      // Create a customer if one doesn't exist
+      // Create a customer if one doesn't exist or if the existing one is invalid
       let customerId = user.stripeCustomerId || null;
+      
+      if (customerId) {
+        try {
+          // Verify the customer still exists in Stripe
+          await stripe.customers.retrieve(customerId);
+        } catch (error: any) {
+          if (error.code === 'resource_missing') {
+            // Customer doesn't exist anymore, clear the stored ID
+            customerId = null;
+            await storage.updateStripeCustomerId(userId, null);
+          } else {
+            throw error;
+          }
+        }
+      }
       
       if (!customerId) {
         const customer = await stripe.customers.create({
