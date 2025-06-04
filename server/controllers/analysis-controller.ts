@@ -1223,7 +1223,7 @@ export const analysisController = {
             if (originalTier === 'beta') {
               console.log('BETA TIER FILE IMPORT: Using dedicated Beta tier service');
               const { createBetaTierAnalysis } = await import('../services/beta-tier-service');
-              analysis = createBetaTierAnalysis(analysis, me, them, chatText);
+              analysis = await createBetaTierAnalysis(analysis, me, them, chatText);
               console.log('BETA TIER FILE IMPORT: Dedicated analysis complete');
             } else {
               console.log('FILE IMPORT DEBUG - Not Beta tier, skipping dedicated service. Original tier was:', originalTier);

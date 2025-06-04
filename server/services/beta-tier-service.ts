@@ -198,7 +198,7 @@ function generateAccountabilitySignals(rawAnalysis: any, me: string, them: strin
   return signals;
 }
 
-export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: string, chatText: string): any {
+export async function createBetaTierAnalysis(rawAnalysis: any, me: string, them: string, chatText: string): Promise<any> {
   console.log('BETA TIER SERVICE: Creating dedicated Beta tier analysis');
   console.log(`Participants: ${me} and ${them}`);
   
