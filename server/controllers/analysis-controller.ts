@@ -1112,6 +1112,10 @@ export const analysisController = {
           } else {
             // Regular 1-on-1 chat analysis
             const analysis = await analyzeChatConversation(chatText, me, them);
+            
+            // Add participant information to the analysis
+            analysis.participants = { me, them };
+            
             results.push({
               filename: file.originalname,
               success: true,
