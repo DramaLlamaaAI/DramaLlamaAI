@@ -26,6 +26,7 @@ The JSON structure should include only the required fields for ${tier.toUpperCas
 - communication (patterns, dynamics, suggestions) 
 - healthScore (score from 0-100, label, color)
 ${tier === 'personal' || tier === 'pro' ? '- redFlags (if applicable - NO QUOTES unless exact matches found)' : ''}
+${tier === 'personal' || tier === 'pro' || tier === 'beta' ? '- empatheticSummary (for each participant: summary, insights, growthAreas, strengths)' : ''}
 ${tier === 'pro' ? '- keyQuotes (ONLY if exact quotes can be verified), dramaScore, and other advanced analysis components' : ''}`;
 };
 

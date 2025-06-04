@@ -471,6 +471,72 @@ export default function ChatAnalysis() {
                   )}
                 </div>
 
+                {/* Empathetic Summary for Beta, Personal, and Pro tiers */}
+                {result.empatheticSummary && Object.keys(result.empatheticSummary).length > 0 && (
+                  <div className="mb-8 mt-8">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      💙 Empathetic Summary
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      {Object.entries(result.empatheticSummary).map(([participant, summary]: [string, any]) => (
+                        <Card key={participant} className="border-blue-200 bg-blue-50">
+                          <CardContent className="p-6">
+                            <div className="flex items-center gap-2 mb-4">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                              <h4 className="text-lg font-semibold text-blue-800">{participant}</h4>
+                            </div>
+                            
+                            <div className="space-y-4">
+                              {/* Summary */}
+                              <div className="p-4 bg-white rounded-lg border border-blue-100">
+                                <h5 className="font-medium text-blue-800 mb-2">Summary</h5>
+                                <p className="text-sm text-blue-700">{summary.summary}</p>
+                              </div>
+                              
+                              {/* Insights */}
+                              <div className="p-4 bg-white rounded-lg border border-blue-100">
+                                <h5 className="font-medium text-blue-800 mb-2">Key Insights</h5>
+                                <p className="text-sm text-blue-700">{summary.insights}</p>
+                              </div>
+                              
+                              {/* Growth Areas */}
+                              {summary.growthAreas && summary.growthAreas.length > 0 && (
+                                <div className="p-4 bg-white rounded-lg border border-blue-100">
+                                  <h5 className="font-medium text-blue-800 mb-2">Growth Areas</h5>
+                                  <ul className="space-y-1 text-sm text-blue-700">
+                                    {summary.growthAreas.map((area: string, index: number) => (
+                                      <li key={index} className="flex items-start gap-2">
+                                        <span className="text-blue-400 mt-1">•</span>
+                                        <span>{area}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {/* Strengths */}
+                              {summary.strengths && summary.strengths.length > 0 && (
+                                <div className="p-4 bg-white rounded-lg border border-green-100 bg-green-50">
+                                  <h5 className="font-medium text-green-800 mb-2">Strengths</h5>
+                                  <ul className="space-y-1 text-sm text-green-700">
+                                    {summary.strengths.map((strength: string, index: number) => (
+                                      <li key={index} className="flex items-start gap-2">
+                                        <span className="text-green-400 mt-1">•</span>
+                                        <span>{strength}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Support Resources */}
                 <div className="space-y-4">
                   {/* Support Resources Card */}
@@ -592,6 +658,7 @@ export default function ChatAnalysis() {
                             <li>• Detailed Red Flag Analysis</li>
                             <li>• Manipulation Score Detection</li>
                             <li>• Communication Style Analysis</li>
+                            <li>• Empathetic Summary for Each Participant</li>
                           </ul>
                           <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                             Upgrade to Personal
@@ -608,6 +675,7 @@ export default function ChatAnalysis() {
                             <li>• Power Dynamics Analysis</li>
                             <li>• Participant Conflict Scores</li>
                             <li>• Communication Pattern Comparison</li>
+                            <li>• Empathetic Summary for Each Participant</li>
                           </ul>
                           <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
                             Upgrade to Pro

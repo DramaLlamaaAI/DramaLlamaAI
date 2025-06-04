@@ -299,6 +299,10 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary ml-6 mr-2" />
+                <span>💙 Empathetic Summary for Each Participant</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-primary ml-6 mr-2" />
                 <span>One-Click PDF Export</span>
               </li>
             </ul>
@@ -357,6 +361,10 @@ export default function SubscriptionPage() {
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
                 <span>Extended Participant Summary Cards (More Detail, More Clarity)</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
+                <span>💙 Empathetic Summary for Each Participant</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-secondary ml-6 mr-2" />
