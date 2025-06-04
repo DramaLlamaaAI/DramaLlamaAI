@@ -1199,9 +1199,18 @@ export const analysisController = {
           } else {
             // Regular 1-on-1 chat analysis
             // Get user tier to apply proper filtering
+            const originalTier = (req as any).user?.tier || 'free';
             const tier = getUserTier(req);
             
             let analysis = await analyzeChatConversation(chatText, me, them, tier);
+            
+            // Special handling for Beta tier - use dedicated service
+            if (originalTier === 'beta') {
+              console.log('BETA TIER FILE IMPORT: Using dedicated Beta tier service');
+              const { createBetaTierAnalysis } = await import('../services/beta-tier-service');
+              analysis = createBetaTierAnalysis(analysis, me, them);
+              console.log('BETA TIER FILE IMPORT: Dedicated analysis complete');
+            }
             
             // Apply the same free tier filtering logic as the main analysis endpoint
             if (tier === 'free') {
