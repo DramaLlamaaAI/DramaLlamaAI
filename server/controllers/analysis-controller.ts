@@ -1229,8 +1229,8 @@ export const analysisController = {
               console.log('FILE IMPORT DEBUG - Not Beta tier, skipping dedicated service. Original tier was:', originalTier);
             }
             
-            // Apply the same free tier filtering logic as the main analysis endpoint
-            if (tier === 'free') {
+            // Apply free tier filtering only for actual free tier users (not Beta users converted to free)
+            if (tier === 'free' && originalTier === 'free') {
               console.log('FILE IMPORT: Applying free tier restrictions - hiding detailed red flags');
               
               // For free tier, if red flags exist, hide details and show only count
@@ -1248,6 +1248,8 @@ export const analysisController = {
                 analysis.redFlagsDetected = false;
                 analysis.redFlagCount = 0;
               }
+            } else if (originalTier === 'beta') {
+              console.log('FILE IMPORT: Beta tier user - keeping detailed red flags visible');
             }
             
             // Add participant information to the analysis
