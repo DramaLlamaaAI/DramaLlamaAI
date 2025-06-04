@@ -1114,7 +1114,47 @@ export const analysisController = {
             });
           } else {
             // Regular 1-on-1 chat analysis
-            const analysis = await analyzeChatConversation(chatText, me, them);
+            // Get user tier to apply proper filtering
+            const tier = getUserTier(req);
+            
+            let analysis = await analyzeChatConversation(chatText, me, them, tier);
+            
+            // Apply the same free tier filtering logic as the main analysis endpoint
+            if (tier === 'free') {
+              // Run personal tier analysis to get red flag count
+              let personalAnalysis = null;
+              try {
+                personalAnalysis = await analyzeChatConversation(chatText, me, them, 'personal');
+                
+                if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
+                  // Filter out stonewalling flags
+                  const filteredRedFlags = personalAnalysis.redFlags.filter(flag => {
+                    const flagType = (flag.type || '').toLowerCase();
+                    const flagDesc = (flag.description || '').toLowerCase();
+                    
+                    return !(
+                      flagType === 'stonewalling' || 
+                      flagType === 'emotional withdrawal' ||
+                      (flagType.includes('stonewalling') && 
+                       (flagDesc.includes('stonewalling') || 
+                        flagDesc.includes('silent treatment') ||
+                        flagDesc.includes('shutting down')))
+                    );
+                  });
+                  
+                  // For free tier, only show count and upgrade prompt
+                  analysis.redFlags = [];
+                  analysis.redFlagsDetected = true;
+                  analysis.redFlagCount = filteredRedFlags.length;
+                  analysis.upgradePrompt = "Upgrade to Personal tier for specific red flag details and participant analysis";
+                  console.log(`File import free tier: Detected ${filteredRedFlags.length} red flags, showing count only`);
+                } else {
+                  analysis.redFlagsDetected = false;
+                }
+              } catch (personalError) {
+                console.error('Failed to run personal analysis for file import:', personalError);
+              }
+            }
             
             // Add participant information to the analysis
             analysis.participants = { me, them };
