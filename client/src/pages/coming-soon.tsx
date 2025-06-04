@@ -70,11 +70,11 @@ export default function ComingSoonPage() {
             {/* Call to Action */}
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                Want to be notified when this feature launches?
+                Thank you for your interest in this upcoming feature!
               </p>
-              <Link href="/contact-us">
+              <Link href="/">
                 <Button className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white">
-                  Get Notified
+                  Back to Home
                 </Button>
               </Link>
             </div>
