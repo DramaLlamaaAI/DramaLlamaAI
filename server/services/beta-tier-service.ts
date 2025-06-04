@@ -279,6 +279,11 @@ export async function createBetaTierAnalysis(rawAnalysis: any, me: string, them:
   
   // Apply direct red flag detection to catch patterns the AI might miss
   const { detectRedFlagsDirectly } = await import('./direct-red-flag-detector');
+  
+  // Debug the chat text format
+  console.log(`BETA TIER SERVICE: Chat text format check - first 300 chars:`, chatText?.substring(0, 300));
+  console.log(`BETA TIER SERVICE: Chat text length:`, chatText?.length);
+  
   const directRedFlags = detectRedFlagsDirectly(chatText, rawAnalysis.healthScore?.score);
   console.log(`BETA TIER SERVICE: Direct detection found ${directRedFlags.length} additional red flags`);
   
