@@ -123,9 +123,16 @@ const redFlagPatterns = [
     description: 'Avoiding responsibility or minimizing impact of actions',
     severity: 6
   },
+  // Custody Violations - failure to return child as expected
+  {
+    pattern: /(bring.*back|bring.*home|return.*child|where.*is.*child|child.*not.*returned|police.*looking|missing.*child|hasn['']t.*been.*returned|didn['']t.*return|failed.*to.*return)/i,
+    type: 'Custody Violation',
+    description: 'Failure to return child as expected or agreed',
+    severity: 10
+  },
   // Actual Child Welfare Violations (not protective responses)
   {
-    pattern: /(taking.*child.*without.*permission|not.*returning.*child|keeping.*child.*from|hiding.*child|child.*as.*weapon|child.*as.*leverage|punish.*through.*child|hurt.*child.*to.*hurt)/i,
+    pattern: /(taking.*child.*without.*permission|keeping.*child.*from|hiding.*child|child.*as.*weapon|child.*as.*leverage|punish.*through.*child|hurt.*child.*to.*hurt)/i,
     type: 'Child Welfare Violations',
     description: 'Using or endangering a child to control or manipulate the other parent',
     severity: 10
