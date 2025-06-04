@@ -6,106 +6,157 @@ import { ChevronRight, ChevronLeft, MessageCircle, Download, FolderOpen, Upload,
 const steps = [
   {
     id: 1,
-    title: "Open WhatsApp",
-    description: "Launch WhatsApp on your mobile device",
+    title: "Open WhatsApp & Select Chat",
+    description: "Launch WhatsApp and choose the conversation to analyze",
     icon: MessageCircle,
     content: (
       <div className="space-y-4">
         <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <h3 className="font-semibold text-green-800 mb-2">Step 1: Open WhatsApp</h3>
-          <p className="text-green-700">Open the WhatsApp application on your mobile device.</p>
+          <h3 className="font-semibold text-green-800 mb-2">Step 1: Open WhatsApp & Select Chat</h3>
+          <p className="text-green-700">Open WhatsApp on your mobile device and navigate to the conversation you want to analyze.</p>
         </div>
-        <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300">
-          <div className="w-full h-48 bg-gradient-to-b from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-            <MessageCircle className="h-16 w-16 text-white" />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+            <div className="w-full h-32 bg-gradient-to-b from-green-500 to-green-600 rounded-lg flex items-center justify-center mb-2">
+              <MessageCircle className="h-12 w-12 text-white" />
+            </div>
+            <p className="text-sm text-gray-600">Open WhatsApp</p>
           </div>
-          <p className="text-center text-sm text-gray-600 mt-2">WhatsApp App Icon</p>
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <div className="bg-green-100 p-3 rounded-lg border border-green-300 flex items-center gap-3">
+              <div className="w-8 h-8 bg-green-300 rounded-full"></div>
+              <div className="flex-1">
+                <p className="font-medium text-sm">Chat to Analyze</p>
+                <p className="text-xs text-gray-500">Tap this conversation</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-green-600" />
+            </div>
+            <p className="text-xs text-gray-600 mt-2 text-center">Select your chat</p>
+          </div>
         </div>
       </div>
     )
   },
   {
     id: 2,
-    title: "Select the Chat",
-    description: "Navigate to the conversation you want to analyze",
-    icon: MessageCircle,
+    title: "Export Chat Without Media",
+    description: "Click the 3 dots menu and select 'Export > Without Media'",
+    icon: Download,
     content: (
       <div className="space-y-4">
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h3 className="font-semibold text-blue-800 mb-2">Step 2: Select Your Chat</h3>
-          <p className="text-blue-700">Find and tap on the conversation you want to analyze.</p>
+        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+          <h3 className="font-semibold text-orange-800 mb-2">Step 2: Export Chat Without Media</h3>
+          <p className="text-orange-700">In the chat, tap the three dots (⋮) in the top right corner, then select "Export chat" {'>'}  "Without Media".</p>
         </div>
-        <div className="space-y-2">
-          <div className="bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-            <div>
-              <p className="font-medium">Contact Name</p>
-              <p className="text-sm text-gray-500">Last message preview...</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
+                <span className="text-sm font-medium">Contact Name</span>
+              </div>
+              <div className="flex flex-col space-y-0.5 p-1 border border-gray-400 rounded">
+                <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+              </div>
+            </div>
+            <div className="space-y-1 text-xs">
+              <div className="p-1 hover:bg-gray-50 rounded">View contact</div>
+              <div className="p-1 bg-orange-100 border border-orange-300 rounded font-medium text-orange-800">
+                📤 Export chat
+              </div>
+              <div className="p-1 hover:bg-gray-50 rounded">Clear chat</div>
             </div>
           </div>
-          <div className="bg-green-100 p-3 rounded-lg border-2 border-green-300 flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-300 rounded-full"></div>
-            <div>
-              <p className="font-medium">Chat to Analyze</p>
-              <p className="text-sm text-gray-500">Tap this conversation</p>
+          <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+            <h4 className="text-sm font-medium mb-3">Export chat</h4>
+            <div className="space-y-2">
+              <Button variant="outline" className="w-full text-xs py-1">
+                📎 With Media
+              </Button>
+              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-xs py-1">
+                📄 Without Media
+              </Button>
             </div>
-            <ChevronRight className="h-5 w-5 text-green-600 ml-auto" />
           </div>
+        </div>
+        <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+          <p className="text-sm text-green-800">
+            <strong>Important:</strong> Always choose "Without Media" to create a .txt file perfect for analysis.
+          </p>
         </div>
       </div>
     )
   },
   {
     id: 3,
-    title: "Access Chat Options",
-    description: "Tap the three dots menu in the top right corner",
-    icon: MessageCircle,
+    title: "Save to Device",
+    description: "Choose where to save the chat on your device",
+    icon: FolderOpen,
     content: (
       <div className="space-y-4">
-        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-          <h3 className="font-semibold text-purple-800 mb-2">Step 3: Open Chat Menu</h3>
-          <p className="text-purple-700">In the chat, tap the three dots (⋮) in the top right corner.</p>
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <h3 className="font-semibold text-blue-800 mb-2">Step 3: Save to Device</h3>
+          <p className="text-blue-700">Select "Save to Files" or similar option to save the .txt file to your device's storage.</p>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
-              <span className="font-medium">Contact Name</span>
+          <h4 className="font-medium text-center mb-3">Share via...</h4>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-2">
+              <div className="w-10 h-10 bg-blue-500 rounded-lg mx-auto mb-1"></div>
+              <span className="text-xs">Email</span>
             </div>
-            <div className="flex flex-col space-y-1">
-              <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-              <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-              <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+            <div className="text-center p-2 bg-blue-100 border-2 border-blue-300 rounded">
+              <div className="w-10 h-10 bg-blue-500 rounded-lg mx-auto mb-1 flex items-center justify-center">
+                <FolderOpen className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xs font-medium">Files</span>
+            </div>
+            <div className="text-center p-2">
+              <div className="w-10 h-10 bg-green-500 rounded-lg mx-auto mb-1"></div>
+              <span className="text-xs">Drive</span>
             </div>
           </div>
-          <div className="text-center text-sm text-gray-500">Chat interface with menu button highlighted</div>
+        </div>
+        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+          <p className="text-sm text-yellow-800">
+            The file will be saved in your "Downloads" or "My Files" folder with a name like "WhatsApp Chat - Contact Name.txt"
+          </p>
         </div>
       </div>
     )
   },
   {
     id: 4,
-    title: "Export Chat",
-    description: "Select 'Export chat' from the dropdown menu",
-    icon: Download,
+    title: "Open Drama Llama",
+    description: "Navigate to DramaLlama.ai and select 'Chat Analysis > Import Chat'",
+    icon: Upload,
     content: (
       <div className="space-y-4">
-        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-          <h3 className="font-semibold text-orange-800 mb-2">Step 4: Export the Chat</h3>
-          <p className="text-orange-700">From the menu, select "Export chat" option.</p>
+        <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+          <h3 className="font-semibold text-pink-800 mb-2">Step 4: Open Drama Llama</h3>
+          <p className="text-pink-700">Open your web browser, go to DramaLlama.ai, then navigate to Chat Analysis and click "Import Chat".</p>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-2">
-          <div className="p-2 hover:bg-gray-50 rounded">View contact</div>
-          <div className="p-2 hover:bg-gray-50 rounded">Media, links, and docs</div>
-          <div className="p-2 bg-orange-100 border border-orange-300 rounded font-medium text-orange-800">
-            📤 Export chat
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+            <div className="w-full h-24 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg flex items-center justify-center mb-2">
+              <span className="text-white font-bold text-sm">Drama Llama AI</span>
+            </div>
+            <p className="text-xs text-gray-600">Visit DramaLlama.ai</p>
           </div>
-          <div className="p-2 hover:bg-gray-50 rounded">Clear chat</div>
-          <div className="p-2 hover:bg-gray-50 rounded text-red-600">Delete chat</div>
+          <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
+            <div className="bg-pink-100 border border-pink-300 rounded p-3 mb-2">
+              <span className="font-medium text-pink-800 text-sm">📱 Chat Analysis</span>
+            </div>
+            <div className="bg-pink-50 border border-pink-200 rounded p-2">
+              <span className="text-pink-700 text-xs">Upload File Tab</span>
+            </div>
+          </div>
         </div>
-        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-          <p className="text-sm text-yellow-800">
-            <strong>Note:</strong> Choose "Without Media" when prompted to keep the file size manageable.
+        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-800">
+            The Chat Analysis page will have an upload area where you can import your WhatsApp export file.
           </p>
         </div>
       </div>
@@ -113,184 +164,45 @@ const steps = [
   },
   {
     id: 5,
-    title: "Choose Export Option",
-    description: "Select 'Without Media' for optimal file size",
-    icon: Download,
+    title: "Find & Upload File",
+    description: "Locate the .txt file in your folders and upload it for analysis",
+    icon: CheckCircle,
     content: (
       <div className="space-y-4">
-        <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
-          <h3 className="font-semibold text-teal-800 mb-2">Step 5: Export Without Media</h3>
-          <p className="text-teal-700">Choose "Without Media" to create a text-only export file.</p>
+        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+          <h3 className="font-semibold text-green-800 mb-2">Step 5: Find & Upload File</h3>
+          <p className="text-green-700">Click "Choose File", browse to your Downloads or My Files folder, and select your WhatsApp export file.</p>
         </div>
-        <div className="bg-white p-6 rounded-lg border border-gray-200 text-center space-y-4">
-          <h4 className="font-medium">Export chat</h4>
-          <p className="text-sm text-gray-600">Choose an option:</p>
-          <div className="space-y-3">
-            <Button variant="outline" className="w-full">
-              📎 With Media
-            </Button>
-            <Button className="w-full bg-teal-600 hover:bg-teal-700">
-              📄 Without Media (Recommended)
-            </Button>
-          </div>
-        </div>
-        <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-          <p className="text-sm text-green-800">
-            <strong>Recommended:</strong> Select "Without Media" as it creates a .txt file that's perfect for analysis.
-          </p>
-        </div>
-      </div>
-    )
-  },
-  {
-    id: 6,
-    title: "Save to Files",
-    description: "Choose where to save your exported chat file",
-    icon: FolderOpen,
-    content: (
-      <div className="space-y-4">
-        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-          <h3 className="font-semibold text-indigo-800 mb-2">Step 6: Save the File</h3>
-          <p className="text-indigo-700">Select "Save to Files" or similar option to save the .txt file to your device.</p>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-3">
-          <h4 className="font-medium text-center">Share via...</h4>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="text-center p-2">
-              <div className="w-12 h-12 bg-blue-500 rounded-lg mx-auto mb-1"></div>
-              <span className="text-xs">Email</span>
+        <div className="space-y-3">
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-2 mb-3">
+              <FolderOpen className="h-5 w-5 text-blue-600" />
+              <span className="font-medium text-sm">My Files / Downloads</span>
             </div>
-            <div className="text-center p-2 bg-indigo-100 border border-indigo-300 rounded">
-              <div className="w-12 h-12 bg-indigo-500 rounded-lg mx-auto mb-1 flex items-center justify-center">
-                <FolderOpen className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xs font-medium">Files</span>
-            </div>
-            <div className="text-center p-2">
-              <div className="w-12 h-12 bg-green-500 rounded-lg mx-auto mb-1"></div>
-              <span className="text-xs">Drive</span>
-            </div>
-          </div>
-        </div>
-        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-          <p className="text-sm text-blue-800">
-            The file will typically be saved in your "Downloads" or "My Files" folder.
-          </p>
-        </div>
-      </div>
-    )
-  },
-  {
-    id: 7,
-    title: "Locate the File",
-    description: "Find your exported chat file in My Files or Downloads",
-    icon: FolderOpen,
-    content: (
-      <div className="space-y-4">
-        <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
-          <h3 className="font-semibold text-pink-800 mb-2">Step 7: Find Your File</h3>
-          <p className="text-pink-700">Open "My Files" or "File Manager" and locate your exported chat.</p>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="flex items-center gap-2 mb-3">
-            <FolderOpen className="h-5 w-5 text-blue-600" />
-            <span className="font-medium">My Files / Downloads</span>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-              <div className="w-8 h-8 bg-gray-300 rounded"></div>
-              <span className="text-sm">Other file.pdf</span>
-            </div>
-            <div className="flex items-center gap-3 p-2 bg-pink-100 border border-pink-300 rounded">
+            <div className="flex items-center gap-3 p-2 bg-green-100 border border-green-300 rounded">
               <div className="w-8 h-8 bg-green-500 rounded flex items-center justify-center">
                 <span className="text-white text-xs font-bold">TXT</span>
               </div>
               <span className="text-sm font-medium">WhatsApp Chat - Contact Name.txt</span>
             </div>
-            <div className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-              <div className="w-8 h-8 bg-gray-300 rounded"></div>
-              <span className="text-sm">Another file.jpg</span>
+          </div>
+          <div className="bg-white p-6 rounded-lg border-2 border-dashed border-green-300">
+            <div className="text-center">
+              <Upload className="mx-auto h-12 w-12 text-green-400 mb-4" />
+              <p className="text-gray-600 mb-2">Click "Choose File" and select your .txt file</p>
+              <Button className="mt-4 bg-green-500 hover:bg-green-600">
+                Choose File
+              </Button>
             </div>
           </div>
         </div>
-        <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-          <p className="text-sm text-green-800">
-            Look for a .txt file with "WhatsApp Chat" in the name - this is your exported conversation.
-          </p>
-        </div>
-      </div>
-    )
-  },
-  {
-    id: 8,
-    title: "Upload to Drama Llama",
-    description: "Upload your .txt file to our chat analysis tool",
-    icon: Upload,
-    content: (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-lg border border-pink-200">
-          <h3 className="font-semibold text-pink-800 mb-2">Step 8: Upload for Analysis</h3>
-          <p className="text-pink-700">Now upload your .txt file to Drama Llama for AI-powered analysis.</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg border-2 border-dashed border-pink-300">
-          <div className="text-center">
-            <Upload className="mx-auto h-12 w-12 text-pink-400 mb-4" />
-            <p className="text-gray-600 mb-2">Click to upload or drag and drop</p>
-            <p className="text-sm text-gray-500">Supports .txt files (WhatsApp exports)</p>
-            <Button className="mt-4 bg-pink-500 hover:bg-pink-600">
-              Choose File
-            </Button>
-          </div>
-        </div>
-        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-          <div className="flex items-start gap-2">
-            <div className="w-4 h-4 bg-blue-600 rounded-full mt-0.5 flex-shrink-0"></div>
-            <div className="text-sm text-blue-800">
-              <strong>Analysis Note:</strong> Only the most recent 3 months of messages are analyzed for optimal relevance and performance. For analysis of longer conversations, please contact support@dramallama.ai
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  },
-  {
-    id: 9,
-    title: "Analysis Complete",
-    description: "View your comprehensive relationship insights",
-    icon: CheckCircle,
-    content: (
-      <div className="space-y-4">
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <h3 className="font-semibold text-green-800 mb-2">Step 9: Get Your Results</h3>
-          <p className="text-green-700">Your chat has been analyzed! View detailed insights about your conversation.</p>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-3">
-          <div className="flex items-center gap-2">
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200">
+          <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="h-5 w-5 text-green-600" />
-            <span className="font-medium">Analysis Results Ready</span>
+            <span className="font-medium text-green-800">Ready for Analysis!</span>
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="bg-blue-50 p-3 rounded border border-blue-200">
-              <div className="font-medium text-blue-800">Health Score</div>
-              <div className="text-blue-600">Relationship wellness rating</div>
-            </div>
-            <div className="bg-purple-50 p-3 rounded border border-purple-200">
-              <div className="font-medium text-purple-800">Communication Tone</div>
-              <div className="text-purple-600">Emotional analysis</div>
-            </div>
-            <div className="bg-orange-50 p-3 rounded border border-orange-200">
-              <div className="font-medium text-orange-800">Red Flags</div>
-              <div className="text-orange-600">Warning indicators</div>
-            </div>
-            <div className="bg-teal-50 p-3 rounded border border-teal-200">
-              <div className="font-medium text-teal-800">Participant Analysis</div>
-              <div className="text-teal-600">Individual insights</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-lg border border-pink-200 text-center">
-          <p className="text-pink-800 font-medium">
-            🎉 Congratulations! You've successfully analyzed your WhatsApp conversation.
+          <p className="text-sm text-gray-700">
+            Once uploaded, your chat will be analyzed for relationship insights, communication patterns, and wellness indicators.
           </p>
         </div>
       </div>
