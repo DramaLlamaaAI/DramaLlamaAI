@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Archive, FileText, Copy } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Archive, FileText, Copy, ChevronDown, ChevronUp, ExternalLink, Phone, Heart } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +23,8 @@ export default function ChatAnalysis() {
   const [result, setResult] = useState<any | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [redFlagsOpen, setRedFlagsOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -432,45 +435,132 @@ export default function ChatAnalysis() {
                   <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                     🚩 Potential Red Flags
                     <span className="ml-2 text-sm font-normal text-red-500">
-                      {result.redFlags?.length || 3} red flags
+                      {result.redFlags?.length || 0} detected
                     </span>
                   </h3>
                   
-                  <Alert className="bg-blue-50 border-blue-200">
-                    <Info className="h-4 w-4 text-blue-500" />
-                    <AlertDescription className="text-blue-700">
-                      <span className="underline cursor-pointer">Register for a free deeper insight</span> into these warning signs
-                    </AlertDescription>
-                  </Alert>
+                  {result.redFlags && result.redFlags.length > 0 ? (
+                    <div className="space-y-2">
+                      {result.redFlags.map((flag: any, index: number) => (
+                        <Alert key={index} className="bg-red-50 border-red-200">
+                          <AlertCircle className="h-4 w-4 text-red-500" />
+                          <AlertDescription className="text-red-700">
+                            <strong>{flag.type || flag.name || "Red Flag"}:</strong> {flag.description || flag.message || flag}
+                          </AlertDescription>
+                        </Alert>
+                      ))}
+                    </div>
+                  ) : (
+                    <Alert className="bg-green-50 border-green-200">
+                      <Info className="h-4 w-4 text-green-500" />
+                      <AlertDescription className="text-green-700">
+                        No red flags detected in this conversation - that's a positive sign!
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 {/* Support Resources */}
                 <div className="space-y-4">
                   {/* Support Resources Card */}
-                  <Card className="border-blue-200 bg-blue-50">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Info className="h-5 w-5 text-blue-500" />
-                          <span className="font-semibold text-blue-800">Support Resources</span>
-                        </div>
-                        <Info className="h-4 w-4 text-blue-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Collapsible open={supportOpen} onOpenChange={setSupportOpen}>
+                    <Card className="border-blue-200 bg-blue-50">
+                      <CollapsibleTrigger className="w-full">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Heart className="h-5 w-5 text-blue-500" />
+                              <span className="font-semibold text-blue-800">Support Resources</span>
+                            </div>
+                            {supportOpen ? <ChevronUp className="h-4 w-4 text-blue-400" /> : <ChevronDown className="h-4 w-4 text-blue-400" />}
+                          </div>
+                        </CardContent>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <CardContent className="px-4 pb-4 pt-0">
+                          <div className="space-y-3 border-t border-blue-200 pt-3">
+                            <div className="grid gap-3">
+                              <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                                <Phone className="h-5 w-5 text-blue-600" />
+                                <div>
+                                  <h4 className="font-medium text-blue-800">National Domestic Violence Helpline</h4>
+                                  <p className="text-sm text-blue-600">24/7 confidential support</p>
+                                  <p className="text-sm font-mono text-blue-700">0808 2000 247</p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                                <ExternalLink className="h-5 w-5 text-blue-600" />
+                                <div>
+                                  <h4 className="font-medium text-blue-800">Women's Aid</h4>
+                                  <p className="text-sm text-blue-600">Online chat and resources</p>
+                                  <p className="text-sm text-blue-700">womensaid.org.uk</p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                                <Phone className="h-5 w-5 text-blue-600" />
+                                <div>
+                                  <h4 className="font-medium text-blue-800">Samaritans</h4>
+                                  <p className="text-sm text-blue-600">Emotional support for anyone</p>
+                                  <p className="text-sm font-mono text-blue-700">116 123 (free)</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </CollapsibleContent>
+                    </Card>
+                  </Collapsible>
 
                   {/* Red Flag Library Card */}
-                  <Card className="border-red-200 bg-red-50">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <AlertCircle className="h-5 w-5 text-red-500" />
-                          <span className="font-semibold text-red-800">Red Flag Library</span>
-                        </div>
-                        <Info className="h-4 w-4 text-red-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Collapsible open={redFlagsOpen} onOpenChange={setRedFlagsOpen}>
+                    <Card className="border-red-200 bg-red-50">
+                      <CollapsibleTrigger className="w-full">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <AlertCircle className="h-5 w-5 text-red-500" />
+                              <span className="font-semibold text-red-800">Red Flag Library</span>
+                            </div>
+                            {redFlagsOpen ? <ChevronUp className="h-4 w-4 text-red-400" /> : <ChevronDown className="h-4 w-4 text-red-400" />}
+                          </div>
+                        </CardContent>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <CardContent className="px-4 pb-4 pt-0">
+                          <div className="space-y-3 border-t border-red-200 pt-3">
+                            <div className="grid gap-3">
+                              <div className="p-3 bg-white rounded-lg border border-red-100">
+                                <h4 className="font-medium text-red-800 mb-1">Gaslighting</h4>
+                                <p className="text-sm text-red-600">Making you question your own memory, perception, or judgment</p>
+                              </div>
+                              
+                              <div className="p-3 bg-white rounded-lg border border-red-100">
+                                <h4 className="font-medium text-red-800 mb-1">Love Bombing</h4>
+                                <p className="text-sm text-red-600">Overwhelming you with excessive attention and affection early on</p>
+                              </div>
+                              
+                              <div className="p-3 bg-white rounded-lg border border-red-100">
+                                <h4 className="font-medium text-red-800 mb-1">Isolation</h4>
+                                <p className="text-sm text-red-600">Attempting to cut you off from friends, family, or support networks</p>
+                              </div>
+                              
+                              <div className="p-3 bg-white rounded-lg border border-red-100">
+                                <h4 className="font-medium text-red-800 mb-1">Control</h4>
+                                <p className="text-sm text-red-600">Excessive monitoring of activities, finances, or communications</p>
+                              </div>
+                              
+                              <div className="p-3 bg-white rounded-lg border border-red-100">
+                                <h4 className="font-medium text-red-800 mb-1">Emotional Manipulation</h4>
+                                <p className="text-sm text-red-600">Using guilt, shame, or threats to control behavior</p>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </CollapsibleContent>
+                    </Card>
+                  </Collapsible>
 
                   {/* Unlock More Insights Section */}
                   <Card className="border border-gray-200">

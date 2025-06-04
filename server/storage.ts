@@ -481,12 +481,12 @@ export class MemStorage implements IStorage {
       this.usageLimits.set(userId, newUsageLimit);
       
       // Set limits based on tier:
-      // - Pro: unlimited (null)
+      // - Pro/Beta: unlimited (null)
       // - Personal: 5 
       // - Free: 2
       // - Instant: 1
       let limit: number | null;
-      if (user.tier === 'pro') {
+      if (user.tier === 'pro' || user.tier === 'beta') {
         limit = null; // unlimited
       } else if (user.tier === 'personal') {
         limit = 5; // 5 per month
