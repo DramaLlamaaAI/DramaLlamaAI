@@ -23,6 +23,7 @@ import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
 import ContactUs from "@/pages/contact-us";
 import ComingSoonPage from "@/pages/coming-soon";
+import WhatsAppGuide from "@/pages/whatsapp-guide";
 // Support helplines converted to dialog component
 import ChatAnalysisNew from "./components/chat-analysis-restored";
 import ScreenshotAnalysis from "./components/screenshot-analysis";
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/de-escalate" component={VentMode} />
       <Route path="/vent-mode" component={VentMode} />
       <Route path="/live-talk" component={LiveTalk} />
+      <Route path="/whatsapp-guide" component={WhatsAppGuide} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/checkout" component={CheckoutPage} />
       <Route path="/auth" component={AuthPage} />
