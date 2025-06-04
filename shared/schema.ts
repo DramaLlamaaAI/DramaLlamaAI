@@ -222,7 +222,8 @@ export const TIER_LIMITS = {
       "relationshipHealthIndicators", // Relationship Health Assessment with future projection
       "communicationPatternComparison", // Communication Patterns Comparison
       "personalizedGrowthRecommendations", // Personalized Growth Recommendations for each participant
-      "redFlagsTimeline"          // Red Flags Timeline and Progression Analysis
+      "redFlagsTimeline",         // Red Flags Timeline and Progression Analysis
+      "empatheticSummary"         // Empathetic Summary for each participant
     ],
   },
   instant: {
@@ -270,6 +271,7 @@ export const TIER_LIMITS = {
       "redFlags",               // Red Flags Detection & Red Flag Meters - participants named
       "communicationStyles",    // Communication Styles Breakdown - Your Style vs Their Style
       "accountabilityMeters",   // Accountability Indicators - participants named
+      "empatheticSummary"       // Empathetic Summary for each participant
     ],
   },
   pro: {
@@ -299,6 +301,7 @@ export const TIER_LIMITS = {
       "emotionalShiftsTimeline",  // Emotional Shifts Timeline (interactive view)
       "powerDynamics",            // Power Dynamics Analysis
       "redFlagsTimeline",         // Red Flags Timeline – Progressive Tracking
+      "empatheticSummary"         // Empathetic Summary for each participant
     ],
   },
 };
@@ -420,6 +423,14 @@ export const chatAnalysisResultSchema = z.object({
       participant: z.string()
     }))
   }).optional(),
+  
+  // Empathetic Summary for Beta, Personal, and Pro tiers
+  empatheticSummary: z.record(z.object({
+    summary: z.string(),
+    insights: z.string(),
+    growthAreas: z.array(z.string()),
+    strengths: z.array(z.string())
+  })).optional(),
 });
 
 export const messageAnalysisResultSchema = z.object({
