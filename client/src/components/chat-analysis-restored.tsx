@@ -183,33 +183,6 @@ export default function ChatAnalysis() {
                       Supports .txt files (WhatsApp exports)
                     </p>
                     
-                    {/* Help and Advisory messages */}
-                    <div className="mt-4 space-y-3">
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                        <div className="flex items-start gap-2">
-                          <Info className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-green-800">
-                            <strong>Need Help?</strong> Follow our step-by-step{' '}
-                            <a href="/whatsapp-guide" className="underline hover:text-green-900 font-medium">
-                              WhatsApp Export Guide
-                            </a>
-                            {' '}to learn how to export and upload your chat files.
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                        <div className="flex items-start gap-2">
-                          <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-blue-800">
-                            <strong>Analysis Note:</strong> Only the most recent 3 months of messages are analyzed for optimal relevance and performance. For analysis of longer conversations, please contact{' '}
-                            <a href="mailto:support@dramallama.ai" className="underline hover:text-blue-900">
-                              support@dramallama.ai
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                     <Button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={!canUseFeature || analysisMutation.isPending}
@@ -227,6 +200,34 @@ export default function ChatAnalysis() {
                         </>
                       )}
                     </Button>
+                    
+                    {/* Help and Advisory messages */}
+                    <div className="mt-4 space-y-3">
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <div className="flex items-start gap-2">
+                          <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm text-blue-800">
+                            <strong>Analysis Note:</strong> Only the most recent 3 months of messages are analyzed for optimal relevance and performance. For analysis of longer conversations, please contact{' '}
+                            <a href="mailto:support@dramallama.ai" className="underline hover:text-blue-900">
+                              support@dramallama.ai
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                        <div className="flex items-start gap-2">
+                          <Info className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm text-green-800">
+                            <strong>Need Help?</strong> Follow our step-by-step{' '}
+                            <a href="/whatsapp-guide" className="underline hover:text-green-900 font-medium">
+                              WhatsApp Export Guide
+                            </a>
+                            {' '}to learn how to export and upload your chat files.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
                   {fileName && (
