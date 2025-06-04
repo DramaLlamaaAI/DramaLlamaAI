@@ -312,82 +312,77 @@ export default function ChatAnalysis() {
                     <h3 className="text-lg font-semibold">Conversation Health Score</h3>
                   </div>
                   
-                  <div className="flex items-center gap-6">
-                    <div className="relative w-24 h-24">
-                      <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
-                        {/* Background circle */}
-                        <path
-                          d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                          fill="none"
-                          stroke={
-                            (result.healthScore?.score || 35) <= 35 ? '#fee2e2' :
-                            (result.healthScore?.score || 35) <= 50 ? '#fed7aa' :
-                            (result.healthScore?.score || 35) <= 65 ? '#fef3c7' :
-                            (result.healthScore?.score || 35) <= 80 ? '#dcfce7' :
-                            '#dcfce7'
-                          }
-                          strokeWidth="3"
-                        />
-                        {/* Progress circle */}
-                        <path
-                          d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                          fill="none"
-                          stroke={
-                            (result.healthScore?.score || 35) <= 35 ? '#ef4444' :
-                            (result.healthScore?.score || 35) <= 50 ? '#f97316' :
-                            (result.healthScore?.score || 35) <= 65 ? '#eab308' :
-                            (result.healthScore?.score || 35) <= 80 ? '#22c55e' :
-                            '#16a34a'
-                          }
-                          strokeWidth="3"
-                          strokeDasharray={`${(result.healthScore?.score || 35)}, 100`}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      {/* Center content */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold">{result.healthScore?.score || 35}</div>
-                          <div className="text-xs text-gray-500">Out of 100 points</div>
-                        </div>
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-3xl font-bold">
+                        {result.healthScore?.score || 35}
+                      </div>
+                      <div className={`text-lg font-semibold ${
+                        (result.healthScore?.score || 35) <= 20 ? 'text-red-600' :
+                        (result.healthScore?.score || 35) <= 40 ? 'text-orange-600' :
+                        (result.healthScore?.score || 35) <= 60 ? 'text-yellow-600' :
+                        (result.healthScore?.score || 35) <= 80 ? 'text-green-600' :
+                        'text-emerald-600'
+                      }`}>
+                        {
+                          (result.healthScore?.score || 35) <= 20 ? 'Conflict' :
+                          (result.healthScore?.score || 35) <= 40 ? 'Concerning' :
+                          (result.healthScore?.score || 35) <= 60 ? 'Tension' :
+                          (result.healthScore?.score || 35) <= 80 ? 'Healthy' :
+                          'Very Healthy'
+                        }
                       </div>
                     </div>
                     
-                    <div>
-                      <div className={`text-lg font-semibold mb-2 ${
-                        (result.healthScore?.score || 35) <= 35 ? 'text-red-600' :
-                        (result.healthScore?.score || 35) <= 50 ? 'text-orange-600' :
-                        (result.healthScore?.score || 35) <= 65 ? 'text-yellow-600' :
-                        (result.healthScore?.score || 35) <= 80 ? 'text-green-500' :
-                        'text-green-600'
-                      }`}>
-                        {result.healthScore?.label || "Concerning"}
+                    {/* Horizontal Bar */}
+                    <div className="relative mb-4">
+                      <div className="h-6 bg-gray-200 rounded-full overflow-hidden">
+                        {/* Background segments */}
+                        <div className="h-full flex">
+                          <div className="w-1/5 bg-red-500"></div>
+                          <div className="w-1/5 bg-orange-500"></div>
+                          <div className="w-1/5 bg-yellow-500"></div>
+                          <div className="w-1/5 bg-green-500"></div>
+                          <div className="w-1/5 bg-emerald-500"></div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-                        <span className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                          0-35: Conflict
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                          36-50: Concerning
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                          51-65: Tension
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                          66-80: Healthy
-                        </span>
-                        <span className="flex items-center gap-1 col-span-2 sm:col-span-1">
-                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                          81-100: Very Healthy
-                        </span>
+                      
+                      {/* Score indicator */}
+                      <div 
+                        className="absolute top-0 h-6 flex items-center"
+                        style={{ left: `${(result.healthScore?.score || 35)}%`, transform: 'translateX(-50%)' }}
+                      >
+                        <div className="w-0 h-0 border-l-4 border-r-4 border-b-6 border-transparent border-b-black"></div>
+                      </div>
+                    </div>
+                    
+                    {/* Scale labels */}
+                    <div className="flex justify-between text-xs text-gray-600 mb-2">
+                      <span>0</span>
+                      <span>100</span>
+                    </div>
+                    
+                    {/* Legend */}
+                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-red-500 rounded-sm"></div>
+                        <span>0-20: Conflict</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-orange-500 rounded-sm"></div>
+                        <span>21-40: Concerning</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div>
+                        <span>41-60: Tension</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-green-500 rounded-sm"></div>
+                        <span>61-80: Healthy</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div>
+                        <span>81-100: Very Healthy</span>
                       </div>
                     </div>
                   </div>
