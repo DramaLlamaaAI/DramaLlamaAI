@@ -67,10 +67,20 @@ export function parseAnthropicJson(content: string): any {
     }
     
     // Sometimes Claude might cut off JSON mid-response, try to complete it
-    // Find the last complete object by finding the last balanced brackets
+    // But be careful not to truncate valid content
     if (jsonContent.includes('{') && !isBalanced(jsonContent)) {
       console.log('Attempting to fix unbalanced JSON');
-      jsonContent = balanceJson(jsonContent);
+      // Only try to balance if the content is clearly incomplete
+      // Don't balance if it looks like it just has content after the JSON
+      if (jsonContent.lastIndexOf('}') < jsonContent.length - 50) {
+        jsonContent = balanceJson(jsonContent);
+      } else {
+        // Try to find the actual end of the JSON object
+        const lastBraceIndex = jsonContent.lastIndexOf('}');
+        if (lastBraceIndex > 0) {
+          jsonContent = jsonContent.substring(0, lastBraceIndex + 1);
+        }
+      }
     }
     
     // Fix any other common JSON issues
@@ -104,46 +114,41 @@ export function parseAnthropicJson(content: string): any {
         // Try with a more aggressive cleaning approach
         console.log('Attempting more aggressive JSON cleaning');
         
-        // Replace problematic patterns that often cause issues
+        // First, try to find the complete JSON object boundaries
+        const startIndex = jsonContent.indexOf('{');
+        let endIndex = jsonContent.lastIndexOf('}');
+        
+        if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+          // Extract just the JSON part
+          let extractedJson = jsonContent.substring(startIndex, endIndex + 1);
+          
+          // Apply targeted fixes for common issues
+          extractedJson = extractedJson
+            // Fix the specific quote escaping issue we're seeing
+            .replace(/([^\\])\\"/g, '$1"')
+            // Fix unescaped quotes in string values
+            .replace(/"([^"]*)"([^"]*)"([^"]*)"(\s*[,}:])/g, '"$1\\"$2\\"$3"$4')
+            // Fix trailing commas
+            .replace(/,(\s*[}\]])/g, '$1')
+            // Clean up any malformed quotes
+            .replace(/\\\\"/g, '\\"')
+            // Fix missing commas between objects
+            .replace(/}(\s*)"/g, '},"')
+            .replace(/"(\s*){/g, '",{');
+          
+          console.log('Attempting to parse cleaned JSON extract');
+          return JSON.parse(extractedJson);
+        }
+        
+        // If extraction fails, try the original aggressive cleaning
         jsonContent = jsonContent
-          // Fix incorrectly escaped quotes
-          .replace(/\\"/g, '"').replace(/"{2,}/g, '"')
-          // Fix backslash escaping issues
-          .replace(/([^\\])\\([^"\\])/g, '$1\\\\$2')
-          // Fix quotes inside property values
-          .replace(/"([^"]*)":\s*"([^"]*)"/g, (match, key, value) => {
-            const fixedValue = value.replace(/"/g, '\\"');
-            return `"${key}":"${fixedValue}"`;
-          })
-          // Fix possible line breaks in strings
-          .replace(/"\s+"/g, ' ')
-          // Remove potential comments
-          .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*/g, '')
-          // Fix potential trailing commas in objects and arrays
+          .replace(/\\"/g, '"')
+          .replace(/"{2,}/g, '"')
           .replace(/,(\s*[\]}])/g, '$1')
-          // Fix missing commas between properties
-          .replace(/}(\s*){/g, '},{')
-          .replace(/"([^"]*)"(\s*)"/g, '"$1","')
-          // Re-wrap the content in braces if stripped somehow
           .trim();
         
         if (!jsonContent.startsWith('{')) jsonContent = '{' + jsonContent;
         if (!jsonContent.endsWith('}')) jsonContent += '}';
-        
-        // Handle the specific common errors we're seeing in the logs
-        jsonContent = jsonContent
-          // Fix the common pattern where a quote is incorrectly escaped inside a string value
-          .replace(/"([^"]+)\\"([^"]+)"/g, '"$1\\\\"$2"')
-          // Fix specifically for participant detection
-          .replace(/"me"\s*:\s*"([^"]*)\\",\s*\\"them"\s*:\s*"([^"]*)"/g, '"me":"$1","them":"$2"')
-          // Fix the specific issue seen in current testing - defensive and accusatory
-          .replace(/"overallTone"\s*:\s*"([^"]*?)\\"/g, '"overallTone":"$1"')
-          // Fix quote issues in the middle of string values
-          .replace(/"([^"]*)" and ([^"]*?)"/g, '"$1 and $2"')
-          // Fix unescaped quotes that break JSON
-          .replace(/([^\\])"([^",:}]+)"([^",:}]*)/g, '$1\\"$2\\"$3')
-          // Fix trailing backslashes before quotes
-          .replace(/\\+"/g, '"');
         
         return JSON.parse(jsonContent);
       }
@@ -238,12 +243,12 @@ function extractParticipantsFromContent(content: string): Record<string, string>
   // Try to extract participants and their tones from the content
   try {
     // Look for name patterns in the content
-    const nameMatches = content.match(/"([^"]+)"\s*:\s*"([^"]+)"/g);
-    if (nameMatches && nameMatches.length >= 2) {
+    const participantMatches = content.match(/"([^"]+)"\s*:\s*"([^"]+)"/g);
+    if (participantMatches && participantMatches.length >= 2) {
       const participants: Record<string, string> = {};
       
       // Process each potential participant match
-      nameMatches.forEach(match => {
+      participantMatches.forEach(match => {
         const parts = match.match(/"([^"]+)"\s*:\s*"([^"]+)"/);
         if (parts && parts.length === 3) {
           const key = parts[1];
@@ -264,7 +269,12 @@ function extractParticipantsFromContent(content: string): Record<string, string>
     
     // Extract names directly from the conversation context
     const nameRegex = /([A-Z][a-z]+):/g;
-    const names = [...new Set(Array.from(content.matchAll(nameRegex), m => m[1]))];
+    const allMatches = Array.from(content.matchAll(nameRegex));
+    const uniqueNames = new Set<string>();
+    allMatches.forEach(match => {
+      uniqueNames.add(match[1]);
+    });
+    const names = Array.from(uniqueNames);
     
     if (names.length >= 2) {
       const result: Record<string, string> = {};
