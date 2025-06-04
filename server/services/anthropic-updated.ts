@@ -59,7 +59,7 @@ export async function analyzeChatWithAnthropicAI(conversation: string, me: strin
   try {
     // Make the API request
     const response = await anthropic.messages.create({
-      model: "claude-3-sonnet-20240229",
+      model: "claude-sonnet-4-20250514", // the newest Anthropic model is "claude-sonnet-4-20250514" which was released May 14, 2025. Use this by default unless user has already selected claude-3-7-sonnet-20250219
       system: systemPrompt,
       max_tokens: 4000,
       messages: [
@@ -268,19 +268,19 @@ const prompts = {
 
     personal: `Analyze this conversation between {me} and {them} with enhanced nuance detection.
 
-🔍 CONTEXT-AWARE FLAGGING RULES:
-- Do NOT flag emotionally vulnerable or explanatory language unless followed by coercion, guilt-tripping, threats, or blame
-- Check if emotional statements are de-escalation attempts vs manipulation
-- Distinguish between defensive reassurance and actual red flags
+🔍 RED FLAG DETECTION RULES:
+- Look for manipulation tactics: guilt-tripping, emotional blackmail, threats, blame-shifting
+- Identify gaslighting: denying reality, making someone question their memory/perception
+- Spot controlling behavior: isolation attempts, monitoring, restrictions
+- Detect stonewalling: silent treatment, emotional withdrawal as punishment
+- Flag verbal abuse: name-calling, insults, degrading language
+- Notice power imbalances: intimidation, coercion, financial control
 
-🔒 SAFE EXPRESSION LIBRARY (Never flag these as red flags):
-- "I'm feeling really overwhelmed" / "I'm not ignoring you, just overwhelmed"
-- "I care about you" / "I do care about you"  
-- "This is hard, but I want to understand"
-- "I didn't mean to upset you" / "I didn't realize that upset you"
-- "I'm not trying to ignore you"
-- "Let's talk about it calmly"
-- "I really needed you this week" / "I felt completely alone"
+🔒 CONTEXT SENSITIVITY (These alone are NOT red flags):
+- Expressing vulnerability: "I'm feeling overwhelmed"
+- Genuine apologies: "I didn't mean to upset you"
+- Seeking resolution: "Let's talk about this calmly"
+- Sharing feelings: "I felt alone" (unless used to guilt-trip)
 
 🧠 INTENT CLASSIFICATION: For key quotes, classify intent as:
 - Defensive reassurance: Attempting to calm tension without escalation
@@ -324,20 +324,23 @@ Return a JSON object with the following structure:
     Here's the conversation:
     {conversation}`,
 
-    pro: `Perform a comprehensive analysis of this conversation between {me} and {them} with enhanced nuance detection.
+    pro: `Perform a comprehensive analysis of this conversation between {me} and {them} with thorough red flag detection.
 
-🔍 CONTEXT-AWARE FLAGGING RULES:
-- Do NOT flag emotionally vulnerable or explanatory language unless followed by coercion, guilt-tripping, threats, or blame
-- Check whether emotional statements are part of de-escalation attempts vs manipulation patterns
-- Distinguish between defensive reassurance and actual problematic behavior
+🔍 RED FLAG DETECTION RULES:
+- Look for manipulation tactics: guilt-tripping, emotional blackmail, threats, blame-shifting
+- Identify gaslighting: denying reality, making someone question their memory/perception
+- Spot controlling behavior: isolation attempts, monitoring, restrictions
+- Detect stonewalling: silent treatment, emotional withdrawal as punishment
+- Flag verbal abuse: name-calling, insults, degrading language
+- Notice power imbalances: intimidation, coercion, financial control
+- Identify love-bombing followed by devaluation
+- Detect triangulation and playing people against each other
 
-🔒 SAFE EXPRESSION LIBRARY (Never flag these as red flags):
-- "I'm feeling really overwhelmed" / "I'm not ignoring you, just overwhelmed" 
-- "I care about you" / "I do care about you"
-- "This is hard, but I want to understand"
-- "I didn't mean to upset you" / "I didn't realize that upset you"
-- "I'm not trying to ignore you"
-- "Let's talk about it calmly" / "Can we please stop fighting?"
+🔒 CONTEXT SENSITIVITY (These alone are NOT red flags):
+- Expressing vulnerability: "I'm feeling overwhelmed"
+- Genuine apologies: "I didn't mean to upset you"
+- Seeking resolution: "Let's talk about this calmly"
+- Sharing feelings: "I felt alone" (unless used to guilt-trip)
 - "I really needed you this week" / "I felt completely alone"
 - "I'm trying to understand, but this hurts"
 
