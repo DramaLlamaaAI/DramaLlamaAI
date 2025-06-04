@@ -374,7 +374,27 @@ export function detectRedFlagsDirectly(conversation: string, healthScore?: numbe
             }
           }
           
-          // RULE 6: Prevent false positives for Passivity - distinguish neutral awareness from dismissive patterns
+          // RULE 6: Prevent false positives for protective parenting responses
+          if (pattern.type === 'Custody Violation' || pattern.type === 'Legal Intimidation' || pattern.type === 'Crisis Escalation') {
+            // Check if this is a protective response to someone else's concerning behavior
+            const isProtectiveResponse = messageText.match(/(police.*looking|bring.*back|return.*child|where.*is|epipen|medical.*needs|safety|welfare)/i);
+            const isFactualReporting = messageText.match(/(the police are|they are looking|feel free to update|if you don't want to update me)/i);
+            
+            // Check if this speaker is responding to concerning behavior (lack of communication/return)
+            const otherSpeakerMessages = allMessages.filter(msg => msg.speaker !== speakerName);
+            const hasLimitedResponse = otherSpeakerMessages.length < 3; // Very few responses from the other party
+            const hasEvasiveResponses = otherSpeakerMessages.some(msg => 
+              msg.text.match(/(busy|can't talk|later|not now|gtg|gotta go)/i) && msg.text.length < 50
+            );
+            
+            // If this is a protective/factual response to concerning behavior, don't flag it
+            if ((isProtectiveResponse || isFactualReporting) && (hasLimitedResponse || hasEvasiveResponses)) {
+              console.log(`Preventing false positive for protective parenting: "${messageText}" is appropriate response to concerning behavior`);
+              isValidFlag = false;
+            }
+          }
+          
+          // RULE 7: Prevent false positives for Passivity - distinguish neutral awareness from dismissive patterns
           if (pattern.type === 'Passivity') {
             // Neutral awareness statements that should NOT be flagged as passivity
             const isNeutralAwareness = messageText.match(/(I didn['']t realize|didn['']t know|you should['']ve told me|wish you had told me|would have|if I had known)/i);
