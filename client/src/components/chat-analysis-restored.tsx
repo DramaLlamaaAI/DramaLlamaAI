@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 
 export default function ChatAnalysis() {
-  const [tabValue, setTabValue] = useState("paste");
+  const [tabValue, setTabValue] = useState("upload");
   const [conversation, setConversation] = useState("");
   const [me, setMe] = useState("");
   const [them, setThem] = useState("");
@@ -157,76 +157,10 @@ export default function ChatAnalysis() {
         <Card className="mb-8">
           <CardContent className="p-6">
             <Tabs value={tabValue} onValueChange={setTabValue}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="paste">Paste Text</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="upload">Upload File</TabsTrigger>
                 <TabsTrigger value="image">Screenshot</TabsTrigger>
               </TabsList>
-
-              <TabsContent value="paste" className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Paste your conversation here:
-                  </label>
-                  <Textarea
-                    value={conversation}
-                    onChange={(e) => setConversation(e.target.value)}
-                    placeholder="Paste your WhatsApp export or any text conversation here..."
-                    className="min-h-[200px]"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Your name (optional):
-                    </label>
-                    <Input
-                      value={me}
-                      onChange={(e) => setMe(e.target.value)}
-                      placeholder="Your name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Other person's name (optional):
-                    </label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={them}
-                        onChange={(e) => setThem(e.target.value)}
-                        placeholder="Other person's name"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={switchNames}
-                        title="Switch names"
-                      >
-                        <ArrowLeftRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={handleAnalyze}
-                  disabled={!canUseFeature || analysisMutation.isPending}
-                  className="w-full"
-                >
-                  {analysisMutation.isPending ? (
-                    <>
-                      <Brain className="mr-2 h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="mr-2 h-4 w-4" />
-                      Analyze Conversation
-                    </>
-                  )}
-                </Button>
-              </TabsContent>
 
               <TabsContent value="upload" className="space-y-4">
                 <div>
