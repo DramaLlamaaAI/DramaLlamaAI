@@ -277,6 +277,17 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
   console.log('BETA TIER SERVICE: Filtered red flags from', (rawAnalysis.redFlags || []).length, 'to', filteredRedFlags.length);
   console.log('BETA TIER SERVICE: Raw red flags:', (rawAnalysis.redFlags || []).map(f => f.type));
   
+  // Apply direct red flag detection to catch patterns the AI might miss
+  const { detectRedFlagsDirectly } = await import('./direct-red-flag-detector');
+  const directRedFlags = detectRedFlagsDirectly(chatText, rawAnalysis.healthScore?.score);
+  console.log(`BETA TIER SERVICE: Direct detection found ${directRedFlags.length} additional red flags`);
+  
+  // Merge direct red flags with existing ones
+  if (directRedFlags.length > 0) {
+    filteredRedFlags.push(...directRedFlags);
+    console.log(`BETA TIER SERVICE: Added ${directRedFlags.length} directly detected red flags`);
+  }
+
   // If no red flags detected but tone indicates conflict, create appropriate red flags based on tone analysis
   if (filteredRedFlags.length === 0 && rawAnalysis.toneAnalysis?.overallTone) {
     const tone = rawAnalysis.toneAnalysis.overallTone.toLowerCase();
