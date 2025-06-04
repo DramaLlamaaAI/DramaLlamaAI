@@ -259,6 +259,30 @@ export default function Checkout() {
     );
   }
 
+  // Additional validation for clientSecret format
+  if (!clientSecret.startsWith('pi_')) {
+    return (
+      <div className="container py-12">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Payment Setup Error</CardTitle>
+            <CardDescription>Invalid payment configuration</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              The payment system encountered a configuration error. Please try again.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={() => navigate('/subscription')} className="w-full">
+              Back to Plans
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
   // Helper function to format price
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -333,9 +357,11 @@ export default function Checkout() {
               </div>
             )}
             
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <CheckoutForm plan={plan} />
-            </Elements>
+            {clientSecret && (
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <CheckoutForm plan={plan} />
+              </Elements>
+            )}
           </CardContent>
           <CardFooter className="flex justify-center border-t pt-6">
             <p className="text-xs text-center text-muted-foreground">
