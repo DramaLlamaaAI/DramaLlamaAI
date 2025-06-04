@@ -1202,6 +1202,9 @@ export const analysisController = {
             const originalTier = (req as any).user?.tier || 'free';
             const tier = getUserTier(req);
             
+            console.log('FILE IMPORT DEBUG - Original tier:', originalTier, 'Converted tier:', tier);
+            console.log('FILE IMPORT DEBUG - User object:', (req as any).user);
+            
             let analysis = await analyzeChatConversation(chatText, me, them, tier);
             
             // Special handling for Beta tier - use dedicated service
@@ -1210,6 +1213,8 @@ export const analysisController = {
               const { createBetaTierAnalysis } = await import('../services/beta-tier-service');
               analysis = createBetaTierAnalysis(analysis, me, them);
               console.log('BETA TIER FILE IMPORT: Dedicated analysis complete');
+            } else {
+              console.log('FILE IMPORT DEBUG - Not Beta tier, skipping dedicated service. Original tier was:', originalTier);
             }
             
             // Apply the same free tier filtering logic as the main analysis endpoint
