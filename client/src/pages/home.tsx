@@ -90,7 +90,7 @@ export default function Home() {
               Choose from our powerful AI-powered communication analysis tools to gain insights into your conversations.
             </p>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10">
               <div className="flex items-center gap-3">
                 <Link href="/chat-analysis" className="flex-1">
                   <Button size="lg" className="bg-primary hover:bg-primary/90 text-white w-full justify-start">
@@ -108,6 +108,30 @@ export default function Home() {
                       <DialogTitle className="text-pink-700 text-xl font-bold">Chat Analysis</DialogTitle>
                     </DialogHeader>
                     <p className="text-gray-700 leading-relaxed">Upload or paste a conversation to get detailed insights about communication patterns and emotional tone.</p>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <Link href="/vent-mode" className="flex-1">
+                  <Button 
+                    size="lg" 
+                    className="bg-orange-600 hover:bg-orange-700 text-white w-full justify-start"
+                  >
+                    <Zap className="h-5 w-5 mr-2" /> Vent Mode
+                  </Button>
+                </Link>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-10 w-10 p-0 border-gray-300 flex-shrink-0">
+                      <Info className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gradient-to-br from-orange-50 to-white border-orange-200">
+                    <DialogHeader>
+                      <DialogTitle className="text-orange-700 text-xl font-bold">Vent Mode</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-gray-700 leading-relaxed">A safe space to express your thoughts and get supportive insights about your emotional state.</p>
                   </DialogContent>
                 </Dialog>
               </div>
