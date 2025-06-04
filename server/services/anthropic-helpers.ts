@@ -111,46 +111,65 @@ export function parseAnthropicJson(content: string): any {
           }
         }
         
-        // Try with a more aggressive cleaning approach
-        console.log('Attempting more aggressive JSON cleaning');
+        // Try comprehensive JSON reconstruction
+        console.log('Attempting comprehensive JSON cleaning');
         
-        // First, try to find the complete JSON object boundaries
+        // Step 1: Find the actual JSON boundaries more carefully
         const startIndex = jsonContent.indexOf('{');
-        let endIndex = jsonContent.lastIndexOf('}');
-        
-        if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-          // Extract just the JSON part
-          let extractedJson = jsonContent.substring(startIndex, endIndex + 1);
-          
-          // Apply targeted fixes for common issues
-          extractedJson = extractedJson
-            // Fix the specific quote escaping issue we're seeing
-            .replace(/([^\\])\\"/g, '$1"')
-            // Fix unescaped quotes in string values
-            .replace(/"([^"]*)"([^"]*)"([^"]*)"(\s*[,}:])/g, '"$1\\"$2\\"$3"$4')
-            // Fix trailing commas
-            .replace(/,(\s*[}\]])/g, '$1')
-            // Clean up any malformed quotes
-            .replace(/\\\\"/g, '\\"')
-            // Fix missing commas between objects
-            .replace(/}(\s*)"/g, '},"')
-            .replace(/"(\s*){/g, '",{');
-          
-          console.log('Attempting to parse cleaned JSON extract');
-          return JSON.parse(extractedJson);
+        if (startIndex === -1) {
+          throw new Error('No JSON object found in response');
         }
         
-        // If extraction fails, try the original aggressive cleaning
-        jsonContent = jsonContent
-          .replace(/\\"/g, '"')
-          .replace(/"{2,}/g, '"')
-          .replace(/,(\s*[\]}])/g, '$1')
+        // Step 2: Find the matching closing brace by counting brackets
+        let braceCount = 0;
+        let endIndex = -1;
+        for (let i = startIndex; i < jsonContent.length; i++) {
+          if (jsonContent[i] === '{') braceCount++;
+          else if (jsonContent[i] === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              endIndex = i;
+              break;
+            }
+          }
+        }
+        
+        if (endIndex === -1) {
+          // If we can't find the end, take everything and add closing braces
+          endIndex = jsonContent.length - 1;
+        }
+        
+        let extractedJson = jsonContent.substring(startIndex, endIndex + 1);
+        
+        // Step 3: Apply systematic cleaning
+        extractedJson = extractedJson
+          // First pass: fix escaping issues that break JSON structure
+          .replace(/\\\"/g, '"') // Remove all escaped quotes first
+          .replace(/\\\\/g, '\\') // Fix double backslashes
+          
+          // Second pass: re-escape quotes that should be escaped (inside string values)
+          .replace(/"([^"]*)"(\s*:\s*)"([^"]*)"([^"]*)"([^"]*)"(\s*[,}])/g, 
+                   '"$1"$2"$3\\"$4\\"$5"$6')
+          
+          // Third pass: structural fixes
+          .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+          .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":') // Quote unquoted keys
+          
+          // Fourth pass: balance braces if needed
           .trim();
         
-        if (!jsonContent.startsWith('{')) jsonContent = '{' + jsonContent;
-        if (!jsonContent.endsWith('}')) jsonContent += '}';
+        // Ensure proper closing
+        if (!extractedJson.endsWith('}')) {
+          const openBraces = (extractedJson.match(/{/g) || []).length;
+          const closeBraces = (extractedJson.match(/}/g) || []).length;
+          for (let i = 0; i < openBraces - closeBraces; i++) {
+            extractedJson += '}';
+          }
+        }
         
-        return JSON.parse(jsonContent);
+        console.log('Attempting to parse reconstructed JSON');
+        console.log('JSON preview:', extractedJson.substring(0, 200) + '...');
+        return JSON.parse(extractedJson);
       }
     } catch (error) {
       const parseError = error as Error;
