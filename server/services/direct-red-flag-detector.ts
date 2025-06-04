@@ -233,23 +233,9 @@ export function detectRedFlagsDirectly(conversation: string, healthScore?: numbe
     cancellationMentions.size <= 2 // Allow up to two people to mention cancellation in a resolved way
   );
   
-  // Check for Zara-Owen style healthy conversation pattern
-  const isHealthyConversation = 
-    // Signs of mutual respect
-    allMessages.some(msg => msg.text.match(/(appreciate you|thank you|glad we|care about you)/i)) &&
-    // Signs of constructive resolution
-    allMessages.some(msg => msg.text.match(/(sorry|apologize|understand|make it up)/i)) &&
-    // Signs of forward-focused approach
-    allMessages.some(msg => msg.text.match(/(next time|plan|future|weekend|looking forward)/i));
-  
-  // Check for Elena-Harper style appreciation conversation
-  const isAppreciationConversation = 
-    // Signs of gratitude and appreciation
-    allMessages.some(msg => msg.text.match(/(really appreciated|made a difference|means a lot)/i)) &&
-    // Signs of supportive responses
-    allMessages.some(msg => msg.text.match(/(of course|always here|i'd love)/i)) &&
-    // Overall positive tone without conflict
-    !allMessages.some(msg => msg.text.match(/(but you|however|if you|you should|you never|you always)/i));
+  // Only skip detection if health score indicates genuinely healthy conversation (85+)
+  const isHealthyConversation = false; // Rely solely on health score, not pattern matching
+  const isAppreciationConversation = false; // Rely solely on health score, not pattern matching
   
   // Process each message with context awareness
   allMessages.forEach(({speaker: speakerName, text: messageText}) => {
