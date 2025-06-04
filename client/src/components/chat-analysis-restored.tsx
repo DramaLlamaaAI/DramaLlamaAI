@@ -224,7 +224,11 @@ export default function ChatAnalysis() {
                               WhatsApp Export Guide
                             </a>
                             {' '}to learn how to export and upload your chat files.<br />
-                            If you need additional 1:1 support, please contact us on Facebook.com/DramaLlamaAI, and one of our team will assist you personally.
+                            If you need additional 1:1 support, please contact us on{' '}
+                            <a href="https://www.facebook.com/DramaLlamaAI" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-900 font-medium">
+                              Facebook.com/DramaLlamaAI
+                            </a>
+                            , and one of our team will assist you personally.
                           </div>
                         </div>
                       </div>
