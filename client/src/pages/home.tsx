@@ -137,30 +137,6 @@ export default function Home() {
               </div>
               
               <div className="flex items-center gap-3">
-                <Link href="/screenshot-analysis" className="flex-1">
-                  <Button 
-                    size="lg" 
-                    className="bg-purple-600 hover:bg-purple-700 text-white w-full justify-start"
-                  >
-                    <RefreshCcw className="h-5 w-5 mr-2" /> Screenshot Analysis
-                  </Button>
-                </Link>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-10 w-10 p-0 border-gray-300 flex-shrink-0">
-                      <Info className="h-4 w-4 text-gray-600" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
-                    <DialogHeader>
-                      <DialogTitle className="text-purple-700 text-xl font-bold">Screenshot Analysis</DialogTitle>
-                    </DialogHeader>
-                    <p className="text-gray-700 leading-relaxed">Upload screenshots of your conversations to extract text and analyze communication patterns and emotional tone.</p>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              
-              <div className="flex items-center gap-3">
                 <Link href={getWhatsAppGroupsRoute()} className="flex-1">
                   <div className="relative">
                     <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white w-full justify-start">
