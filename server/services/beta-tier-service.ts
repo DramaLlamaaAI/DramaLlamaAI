@@ -529,35 +529,13 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
     supportHelpLines: generateSupportRecommendations(rawAnalysis, filteredRedFlags),
     
     // Empathetic Summary for each participant (Beta tier feature)
-    empatheticSummary: rawAnalysis.empatheticSummary || {
-      [me]: {
-        summary: `${me} appears to be experiencing some frustration and may be struggling with effective communication in this situation.`,
-        insights: `The communication patterns suggest ${me} might benefit from developing more collaborative dialogue skills and emotional awareness.`,
-        growthAreas: [
-          "Practice active listening and validation",
-          "Develop emotional regulation during conflict",
-          "Learn to express needs without blame or criticism"
-        ],
-        strengths: [
-          "Shows willingness to engage in conversation",
-          "Expresses feelings directly rather than suppressing them"
-        ]
-      },
-      [them]: {
-        summary: `${them} demonstrates efforts to maintain peaceful dialogue and shows resilience in challenging communication situations.`,
-        insights: `${them}'s responses indicate someone who values harmony and tries to de-escalate conflict, though may benefit from stronger boundary-setting.`,
-        growthAreas: [
-          "Set clearer boundaries during difficult conversations",
-          "Express personal needs more assertively",
-          "Recognize when to disengage from unproductive exchanges"
-        ],
-        strengths: [
-          "Shows patience and attempts at understanding",
-          "Maintains composure during conflict",
-          "Demonstrates empathy and consideration for others"
-        ]
-      }
-    }
+    empatheticSummary: generatePersonalizedEmpatheticSummary(
+      rawAnalysis, 
+      filteredRedFlags, 
+      me, 
+      them, 
+      chatText
+    )
 
   };
   
@@ -592,4 +570,124 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
   console.log('BETA TIER SERVICE: Analysis complete with enhanced nuance detection');
   console.log('BETA TIER SERVICE: Enhanced filtering protected', (rawAnalysis.redFlags || []).length - filteredRedFlags.length, 'healthy expressions from being flagged');
   return betaAnalysis;
+}
+
+/**
+ * Generate personalized empathetic summary based on conversation content
+ */
+function generatePersonalizedEmpatheticSummary(
+  rawAnalysis: any,
+  redFlags: any[],
+  me: string,
+  them: string,
+  conversation: string
+): any {
+  try {
+    // Extract key conversation insights
+    const overallTone = rawAnalysis.toneAnalysis?.overallTone || '';
+    const participantTones = rawAnalysis.toneAnalysis?.participantTones || {};
+    const emotionalState = rawAnalysis.toneAnalysis?.emotionalState || [];
+    
+    // Analyze conversation patterns for each participant
+    const conversationLines = conversation.split('\n').filter(line => line.trim());
+    const meMessages = conversationLines.filter(line => line.includes(`${me}:`));
+    const themMessages = conversationLines.filter(line => line.includes(`${them}:`));
+    
+    // Create personalized summaries based on actual conversation content
+    const meTone = participantTones[me] || 'neutral';
+    const themTone = participantTones[them] || 'neutral';
+    
+    // Generate empathetic insights for 'me' participant
+    const meEmotions = emotionalState.map((e: any) => e.emotion).join(', ');
+    const meRedFlags = redFlags.filter(flag => flag.participant === me);
+    
+    const meSummary = generateParticipantSummary(
+      me, meTone, meEmotions, meRedFlags, meMessages.length, overallTone
+    );
+    
+    // Generate empathetic insights for 'them' participant  
+    const themRedFlags = redFlags.filter(flag => flag.participant === them);
+    
+    const themSummary = generateParticipantSummary(
+      them, themTone, meEmotions, themRedFlags, themMessages.length, overallTone
+    );
+    
+    return {
+      [me]: meSummary,
+      [them]: themSummary
+    };
+    
+  } catch (error) {
+    console.error('Error generating personalized empathetic summary:', error);
+    // Fallback to basic summaries
+    return {
+      [me]: {
+        summary: `${me} shows engagement in this conversation with room for growth in communication.`,
+        insights: `Communication patterns suggest ${me} could benefit from enhanced dialogue skills.`,
+        growthAreas: ["Practice active listening", "Develop emotional awareness"],
+        strengths: ["Shows willingness to communicate", "Expresses thoughts directly"]
+      },
+      [them]: {
+        summary: `${them} demonstrates effort to maintain dialogue in this conversation.`,
+        insights: `${them} shows resilience in challenging communication situations.`,
+        growthAreas: ["Set clearer boundaries", "Express needs more assertively"],
+        strengths: ["Shows patience", "Maintains composure"]
+      }
+    };
+  }
+}
+
+/**
+ * Generate participant-specific empathetic summary
+ */
+function generateParticipantSummary(
+  name: string,
+  tone: string,
+  emotions: string,
+  redFlags: any[],
+  messageCount: number,
+  overallTone: string
+): any {
+  const hasRedFlags = redFlags.length > 0;
+  
+  // Customize summary based on tone and red flags
+  let summary = '';
+  let insights = '';
+  let growthAreas = [];
+  let strengths = [];
+  
+  if (tone.includes('aggressive') || tone.includes('confrontational')) {
+    summary = `${name} appears to be experiencing strong emotions and may be feeling unheard or frustrated in this conversation.`;
+    insights = `The assertive communication style suggests ${name} has important concerns but may benefit from expressing them more constructively.`;
+    growthAreas = ["Practice calm expression of concerns", "Use 'I' statements instead of accusations", "Take breaks when emotions run high"];
+    strengths = ["Shows passion about important matters", "Willing to express feelings directly"];
+  } else if (tone.includes('defensive') || tone.includes('hurt')) {
+    summary = `${name} seems to be feeling emotionally vulnerable and is working to protect themselves in this interaction.`;
+    insights = `${name}'s responses indicate someone who cares deeply about the relationship and may be feeling misunderstood.`;
+    growthAreas = ["Practice expressing hurt without defensiveness", "Ask for clarification before reacting", "Communicate needs more directly"];
+    strengths = ["Shows emotional investment in the relationship", "Attempts to explain their perspective"];
+  } else if (tone.includes('dismissive') || tone.includes('controlling')) {
+    summary = `${name} may be feeling overwhelmed or frustrated, leading to communication patterns that could create distance.`;
+    insights = `The communication style suggests ${name} might benefit from developing more collaborative dialogue approaches.`;
+    growthAreas = ["Practice active listening and validation", "Show curiosity about the other person's perspective", "Express needs without minimizing others' feelings"];
+    strengths = ["Shows directness in communication", "Willing to engage in difficult conversations"];
+  } else {
+    summary = `${name} demonstrates thoughtful engagement in this conversation and shows care for effective communication.`;
+    insights = `${name}'s approach suggests someone who values understanding and connection in relationships.`;
+    growthAreas = ["Continue developing assertiveness skills", "Practice expressing needs clearly", "Maintain healthy boundaries"];
+    strengths = ["Shows patience and understanding", "Demonstrates emotional maturity", "Commits to working through challenges"];
+  }
+  
+  // Adjust based on red flags
+  if (hasRedFlags) {
+    const flagTypes = redFlags.map(flag => flag.type).join(', ');
+    insights += ` The conversation patterns around ${flagTypes.toLowerCase()} suggest opportunities for growth in healthy communication skills.`;
+  }
+  
+  return {
+    summary,
+    insights,
+    growthAreas,
+    strengths
+  };
 }
