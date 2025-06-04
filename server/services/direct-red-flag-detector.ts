@@ -122,6 +122,41 @@ const redFlagPatterns = [
     type: 'Passivity',
     description: 'Avoiding responsibility or minimizing impact of actions',
     severity: 6
+  },
+  // Custody/Child Safety Violations
+  {
+    pattern: /(police have been informed|police are out looking|bring her back|doesn['']t deserve to be caught in this|shouldn['']t have to go through this|taking without permission|not telling me where|medical neglect|withholding medication|epi pen|essential medication|court will recognize|supervised visitation|impact your position in court|refuge|prioritize.*well-being)/i,
+    type: 'Child Welfare Threats',
+    description: 'Involving authorities, threatening custody, or using child welfare as leverage',
+    severity: 10
+  },
+  // Legal Intimidation
+  {
+    pattern: /(court consequences|legal action|supervised visitation|impact.*court|position in court|health visitor|social services|authorities|reference.*incident|file a report|legal implications)/i,
+    type: 'Legal Intimidation',
+    description: 'Using legal threats or authorities to control or intimidate',
+    severity: 9
+  },
+  // Medical Control/Withholding
+  {
+    pattern: /(withholding.*medication|epi.*pen.*still with me|needs.*accessible at all times|medical neglect|essential medication|life-threatening|allergy.*medication|emergency medication)/i,
+    type: 'Medical Control',
+    description: 'Controlling or withholding essential medical care or medication',
+    severity: 10
+  },
+  // Child as Leverage
+  {
+    pattern: /(using.*child|leverage.*child|child.*weapon|hurt.*child|punish.*through.*child|child.*suffer|caught in.*confusion|doesn['']t deserve|shouldn['']t have to go through)/i,
+    type: 'Child as Leverage',
+    description: 'Using a child as a tool for control or manipulation between adults',
+    severity: 9
+  },
+  // Escalation to Crisis
+  {
+    pattern: /(escalate.*point|escalation|crisis situation|emergency situation|things.*gotten.*serious|situation.*serious|authorities.*involved|police.*involved)/i,
+    type: 'Crisis Escalation',
+    description: 'Escalating conflicts to crisis levels involving authorities or emergency situations',
+    severity: 8
   }
 ];
 
@@ -209,10 +244,18 @@ export function detectRedFlagsDirectly(conversation: string, healthScore?: numbe
         let isValidFlag = true;
         
         // RULE 0: Skip all red flags for conversations that are clearly healthy
-        if (isHealthyConversation || isAppreciationConversation) {
-          // This is a demonstrably healthy conversation, no red flags needed
+        // EXCEPT for critical safety issues that override healthy classification
+        const isCriticalSafetyFlag = pattern.severity >= 9 || 
+          pattern.type === 'Child Welfare Threats' || 
+          pattern.type === 'Medical Control' || 
+          pattern.type === 'Legal Intimidation';
+        
+        if ((isHealthyConversation || isAppreciationConversation) && !isCriticalSafetyFlag) {
+          // This is a demonstrably healthy conversation, no red flags needed (except critical safety)
           console.log(`Skipping red flag for healthy conversation: "${messageText}"`);
           isValidFlag = false;
+        } else if (isCriticalSafetyFlag) {
+          console.log(`CRITICAL SAFETY FLAG DETECTED - overriding healthy conversation filter: "${pattern.type}"`);
         }
         
         // RULE 0.5: Never flag clearly supportive statements (applies regardless of conversation health)
