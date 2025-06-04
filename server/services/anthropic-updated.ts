@@ -364,6 +364,14 @@ Return a JSON object with the following structure:
           "label": "string describing style",
           "isEscalating": boolean
         }
+      },
+      "empatheticSummary": {
+        "participant name": {
+          "summary": "empathetic understanding of their communication style and emotional state",
+          "insights": "behavioral insights and what might be driving their responses",
+          "growthAreas": ["specific areas where they could improve their communication"],
+          "strengths": ["positive aspects of their communication or coping mechanisms"]
+        }
       }
     }
     
