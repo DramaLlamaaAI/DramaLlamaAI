@@ -164,8 +164,12 @@ const redFlagPatterns = [
  * Detect red flags directly from conversation text
  */
 export function detectRedFlagsDirectly(conversation: string, healthScore?: number): RedFlag[] {
+  console.log(`DIRECT RED FLAG DETECTION: Starting with health score ${healthScore}`);
+  console.log(`DIRECT RED FLAG DETECTION: Conversation length ${conversation?.length} chars`);
+  
   // If no conversation, return empty array
   if (!conversation) {
+    console.log('DIRECT RED FLAG DETECTION: No conversation provided');
     return [];
   }
   
@@ -186,13 +190,25 @@ export function detectRedFlagsDirectly(conversation: string, healthScore?: numbe
   
   // Extract all messages first for context analysis
   lines.forEach(line => {
-    if (!line.includes(':')) return;
+    // Handle WhatsApp format: "DD/MM/YYYY, HH:MM - Speaker: Message"
+    const whatsAppMatch = line.match(/^\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2} - ([^:]+): (.+)$/);
     
-    const [speaker, message] = line.split(':', 2);
-    if (!speaker || !message) return;
+    let speakerName: string;
+    let messageText: string;
     
-    const speakerName = speaker.trim();
-    const messageText = message.trim();
+    if (whatsAppMatch) {
+      // WhatsApp format
+      speakerName = whatsAppMatch[1].trim();
+      messageText = whatsAppMatch[2].trim();
+    } else if (line.includes(':')) {
+      // Simple format: "Speaker: Message"
+      const [speaker, message] = line.split(':', 2);
+      if (!speaker || !message) return;
+      speakerName = speaker.trim();
+      messageText = message.trim();
+    } else {
+      return; // Skip lines that don't match expected formats
+    }
     
     allMessages.push({speaker: speakerName, text: messageText});
     
