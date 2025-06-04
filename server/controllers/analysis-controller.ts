@@ -1198,12 +1198,24 @@ export const analysisController = {
             });
           } else {
             // Regular 1-on-1 chat analysis
-            // Get user tier to apply proper filtering
-            const originalTier = (req as any).user?.tier || 'free';
+            // Get user tier to apply proper filtering - fetch from session if user object not attached
+            let originalTier = 'free';
+            let user = null;
+            
+            if ((req as any).session?.userId) {
+              try {
+                user = await storage.getUser((req as any).session.userId);
+                originalTier = user?.tier || 'free';
+              } catch (error) {
+                console.log('Failed to fetch user from session:', error);
+              }
+            }
+            
             const tier = getUserTier(req);
             
+            console.log('FILE IMPORT DEBUG - Session userId:', (req as any).session?.userId);
+            console.log('FILE IMPORT DEBUG - Fetched user:', user);
             console.log('FILE IMPORT DEBUG - Original tier:', originalTier, 'Converted tier:', tier);
-            console.log('FILE IMPORT DEBUG - User object:', (req as any).user);
             
             let analysis = await analyzeChatConversation(chatText, me, them, tier);
             
