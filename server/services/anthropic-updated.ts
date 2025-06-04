@@ -176,6 +176,16 @@ interface ChatAnalysisResponse {
       isEscalating: boolean;
     }
   };
+  empatheticSummary?: {
+    [participant: string]: {
+      summary: string;
+      insights: string;
+      growthAreas: string[];
+      strengths: string[];
+      attachmentStyle?: string;
+      triggerPatterns?: string[];
+    }
+  };
 }
 
 interface MessageAnalysisResponse {
@@ -564,15 +574,23 @@ Return a JSON object with the following EXPERT-LEVEL structure:
     {message}`
   },
   deEscalate: {
-    free: `Rewrite this emotional message in a calmer, more constructive way.
-    Return a JSON object with the following structure:
+    free: `You are an empathetic communication coach helping someone express their feelings in a healthier way. Your job is to rewrite emotionally charged messages so they sound natural and human - like how a caring friend or partner might actually say it in real life.
+
+    Guidelines for rewriting:
+    - Use everyday, conversational language - avoid sounding stiff or robotic
+    - Keep it genuine and authentic - like you're talking to someone you care about
+    - Make it calm and constructive, but still emotionally honest
+    - Sound like a real person would say it, not a corporate email
+    - Keep the core message but express it more thoughtfully
+
+    Return a JSON object with this structure:
     {
       "original": "the original message",
-      "rewritten": "rewritten message that's calmer and more constructive",
-      "explanation": "explanation of changes made"
+      "rewritten": "rewritten message that sounds natural and human",
+      "explanation": "brief explanation of how you made it more authentic"
     }
     
-    Here's the message:
+    Here's the message to rewrite:
     {message}`
   },
   detectNames: `Extract the two primary participants in this conversation.
@@ -1296,34 +1314,36 @@ export async function deEscalateMessage(message: string, tier: string = 'free') 
     
     if (tier === 'pro' || tier === 'instant') {
       // Enhanced de-escalation with professional-level guidance
-      prompt = `Provide a comprehensive professional-level transformation of this emotional message into a more effective communication.
-      Return a JSON object with the following structure:
+      prompt = `Help someone rewrite this emotional message so it sounds natural and genuine while being more effective. Think like you're helping a friend communicate better with someone they care about.
+
+      Return a JSON object with this structure:
       {
         "original": "the original message",
-        "rewritten": "professionally rewritten message that's strategic, constructive, and effective",
-        "explanation": "detailed explanation of the communication issues and the psychological reasoning behind the changes",
-        "additionalContextInsights": "analysis of potential underlying issues that may need addressing",
-        "longTermStrategy": "suggestions for addressing the deeper pattern beyond this single message"
+        "rewritten": "rewritten message that sounds authentic and human while being calmer and more constructive",
+        "explanation": "conversational explanation of what was changed and why it works better",
+        "additionalContextInsights": "deeper insights about what might be going on beneath the surface",
+        "longTermStrategy": "practical suggestions for improving communication patterns going forward"
       }
       
-      Focus on creating a message that maintains the author's core concerns while significantly improving tone, delivery, and likelihood of a positive outcome.
+      Make the rewritten message sound like how a real person would actually say it - genuine, thoughtful, but still emotionally honest. Avoid corporate or therapy-speak.
       
-      Here's the message:
+      Here's the message to rewrite:
       ${message}`;
     } else if (tier === 'personal') {
       // Mid-level de-escalation with personalized guidance
-      prompt = `Transform this emotional message into a more effective communication with personalized guidance.
-      Return a JSON object with the following structure:
+      prompt = `Help rewrite this emotional message so it sounds more natural and gets better results. Think about how you'd want someone to talk to you when emotions are running high.
+
+      Return a JSON object with this structure:
       {
         "original": "the original message",
-        "rewritten": "thoughtfully rewritten message that's calmer and more constructive",
-        "explanation": "clear explanation of the communication issues and improvements made",
-        "alternativeOptions": "1-2 alternative approaches that could also work"
+        "rewritten": "rewritten message that sounds genuine and human while being calmer and more constructive",
+        "explanation": "friendly explanation of what was changed and why it works better",
+        "alternativeOptions": "1-2 other ways they could say this that might also work well"
       }
       
-      Focus on creating a message that addresses the author's concerns while improving tone and constructiveness.
+      Make it sound like how a real person would actually say it - authentic and caring, not like a script or formal letter.
       
-      Here's the message:
+      Here's the message to rewrite:
       ${message}`;
     } else {
       // Basic de-escalation (free tier)
@@ -1335,20 +1355,21 @@ export async function deEscalateMessage(message: string, tier: string = 'free') 
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 800,
       temperature: 0.1,
-      system: `You are a communication expert who transforms emotional messages into constructive ones.
+      system: `You are an empathetic communication coach helping someone express their feelings in a healthier way. Your job is to rewrite emotionally charged messages so they sound natural and human - like how a caring friend or partner might actually say it in real life.
 
-EXTREMELY CRITICAL: You MUST follow these output format requirements EXACTLY:
-1. You MUST ONLY return clean, syntactically perfect JSON with NO explanations outside the JSON
-2. You MUST wrap your output in code block markers: \`\`\`json at start and \`\`\` at end 
-3. DO NOT use special characters inside the JSON values - ONLY use ASCII characters
-4. NEVER use single quotes ' anywhere in the JSON - ONLY use double quotes "
-5. AVOID using quotes within text values - rephrase to not need quotation marks
-6. ALL property names MUST be in "double quotes"
-7. DO NOT use trailing commas at the end of arrays or objects
-8. KEEP all text extremely concise - 25 words maximum for any field
-9. NEVER use line returns inside string values - use spaces instead
-10. ALL text values MUST be in "double quotes"
-11. DO NOT include any text outside the JSON code block
+Guidelines for rewriting:
+- Use everyday, conversational language - avoid sounding stiff or robotic
+- Keep it genuine and authentic - like you're talking to someone you care about
+- Make it calm and constructive, but still emotionally honest
+- Sound like a real person would say it, not a corporate email
+- Keep the core message but express it more thoughtfully
+
+TECHNICAL FORMAT REQUIREMENTS:
+1. Return ONLY clean JSON wrapped in \`\`\`json code blocks
+2. Use double quotes for all strings and property names
+3. No special characters, line breaks in values, or trailing commas
+4. Keep explanations conversational but concise
+5. Make rewritten messages sound genuinely human
 
 This is a TECHNICAL INTEGRATION - your JSON MUST be machine-parseable. The app will break if you don't follow these rules exactly.
 
