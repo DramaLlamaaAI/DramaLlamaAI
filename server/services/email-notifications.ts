@@ -160,11 +160,10 @@ function getTierBenefits(tier: string): string[] {
       ];
     case 'beta':
       return [
-        'Unlimited chat analysis',
-        'Advanced conversation insights',
-        'Screenshot text extraction',
-        'Priority support',
-        'Early access to new features'
+        'Unlimited Chat Analysis',
+        'In-Depth Red Flag Detection with Named Participants & Supporting Quotes',
+        'Enhanced Red Flag Analysis with Behavioral Impact Assessment',
+        'Personalized Empathetic Summary for Each Participant'
       ];
     case 'pro':
       return [
