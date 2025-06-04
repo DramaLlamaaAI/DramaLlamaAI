@@ -47,8 +47,15 @@ export default function ChatAnalysis() {
 
   const analysisMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Import device ID for anonymous users
+      const { getDeviceId } = await import('@/lib/device-id');
+      const deviceId = getDeviceId();
+      
       const response = await fetch('/api/chat/import', {
         method: 'POST',
+        headers: {
+          'x-device-id': deviceId,
+        },
         body: data,
       });
       if (!response.ok) throw new Error('Analysis failed');
