@@ -277,20 +277,27 @@ export async function createBetaTierAnalysis(rawAnalysis: any, me: string, them:
   console.log('BETA TIER SERVICE: Filtered red flags from', (rawAnalysis.redFlags || []).length, 'to', filteredRedFlags.length);
   console.log('BETA TIER SERVICE: Raw red flags:', (rawAnalysis.redFlags || []).map(f => f.type));
   
-  // Apply direct red flag detection to catch patterns the AI might miss
-  const { detectRedFlagsDirectly } = await import('./direct-red-flag-detector');
+  // Apply contextual AI analysis for comprehensive conversation understanding
+  const { analyzeConversationContext, convertContextualFlags } = await import('./contextual-red-flag-detector');
   
   // Debug the chat text format
   console.log(`BETA TIER SERVICE: Chat text format check - first 300 chars:`, chatText?.substring(0, 300));
   console.log(`BETA TIER SERVICE: Chat text length:`, chatText?.length);
   
-  const directRedFlags = detectRedFlagsDirectly(chatText, rawAnalysis.healthScore?.score);
-  console.log(`BETA TIER SERVICE: Direct detection found ${directRedFlags.length} additional red flags`);
+  // Use AI to analyze the entire conversation context
+  const contextualAnalysis = await analyzeConversationContext(chatText, [me, them]);
+  console.log(`BETA TIER SERVICE: Contextual analysis found ${contextualAnalysis.redFlags.length} red flags`);
+  console.log(`BETA TIER SERVICE: Context: ${contextualAnalysis.situationContext}`);
+  console.log(`BETA TIER SERVICE: Concerning behaviors: ${contextualAnalysis.concerningBehaviors.length}`);
+  console.log(`BETA TIER SERVICE: Protective responses: ${contextualAnalysis.protectiveResponses.length}`);
   
-  // Merge direct red flags with existing ones
-  if (directRedFlags.length > 0) {
-    filteredRedFlags.push(...directRedFlags);
-    console.log(`BETA TIER SERVICE: Added ${directRedFlags.length} directly detected red flags`);
+  // Convert contextual flags to the expected format
+  const contextualRedFlags = convertContextualFlags(contextualAnalysis.redFlags);
+  
+  // Merge contextual red flags with existing ones
+  if (contextualRedFlags.length > 0) {
+    filteredRedFlags.push(...contextualRedFlags);
+    console.log(`BETA TIER SERVICE: Added ${contextualRedFlags.length} contextually detected red flags`);
   }
 
   // If no red flags detected but tone indicates conflict, create appropriate red flags based on tone analysis
