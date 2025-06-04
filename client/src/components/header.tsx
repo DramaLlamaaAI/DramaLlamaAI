@@ -20,13 +20,13 @@ export default function Header() {
   
   // Get basic usage data
   const used = usage?.used || 0;
-  const limit = usage?.limit || 1;
+  const limit = usage?.limit !== undefined ? usage.limit : 1;
   
   // Display the actual remaining analyses count
-  const remaining = Math.max(0, limit - used);
+  const remaining = limit === null ? Infinity : Math.max(0, limit - used);
   const displayUsed = used;
   
-  const isInfinite = limit === Infinity;
+  const isInfinite = limit === null;
 
   return (
     <header className="bg-primary text-white shadow-md fixed top-0 left-0 right-0 z-50 w-full">

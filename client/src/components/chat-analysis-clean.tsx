@@ -405,11 +405,12 @@ export default function ChatAnalysis() {
                           {usage && (
                             <div>
                               <div className="flex justify-between items-center mb-1">
-                                <span>Analyses used this month: {usedAnalyses}{limit !== null && ` of ${limit}`}</span>
+                                <span>Analyses used this month: {usedAnalyses}{limit !== null ? ` of ${limit}` : ' (unlimited)'}</span>
                                 <span className="text-xs">
                                   {tier === 'free' && 'Free Tier'}
                                   {tier === 'personal' && 'Personal Tier'}
                                   {tier === 'pro' && 'Pro Tier'}
+                                  {tier === 'beta' && 'Beta Tier'}
                                   {tier === 'instant' && 'Instant Deep Dive'}
                                 </span>
                               </div>

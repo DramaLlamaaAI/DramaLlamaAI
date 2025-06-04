@@ -66,8 +66,8 @@ export default function ChatAnalysis() {
   
   const tier = usage?.tier || 'free';
   const usedAnalyses = usage?.used || 0;
-  const limit = usage?.limit || 1;
-  const canUseFeature = usedAnalyses < limit;
+  const limit = usage?.limit !== undefined ? usage.limit : 1;
+  const canUseFeature = limit === null || usedAnalyses < limit;
 
   const analysisMutation = useMutation({
     mutationFn: analyzeChatConversation,
