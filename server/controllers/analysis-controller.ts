@@ -1231,38 +1231,22 @@ export const analysisController = {
             
             // Apply the same free tier filtering logic as the main analysis endpoint
             if (tier === 'free') {
-              // Run personal tier analysis to get red flag count
-              let personalAnalysis = null;
-              try {
-                personalAnalysis = await analyzeChatConversation(chatText, me, them, 'personal');
+              console.log('FILE IMPORT: Applying free tier restrictions - hiding detailed red flags');
+              
+              // For free tier, if red flags exist, hide details and show only count
+              if (analysis?.redFlags && analysis.redFlags.length > 0) {
+                const redFlagCount = analysis.redFlags.length;
                 
-                if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
-                  // Filter out stonewalling flags
-                  const filteredRedFlags = personalAnalysis.redFlags.filter(flag => {
-                    const flagType = (flag.type || '').toLowerCase();
-                    const flagDesc = (flag.description || '').toLowerCase();
-                    
-                    return !(
-                      flagType === 'stonewalling' || 
-                      flagType === 'emotional withdrawal' ||
-                      (flagType.includes('stonewalling') && 
-                       (flagDesc.includes('stonewalling') || 
-                        flagDesc.includes('silent treatment') ||
-                        flagDesc.includes('shutting down')))
-                    );
-                  });
-                  
-                  // For free tier, only show count and upgrade prompt
-                  analysis.redFlags = [];
-                  analysis.redFlagsDetected = true;
-                  analysis.redFlagCount = filteredRedFlags.length;
-                  analysis.upgradePrompt = "Upgrade to Personal tier for specific red flag details and participant analysis";
-                  console.log(`File import free tier: Detected ${filteredRedFlags.length} red flags, showing count only`);
-                } else {
-                  analysis.redFlagsDetected = false;
-                }
-              } catch (personalError) {
-                console.error('Failed to run personal analysis for file import:', personalError);
+                // Clear detailed red flag information
+                analysis.redFlags = [];
+                analysis.redFlagsDetected = true;
+                analysis.redFlagCount = redFlagCount;
+                analysis.upgradePrompt = "Upgrade to Personal tier for specific red flag details and participant analysis";
+                
+                console.log(`FILE IMPORT: Free tier - hiding ${redFlagCount} red flag details, showing count only`);
+              } else {
+                analysis.redFlagsDetected = false;
+                analysis.redFlagCount = 0;
               }
             }
             
