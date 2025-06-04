@@ -182,6 +182,19 @@ export default function ChatAnalysis() {
                     <p className="text-sm text-gray-500">
                       Supports .txt and .zip files (WhatsApp exports)
                     </p>
+                    
+                    {/* Advisory message about analysis timeframe */}
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <div className="flex items-start gap-2">
+                        <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-blue-800">
+                          <strong>Analysis Note:</strong> Only the most recent 3 months of messages are analyzed for optimal relevance and performance. For analysis of longer conversations, please contact{' '}
+                          <a href="mailto:support@dramallama.ai" className="underline hover:text-blue-900">
+                            support@dramallama.ai
+                          </a>
+                        </div>
+                      </div>
+                    </div>
                     <Button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={!canUseFeature || analysisMutation.isPending}
