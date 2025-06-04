@@ -44,8 +44,8 @@ export async function analyzeChatWithAnthropicAI(conversation: string, me: strin
     apiKey: process.env.ANTHROPIC_API_KEY,
   });
   
-  // Convert Beta tier to Pro for complete analysis
-  const effectiveTier = tier === 'beta' ? 'pro' : tier;
+  // Use the actual tier for proper tier-specific analysis
+  const effectiveTier = tier;
   console.log(`Using Anthropic for ${effectiveTier} tier analysis (original: ${tier}) with additional context: ${additionalInstructions.slice(0, 50)}...`);
   
   // Get the base prompt for this tier
@@ -266,6 +266,52 @@ const prompts = {
     Here's the conversation:
     {conversation}`,
 
+    beta: `Analyze this conversation between {me} and {them} with comprehensive Beta-level insights.
+
+🔍 RED FLAG DETECTION RULES:
+- Look for manipulation tactics: guilt-tripping, emotional blackmail, threats, blame-shifting
+- Identify gaslighting: denying reality, making someone question their memory/perception
+- Spot controlling behavior: isolation attempts, monitoring, restrictions
+- Detect stonewalling: silent treatment, emotional withdrawal as punishment
+- Flag verbal abuse: name-calling, insults, degrading language
+
+🔒 CONTEXT SENSITIVITY (These alone are NOT red flags):
+- Expressing vulnerability: "I'm feeling overwhelmed"
+- Genuine apologies: "I didn't mean to upset you"
+- Seeking resolution: "Let's talk about this calmly"
+
+Return a JSON object with the following structure:
+    {
+      "toneAnalysis": {
+        "overallTone": "string describing the conversation's overall tone",
+        "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
+        "participantTones": {"participant name": "tone description that clearly distinguishes between participants"}
+      },
+      "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5, "participant": "name of participant showing this behavior", "examples": [{"text": "exact quote", "from": "participant name"}], "impact": "string", "recommendedAction": "string"}],
+      "communication": {
+        "patterns": ["string describing specific patterns observed for each participant"],
+        "dynamics": ["string describing relationship dynamics"],
+        "suggestions": ["string with suggestions for improvement"]
+      },
+      "healthScore": {
+        "score": number between 0-100,
+        "label": "Troubled/Needs Work/Good/Excellent",
+        "color": "red/yellow/light-green/green"
+      },
+      "empatheticSummary": {
+        "participant name": {
+          "summary": "brief overview of communication style",
+          "insights": "key behavioral insights",
+          "growthAreas": ["specific areas for improvement"],
+          "strengths": ["positive communication traits"]
+        }
+      },
+      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation", "improvement": "suggestion for rewording"}]
+    }
+    
+    Here's the conversation:
+    {conversation}`,
+
     personal: `Analyze this conversation between {me} and {them} with enhanced nuance detection.
 
 🔍 RED FLAG DETECTION RULES:
@@ -324,17 +370,29 @@ Return a JSON object with the following structure:
     Here's the conversation:
     {conversation}`,
 
-    pro: `Perform a comprehensive analysis of this conversation between {me} and {them} with thorough red flag detection.
+    pro: `Perform an EXPERT-LEVEL comprehensive analysis of this conversation between {me} and {them} with advanced psychological insights.
 
-🔍 RED FLAG DETECTION RULES:
-- Look for manipulation tactics: guilt-tripping, emotional blackmail, threats, blame-shifting
-- Identify gaslighting: denying reality, making someone question their memory/perception
-- Spot controlling behavior: isolation attempts, monitoring, restrictions
-- Detect stonewalling: silent treatment, emotional withdrawal as punishment
-- Flag verbal abuse: name-calling, insults, degrading language
-- Notice power imbalances: intimidation, coercion, financial control
-- Identify love-bombing followed by devaluation
-- Detect triangulation and playing people against each other
+🔬 ADVANCED RED FLAG DETECTION & BEHAVIORAL ANALYSIS:
+- Manipulation tactics: guilt-tripping, emotional blackmail, threats, blame-shifting, DARVO (Deny, Attack, Reverse Victim & Offender)
+- Gaslighting patterns: reality denial, memory questioning, sanity undermining, historical revisionism
+- Control mechanisms: isolation attempts, monitoring, financial control, social manipulation, information control
+- Emotional abuse: stonewalling, silent treatment, emotional withdrawal, intermittent reinforcement
+- Verbal aggression: name-calling, insults, degrading language, threats, intimidation
+- Power dynamics: coercion, intimidation, exploitation of vulnerabilities, authority abuse
+- Narcissistic behaviors: love-bombing, devaluation, hoovering, triangulation, scapegoating
+- Trauma bonding indicators: hot/cold treatment, unpredictable responses, dependency creation
+- Codependent patterns: enabling, people-pleasing, boundary violations, enmeshment
+- Communication sabotage: deflection, projection, circular arguments, topic shifting
+
+🧠 PSYCHOLOGICAL PATTERN RECOGNITION:
+- Attachment styles and their manifestations in conflict
+- Defense mechanisms and their relationship impact
+- Emotional regulation patterns and dysregulation triggers
+- Communication schemas and underlying belief systems
+- Relationship scripts and unconscious role-playing
+- Conflict escalation patterns and de-escalation opportunities
+- Power struggle dynamics and control competitions
+- Intimacy patterns and vulnerability responses
 
 🔒 CONTEXT SENSITIVITY (These alone are NOT red flags):
 - Expressing vulnerability: "I'm feeling overwhelmed"
@@ -367,42 +425,75 @@ CRITICAL RED FLAG GUIDANCE:
 - "I felt alone" = HEALTHY emotional expression, not a problem
 - Be extremely conservative with red flag identification
 
-Return a JSON object with the following structure:
+Return a JSON object with the following EXPERT-LEVEL structure:
     {
       "toneAnalysis": {
-        "overallTone": "string describing the conversation's overall tone",
-        "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-        "participantTones": {"participant name": "tone description that clearly distinguishes from other participant"}
+        "overallTone": "comprehensive analysis of conversational atmosphere and emotional climate",
+        "emotionalState": [{"emotion": "specific emotion", "intensity": number between 0-1, "triggers": "what caused this emotion", "participant": "who exhibits this"}],
+        "participantTones": {"participant name": "detailed psychological profile of communication style and emotional regulation patterns"}
       },
       "redFlags": [
         {
-          "type": "string - specific name of the red flag",
-          "description": "detailed description with evidence from the conversation",
+          "type": "specific psychological term for the behavior pattern",
+          "description": "detailed analysis with psychological context and evidence",
           "severity": number between 1-5,
-          "participant": "name of participant showing this behavior",
-          "examples": [{"text": "exact quote from conversation", "from": "participant name"}],
-          "impact": "specific impact seen in THIS conversation, not general consequences",
-          "recommendedAction": "specific action based on the actual conversation context"
+          "participant": "name of participant exhibiting behavior",
+          "examples": [{"text": "exact quote", "from": "participant", "context": "situational context"}],
+          "impact": "immediate conversational impact and relationship consequences",
+          "recommendedAction": "evidence-based therapeutic intervention or boundary setting",
+          "behavioralPattern": "recurring pattern analysis across the conversation",
+          "progression": "how this behavior escalates or de-escalates over time"
         }
       ],
       "communication": {
-        "patterns": ["string describing specific patterns observed for each participant"],
-        "suggestions": ["string with suggestions for improvement"]
+        "patterns": ["detailed analysis of each participant's communication schemas and attachment responses"],
+        "dynamics": ["power dynamics, role assignments, and unconscious relationship scripts"],
+        "suggestions": ["therapeutic-level communication improvements with specific techniques"]
       },
       "healthScore": {
         "score": number between 0-100,
-        "label": "Troubled/Needs Work/Good/Excellent",
-        "color": "red/yellow/light-green/green"
+        "label": "comprehensive relationship health assessment",
+        "color": "red/yellow/light-green/green",
+        "factors": ["specific elements contributing to score"],
+        "trajectory": "relationship direction based on current patterns"
       },
-      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation that identifies specific behaviors", "improvement": "suggestion for improvement"}],
-      "highTensionFactors": ["string with reason and which participant contributes more to this factor"],
+      "empatheticSummary": {
+        "participant name": {
+          "summary": "psychological profile and communication assessment",
+          "insights": "deep behavioral insights and motivational analysis",
+          "growthAreas": ["specific therapeutic growth opportunities"],
+          "strengths": ["psychological strengths and positive coping mechanisms"],
+          "attachmentStyle": "likely attachment style manifestation",
+          "triggerPatterns": ["emotional triggers and defensive responses"]
+        }
+      },
+      "keyQuotes": [{"speaker": "name", "quote": "exact text", "analysis": "psychological interpretation", "improvement": "therapeutic reframing", "underlyingNeed": "unmet need being expressed"}],
+      "highTensionFactors": ["detailed analysis of escalation triggers and participant contributions"],
       "participantConflictScores": {
         "participant name": {
           "score": number between 0-100,
-          "label": "string describing style",
-          "isEscalating": boolean
+          "label": "conflict management style assessment",
+          "isEscalating": boolean,
+          "defensePatterns": ["specific defense mechanisms used"],
+          "emotionalRegulation": "assessment of emotional management skills"
         }
-      }
+      },
+      "powerDynamics": {
+        "overall": "comprehensive power balance analysis",
+        "shifts": ["moments where power dynamics change"],
+        "controlPatterns": ["who attempts control and how"],
+        "vulnerabilityExploitation": ["if/how vulnerabilities are used for power"]
+      },
+      "psychologicalPatterns": {
+        "triangulation": "any third-party involvement or manipulation",
+        "projection": "instances of psychological projection",
+        "gaslightingIndicators": ["specific reality distortion attempts"],
+        "traumaBonding": "signs of unhealthy attachment cycles",
+        "codependencyMarkers": ["enabling or boundary violation patterns"]
+      },
+      "therapeuticRecommendations": [
+        "specific therapeutic interventions based on observed patterns"
+      ]
     }
     
     Here's the conversation:
