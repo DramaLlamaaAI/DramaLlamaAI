@@ -19,7 +19,7 @@ export default function Home() {
   const { user } = useAuth();
   // For now, redirect PRO features to auth page for anonymous users
   // This will be enhanced when proper authentication routing is implemented
-  const getWhatsAppGroupsRoute = () => "/auth";
+  const getWhatsAppGroupsRoute = () => "/coming-soon";
   const getLiveTalkRoute = () => "/auth";
 
   // Support smooth scrolling for anchor links

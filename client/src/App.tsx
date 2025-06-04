@@ -22,6 +22,7 @@ import InstantDeepDivePage from "@/pages/instant-deep-dive";
 import AdminDashboardEnhanced from "@/pages/admin-dashboard-enhanced";
 import AdminLoginPage from "@/pages/admin-login";
 import ContactUs from "@/pages/contact-us";
+import ComingSoonPage from "@/pages/coming-soon";
 // Support helplines converted to dialog component
 import ChatAnalysisNew from "./components/chat-analysis-restored";
 import ScreenshotAnalysis from "./components/screenshot-analysis";
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/contact-us" component={ContactUs} />
+      <Route path="/coming-soon" component={ComingSoonPage} />
       {/* Pricing page now redirects to subscription */}
       <Route path="/pricing" component={PricingRedirect} />
       <Route path="/instant-deep-dive" component={InstantDeepDivePage} />
