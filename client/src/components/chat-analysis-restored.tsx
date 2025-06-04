@@ -313,7 +313,7 @@ export default function ChatAnalysis() {
                   </div>
                   
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3 mb-4">
                       <div className="text-3xl font-bold">
                         {result.healthScore?.score || 35}
                       </div>
