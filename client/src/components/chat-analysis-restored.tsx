@@ -472,11 +472,6 @@ export default function ChatAnalysis() {
                 </div>
 
                 {/* Empathetic Summary for Beta, Personal, and Pro tiers */}
-                {console.log('Empathetic Summary Check:', { 
-                  exists: !!result.empatheticSummary, 
-                  keys: result.empatheticSummary ? Object.keys(result.empatheticSummary) : [], 
-                  data: result.empatheticSummary 
-                })}
                 {result.empatheticSummary && Object.keys(result.empatheticSummary).length > 0 && (
                   <div className="mb-8 mt-8">
                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">

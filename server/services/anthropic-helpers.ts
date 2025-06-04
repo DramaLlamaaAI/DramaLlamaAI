@@ -248,7 +248,7 @@ function extractParticipantsFromContent(content: string): Record<string, string>
       const participants: Record<string, string> = {};
       
       // Process each potential participant match
-      participantMatches.forEach(match => {
+      participantMatches.forEach((match: string) => {
         const parts = match.match(/"([^"]+)"\s*:\s*"([^"]+)"/);
         if (parts && parts.length === 3) {
           const key = parts[1];
