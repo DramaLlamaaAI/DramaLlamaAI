@@ -224,7 +224,7 @@ app.use(session({
     }
   });
   
-  app.post('/api/chat/import', chatUpload.array('file', 5), analysisController.importChatFiles);
+  app.post('/api/chat/import', checkTrialEligibility, chatUpload.array('file', 5), analysisController.importChatFiles);
   
   // Configure multer for image uploads
   const upload = multer({ 
