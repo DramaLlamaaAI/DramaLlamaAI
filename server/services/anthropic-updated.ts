@@ -1034,7 +1034,7 @@ ${conversation}`;
     // Make the API call with enhanced error handling
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
-      max_tokens: 2000,
+      max_tokens: 6000,
       temperature: 0.1, // Lower temperature for more consistent responses
       system: `You are a communication expert who analyzes tone and patterns in conversations.
 
@@ -1152,7 +1152,7 @@ async function openAiFallbackForChatAnalysis(conversation: string, me: string, t
     // Call OpenAI with the same parameters
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // Using the most capable OpenAI model
-      max_tokens: 2000,
+      max_tokens: 6000,
       temperature: 0.1,
       response_format: { type: "json_object" }, // Ensure we get properly formatted JSON
       messages: [
