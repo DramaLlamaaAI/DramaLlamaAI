@@ -338,7 +338,7 @@ export default function ChatAnalysis() {
                       }`}>
                         {result.healthScore?.label || "Concerning"}
                       </div>
-                      <div className="flex items-center gap-4 text-sm">
+                      <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                         <span className="flex items-center gap-1">
                           <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                           0-35: Conflict
@@ -355,7 +355,7 @@ export default function ChatAnalysis() {
                           <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                           66-80: Healthy
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 col-span-2 sm:col-span-1">
                           <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                           81-100: Very Healthy
                         </span>
