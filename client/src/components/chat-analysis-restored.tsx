@@ -369,11 +369,20 @@ export default function ChatAnalysis() {
                   <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                     🚩 Potential Red Flags
                     <span className="ml-2 text-sm font-normal text-red-500">
-                      {result.redFlags?.length || 0} detected
+                      {result.redFlagCount || result.redFlags?.length || 0} detected
                     </span>
                   </h3>
                   
-                  {result.redFlags && result.redFlags.length > 0 ? (
+                  {/* Free tier - show count and upgrade prompt */}
+                  {result.redFlagCount > 0 && result.upgradePrompt ? (
+                    <Alert className="bg-yellow-50 border-yellow-200">
+                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                      <AlertDescription className="text-yellow-800">
+                        <strong>{result.redFlagCount} red flags detected.</strong> {result.upgradePrompt}
+                      </AlertDescription>
+                    </Alert>
+                  ) : result.redFlags && result.redFlags.length > 0 ? (
+                    /* Paid tiers - show detailed flags */
                     <div className="space-y-2">
                       {result.redFlags.map((flag: any, index: number) => (
                         <Alert key={index} className="bg-red-50 border-red-200">

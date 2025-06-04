@@ -839,16 +839,12 @@ export const analysisController = {
             console.log(`Unique red flag types: ${redFlagTypes.length}`);
             console.log('Adding basic red flag types to free tier analysis');
             
-            // For free tier, create simplified red flags with just type and basic description
-            const simplifiedRedFlags = filteredRedFlags.map(flag => ({
-              type: flag.type,
-              description: flag.description ? flag.description.split('.')[0] + '.' : 'Communication concern detected'
-            }));
-            
-            // Replace the detailed red flags with simplified ones for free tier
-            filteredResults.redFlags = simplifiedRedFlags;
+            // For free tier, only show count and upgrade prompt - no detailed descriptions
+            filteredResults.redFlags = [];
             (filteredResults as any).redFlagsDetected = true;
-            console.log(`Free tier: Showing ${simplifiedRedFlags.length} simplified red flags`);
+            (filteredResults as any).redFlagCount = filteredRedFlags.length;
+            (filteredResults as any).upgradePrompt = "Upgrade to Personal tier for specific red flag details and participant analysis";
+            console.log(`Free tier: Detected ${filteredRedFlags.length} red flags, showing count only`);
           } else {
             // Fallback to health score when no red flags detected
             console.log('No red flags in personal analysis, using fallback logic');
