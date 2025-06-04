@@ -41,6 +41,87 @@ function isValidWhatsAppFormat(text: string): boolean {
   return validRatio >= 0.3;
 }
 
+// Helper function to filter messages to recent timeframe (default: 3 months)
+function filterRecentMessages(chatText: string, monthsBack: number = 3): string {
+  const lines = chatText.split('\n');
+  const cutoffDate = new Date();
+  cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
+  
+  // WhatsApp date formats: DD/MM/YYYY, MM/DD/YYYY, etc.
+  const dateRegexes = [
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s+/, // DD/MM/YYYY or MM/DD/YYYY
+    /^(\d{4})-(\d{1,2})-(\d{1,2})\s+/, // YYYY-MM-DD
+    /^\[(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s+/ // [DD/MM/YYYY]
+  ];
+  
+  const recentLines: string[] = [];
+  let foundRecentMessage = false;
+  
+  for (const line of lines) {
+    // Skip system messages and empty lines
+    if (!line.trim() || line.includes('Messages and calls are end-to-end encrypted')) {
+      recentLines.push(line);
+      continue;
+    }
+    
+    let messageDate: Date | null = null;
+    
+    // Try to parse date from line
+    for (const regex of dateRegexes) {
+      const match = line.match(regex);
+      if (match) {
+        const [, part1, part2, part3] = match;
+        
+        // Try different date interpretations
+        const possibleDates = [
+          new Date(parseInt(part3), parseInt(part2) - 1, parseInt(part1)), // DD/MM/YYYY
+          new Date(parseInt(part3), parseInt(part1) - 1, parseInt(part2)), // MM/DD/YYYY
+          new Date(parseInt(part1), parseInt(part2) - 1, parseInt(part3))  // YYYY-MM-DD
+        ];
+        
+        // Use the date that seems most reasonable (not in future, not too old)
+        for (const date of possibleDates) {
+          if (date.getTime() <= Date.now() && date.getFullYear() > 2000) {
+            messageDate = date;
+            break;
+          }
+        }
+        break;
+      }
+    }
+    
+    // If we found a date and it's recent enough, include this message
+    if (messageDate && messageDate >= cutoffDate) {
+      foundRecentMessage = true;
+      recentLines.push(line);
+    } else if (!messageDate && foundRecentMessage) {
+      // This is likely a continuation of a recent message (no timestamp)
+      recentLines.push(line);
+    } else if (messageDate && messageDate < cutoffDate) {
+      // This message is too old, skip it
+      continue;
+    } else if (!messageDate) {
+      // No date found, include it (might be header or continuation)
+      recentLines.push(line);
+    }
+  }
+  
+  const filteredText = recentLines.join('\n');
+  console.log(`Date filtering: Original ${lines.length} lines, filtered to ${recentLines.length} lines (last ${monthsBack} months)`);
+  
+  // If filtering resulted in very few messages, fall back to more months
+  const messageCount = recentLines.filter(line => 
+    line.includes(':') && !line.includes('Messages and calls are end-to-end encrypted')
+  ).length;
+  
+  if (messageCount < 10 && monthsBack < 12) {
+    console.log(`Too few recent messages (${messageCount}), expanding to ${monthsBack * 2} months`);
+    return filterRecentMessages(chatText, monthsBack * 2);
+  }
+  
+  return filteredText;
+}
+
 // Get the user's tier from the authenticated session
 const getUserTier = (req: Request): string => {
   // Regular authentication flow
@@ -1081,6 +1162,9 @@ export const analysisController = {
           if (!isValidWhatsAppFormat(chatText)) {
             throw new Error('File does not appear to be a valid WhatsApp export');
           }
+
+          // Apply date-based filtering to focus on recent conversation patterns
+          chatText = filterRecentMessages(chatText);
 
           // Handle participant names - use provided names or set defaults for auto-detection
           let me = participantNames[0] || "";
