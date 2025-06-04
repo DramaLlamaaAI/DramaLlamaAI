@@ -123,39 +123,39 @@ const redFlagPatterns = [
     description: 'Avoiding responsibility or minimizing impact of actions',
     severity: 6
   },
-  // Custody/Child Safety Violations
+  // Actual Child Welfare Violations (not protective responses)
   {
-    pattern: /(police have been informed|police are out looking|bring her back|doesn['']t deserve to be caught in this|shouldn['']t have to go through this|taking without permission|not telling me where|medical neglect|withholding medication|epi pen|essential medication|court will recognize|supervised visitation|impact your position in court|refuge|prioritize.*well-being)/i,
-    type: 'Child Welfare Threats',
-    description: 'Involving authorities, threatening custody, or using child welfare as leverage',
+    pattern: /(taking.*child.*without.*permission|not.*returning.*child|keeping.*child.*from|hiding.*child|child.*as.*weapon|child.*as.*leverage|punish.*through.*child|hurt.*child.*to.*hurt)/i,
+    type: 'Child Welfare Violations',
+    description: 'Using or endangering a child to control or manipulate the other parent',
     severity: 10
   },
-  // Legal Intimidation
+  // Actual Legal Threats (not factual reporting)
   {
-    pattern: /(court consequences|legal action|supervised visitation|impact.*court|position in court|health visitor|social services|authorities|reference.*incident|file a report|legal implications)/i,
+    pattern: /(i['']ll take you to court|you['']ll lose custody|i['']ll make sure you never see|i['']ll report you to|i['']ll call social services on you|you['']ll be sorry when the court|i['']ll destroy you in court|you won['']t win in court)/i,
     type: 'Legal Intimidation',
-    description: 'Using legal threats or authorities to control or intimidate',
+    description: 'Using legal threats to control or intimidate',
     severity: 9
   },
-  // Medical Control/Withholding
+  // Medical Withholding (not safety reminders)
   {
-    pattern: /(withholding.*medication|epi.*pen.*still with me|needs.*accessible at all times|medical neglect|essential medication|life-threatening|allergy.*medication|emergency medication)/i,
+    pattern: /(i['']m not giving.*medication|you can['']t have.*medication|withholding.*medicine|refusing.*treatment|i won['']t let.*see.*doctor|no medication until)/i,
     type: 'Medical Control',
-    description: 'Controlling or withholding essential medical care or medication',
+    description: 'Deliberately withholding essential medical care or medication',
     severity: 10
   },
-  // Child as Leverage
+  // Child as Weapon (actual manipulation, not protective concern)
   {
-    pattern: /(using.*child|leverage.*child|child.*weapon|hurt.*child|punish.*through.*child|child.*suffer|caught in.*confusion|doesn['']t deserve|shouldn['']t have to go through)/i,
-    type: 'Child as Leverage',
-    description: 'Using a child as a tool for control or manipulation between adults',
-    severity: 9
+    pattern: /(using.*child.*to.*hurt|child.*as.*weapon|punish.*you.*through.*child|hurt.*you.*by.*taking|make.*you.*suffer.*through.*child|child.*will.*hate.*you|turn.*child.*against)/i,
+    type: 'Child as Weapon',
+    description: 'Deliberately using the child to hurt or manipulate the other parent',
+    severity: 10
   },
-  // Escalation to Crisis
+  // Threatening Escalation (not factual reporting)
   {
-    pattern: /(escalate.*point|escalation|crisis situation|emergency situation|things.*gotten.*serious|situation.*serious|authorities.*involved|police.*involved)/i,
-    type: 'Crisis Escalation',
-    description: 'Escalating conflicts to crisis levels involving authorities or emergency situations',
+    pattern: /(i['']ll escalate this|things will escalate|you['']ll be sorry|this will get worse|i['']ll make this worse|you forced me to escalate|now you['']ve done it)/i,
+    type: 'Threatening Escalation',
+    description: 'Threatening to make situations worse as intimidation',
     severity: 8
   }
 ];
