@@ -223,7 +223,8 @@ export default function ChatAnalysis() {
                             <a href="/whatsapp-guide" className="underline hover:text-green-900 font-medium">
                               WhatsApp Export Guide
                             </a>
-                            {' '}to learn how to export and upload your chat files. If you need additional 1:1 support, please contact us on Facebook.com/DramaLlamaAI, and one of our team will assist you personally.
+                            {' '}to learn how to export and upload your chat files.<br />
+                            If you need additional 1:1 support, please contact us on Facebook.com/DramaLlamaAI, and one of our team will assist you personally.
                           </div>
                         </div>
                       </div>
