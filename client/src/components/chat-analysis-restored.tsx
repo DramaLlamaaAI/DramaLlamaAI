@@ -383,12 +383,51 @@ export default function ChatAnalysis() {
                     </Alert>
                   ) : result.redFlags && result.redFlags.length > 0 ? (
                     /* Paid tiers - show detailed flags */
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {result.redFlags.map((flag: any, index: number) => (
                         <Alert key={index} className="bg-red-50 border-red-200">
                           <AlertCircle className="h-4 w-4 text-red-500" />
                           <AlertDescription className="text-red-700">
-                            <strong>{flag.type || flag.name || "Red Flag"}:</strong> {flag.description || flag.message || flag}
+                            <div className="space-y-2">
+                              <div>
+                                <strong>{flag.type || flag.name || "Red Flag"}:</strong> {flag.description || flag.message || flag}
+                              </div>
+                              
+                              {/* Beta tier - show specific examples with names and quotes */}
+                              {flag.examples && flag.examples.length > 0 && (
+                                <div className="mt-3 p-3 bg-red-100 rounded-md border-l-4 border-red-300">
+                                  <div className="text-sm font-medium text-red-800 mb-2">Specific Examples:</div>
+                                  <div className="space-y-2">
+                                    {flag.examples.map((example: any, exampleIndex: number) => (
+                                      <div key={exampleIndex} className="text-sm">
+                                        <span className="font-semibold text-red-900">{example.from}:</span>
+                                        <span className="ml-2 italic text-red-800">"{example.text}"</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Show participant attribution if available */}
+                              {flag.participant && (
+                                <div className="text-sm text-red-600 mt-2">
+                                  <strong>Exhibited by:</strong> {flag.participant}
+                                </div>
+                              )}
+                              
+                              {/* Show impact and recommendations for beta tier */}
+                              {flag.impact && (
+                                <div className="text-sm text-red-600 mt-2">
+                                  <strong>Impact:</strong> {flag.impact}
+                                </div>
+                              )}
+                              
+                              {flag.recommendedAction && (
+                                <div className="text-sm text-red-600 mt-2">
+                                  <strong>Recommended Action:</strong> {flag.recommendedAction}
+                                </div>
+                              )}
+                            </div>
                           </AlertDescription>
                         </Alert>
                       ))}
