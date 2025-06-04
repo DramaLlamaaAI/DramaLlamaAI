@@ -526,7 +526,38 @@ export function createBetaTierAnalysis(rawAnalysis: any, me: string, them: strin
     },
     
     // Support Help Lines - Context-aware recommendations
-    supportHelpLines: generateSupportRecommendations(rawAnalysis, filteredRedFlags)
+    supportHelpLines: generateSupportRecommendations(rawAnalysis, filteredRedFlags),
+    
+    // Empathetic Summary for each participant (Beta tier feature)
+    empatheticSummary: rawAnalysis.empatheticSummary || {
+      [me]: {
+        summary: `${me} appears to be experiencing some frustration and may be struggling with effective communication in this situation.`,
+        insights: `The communication patterns suggest ${me} might benefit from developing more collaborative dialogue skills and emotional awareness.`,
+        growthAreas: [
+          "Practice active listening and validation",
+          "Develop emotional regulation during conflict",
+          "Learn to express needs without blame or criticism"
+        ],
+        strengths: [
+          "Shows willingness to engage in conversation",
+          "Expresses feelings directly rather than suppressing them"
+        ]
+      },
+      [them]: {
+        summary: `${them} demonstrates efforts to maintain peaceful dialogue and shows resilience in challenging communication situations.`,
+        insights: `${them}'s responses indicate someone who values harmony and tries to de-escalate conflict, though may benefit from stronger boundary-setting.`,
+        growthAreas: [
+          "Set clearer boundaries during difficult conversations",
+          "Express personal needs more assertively",
+          "Recognize when to disengage from unproductive exchanges"
+        ],
+        strengths: [
+          "Shows patience and attempts at understanding",
+          "Maintains composure during conflict",
+          "Demonstrates empathy and consideration for others"
+        ]
+      }
+    }
 
   };
   
