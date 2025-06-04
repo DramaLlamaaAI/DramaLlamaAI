@@ -180,7 +180,7 @@ export default function ChatAnalysis() {
                       Click to upload or drag and drop
                     </p>
                     <p className="text-sm text-gray-500">
-                      Supports .txt and .zip files (WhatsApp exports)
+                      Supports .txt files (WhatsApp exports)
                     </p>
                     
                     {/* Advisory message about analysis timeframe */}
