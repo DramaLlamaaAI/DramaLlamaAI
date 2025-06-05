@@ -300,75 +300,8 @@ export async function createBetaTierAnalysis(rawAnalysis: any, me: string, them:
     console.log(`BETA TIER SERVICE: Added ${contextualRedFlags.length} contextually detected red flags`);
   }
 
-  // If no red flags detected but tone indicates conflict, create appropriate red flags based on tone analysis
-  if (filteredRedFlags.length === 0 && rawAnalysis.toneAnalysis?.overallTone) {
-    const tone = rawAnalysis.toneAnalysis.overallTone.toLowerCase();
-    const conversation = rawAnalysis.originalConversation || rawAnalysis.conversation || '';
-    
-    // Check for confrontational patterns that should trigger red flags
-    const confrontationalPatterns = [
-      'confrontational', 'controlling', 'threats', 'threatening', 'aggressive',
-      'manipulative', 'hostile', 'defensive', 'escalating', 'attacking'
-    ];
-    
-    const hasConfrontationalTone = confrontationalPatterns.some(pattern => tone.includes(pattern));
-    
-    if (hasConfrontationalTone) {
-      console.log('BETA TIER SERVICE: Confrontational tone detected, generating appropriate red flags');
-      
-      // Generate red flags based on the detected tone
-      const generatedFlags = [];
-      
-      if (tone.includes('controlling') || tone.includes('threats') || tone.includes('threatening')) {
-        generatedFlags.push({
-          type: 'Controlling Behavior',
-          description: 'Patterns of controlling or threatening language detected in the conversation',
-          participant: me, // Default assignment, can be refined
-          severity: 8,
-          examples: [{
-            text: 'Controlling or threatening language patterns identified',
-            quote: 'Patterns suggesting control or threats in communication',
-            participant: me
-          }],
-          impact: 'Creates an intimidating environment and undermines healthy communication'
-        });
-      }
-      
-      if (tone.includes('confrontational') || tone.includes('aggressive') || tone.includes('escalating')) {
-        generatedFlags.push({
-          type: 'Aggressive Communication',
-          description: 'Confrontational and aggressive communication patterns that escalate conflict',
-          participant: me, // Default assignment
-          severity: 7,
-          examples: [{
-            text: 'Aggressive or confrontational language detected',
-            quote: 'Communication patterns showing aggression or confrontation',
-            participant: me
-          }],
-          impact: 'Escalates conflict and damages relationship dynamics'
-        });
-      }
-      
-      if (tone.includes('manipulative')) {
-        generatedFlags.push({
-          type: 'Manipulative Language',
-          description: 'Language patterns that attempt to manipulate or coerce the other person',
-          participant: me, // Default assignment
-          severity: 8,
-          examples: [{
-            text: 'Manipulative communication patterns identified',
-            quote: 'Language suggesting manipulation or coercion',
-            participant: me
-          }],
-          impact: 'Undermines trust and creates unhealthy power dynamics'
-        });
-      }
-      
-      // Add generated flags to filtered flags
-      filteredRedFlags.push(...generatedFlags);
-      console.log(`BETA TIER SERVICE: Generated ${generatedFlags.length} red flags based on tone analysis`);
-    }
-  }
+  // Note: Contextual AI analysis has replaced tone-based fallback red flag generation
+  // This ensures we don't misinterpret protective responses as concerning behavior
   
   // Create the Beta tier analysis with all Pro features
   const betaAnalysis = {

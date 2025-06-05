@@ -63,14 +63,15 @@ Please provide a comprehensive analysis in the following JSON format:
   ]
 }
 
-IMPORTANT ANALYSIS GUIDELINES:
-1. Consider the ENTIRE conversation flow and context
-2. Distinguish between concerning behavior and appropriate protective responses
-3. If someone fails to return a child or communicate about child welfare, that's a red flag
-4. If someone responds with police involvement due to child safety concerns, that's protective, not a red flag
-5. Look for patterns of evasion, control, manipulation, or child welfare violations
-6. Don't flag protective parenting responses as threats
-7. Consider who initiated concerning behavior vs who is responding to it`;
+CRITICAL ANALYSIS GUIDELINES:
+1. Analyze the COMPLETE conversation timeline to understand cause and effect
+2. Identify WHO initiated concerning behavior vs WHO is responding protectively
+3. RED FLAGS include: failing to return child, evasion about child welfare, manipulation, threats
+4. PROTECTIVE RESPONSES include: police involvement for child safety, medical concerns (EpiPens), requesting child's return
+5. Context matters: "I'll call the police" when child isn't returned = protective, not threatening
+6. Look for patterns of control, manipulation, stonewalling, or child endangerment
+7. Don't flag legitimate parental concerns or protective actions as red flags
+8. Consider power dynamics and who has custody/responsibility`;
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
