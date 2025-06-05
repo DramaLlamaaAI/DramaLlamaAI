@@ -109,18 +109,22 @@ export const paymentController = {
           const existingSubscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
           
           if (existingSubscription.status === 'active') {
-            // Return existing subscription if active
-            const invoice = existingSubscription.latest_invoice as any;
-            const paymentIntent = invoice?.payment_intent;
+            // For active subscriptions, create a new setup intent for payment method updates
+            const setupIntent = await stripe.setupIntents.create({
+              customer: customerId,
+              payment_method_types: ['card'],
+              usage: 'off_session',
+            });
 
             return res.json({
               subscriptionId: existingSubscription.id,
-              clientSecret: paymentIntent?.client_secret,
+              clientSecret: setupIntent.client_secret,
               customerId: customerId,
               originalAmount: baseAmount,
               finalAmount: finalAmount,
               discountPercentage: discountPercentage,
-              hasDiscount: discountPercentage > 0
+              hasDiscount: discountPercentage > 0,
+              isExisting: true
             });
           }
         } catch (error) {
