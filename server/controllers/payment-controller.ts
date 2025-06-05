@@ -62,7 +62,7 @@ export const paymentController = {
           if (error.code === 'resource_missing') {
             // Customer doesn't exist anymore, clear the stored ID
             customerId = null;
-            await storage.updateStripeCustomerId(userId, null);
+            // Customer ID will be set to null and we'll create a new one below
           } else {
             throw error;
           }
@@ -150,10 +150,8 @@ export const paymentController = {
       });
 
       // Update user with subscription ID and tier
-      await storage.updateUser(userId, { 
-        stripeSubscriptionId: subscription.id,
-        tier: planKey 
-      });
+      await storage.updateStripeSubscriptionId(userId, subscription.id);
+      await storage.updateUserTier(userId, planKey);
 
       const invoice = subscription.latest_invoice as any;
       const paymentIntent = invoice?.payment_intent;
