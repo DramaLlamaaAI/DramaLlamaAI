@@ -970,7 +970,8 @@ app.use(session({
   app.put('/api/admin/referral-codes/:id', isAuthenticated, isAdmin, referralCodeController.updateReferralCode);
   app.get('/api/referral-codes/validate/:code', referralCodeController.validateReferralCode);
   
-
+  // Serve static files from attached_assets directory
+  app.use('/attached_assets', express.static('attached_assets'));
   
   // Create HTTP server
   const httpServer = createServer(app);
