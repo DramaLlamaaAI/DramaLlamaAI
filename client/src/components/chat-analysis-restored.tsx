@@ -231,6 +231,20 @@ export default function ChatAnalysis() {
                               WhatsApp Export Guide
                             </a>
                             {' '}to learn how to export and upload your chat files.<br />
+                            
+                            <div className="mt-4 p-4 bg-white rounded-lg border border-green-200">
+                              <h4 className="font-medium text-green-800 mb-2">📹 Video Tutorial</h4>
+                              <video 
+                                controls 
+                                className="w-full max-w-md rounded-lg shadow-sm"
+                                style={{ maxHeight: '250px' }}
+                              >
+                                <source src="/attached_assets/Tutorial.mov" type="video/quicktime" />
+                                <source src="/attached_assets/Tutorial.mov" type="video/mp4" />
+                                Your browser does not support the video tag.
+                              </video>
+                            </div>
+                            
                             If you need additional 1:1 support, please contact us on{' '}
                             <a href="https://www.facebook.com/DramaLlamaAI" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-900 font-medium">
                               Facebook.com/DramaLlamaAI
