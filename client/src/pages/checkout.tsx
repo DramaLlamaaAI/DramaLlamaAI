@@ -259,8 +259,8 @@ export default function Checkout() {
     );
   }
 
-  // Additional validation for clientSecret format
-  if (!clientSecret.startsWith('pi_')) {
+  // Additional validation for clientSecret format (payment intent or setup intent)
+  if (!clientSecret.startsWith('pi_') && !clientSecret.startsWith('seti_')) {
     return (
       <div className="container py-12">
         <Card className="max-w-md mx-auto">
