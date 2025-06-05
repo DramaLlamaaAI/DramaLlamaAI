@@ -102,25 +102,66 @@ export const paymentController = {
         finalAmount = Math.round(baseAmount * (1 - discountPercentage / 100));
       }
       
-      // Create a payment intent with discounted amount
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: finalAmount,
-        currency: 'gbp',
+      // Check for existing subscription
+      if (user.stripeSubscriptionId) {
+        try {
+          const existingSubscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+          
+          if (existingSubscription.status === 'active') {
+            // Return existing subscription if active
+            const invoice = existingSubscription.latest_invoice as any;
+            const paymentIntent = invoice?.payment_intent;
+
+            return res.json({
+              subscriptionId: existingSubscription.id,
+              clientSecret: paymentIntent?.client_secret,
+              customerId: customerId,
+              originalAmount: baseAmount,
+              finalAmount: finalAmount,
+              discountPercentage: discountPercentage,
+              hasDiscount: discountPercentage > 0
+            });
+          }
+        } catch (error) {
+          console.log('Existing subscription not found, creating new one');
+        }
+      }
+
+      // Create a subscription with the appropriate price
+      const subscription = await stripe.subscriptions.create({
         customer: customerId,
+        items: [{
+          price: priceId,
+        }],
+        payment_behavior: 'default_incomplete',
+        payment_settings: { 
+          save_default_payment_method: 'on_subscription',
+          payment_method_types: ['card']
+        },
+        expand: ['latest_invoice.payment_intent'],
         metadata: {
           plan: planKey,
           userId: userId.toString(),
           originalAmount: baseAmount.toString(),
           discountPercentage: discountPercentage.toString(),
         },
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        // Note: Discounts will be handled at the price level for now
+        // Future enhancement: Apply coupons for percentage discounts
       });
+
+      // Update user with subscription ID and tier
+      await storage.updateUser(userId, { 
+        stripeSubscriptionId: subscription.id,
+        tier: planKey 
+      });
+
+      const invoice = subscription.latest_invoice as any;
+      const paymentIntent = invoice?.payment_intent;
       
       // Return client secret and discount info to the frontend
       res.json({
-        clientSecret: paymentIntent.client_secret,
+        subscriptionId: subscription.id,
+        clientSecret: paymentIntent?.client_secret,
         customerId: customerId,
         originalAmount: baseAmount,
         finalAmount: finalAmount,
