@@ -44,6 +44,9 @@ export default function ForgotPasswordPage() {
   const initialMode = codeFromUrl ? "reset" : "request";
   const [mode, setMode] = useState(initialMode);
   
+  // Debug logging
+  console.log('ForgotPasswordPage render:', { mode, isLoading, errorMsg, successMsg, isRequestSent });
+  
   // Request form
   const requestForm = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
