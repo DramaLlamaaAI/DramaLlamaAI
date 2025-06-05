@@ -16,8 +16,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Pricing configuration
 const PRICE_IDS = {
-  personal: process.env.STRIPE_PRICE_ID, // Using the same price ID for now
-  pro: process.env.STRIPE_PRICE_ID,
+  personal: process.env.STRIPE_PERSONAL_PRICE_ID || process.env.STRIPE_PRICE_ID,
+  pro: process.env.STRIPE_PRO_PRICE_ID || 'price_1RQoau2LzZSVOpcLq1KiF6K2',
+  deepdive: process.env.STRIPE_DEEPDIVE_PRICE_ID,
 };
 
 export const paymentController = {

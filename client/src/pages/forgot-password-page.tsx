@@ -66,14 +66,17 @@ export default function ForgotPasswordPage() {
   });
   
   const onRequestSubmit = async (values: ForgotPasswordValues) => {
+    console.log('onRequestSubmit called with:', values);
     setIsLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
     
     try {
-      // In a real app, this would call an API endpoint
+      console.log('Making API request to /api/auth/forgot-password');
       const response = await apiRequest("POST", "/api/auth/forgot-password", values);
+      console.log('API response received:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
       
       if (!response.ok) {
         throw new Error(data.error || "Failed to process password reset request");
@@ -81,11 +84,13 @@ export default function ForgotPasswordPage() {
       
       // Store email for potential reset step
       setEmail(values.email);
+      console.log('Setting success state');
       
       // Show success message
       setSuccessMsg("Password reset email sent. Please check your inbox for instructions.");
       setIsRequestSent(true);
       
+      console.log('Showing toast notification');
       toast({
         title: "Reset email sent",
         description: "Check your email for a password reset link.",
@@ -93,13 +98,17 @@ export default function ForgotPasswordPage() {
       
       // If we got a direct code in the response for testing, show it
       if (data.verificationCode) {
+        console.log('Switching to reset mode with code:', data.verificationCode);
         setMode("reset");
         resetForm.setValue("code", data.verificationCode);
       }
       
+      console.log('onRequestSubmit completed successfully');
     } catch (error: any) {
+      console.error('onRequestSubmit error:', error);
       setErrorMsg(error.message || "Request failed. Please try again.");
     } finally {
+      console.log('Setting isLoading to false');
       setIsLoading(false);
     }
   };
