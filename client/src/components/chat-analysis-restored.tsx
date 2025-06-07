@@ -1,34 +1,23 @@
 import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Info, Search, ArrowLeftRight, Brain, Upload, Image, AlertCircle, TrendingUp, Flame, Activity, Users, Edit, Archive, FileText, Copy, ChevronDown, ChevronUp, ExternalLink, Phone, Heart } from "lucide-react";
+import { Info, Brain, Upload, AlertCircle, FileText } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import ResultsDispatcher from "./results/results-dispatcher";
 
 export default function ChatAnalysis() {
   const [tabValue, setTabValue] = useState("upload");
-  const [conversation, setConversation] = useState("");
-  const [me, setMe] = useState("");
-  const [them, setThem] = useState("");
   const [fileName, setFileName] = useState("");
   const [fileIsZip, setFileIsZip] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [result, setResult] = useState<any | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [supportOpen, setSupportOpen] = useState(false);
-  const [redFlagsOpen, setRedFlagsOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  
   const { toast } = useToast();
 
   const { data: usage } = useQuery({
@@ -101,29 +90,6 @@ export default function ChatAnalysis() {
     formData.append('file', file);
     
     analysisMutation.mutate(formData);
-  };
-
-  const handleAnalyze = () => {
-    if (!conversation.trim()) {
-      toast({
-        title: "No conversation to analyze",
-        description: "Please paste or upload a conversation first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const formData = new FormData();
-    const blob = new Blob([conversation], { type: 'text/plain' });
-    formData.append('file', blob, 'conversation.txt');
-    
-    analysisMutation.mutate(formData);
-  };
-
-  const switchNames = () => {
-    const temp = me;
-    setMe(them);
-    setThem(temp);
   };
 
   return (
@@ -307,18 +273,18 @@ export default function ChatAnalysis() {
         {/* Results Section */}
         {showResults && result && (
           <div id="analysisResults" className="space-y-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-pink-600 mb-2">Analysis Results</h2>
-                  <p className="text-gray-600">
-                    {result.participants ? (
-                      <>Conversation between <span className="font-semibold text-pink-500">{result.participants.me}</span> and <span className="font-semibold text-blue-500">{result.participants.them}</span></>
-                    ) : (
-                      "Conversation Analysis Complete"
-                    )}
-                  </p>
-                </div>
+            <ResultsDispatcher 
+              result={result} 
+              me={result.participants?.me || "You"} 
+              them={result.participants?.them || "Them"} 
+              tier={tier}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
                 {/* Overall Emotional Tone */}
                 <div className="mb-6">
