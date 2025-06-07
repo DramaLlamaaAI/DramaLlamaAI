@@ -404,7 +404,21 @@ export default function Checkout() {
             )}
             
             {clientSecret && (
-              <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <Elements 
+                stripe={stripePromise} 
+                options={{ 
+                  clientSecret,
+                  appearance: {
+                    theme: 'stripe',
+                    variables: {
+                      colorPrimary: '#0570de',
+                    },
+                  },
+                  terms: {
+                    card: 'never',
+                  },
+                }}
+              >
                 <CheckoutForm plan={plan} />
               </Elements>
             )}
