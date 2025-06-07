@@ -1,19 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
 import { getUserUsage } from "@/lib/openai";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getTierDisplayName } from "@/lib/utils";
 import { Link } from "wouter";
 import llamaImage from "@assets/FB Profile Pic.png";
 import AdminNavItem from "./admin-nav-item";
 import { apiRequest } from "@/lib/queryClient";
-import { Home, MessageSquare, Zap, Mic, Users, Mail } from "lucide-react";
+import { Home, MessageSquare, Zap, Mic, Users, Mail, Sparkles } from "lucide-react";
 
 
 export default function Header() {
   const { data: usage } = useQuery({
     queryKey: ['/api/user/usage'],
     queryFn: getUserUsage,
+  });
+
+  const { data: credits } = useQuery({
+    queryKey: ["/api/user/deep-dive-credits"],
+    queryFn: async () => {
+      const response = await fetch("/api/user/deep-dive-credits");
+      if (!response.ok) {
+        if (response.status === 401) {
+          return null; // Not authenticated
+        }
+        throw new Error("Failed to fetch credits");
+      }
+      return response.json();
+    },
+    retry: false,
   });
 
   const tier = usage?.tier || 'free';
@@ -88,12 +104,12 @@ export default function Header() {
             </div>
           </nav>
           
-          {/* Usage meter - only visible on desktop */}
-          <div className="hidden md:block">
+          {/* Usage meter and credits - only visible on desktop */}
+          <div className="hidden md:flex items-center space-x-2">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="mr-4 text-sm bg-white/10 px-3 py-1 rounded-full flex items-center">
+                  <div className="text-sm bg-white/10 px-3 py-1 rounded-full flex items-center">
                     <span className="text-white/80 mr-1">{getTierDisplayName(tier)}</span>
                     
                     {/* Visual progress indicator */}
@@ -119,6 +135,25 @@ export default function Header() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+
+            {/* Deep Dive Credits Badge */}
+            {credits && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href="/checkout/one-time">
+                      <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 cursor-pointer">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        {credits.credits} Deep Dive
+                      </Badge>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Deep Dive credits for enhanced analysis. Click to purchase more.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
           
           <div className="flex items-center space-x-1 sm:space-x-2">

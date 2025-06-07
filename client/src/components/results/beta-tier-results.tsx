@@ -2,7 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, TrendingUp, Users, Heart, MessageCircle, Flame, Activity, Clock, Target, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, TrendingUp, Users, Heart, MessageCircle, Flame, Activity, Clock, Target, CheckCircle, Sparkles, CreditCard } from "lucide-react";
+import { Link } from "wouter";
 
 interface BetaTierResultsProps {
   result: any;
@@ -13,23 +15,82 @@ interface BetaTierResultsProps {
 export default function BetaTierResults({ result, me, them }: BetaTierResultsProps) {
   const redFlags = result.redFlags || [];
   const healthScore = result.healthScore?.score || 0;
+  const deepDiveCreditsRequired = result.deepDiveCreditsRequired || false;
+  const deepDiveCreditsRemaining = result.deepDiveCreditsRemaining || 0;
+  
+  // Handle case where Deep Dive credits are required but not available
+  if (deepDiveCreditsRequired) {
+    return (
+      <div className="space-y-6">
+        <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-amber-800 flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Deep Dive Credits Required
+              </CardTitle>
+              <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                Premium Feature
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-amber-700">
+              {result.message || "Deep Dive credits are required for enhanced beta analysis with detailed insights."}
+            </p>
+            <div className="bg-amber-100 border border-amber-300 rounded-lg p-4">
+              <h4 className="font-semibold text-amber-800 mb-2">Enhanced Analysis Includes:</h4>
+              <ul className="text-sm text-amber-700 space-y-1">
+                <li>• Detailed red flag breakdowns with participant attribution</li>
+                <li>• Impact assessments and progression warnings</li>
+                <li>• Personalized recommendations and action steps</li>
+                <li>• Communication style comparisons</li>
+                <li>• Accountability and tension analysis</li>
+              </ul>
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-sm text-gray-600">
+                Credits remaining: {deepDiveCreditsRemaining}
+              </span>
+              <Link href="/checkout/one-time">
+                <Button className="bg-purple-600 hover:bg-purple-700">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Purchase Deep Dive Credits (£1.99)
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
-      {/* Beta Tier Header */}
+      {/* Beta Tier Header with Credit Info */}
       <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-purple-800">Beta Tier Enhanced Analysis</CardTitle>
-            <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-              Enhanced Features
-            </Badge>
+            <CardTitle className="text-purple-800 flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Beta Tier Enhanced Analysis
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                Enhanced Features
+              </Badge>
+              {deepDiveCreditsRemaining !== undefined && (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  {deepDiveCreditsRemaining} credits remaining
+                </Badge>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <p className="text-purple-700">
             This enhanced analysis includes detailed red flag breakdowns, participant attribution, 
-            impact assessment, and personalized recommendations.
+            impact assessment, and personalized recommendations. This analysis consumed 1 Deep Dive credit.
           </p>
         </CardContent>
       </Card>
