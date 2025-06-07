@@ -151,6 +151,7 @@ export default function Checkout() {
       }
       
       const data = await response.json();
+      console.log('Subscription response data:', data);
       
       // Check if user already has an active subscription
       if (data.isExisting) {
@@ -161,6 +162,11 @@ export default function Checkout() {
         });
         navigate('/subscription?existing=true');
         return false;
+      }
+      
+      // Validate client secret exists
+      if (!data.clientSecret) {
+        throw new Error('No client secret received from server. Payment cannot be initialized.');
       }
       
       setClientSecret(data.clientSecret);
@@ -180,10 +186,17 @@ export default function Checkout() {
       return true;
     } catch (err: any) {
       console.error('Error with subscription:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
+      
+      // More detailed error handling
+      let errorMessage = 'Something went wrong. Please try again.';
+      if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
       toast({
-        title: "Error",
-        description: "Could not initialize the payment system. Please try again.",
+        title: "Payment Initialization Failed",
+        description: `Could not initialize payment: ${errorMessage}`,
         variant: "destructive",
       });
       return false;

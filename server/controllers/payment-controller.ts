@@ -28,13 +28,17 @@ export const paymentController = {
       const { plan } = req.body;
       const planKey = plan?.toLowerCase() || 'personal';
       
-      // Validate plan
-      if (!['personal', 'pro', 'deepdive'].includes(planKey)) {
+      // Validate plan (including 'instant' as alias for 'deepdive')
+      const validPlans = ['personal', 'pro', 'deepdive', 'instant'];
+      if (!validPlans.includes(planKey)) {
         return res.status(400).json({ error: 'Invalid plan selected' });
       }
       
+      // Map 'instant' to 'deepdive' for pricing
+      const pricingPlan = planKey === 'instant' ? 'deepdive' : planKey;
+      
       // Get price ID for the selected plan
-      const priceId = PRICE_IDS[planKey as keyof typeof PRICE_IDS];
+      const priceId = PRICE_IDS[pricingPlan as keyof typeof PRICE_IDS];
       
       if (!priceId) {
         return res.status(400).json({ error: 'Invalid plan configuration' });
@@ -95,7 +99,20 @@ export const paymentController = {
       }
       
       // Calculate base amount based on plan
-      let baseAmount = planKey === 'personal' ? 499 : 999; // Amount in cents (£4.99 or £9.99)
+      let baseAmount;
+      switch (pricingPlan) {
+        case 'personal':
+          baseAmount = 399; // £3.99
+          break;
+        case 'pro':
+          baseAmount = 799; // £7.99
+          break;
+        case 'deepdive':
+          baseAmount = 199; // £1.99
+          break;
+        default:
+          baseAmount = 399; // Default to personal
+      }
       
       // Apply discount if applicable
       let finalAmount = baseAmount;
@@ -150,8 +167,6 @@ export const paymentController = {
           originalAmount: baseAmount.toString(),
           discountPercentage: discountPercentage.toString(),
         },
-        // Note: Discounts will be handled at the price level for now
-        // Future enhancement: Apply coupons for percentage discounts
       });
 
       // Update user with subscription ID and tier
@@ -161,10 +176,20 @@ export const paymentController = {
       const invoice = subscription.latest_invoice as any;
       const paymentIntent = invoice?.payment_intent;
       
+      console.log('Subscription created:', subscription.id);
+      console.log('Invoice:', invoice?.id);
+      console.log('Payment intent:', paymentIntent?.id);
+      console.log('Client secret:', paymentIntent?.client_secret);
+      
+      // Ensure we have a client secret
+      if (!paymentIntent?.client_secret) {
+        throw new Error('Payment intent client secret not available. Please try again.');
+      }
+      
       // Return client secret and discount info to the frontend
       res.json({
         subscriptionId: subscription.id,
-        clientSecret: paymentIntent?.client_secret,
+        clientSecret: paymentIntent.client_secret,
         customerId: customerId,
         originalAmount: baseAmount,
         finalAmount: finalAmount,
