@@ -316,15 +316,36 @@ export default function Checkout() {
     }).format(amount / 100);
   };
 
+  // Get plan pricing information
+  const getPlanInfo = (planName: string) => {
+    const planLower = planName.toLowerCase();
+    switch(planLower) {
+      case 'personal':
+        return { price: 399, name: 'Personal', billing: 'monthly' };
+      case 'pro':
+        return { price: 799, name: 'Pro', billing: 'monthly' };
+      case 'instant':
+      case 'deepdive':
+        return { price: 199, name: 'Deep Dive', billing: 'one-time' };
+      default:
+        return { price: 399, name: 'Personal', billing: 'monthly' };
+    }
+  };
+
+  const planInfo = getPlanInfo(plan);
+
   return (
     <div className="container py-12">
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>Subscribe to {plan} Plan</CardTitle>
+            <CardTitle>Subscribe to {planInfo.name} Plan</CardTitle>
             <CardDescription>
-              Please enter your payment details to continue
+              {formatPrice(discountInfo?.finalAmount || planInfo.price)} {planInfo.billing === 'monthly' ? 'per month' : 'one-time payment'}
             </CardDescription>
+            <div className="mt-2 text-sm text-muted-foreground">
+              Please enter your payment details to continue
+            </div>
             
             {/* Back to subscription page button */}
             <Button 
