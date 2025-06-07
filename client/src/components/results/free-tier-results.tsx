@@ -87,15 +87,15 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                 Your conversation shows healthy communication patterns between {me} and {them}.
               </p>
               
-              {/* Upgrade Suggestion */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-800 mb-2">Want Deeper Insights?</h4>
-                <p className="text-sm text-blue-700 mb-3">
-                  Upgrade to Personal or Pro tier for detailed communication pattern analysis, 
-                  relationship health scores, and personalized improvement suggestions.
+              {/* Beta Tier Registration Promotion */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h4 className="font-semibold text-purple-800 mb-2">Want Deeper Insights?</h4>
+                <p className="text-sm text-purple-700 mb-3">
+                  Register today and we'll upgrade you to Beta tier for free. No card required. 
+                  Beta Tier access is temporary and will revert back to Free Tier when the promotional period ends.
                 </p>
-                <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
-                  Explore Upgrade Options
+                <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-100">
+                  Register for Free Beta Access
                 </Button>
               </div>
             </div>
@@ -174,16 +174,31 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
         </CardContent>
       </Card>
 
-      {/* Upgrade Prompt */}
-      <Alert className="bg-gradient-to-r from-pink-50 to-rose-50 border-pink-200">
-        <Star className="h-4 w-4 text-pink-600" />
-        <AlertDescription className="text-pink-800">
-          <div className="flex items-center justify-between">
+      {/* Beta Tier Registration Prompt */}
+      <Alert className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+        <Star className="h-4 w-4 text-purple-600" />
+        <AlertDescription className="text-purple-800">
+          <div className="space-y-3">
             <div>
-              <strong>Ready for deeper insights?</strong> Upgrade to Personal tier to see exactly what communication patterns we found and get personalized recommendations.
+              <strong>Register today and we'll upgrade you to Beta tier for free. No card required.</strong>
+              <br />
+              <span className="text-sm">Beta Tier access is temporary and will revert back to Free Tier when the promotional period ends.</span>
             </div>
-            <Button className="ml-4 bg-pink-500 hover:bg-pink-600">
-              Upgrade Now
+            
+            <div className="bg-white/50 rounded-lg p-3">
+              <h5 className="font-semibold text-purple-800 mb-2">Beta Tier provides:</h5>
+              <ul className="text-sm text-purple-700 space-y-1">
+                <li>• Unlimited analysis</li>
+                <li>• Overall Emotional Tone</li>
+                <li>• Conversation Health Score (visual meter)</li>
+                <li>• In-depth red flag detection</li>
+                <li>• Empathetic summaries with growth areas and strengths</li>
+                <li>• Support recommendations</li>
+              </ul>
+            </div>
+            
+            <Button className="bg-purple-500 hover:bg-purple-600">
+              Register for Free Beta Access
             </Button>
           </div>
         </AlertDescription>
