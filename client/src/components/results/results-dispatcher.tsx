@@ -225,64 +225,97 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {redFlags.map((flag: any, index: number) => (
-              <div key={index} className="border rounded-lg p-4 bg-amber-50 border-amber-200">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-amber-800">{flag.type}</h4>
-                    <p className="text-sm text-amber-700">
-                      {flag.participant && flag.participant !== 'Both participants' 
-                        ? `Attributed to: ${flag.participant}`
-                        : 'General pattern detected'
-                      }
-                    </p>
-                    {/* Severity Score Display */}
-                    {flag.severity && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="text-xs font-medium text-amber-700">Severity Score:</span>
-                        <Badge variant="outline" className={`
-                          ${(flag.severity >= 7) ? 'border-red-300 text-red-700 bg-red-50' : 
-                            (flag.severity >= 4) ? 'border-orange-300 text-orange-700 bg-orange-50' : 
-                            'border-yellow-300 text-yellow-700 bg-yellow-50'}
-                        `}>
-                          {flag.severity}/10
-                        </Badge>
-                        <SeverityInfoButton />
+            {redFlags.map((flag: any, index: number) => {
+              const isLowRisk = flag.severity && flag.severity <= 3;
+              const bgColor = isLowRisk ? 'bg-blue-50' : 'bg-amber-50';
+              const borderColor = isLowRisk ? 'border-blue-200' : 'border-amber-200';
+              const textColor = isLowRisk ? 'text-blue-800' : 'text-amber-800';
+              const labelColor = isLowRisk ? 'text-blue-700' : 'text-amber-700';
+              
+              return (
+                <div key={index} className={`border rounded-lg p-4 ${bgColor} ${borderColor}`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 className={`font-semibold ${textColor}`}>
+                        {isLowRisk ? `${flag.type} Pattern` : flag.type}
+                      </h4>
+                      <p className={`text-sm ${labelColor}`}>
+                        {flag.participant && flag.participant !== 'Both participants' 
+                          ? `Attributed to: ${flag.participant}`
+                          : 'General pattern detected'
+                        }
+                      </p>
+                      {/* Severity Score Display */}
+                      {flag.severity && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className={`text-xs font-medium ${labelColor}`}>Severity Score:</span>
+                          <Badge variant="outline" className={`
+                            ${(flag.severity >= 7) ? 'border-red-300 text-red-700 bg-red-50' : 
+                              (flag.severity >= 4) ? 'border-orange-300 text-orange-700 bg-orange-50' : 
+                              'border-blue-300 text-blue-700 bg-blue-50'}
+                          `}>
+                            {flag.severity}/10
+                          </Badge>
+                          <SeverityInfoButton />
+                        </div>
+                      )}
+                    </div>
+                    <Badge variant="outline" className={`
+                      ${flag.severity >= 7 ? 'border-red-300 text-red-700 bg-red-50' : 
+                        flag.severity >= 4 ? 'border-orange-300 text-orange-700 bg-orange-50' : 
+                        'border-blue-300 text-blue-700 bg-blue-50'}
+                    `}>
+                      {flag.severity >= 7 ? "High" : flag.severity >= 4 ? "Medium" : "Low"} Risk
+                    </Badge>
+                  </div>
+                  
+                  {isLowRisk ? (
+                    <div className="space-y-3">
+                      <p className={`text-sm ${textColor}`}>
+                        <strong>Pattern observed:</strong> {flag.description}
+                      </p>
+                      <div className="p-3 bg-green-50 rounded border border-green-200">
+                        <p className="text-xs font-medium text-green-700 mb-1">Good news:</p>
+                        <p className="text-xs text-green-700">
+                          This appears to show healthy communication. The responses demonstrate awareness and willingness to improve.
+                        </p>
                       </div>
-                    )}
-                  </div>
-                  <Badge variant="outline" className={`
-                    ${flag.severity >= 7 ? 'border-red-300 text-red-700 bg-red-50' : 
-                      flag.severity >= 4 ? 'border-orange-300 text-orange-700 bg-orange-50' : 
-                      'border-yellow-300 text-yellow-700 bg-yellow-50'}
-                  `}>
-                    {flag.severity >= 7 ? "High" : flag.severity >= 4 ? "Medium" : "Low"} Risk
-                  </Badge>
+                    </div>
+                  ) : (
+                    <p className={`text-sm ${textColor} mb-3`}>{flag.description}</p>
+                  )}
+                
+                  {flag.examples && flag.examples.length > 0 && (
+                    <div className="mb-3">
+                      <h5 className={`text-xs font-medium ${isLowRisk ? 'text-blue-700' : 'text-amber-700'} mb-1`}>
+                        {isLowRisk ? 'Examples from conversation:' : 'Supporting Quotes:'}
+                      </h5>
+                      <ul className={`text-xs ${isLowRisk ? 'text-blue-700' : 'text-amber-700'} space-y-1`}>
+                        {flag.examples.slice(0, 3).map((example: any, i: number) => (
+                          <li key={i} className={`pl-2 border-l-2 ${isLowRisk ? 'border-blue-300' : 'border-amber-300'}`}>
+                            {typeof example === 'string' ? `"${example}"` : `"${example.text}" - ${example.from}`}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {flag.recommendedAction && (
+                    <div className={`mt-3 p-3 rounded border ${isLowRisk ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+                      <h5 className={`text-xs font-medium ${isLowRisk ? 'text-green-700' : 'text-blue-700'} mb-1`}>
+                        {isLowRisk ? 'Enhancement suggestion:' : 'Recommended Action:'}
+                      </h5>
+                      <p className={`text-xs ${isLowRisk ? 'text-green-700' : 'text-blue-700'}`}>
+                        {isLowRisk 
+                          ? `While this shows healthy communication, ${flag.participant || 'participants'} could enhance by: ${flag.recommendedAction}`
+                          : flag.recommendedAction
+                        }
+                      </p>
+                    </div>
+                  )}
                 </div>
-                
-                <p className="text-sm text-amber-800 mb-3">{flag.description}</p>
-                
-                {flag.examples && flag.examples.length > 0 && (
-                  <div className="mb-3">
-                    <h5 className="text-xs font-medium text-amber-700 mb-1">Supporting Quotes:</h5>
-                    <ul className="text-xs text-amber-700 space-y-1">
-                      {flag.examples.slice(0, 3).map((example: any, i: number) => (
-                        <li key={i} className="pl-2 border-l-2 border-amber-300">
-                          {typeof example === 'string' ? `"${example}"` : `"${example.text}" - ${example.from}`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                
-                {flag.recommendedAction && (
-                  <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
-                    <h5 className="text-xs font-medium text-blue-700 mb-1">Recommended Action:</h5>
-                    <p className="text-xs text-blue-700">{flag.recommendedAction}</p>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       ) : (

@@ -22,6 +22,15 @@ SERIOUS (5-6): Guilt-tripping, emotional blackmail, blame-shifting, controlling 
 MODERATE (3-4): Passive aggression, dismissive language, minor manipulation, moving goalposts, victim mentality
 LOW (1-2): Poor communication habits, minor insensitivity, occasional defensive responses
 
+IMPORTANT: DO NOT flag healthy responses as red flags. Responses showing willingness to improve, acknowledgment of issues, or constructive engagement should NOT be labeled as "Conflict Avoidance" or any red flag. Examples of HEALTHY responses that should NOT be flagged:
+- "I didn't realize it bothered you" (shows awareness)
+- "I can try harder" (shows willingness to improve)
+- Apologizing or taking responsibility
+- Asking for clarification or feedback
+- Expressing genuine care or concern
+
+For any pattern scored 1-4, provide specific example responses that would be more constructive, not just generic advice.
+
 IMPORTANT: Return ONLY JSON wrapped in code block markers (\`\`\`json). NEVER include ANY explanatory text outside the JSON code block.
 
 All JSON values MUST be in "double quotes" without special characters. Do NOT use single quotes or line breaks within values.
