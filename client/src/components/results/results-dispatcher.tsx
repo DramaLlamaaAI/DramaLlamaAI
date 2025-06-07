@@ -1,5 +1,6 @@
 import BetaTierResults from "./beta-tier-results";
 import FreeTierResults from "./free-tier-results";
+import EnhancedEmotionalTone from "../enhanced-emotional-tone";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -106,29 +107,16 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
         </CardContent>
       </Card>
 
-      {/* Overall Emotional Tone */}
+      {/* Enhanced Emotional Tone Analysis */}
       {result.toneAnalysis && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-blue-500" />
-              Overall Emotional Tone
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-medium mb-4">{result.toneAnalysis.overallTone}</p>
-            {result.toneAnalysis.participantTones && (
-              <div className="grid md:grid-cols-2 gap-4">
-                {Object.entries(result.toneAnalysis.participantTones).map(([participant, tone]) => (
-                  <div key={participant} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-blue-800">{participant}</h4>
-                    <p className="text-sm text-blue-700">{tone as string}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <EnhancedEmotionalTone
+          overallTone={result.toneAnalysis.overallTone}
+          participantTones={result.toneAnalysis.participantTones}
+          participantAnalysis={(result as any).participantAnalysis}
+          tier={tier}
+          me={me}
+          them={them}
+        />
       )}
 
       {/* Health Score */}

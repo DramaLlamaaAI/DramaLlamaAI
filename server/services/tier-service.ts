@@ -179,6 +179,11 @@ export function filterChatAnalysisByTier(analysis: ChatAnalysisResult, tier: str
     filteredAnalysis.healthScore = analysis.healthScore;
   }
   
+  // Add enhanced participant analysis for Personal, Pro, and Beta tiers
+  if ((tier === 'personal' || tier === 'pro' || tier === 'beta') && (analysis as any).participantAnalysis) {
+    (filteredAnalysis as any).participantAnalysis = (analysis as any).participantAnalysis;
+  }
+  
   // FREE TIER FEATURES:
   // - Overall Emotional Tone Summary (toneAnalysis.overallTone) - included above
   // - Conversation Health Meter (healthScore) - added above
