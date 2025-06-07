@@ -174,12 +174,29 @@ export const paymentController = {
       await storage.updateUserTier(userId, planKey);
 
       const invoice = subscription.latest_invoice as any;
-      const paymentIntent = invoice?.payment_intent;
+      let paymentIntent = invoice?.payment_intent;
       
       console.log('Subscription created:', subscription.id);
       console.log('Invoice:', invoice?.id);
       console.log('Payment intent:', paymentIntent?.id);
       console.log('Client secret:', paymentIntent?.client_secret);
+      
+      // If no payment intent exists, create one manually
+      if (!paymentIntent) {
+        console.log('No payment intent found, creating one manually...');
+        paymentIntent = await stripe.paymentIntents.create({
+          amount: finalAmount,
+          currency: 'gbp',
+          customer: customerId,
+          payment_method_types: ['card'],
+          metadata: {
+            subscription_id: subscription.id,
+            plan: planKey,
+            userId: userId.toString(),
+          },
+        });
+        console.log('Created payment intent:', paymentIntent.id);
+      }
       
       // Ensure we have a client secret
       if (!paymentIntent?.client_secret) {
