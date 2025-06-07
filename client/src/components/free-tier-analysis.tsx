@@ -348,7 +348,7 @@ export default function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisP
                     <span class="red-flags-count">
                       ${result.redFlagCount || result.redFlagsCount || 0} potential red flag${(result.redFlagCount || result.redFlagsCount || 0) !== 1 ? 's' : ''}
                     </span> ${(result.redFlagCount || result.redFlagsCount || 0) === 0 ? 'were' : 'was'} identified in this conversation.
-                    ${result.redFlagsCount > 0 ? ' Upgrade to see detailed analysis of each red flag.' : ''}
+                    ${(result.redFlagCount || result.redFlagsCount || 0) > 0 ? ' Upgrade to see detailed analysis of each red flag.' : ''}
                   </p>
                 </div>
               </div>
@@ -719,7 +719,7 @@ export default function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisP
         {result.healthScore && (
           <>
             {/* Zero Red Flags - Green success message */}
-            {(result.redFlagsCount === 0) && (
+            {((result.redFlagCount || result.redFlagsCount || 0) === 0) && (
               <div className="p-4 bg-green-50 rounded-lg border border-green-100 mb-4">
                 <div className="flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -736,13 +736,13 @@ export default function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisP
             )}
             
             {/* Red Flags Detected - Only shown when health score is below 80 and there are red flags */}
-            {(result.healthScore.score < 80 && (result.redFlagsCount !== undefined && result.redFlagsCount > 0)) && (
+            {(result.healthScore.score < 80 && ((result.redFlagCount || result.redFlagsCount || 0) > 0)) && (
               <div className="p-4 bg-red-50 rounded-lg border border-red-100 mb-4">
                 <div className="flex justify-between items-center">
                   <h4 className="text-lg font-medium text-red-700">
                     Red Flags Detected: {
                       // Show real count if available, otherwise determine based on health score
-                      result.redFlagsCount !== undefined ? result.redFlagsCount : 
+                      (result.redFlagCount || result.redFlagsCount) !== undefined ? (result.redFlagCount || result.redFlagsCount) : 
                       result.healthScore.score < 40 ? 3 : 
                       result.healthScore.score < 60 ? 2 : 1
                     }
