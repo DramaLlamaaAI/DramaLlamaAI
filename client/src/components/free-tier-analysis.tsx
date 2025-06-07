@@ -339,15 +339,15 @@ export default function FreeTierAnalysis({ result, me, them }: FreeTierAnalysisP
             </div>
             ` : ''}
             
-            ${result.redFlagsCount !== undefined ? `
+            ${(result.redFlagCount !== undefined || result.redFlagsCount !== undefined) ? `
             <div class="document-section">
               <div class="section-title">Red Flags</div>
               <div class="section-content">
-                <div class="red-flags-box ${result.redFlagsCount > 0 ? 'has-flags' : 'no-flags'}">
+                <div class="red-flags-box ${(result.redFlagCount || result.redFlagsCount || 0) > 0 ? 'has-flags' : 'no-flags'}">
                   <p>
                     <span class="red-flags-count">
-                      ${result.redFlagsCount} potential red flag${result.redFlagsCount !== 1 ? 's' : ''}
-                    </span> ${result.redFlagsCount === 0 ? 'were' : 'was'} identified in this conversation.
+                      ${result.redFlagCount || result.redFlagsCount || 0} potential red flag${(result.redFlagCount || result.redFlagsCount || 0) !== 1 ? 's' : ''}
+                    </span> ${(result.redFlagCount || result.redFlagsCount || 0) === 0 ? 'were' : 'was'} identified in this conversation.
                     ${result.redFlagsCount > 0 ? ' Upgrade to see detailed analysis of each red flag.' : ''}
                   </p>
                 </div>

@@ -205,8 +205,8 @@ export default function ChatAnalysis() {
                                 className="w-full max-w-md rounded-lg shadow-sm"
                                 style={{ maxHeight: '250px' }}
                               >
-                                <source src="/attached_assets/Tutorial.mov" type="video/quicktime" />
-                                <source src="/attached_assets/Tutorial.mov" type="video/mp4" />
+                                <source src="/attached_assets/Timeline 1.mov" type="video/quicktime" />
+                                <source src="/attached_assets/Timeline 1.mov" type="video/mp4" />
                                 Your browser does not support the video tag.
                               </video>
                             </div>
