@@ -64,14 +64,26 @@ Please provide a comprehensive analysis in the following JSON format:
 }
 
 CRITICAL ANALYSIS GUIDELINES:
-1. Analyze the COMPLETE conversation timeline to understand cause and effect
-2. Identify WHO initiated concerning behavior vs WHO is responding protectively
-3. RED FLAGS include: failing to return child, evasion about child welfare, manipulation, threats
-4. PROTECTIVE RESPONSES include: police involvement for child safety, medical concerns (EpiPens), requesting child's return
-5. Context matters: "I'll call the police" when child isn't returned = protective, not threatening
-6. Look for patterns of control, manipulation, stonewalling, or child endangerment
-7. Don't flag legitimate parental concerns or protective actions as red flags
-8. Consider power dynamics and who has custody/responsibility`;
+1. Analyze the COMPLETE conversation as a WHOLE - never flag individual messages out of context
+2. Consider the FULL RELATIONSHIP DYNAMIC and conversation flow before identifying any red flags
+3. NORMAL RESPONSES that should NOT be flagged:
+   - Brief acknowledgments ("I didn't realize", "I can try harder", "I'll believe it when I see it")
+   - Expressions of disappointment or frustration in response to legitimate concerns
+   - Minimal engagement that doesn't show patterns of avoidance across multiple interactions
+   - Defensive responses to criticism (unless they become abusive)
+4. TRUE RED FLAGS require PATTERNS or SEVERITY:
+   - Repeated manipulation tactics across the conversation
+   - Threats, intimidation, or abusive language
+   - Gaslighting (denying reality, not just disagreeing)
+   - Control behaviors that restrict autonomy
+   - Emotional abuse patterns (not single defensive moments)
+5. DO NOT flag "Passive Communication" unless there's a clear pattern of:
+   - Deliberately withholding important information repeatedly
+   - Chronic avoidance of responsibility across multiple issues
+   - Stonewalling as a control tactic (not just brief responses)
+6. Context matters: One person may be responding appropriately to the other's concerning behavior
+7. Focus on WHO initiated problematic patterns vs WHO is responding to them
+8. Single messages or brief exchanges are NOT sufficient evidence for red flags`;
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',

@@ -202,80 +202,69 @@ export async function createBetaTierAnalysis(rawAnalysis: any, me: string, them:
   console.log('BETA TIER SERVICE: Creating dedicated Beta tier analysis');
   console.log(`Participants: ${me} and ${them}`);
   
-  // Enhanced nuance-based filtering using Safe Expression Library
-  const safeExpressions = [
-    'i\'m feeling really overwhelmed',
-    'i\'m not ignoring you, just overwhelmed',
-    'i care about you',
-    'i do care about you',
-    'this is hard, but i want to understand',
-    'i didn\'t mean to upset you',
-    'i didn\'t realize that upset you',
-    'i\'m not trying to ignore you',
-    'let\'s talk about it calmly',
-    'can we please stop fighting?',
-    'i really needed you this week',
-    'i felt completely alone',
-    'i\'m trying to understand, but this hurts',
-    'i really needed you',
-    'i felt alone',
-    'i was hurt',
-    'i needed you'
+  // Enhanced filtering to prevent inappropriate flagging of normal conversation responses
+  const normalResponsePatterns = [
+    'i didn\'t realize',
+    'i can try harder',
+    'i\'ll believe it when i see it',
+    'that\'s the problem',
+    'you never realize',
+    'i always have to',
+    'i didn\'t mean to',
+    'i understand',
+    'i\'ll do better',
+    'let me try',
+    'i hear you',
+    'you\'re right'
   ];
   
   const protectedFlags: any[] = [];
   const filteredRedFlags = (rawAnalysis.redFlags || []).filter((flag: any) => {
-    // Check if flag specifically targets protected safe expressions
-    const targetsProtectedExpression = flag.examples?.some((example: any) => {
-      const text = example.text?.toLowerCase() || '';
-      const quote = example.quote?.toLowerCase() || '';
-      const combinedText = `${text} ${quote}`;
-      
-      // Only protect if it's EXACTLY a safe expression (not just containing it)
-      return safeExpressions.some(safe => {
-        const safeWords = safe.split(' ');
-        return safeWords.every(word => combinedText.includes(word)) && 
-               safeWords.length >= 3; // Must be substantial phrase match
-      });
+    // Filter out inappropriate "Passive Communication" flags
+    const isInappropriatePassiveFlag = flag.type?.toLowerCase().includes('passive') && 
+                                      flag.description?.toLowerCase().includes('minimal engagement') &&
+                                      flag.examples?.some((example: any) => {
+                                        const text = (example.text || example.quote || '').toLowerCase();
+                                        // Check if it's just normal brief responses, not actual passive-aggressive behavior
+                                        return normalResponsePatterns.some(pattern => text.includes(pattern)) ||
+                                               text.length < 50; // Very short responses shouldn't be flagged as manipulation
+                                      });
+    
+    // Filter out flags targeting normal conversation acknowledgments
+    const isNormalAcknowledgment = flag.examples?.some((example: any) => {
+      const text = (example.text || example.quote || '').toLowerCase();
+      return normalResponsePatterns.some(pattern => text.includes(pattern));
     });
     
-    // Only filter out flags for communication breakdown when it's clearly about expressing needs/vulnerability
-    const isVulnerabilityMislabeled = flag.type?.toLowerCase().includes('breakdown') && 
-                                     flag.description?.toLowerCase().includes('expressing needs') &&
-                                     flag.examples?.some((example: any) => {
-                                       const text = (example.text || example.quote || '').toLowerCase();
-                                       return text.includes('i needed') || text.includes('i felt') || text.includes('i was hurt');
-                                     });
+    // Filter out flags for brief responses in conflict situations (these are often appropriate)
+    const isBriefAppropriateResponse = flag.type?.toLowerCase().includes('communication') &&
+                                      flag.examples?.some((example: any) => {
+                                        const text = (example.text || example.quote || '').toLowerCase();
+                                        return (text.length < 30 && 
+                                               (text.includes('i can') || text.includes('i\'ll') || text.includes('didn\'t')));
+                                      });
     
-    // If we're protecting this flag, add it to protectedFlags with explanation
-    if (targetsProtectedExpression || isVulnerabilityMislabeled) {
-      let protectionReason = '';
-      let alternativeInterpretations = [];
-      
-      if (targetsProtectedExpression) {
-        protectionReason = 'Expression of emotional vulnerability detected';
-        alternativeInterpretations = ['Healthy emotional communication', 'Defensive reassurance', 'Genuine concern'];
-      } else if (isVulnerabilityMislabeled) {
-        protectionReason = 'Potential misinterpretation of need expression';
-        alternativeInterpretations = ['Vulnerable honesty', 'Request for support', 'Emotional transparency'];
-      }
-      
+    // Track what we're filtering out for debugging
+    if (isInappropriatePassiveFlag || isNormalAcknowledgment || isBriefAppropriateResponse) {
       protectedFlags.push({
         originalType: flag.type,
         originalDescription: flag.description,
         protectedQuote: flag.examples?.[0]?.text || flag.examples?.[0]?.quote || 'Quote unavailable',
         participant: flag.participant,
-        protectionReason,
-        alternativeInterpretations
+        protectionReason: isInappropriatePassiveFlag ? 'Normal brief response misinterpreted as passive-aggressive' :
+                         isNormalAcknowledgment ? 'Normal conversation acknowledgment' :
+                         'Appropriate brief response in conflict context',
+        alternativeInterpretations: ['Normal conversation flow', 'Appropriate response', 'Non-manipulative communication']
       });
     }
     
-    // Keep ALL other red flags - only filter out clearly mislabeled vulnerability
-    return !targetsProtectedExpression && !isVulnerabilityMislabeled;
+    // Only keep flags that represent genuine concerning patterns
+    return !isInappropriatePassiveFlag && !isNormalAcknowledgment && !isBriefAppropriateResponse;
   });
   
   console.log('BETA TIER SERVICE: Filtered red flags from', (rawAnalysis.redFlags || []).length, 'to', filteredRedFlags.length);
   console.log('BETA TIER SERVICE: Raw red flags:', (rawAnalysis.redFlags || []).map(f => f.type));
+  console.log(`BETA TIER SERVICE: Enhanced filtering protected ${protectedFlags.length} inappropriate flags from being displayed`);
   
   // Apply contextual AI analysis for comprehensive conversation understanding
   const { analyzeConversationContext, convertContextualFlags } = await import('./contextual-red-flag-detector');

@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, TrendingUp, Users, Heart, MessageCircle, Flame, Activity, Clock, Target, CheckCircle, Sparkles, CreditCard } from "lucide-react";
 import { Link } from "wouter";
+import EnhancedEmotionalTone from "../enhanced-emotional-tone";
 
 interface BetaTierResultsProps {
   result: any;
@@ -94,6 +95,18 @@ export default function BetaTierResults({ result, me, them }: BetaTierResultsPro
           </p>
         </CardContent>
       </Card>
+
+      {/* Enhanced Emotional Tone Analysis */}
+      {result.toneAnalysis && (
+        <EnhancedEmotionalTone
+          overallTone={result.toneAnalysis.overallTone}
+          participantTones={result.toneAnalysis.participantTones}
+          participantAnalysis={(result as any).participantAnalysis}
+          tier="beta"
+          me={me}
+          them={them}
+        />
+      )}
 
       {/* Health Score */}
       {result.healthScore && (
