@@ -168,30 +168,30 @@ export default function BetaTierResults({ result, me, them }: BetaTierResultsPro
           </CardHeader>
           <CardContent className="space-y-6">
             {redFlags.map((flag: any, index: number) => (
-              <div key={index} className="border rounded-lg p-4 bg-amber-50 border-amber-200">
+              <div key={index} className="border rounded-lg p-4 bg-gradient-to-r from-red-50 to-orange-50 border-red-200">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h4 className="font-semibold text-amber-800">{flag.type}</h4>
-                    <p className="text-sm text-amber-700">
-                      Attributed to: <span className="font-medium">{flag.participant}</span>
+                    <h4 className="text-lg font-bold text-red-800 bg-red-100 px-3 py-1 rounded-md border border-red-300">{flag.type}</h4>
+                    <p className="text-sm text-red-700 mt-2 font-medium">
+                      Attributed to: <span className="font-bold text-red-800 bg-red-200 px-2 py-1 rounded">{flag.participant}</span>
                     </p>
                   </div>
-                  <Badge variant="outline" className="border-amber-300 text-amber-700">
+                  <Badge variant="outline" className="border-red-400 text-red-800 bg-red-100 font-semibold">
                     Severity: {flag.severity || "Medium"}
                   </Badge>
                 </div>
                 
-                <p className="text-sm text-amber-800 mb-3">{flag.description}</p>
+                <p className="text-sm text-red-800 mb-3 font-medium">{flag.description}</p>
                 
                 {/* Examples */}
                 {flag.examples && flag.examples.length > 0 && (
                   <div className="mb-3">
-                    <h5 className="text-xs font-medium text-amber-700 mb-1">Examples:</h5>
-                    <ul className="text-xs text-amber-700 space-y-1">
+                    <h5 className="text-sm font-bold text-orange-800 mb-2 bg-orange-100 px-2 py-1 rounded border border-orange-300">Examples:</h5>
+                    <ul className="text-sm text-orange-700 space-y-2">
                       {flag.examples.map((example: any, i: number) => (
-                        <li key={i} className="pl-2 border-l-2 border-amber-300">
+                        <li key={i} className="pl-3 border-l-3 border-orange-400 bg-orange-50 py-1">
                           "{typeof example === 'string' ? example : example.text}" 
-                          {example.from && <span className="text-amber-600 ml-2">- {example.from}</span>}
+                          {example.from && <span className="text-orange-800 ml-2 font-semibold">- {example.from}</span>}
                         </li>
                       ))}
                     </ul>
@@ -201,24 +201,24 @@ export default function BetaTierResults({ result, me, them }: BetaTierResultsPro
                 {/* Impact Assessment */}
                 {flag.impact && (
                   <div className="mb-3">
-                    <h5 className="text-xs font-medium text-amber-700 mb-1">Impact:</h5>
-                    <p className="text-xs text-amber-700">{flag.impact}</p>
+                    <h5 className="text-sm font-bold text-red-800 mb-2 bg-red-100 px-2 py-1 rounded border border-red-300">Impact:</h5>
+                    <p className="text-sm text-red-700 bg-red-50 p-2 rounded border border-red-200">{flag.impact}</p>
                   </div>
                 )}
                 
                 {/* Progression Warning */}
                 {flag.progression && (
                   <div className="mb-3">
-                    <h5 className="text-xs font-medium text-amber-700 mb-1">Progression Risk:</h5>
-                    <p className="text-xs text-amber-700">{flag.progression}</p>
+                    <h5 className="text-sm font-bold text-red-800 mb-2 bg-red-100 px-2 py-1 rounded border border-red-300">Progression Risk:</h5>
+                    <p className="text-sm text-red-700 bg-red-50 p-2 rounded border border-red-200">{flag.progression}</p>
                   </div>
                 )}
                 
                 {/* Recommended Action */}
                 {flag.recommendedAction && (
                   <div>
-                    <h5 className="text-xs font-medium text-green-700 mb-1">Recommended Action:</h5>
-                    <p className="text-xs text-green-700 bg-green-50 p-2 rounded border border-green-200">
+                    <h5 className="text-sm font-bold text-green-800 mb-2 bg-green-100 px-2 py-1 rounded border border-green-300">Recommended Action:</h5>
+                    <p className="text-sm text-green-700 bg-green-50 p-3 rounded border border-green-200 font-medium">
                       {flag.recommendedAction}
                     </p>
                   </div>
