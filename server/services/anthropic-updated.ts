@@ -22,14 +22,22 @@ SERIOUS (5-6): Guilt-tripping, emotional blackmail, blame-shifting, controlling 
 MODERATE (3-4): Passive aggression, dismissive language, minor manipulation, moving goalposts, victim mentality
 LOW (1-2): Poor communication habits, minor insensitivity, occasional defensive responses
 
-IMPORTANT: DO NOT flag healthy responses as red flags. Responses showing willingness to improve, acknowledgment of issues, or constructive engagement should NOT be labeled as "Conflict Avoidance" or any red flag. Examples of HEALTHY responses that should NOT be flagged:
+CRITICAL: DO NOT flag healthy responses as red flags. However, DO flag problematic communication accurately:
+
+HEALTHY responses that should NOT be flagged:
 - "I didn't realize it bothered you" (shows awareness)
 - "I can try harder" (shows willingness to improve)
 - Apologizing or taking responsibility
 - Asking for clarification or feedback
 - Expressing genuine care or concern
 
-For any pattern scored 1-4, provide specific example responses that would be more constructive, not just generic advice.
+PROBLEMATIC patterns that MUST be flagged appropriately:
+- Absolute statements like "You never..." or "You always..." (score 5-7)
+- Dismissive responses like "Not when it mattered" (score 5-6)
+- Accusations without specifics when used to attack character (score 4-6)
+- Invalidating partner's efforts or perspective (score 5-7)
+
+Do NOT mislabel accusatory or dismissive statements as "lack of specific examples" when they are clearly meant to attack or invalidate.
 
 IMPORTANT: Return ONLY JSON wrapped in code block markers (\`\`\`json). NEVER include ANY explanatory text outside the JSON code block.
 

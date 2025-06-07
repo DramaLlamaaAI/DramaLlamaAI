@@ -274,12 +274,25 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
                       <p className={`text-sm ${textColor}`}>
                         <strong>Pattern observed:</strong> {flag.description}
                       </p>
-                      <div className="p-3 bg-green-50 rounded border border-green-200">
-                        <p className="text-xs font-medium text-green-700 mb-1">Good news:</p>
-                        <p className="text-xs text-green-700">
-                          This appears to show healthy communication. The responses demonstrate awareness and willingness to improve.
-                        </p>
-                      </div>
+                      {/* Only show "healthy communication" message for truly benign patterns */}
+                      {(flag.type?.toLowerCase().includes('awareness') || 
+                        flag.type?.toLowerCase().includes('accommodation') ||
+                        flag.description?.toLowerCase().includes('willingness to improve') ||
+                        flag.description?.toLowerCase().includes('shows awareness')) ? (
+                        <div className="p-3 bg-green-50 rounded border border-green-200">
+                          <p className="text-xs font-medium text-green-700 mb-1">Good news:</p>
+                          <p className="text-xs text-green-700">
+                            This appears to show healthy communication. The responses demonstrate awareness and willingness to improve.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-yellow-50 rounded border border-yellow-200">
+                          <p className="text-xs font-medium text-yellow-700 mb-1">Room for improvement:</p>
+                          <p className="text-xs text-yellow-700">
+                            While this is low severity, it could still affect relationship dynamics if it becomes a pattern.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className={`text-sm ${textColor} mb-3`}>{flag.description}</p>
