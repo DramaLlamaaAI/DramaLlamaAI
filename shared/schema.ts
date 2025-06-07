@@ -20,6 +20,7 @@ export const users = pgTable("users", {
   country: text("country"),
   referralCode: text("referral_code"), // The referral code this user used when signing up
   referredBy: integer("referred_by"), // ID of the user who referred this user
+  deepDiveCredits: integer("deep_dive_credits").default(0), // Credits for one-time Deep Dive analyses
 });
 
 // Promotional codes schema

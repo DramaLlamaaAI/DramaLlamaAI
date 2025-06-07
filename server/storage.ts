@@ -31,6 +31,11 @@ export interface IStorage {
   setVerificationCode(userId: number, code: string, expiresIn: number): Promise<User>;
   verifyEmail(userId: number): Promise<User>;
   
+  // Deep Dive Credit Management
+  getUserDeepDiveCredits(userId: number): Promise<number>;
+  addDeepDiveCredits(userId: number, credits: number): Promise<User>;
+  consumeDeepDiveCredit(userId: number): Promise<{ success: boolean; remainingCredits: number }>;
+  
   // Admin Management
   getAllUsers(): Promise<User[]>;
   getAllUsersWithPromoInfo(): Promise<(User & { promoCode?: string; promoUsedAt?: Date })[]>;
@@ -180,7 +185,8 @@ export class MemStorage implements IStorage {
       discountExpiryDate: null,
       country: "USA",
       referralCode: null,
-      referredBy: null
+      referredBy: null,
+      deepDiveCredits: 0
     };
     this.users.set(id, user);
     
@@ -254,7 +260,8 @@ export class MemStorage implements IStorage {
       discountExpiryDate: null,
       country: insertUser.country || "Other",
       referralCode: insertUser.referralCode || null,
-      referredBy: referredBy
+      referredBy: referredBy,
+      deepDiveCredits: insertUser.deepDiveCredits || 0
     };
     
     console.log(`Creating user: ${user.username}, Email: ${user.email}, Admin: ${user.isAdmin}, Tier: ${user.tier}`);
@@ -1043,6 +1050,39 @@ export class MemStorage implements IStorage {
       marketerName: referral.marketerName
     }));
   }
+
+  // Deep Dive Credit Management
+  async getUserDeepDiveCredits(userId: number): Promise<number> {
+    const user = this.users.get(userId);
+    return user?.deepDiveCredits || 0;
+  }
+
+  async addDeepDiveCredits(userId: number, credits: number): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    user.deepDiveCredits = (user.deepDiveCredits || 0) + credits;
+    this.users.set(userId, user);
+    return user;
+  }
+
+  async consumeDeepDiveCredit(userId: number): Promise<{ success: boolean; remainingCredits: number }> {
+    const user = this.users.get(userId);
+    
+    if (!user || (user.deepDiveCredits || 0) <= 0) {
+      return { success: false, remainingCredits: user?.deepDiveCredits || 0 };
+    }
+    
+    user.deepDiveCredits = (user.deepDiveCredits || 0) - 1;
+    this.users.set(userId, user);
+    
+    return { 
+      success: true, 
+      remainingCredits: user.deepDiveCredits || 0 
+    };
+  }
 }
 
 // Implementation of IStorage using PostgreSQL database
@@ -1643,6 +1683,45 @@ export class DatabaseStorage implements IStorage {
 
   async getAllPromoUsages(): Promise<PromoUsage[]> {
     return db.select().from(promoUsage);
+  }
+
+  // Deep Dive Credit Management
+  async getUserDeepDiveCredits(userId: number): Promise<number> {
+    const user = await this.getUser(userId);
+    return user?.deepDiveCredits || 0;
+  }
+
+  async addDeepDiveCredits(userId: number, credits: number): Promise<User> {
+    const results = await db
+      .update(users)
+      .set({ 
+        deepDiveCredits: sql`${users.deepDiveCredits} + ${credits}`
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return results[0];
+  }
+
+  async consumeDeepDiveCredit(userId: number): Promise<{ success: boolean; remainingCredits: number }> {
+    const user = await this.getUser(userId);
+    
+    if (!user || (user.deepDiveCredits || 0) <= 0) {
+      return { success: false, remainingCredits: user?.deepDiveCredits || 0 };
+    }
+    
+    const results = await db
+      .update(users)
+      .set({ 
+        deepDiveCredits: sql`${users.deepDiveCredits} - 1`
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return { 
+      success: true, 
+      remainingCredits: results[0].deepDiveCredits || 0 
+    };
   }
 }
 
