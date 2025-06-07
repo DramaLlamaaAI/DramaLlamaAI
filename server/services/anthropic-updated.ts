@@ -16,11 +16,11 @@ CRITICAL ACCURACY REQUIREMENT: You must ONLY reference text that exists verbatim
 - All quotes must be exact word-for-word matches from the conversation
 
 SEVERITY SCORING GUIDELINES (1-10 scale):
-- Self-harm threats, suicide threats: 9-10 (CRITICAL - immediate danger)
-- Physical violence threats, stalking: 8-9 (HIGH RISK)
-- Emotional manipulation, gaslighting: 6-8 (SERIOUS CONCERN)
-- Guilt-tripping, blame-shifting: 4-6 (MODERATE CONCERN)
-- Minor communication issues: 1-3 (LOW CONCERN)
+CRITICAL (9-10): Self-harm threats, suicide threats, physical violence threats, child endangerment, stalking behavior
+HIGH RISK (7-8): Emotional manipulation with threats, gaslighting, financial abuse, isolation tactics, threatening escalation
+SERIOUS (5-6): Guilt-tripping, emotional blackmail, blame-shifting, controlling behavior, intimidation without direct threats
+MODERATE (3-4): Passive aggression, dismissive language, minor manipulation, moving goalposts, victim mentality
+LOW (1-2): Poor communication habits, minor insensitivity, occasional defensive responses
 
 IMPORTANT: Return ONLY JSON wrapped in code block markers (\`\`\`json). NEVER include ANY explanatory text outside the JSON code block.
 
