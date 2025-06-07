@@ -178,28 +178,31 @@ export const paymentController = {
       
       console.log('Subscription created:', subscription.id);
       console.log('Invoice:', invoice?.id);
-      console.log('Payment intent:', paymentIntent?.id);
-      console.log('Client secret:', paymentIntent?.client_secret);
+      console.log('Payment intent from subscription:', paymentIntent?.id);
+      console.log('Client secret from subscription:', paymentIntent?.client_secret);
       
       // If no payment intent exists, create one manually
-      if (!paymentIntent) {
-        console.log('No payment intent found, creating one manually...');
+      if (!paymentIntent || !paymentIntent.client_secret) {
+        console.log('No payment intent found or missing client secret, creating one manually...');
         paymentIntent = await stripe.paymentIntents.create({
           amount: finalAmount,
           currency: 'gbp',
           customer: customerId,
           payment_method_types: ['card'],
+          setup_future_usage: 'off_session',
           metadata: {
             subscription_id: subscription.id,
             plan: planKey,
             userId: userId.toString(),
           },
         });
-        console.log('Created payment intent:', paymentIntent.id);
+        console.log('Created manual payment intent:', paymentIntent.id);
+        console.log('Manual payment intent client secret:', paymentIntent.client_secret);
       }
       
-      // Ensure we have a client secret
+      // Final validation
       if (!paymentIntent?.client_secret) {
+        console.error('Still no client secret after manual creation');
         throw new Error('Payment intent client secret not available. Please try again.');
       }
       
