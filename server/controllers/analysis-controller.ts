@@ -895,11 +895,18 @@ export const analysisController = {
           console.log(`Enhanced ${tier} tier red flag detection`);
         }
         
-        // Post-process to precisely remove only stonewalling flags
+        // Post-process to remove invalid flags (stonewalling and "none" type flags)
         if (filteredResults.redFlags && filteredResults.redFlags.length > 0) {
-          // Filter out ONLY exact stonewalling flags while keeping other valid ones
+          // Filter out stonewalling flags and "none" type flags which indicate no actual issues
           filteredResults.redFlags = filteredResults.redFlags.filter(flag => {
             const flagType = (flag.type || '').toLowerCase();
+            const flagDesc = (flag.description || '').toLowerCase();
+            
+            // Remove "none" type flags which indicate no actual red flags
+            if (flagType === 'none' || flagDesc.includes('no issues detected')) {
+              console.log(`Post-processing filter: Removing "none" type flag: ${flag.type}`);
+              return false;
+            }
             
             // Check only for exact matches to "stonewalling" rather than broad filtering
             const isStonewallingFlag = 
@@ -915,17 +922,22 @@ export const analysisController = {
             return true;
           });
           
-          console.log(`Post-processing filter: ${filteredResults.redFlags.length} flags remain after filtering stonewalling`);
+          console.log(`Post-processing filter: ${filteredResults.redFlags.length} flags remain after filtering`);
         }
         
         // For free tier, add red flag types from personal analysis
         if (tier === 'free') {
           // Check AI detected flags first (this should be the primary path)
           if (personalAnalysis?.redFlags && personalAnalysis.redFlags.length > 0) {
-            // Filter out only stonewalling flags and keep other valid flags
+            // Filter out stonewalling flags and "none" type flags which indicate no actual issues
             const filteredRedFlags = personalAnalysis.redFlags.filter(flag => {
               const flagType = (flag.type || '').toLowerCase();
               const flagDesc = (flag.description || '').toLowerCase();
+              
+              // Remove "none" type flags which indicate no actual red flags
+              if (flagType === 'none' || flagDesc.includes('no issues detected')) {
+                return false;
+              }
               
               // Check only for exact matches to "stonewalling" type/names
               // but keep other legitimate flags
