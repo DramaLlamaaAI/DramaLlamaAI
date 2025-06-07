@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, TrendingUp, Users, Heart, MessageCircle, Flame, Activity, Clock, Target, CheckCircle, Star } from "lucide-react";
+import { AlertTriangle, TrendingUp, Users, Heart, MessageCircle, Flame, Activity, Clock, Target, CheckCircle, Star, Shield, HeartHandshake } from "lucide-react";
 
 interface ResultsDispatcherProps {
   result: any;
@@ -18,6 +18,9 @@ interface ResultsDispatcherProps {
 function PersonalProTierResults({ result, me, them, tier }: { result: any; me: string; them: string; tier: string }) {
   const redFlags = result.redFlags || [];
   const healthScore = result.healthScore?.score || 0;
+  const manipulationScores = result.manipulationScores || {};
+  const individualCommunicationStyles = result.individualCommunicationStyles || {};
+  const supportRecommendations = result.communication?.supportRecommendations || [];
   
   return (
     <div className="space-y-6">
@@ -37,11 +40,36 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
           <p className={tier === 'pro' ? 'text-purple-700' : 'text-pink-700'}>
             {tier === 'pro' 
               ? 'Comprehensive analysis with advanced conflict resolution strategies and relationship coaching insights.'
-              : 'Complete red flag analysis with detailed breakdowns and participant attribution.'
+              : 'Complete analysis with manipulation detection, individual communication styles, and professional support recommendations.'
             }
           </p>
         </CardContent>
       </Card>
+
+      {/* Overall Emotional Tone */}
+      {result.toneAnalysis && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-blue-500" />
+              Overall Emotional Tone
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-medium mb-4">{result.toneAnalysis.overallTone}</p>
+            {result.toneAnalysis.participantTones && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {Object.entries(result.toneAnalysis.participantTones).map(([participant, tone]) => (
+                  <div key={participant} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="font-semibold text-blue-800">{participant}</h4>
+                    <p className="text-sm text-blue-700">{tone as string}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Health Score */}
       {result.healthScore && (
@@ -69,13 +97,13 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
         </Card>
       )}
 
-      {/* Red Flags Analysis */}
+      {/* Red Flags Analysis with Severity Scores */}
       {redFlags.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Red Flag Analysis ({redFlags.length} detected)
+              Personal Red Flag Analysis ({redFlags.length} detected)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -90,9 +118,22 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
                         : 'General pattern detected'
                       }
                     </p>
+                    {/* Severity Score Display */}
+                    {flag.severity && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="text-xs font-medium text-amber-700">Severity Score:</span>
+                        <Badge variant="outline" className={`
+                          ${(flag.severity >= 8) ? 'border-red-300 text-red-700 bg-red-50' : 
+                            (flag.severity >= 6) ? 'border-orange-300 text-orange-700 bg-orange-50' : 
+                            'border-yellow-300 text-yellow-700 bg-yellow-50'}
+                        `}>
+                          {flag.severity}/10
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                   <Badge variant="outline" className="border-amber-300 text-amber-700">
-                    {flag.severity || "Medium"} Risk
+                    {flag.severity >= 8 ? "High" : flag.severity >= 6 ? "Medium" : "Low"} Risk
                   </Badge>
                 </div>
                 
@@ -100,7 +141,7 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
                 
                 {flag.examples && flag.examples.length > 0 && (
                   <div className="mb-3">
-                    <h5 className="text-xs font-medium text-amber-700 mb-1">Examples from conversation:</h5>
+                    <h5 className="text-xs font-medium text-amber-700 mb-1">Supporting Quotes:</h5>
                     <ul className="text-xs text-amber-700 space-y-1">
                       {flag.examples.slice(0, 3).map((example: any, i: number) => (
                         <li key={i} className="pl-2 border-l-2 border-amber-300">
@@ -111,10 +152,10 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
                   </div>
                 )}
                 
-                {tier === 'pro' && flag.recommendedAction && (
-                  <div className="mt-3 p-3 bg-green-50 rounded border border-green-200">
-                    <h5 className="text-xs font-medium text-green-700 mb-1">Pro Recommendation:</h5>
-                    <p className="text-xs text-green-700">{flag.recommendedAction}</p>
+                {flag.recommendedAction && (
+                  <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
+                    <h5 className="text-xs font-medium text-blue-700 mb-1">Recommended Action:</h5>
+                    <p className="text-xs text-blue-700">{flag.recommendedAction}</p>
                   </div>
                 )}
               </div>
@@ -126,7 +167,7 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
-              Red Flag Analysis
+              Personal Red Flag Analysis
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -136,6 +177,132 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
               <p className="text-green-700">
                 Your conversation shows healthy communication patterns between {me} and {them}.
               </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Individual Manipulation Score Detection */}
+      {Object.keys(manipulationScores).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Individual Manipulation Score Detection
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              {Object.entries(manipulationScores).map(([participant, data]: [string, any]) => (
+                <div key={participant} className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <h4 className="font-semibold text-orange-800 mb-2">{participant}</h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium">Manipulation Score:</span>
+                    <Badge variant="outline" className={`
+                      ${(data.score >= 7) ? 'border-red-300 text-red-700 bg-red-50' : 
+                        (data.score >= 4) ? 'border-orange-300 text-orange-700 bg-orange-50' : 
+                        'border-green-300 text-green-700 bg-green-50'}
+                    `}>
+                      {data.score}/10
+                    </Badge>
+                  </div>
+                  {data.analysis && (
+                    <p className="text-sm text-orange-700 mb-2">{data.analysis}</p>
+                  )}
+                  {data.quotes && data.quotes.length > 0 && (
+                    <div>
+                      <h5 className="text-xs font-medium text-orange-700 mb-1">Evidence Quotes:</h5>
+                      <ul className="text-xs text-orange-700 space-y-1">
+                        {data.quotes.slice(0, 2).map((quote: string, i: number) => (
+                          <li key={i} className="pl-2 border-l-2 border-orange-300">
+                            "{quote}"
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Individual Communication Style Analysis */}
+      {Object.keys(individualCommunicationStyles).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-purple-500" />
+              Individual Communication Style Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              {Object.entries(individualCommunicationStyles).map(([participant, style]: [string, any]) => (
+                <div key={participant} className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-800 mb-2">{participant}</h4>
+                  {typeof style === 'string' ? (
+                    <p className="text-sm text-purple-700">{style}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {style.primary && (
+                        <div>
+                          <span className="text-xs font-medium text-purple-700">Primary Style:</span>
+                          <p className="text-sm text-purple-700">{style.primary}</p>
+                        </div>
+                      )}
+                      {style.patterns && style.patterns.length > 0 && (
+                        <div>
+                          <span className="text-xs font-medium text-purple-700">Key Patterns:</span>
+                          <ul className="text-xs text-purple-700 mt-1 space-y-1">
+                            {style.patterns.map((pattern: string, i: number) => (
+                              <li key={i} className="pl-2 border-l-2 border-purple-300">
+                                {pattern}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Support Recommendations */}
+      {supportRecommendations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <HeartHandshake className="h-5 w-5 text-green-500" />
+              Professional Support Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {supportRecommendations.map((recommendation: any, index: number) => (
+                <div key={index} className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  {typeof recommendation === 'string' ? (
+                    <p className="text-sm text-green-700">{recommendation}</p>
+                  ) : (
+                    <div>
+                      {recommendation.title && (
+                        <h4 className="font-semibold text-green-800 mb-1">{recommendation.title}</h4>
+                      )}
+                      <p className="text-sm text-green-700">{recommendation.description || recommendation}</p>
+                      {recommendation.urgency && (
+                        <Badge variant="outline" className="mt-2 border-green-300 text-green-700">
+                          {recommendation.urgency} Priority
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

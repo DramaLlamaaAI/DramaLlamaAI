@@ -367,37 +367,66 @@ Carefully distinguish between participants and their behaviors. Be precise about
 EXTREMELY IMPORTANT: Each red flag should be clearly associated with the specific participant who exhibits the behavior.
 DO NOT label a behavior as present in both participants unless you have clear evidence from multiple messages.
 
-Return a JSON object with the following structure:
+Return a JSON object with the following PERSONAL TIER structure:
     {
       "toneAnalysis": {
-        "overallTone": "string describing the conversation's overall tone",
-        "emotionalState": [{"emotion": "string", "intensity": number between 0-1}],
-        "participantTones": {"participant name": "tone description that clearly distinguishes between participants"}
+        "overallTone": "comprehensive analysis of conversation's emotional atmosphere",
+        "emotionalState": [{"emotion": "string", "intensity": number between 0-1, "participant": "who exhibits this emotion"}],
+        "participantTones": {"participant name": "detailed individual communication style analysis"}
       },
-      "redFlags": [{"type": "string", "description": "string", "severity": number between 1-5, "participant": "name of participant showing this behavior"}],
+      "redFlags": [
+        {
+          "type": "specific red flag category",
+          "description": "detailed explanation of the behavior",
+          "severity": number between 1-10,
+          "participant": "name of participant exhibiting this behavior",
+          "examples": [{"text": "exact quote from conversation", "from": "participant name"}],
+          "impact": "how this affects the relationship",
+          "recommendedAction": "specific support recommendation"
+        }
+      ],
+      "manipulationScores": {
+        "participant name": {
+          "score": number between 0-100,
+          "behaviors": ["specific manipulative behaviors detected"],
+          "examples": [{"text": "exact quote", "from": "participant", "manipulationType": "type of manipulation"}],
+          "frequency": "how often this occurs in conversation"
+        }
+      },
+      "individualCommunicationStyles": {
+        "participant name": {
+          "primaryStyle": "main communication approach",
+          "emotionalRegulation": "how they handle emotions",
+          "conflictResponse": "their conflict management style",
+          "strengths": ["positive communication traits"],
+          "improvementAreas": ["areas needing development"],
+          "relationshipContribution": "how they impact the dynamic"
+        }
+      },
       "communication": {
-        "patterns": ["string describing specific patterns observed for each participant"],
-        "suggestions": ["string with suggestions for improvement"]
+        "patterns": ["detailed patterns for each participant"],
+        "suggestions": ["specific improvement recommendations"],
+        "supportRecommendations": ["professional support suggestions if needed"]
       },
       "healthScore": {
         "score": number between 0-100,
         "label": "Troubled/Needs Work/Good/Excellent",
-        "color": "red/yellow/light-green/green"
+        "color": "red/yellow/light-green/green",
+        "factors": ["specific elements affecting the score"]
       },
-      "keyQuotes": [{"speaker": "name", "quote": "message text", "analysis": "interpretation that identifies specific behaviors", "improvement": "suggestion for how to reword this statement to be more constructive"}],
-      "highTensionFactors": ["string with reason"],
-      "participantConflictScores": {
-        "participant name": {
-          "score": number between 0-100,
-          "label": "string describing style",
-          "isEscalating": boolean
+      "keyQuotes": [
+        {
+          "speaker": "participant name",
+          "quote": "exact message text",
+          "analysis": "behavioral interpretation",
+          "improvement": "constructive alternative phrasing"
         }
-      },
+      ],
       "empatheticSummary": {
         "participant name": {
-          "summary": "empathetic understanding of their communication style and emotional state",
-          "insights": "behavioral insights and what might be driving their responses",
-          "growthAreas": ["specific areas where they could improve their communication"],
+          "summary": "empathetic understanding of their communication and emotional state",
+          "insights": "deeper behavioral insights and motivations",
+          "growthAreas": ["specific development opportunities"],
           "strengths": ["positive aspects of their communication or coping mechanisms"]
         }
       }

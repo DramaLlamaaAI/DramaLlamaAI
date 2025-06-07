@@ -280,7 +280,7 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 mt-6">
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
-                <span>5 Chat Uploads per Month</span>
+                <span>5 Chat Analyses per Month</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary mr-2" />
@@ -288,27 +288,31 @@ export default function SubscriptionPage() {
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary ml-6 mr-2" />
-                <span>Full Emotional Tone Analysis (by participant)</span>
+                <span>Overall Emotional Tone (comprehensive analysis)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary ml-6 mr-2" />
-                <span>🚩 Red Flag Detection with Named Participants & Supporting Quotes</span>
+                <span>Conversation Health Score (visual meter with factors)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary ml-6 mr-2" />
-                <span>Conversation Health Gauge with Individual Impact</span>
+                <span>🚩 Personal Red Flag Analysis with Named Participants & Quotes</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary ml-6 mr-2" />
-                <span>Communication Style Comparison (You vs. Them)</span>
+                <span>Severity Scores (rated /10 for each red flag)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary ml-6 mr-2" />
-                <span>Accountability & Tension Contributions (Named)</span>
+                <span>Individual Manipulation Score Detection with Quotes</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary ml-6 mr-2" />
-                <span>Standout Quotes with Behavioral Signals</span>
+                <span>Individual Communication Style Analysis per Participant</span>
+              </li>
+              <li className="flex">
+                <Check className="h-5 w-5 text-primary ml-6 mr-2" />
+                <span>Support Recommendations (professional guidance)</span>
               </li>
               <li className="flex">
                 <Check className="h-5 w-5 text-primary ml-6 mr-2" />
