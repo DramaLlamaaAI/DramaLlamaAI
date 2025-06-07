@@ -149,8 +149,8 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                 <li>• Communication Pattern Comparison</li>
                 <li>• Support recommendations</li>
               </ul>
-              <Button size="sm" variant="outline" className="border-purple-300 text-purple-700 text-xs">
-                Learn More
+              <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-xs">
+                Upgrade
               </Button>
             </div>
             
@@ -167,7 +167,7 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                 <li>• Support recommendations</li>
               </ul>
               <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-xs">
-                Get Insight
+                Upgrade
               </Button>
             </div>
           </div>
