@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Lock, Star, ArrowRight, CheckCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { AlertTriangle, Lock, Star, ArrowRight, CheckCircle, Heart } from "lucide-react";
 import { useLocation } from "wouter";
 
 interface FreeTierResultsProps {
@@ -14,6 +15,7 @@ interface FreeTierResultsProps {
 export default function FreeTierResults({ result, me, them }: FreeTierResultsProps) {
   const redFlagCount = result.redFlagCount || 0;
   const redFlagsDetected = result.redFlagsDetected || false;
+  const healthScore = result.healthScore?.score || 0;
   const [, setLocation] = useLocation();
   
   return (
@@ -35,6 +37,87 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
           </p>
         </CardContent>
       </Card>
+
+      {/* Overall Emotional Tone */}
+      {result.toneAnalysis && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-blue-500" />
+              Overall Emotional Tone
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-medium text-gray-800 mb-2">
+              {result.toneAnalysis.overallTone}
+            </p>
+            {result.toneAnalysis.emotionalState && result.toneAnalysis.emotionalState.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-gray-700">Key Emotions Detected:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {result.toneAnalysis.emotionalState.map((emotion: any, index: number) => (
+                    <Badge key={index} variant="secondary" className="text-sm">
+                      {emotion.emotion} ({Math.round(emotion.intensity * 100)}%)
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Conversation Health Score */}
+      {result.healthScore && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-red-500" />
+              Conversation Health Score (Visual Meter)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold">{healthScore}/100</span>
+                <Badge variant={healthScore >= 80 ? "default" : healthScore >= 60 ? "secondary" : "destructive"}>
+                  {healthScore >= 80 ? "Healthy" : healthScore >= 60 ? "Moderate" : "Needs Attention"}
+                </Badge>
+              </div>
+              <Progress value={healthScore} className="h-3" />
+              
+              {/* Health Score Range Explanation */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-800 mb-2">Health Score Range Explanation</h4>
+                <div className="space-y-2 text-sm text-blue-700">
+                  <div className="flex justify-between">
+                    <span className="font-medium">80-100:</span>
+                    <span>Healthy communication with positive patterns</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">60-79:</span>
+                    <span>Moderate health with some areas for improvement</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">40-59:</span>
+                    <span>Concerning patterns that need attention</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">0-39:</span>
+                    <span>Significant issues requiring immediate attention</span>
+                  </div>
+                </div>
+              </div>
+
+              {result.healthScore.description && (
+                <p className="text-sm text-muted-foreground">
+                  {result.healthScore.description}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Red Flag Count Only */}
       {redFlagsDetected ? (

@@ -117,29 +117,25 @@ export default function BetaTierResults({ result, me, them }: BetaTierResultsPro
                 {result.healthScore.description}
               </p>
               
-              {/* Score Range Guide */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
-                <h5 className="text-xs font-medium text-gray-700 mb-2">Health Score Ranges:</h5>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded"></div>
-                    <span className="text-gray-600">0-20: Conflict</span>
+              {/* Health Score Range Explanation */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-800 mb-2">Health Score Range Explanation</h4>
+                <div className="space-y-2 text-sm text-blue-700">
+                  <div className="flex justify-between">
+                    <span className="font-medium">80-100:</span>
+                    <span>Healthy communication with positive patterns</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-400 rounded"></div>
-                    <span className="text-gray-600">21-40: Troubled</span>
+                  <div className="flex justify-between">
+                    <span className="font-medium">60-79:</span>
+                    <span>Moderate health with some areas for improvement</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-orange-400 rounded"></div>
-                    <span className="text-gray-600">41-60: Mixed</span>
+                  <div className="flex justify-between">
+                    <span className="font-medium">40-59:</span>
+                    <span>Concerning patterns that need attention</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-400 rounded"></div>
-                    <span className="text-gray-600">61-80: Good</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded"></div>
-                    <span className="text-gray-600">81-100: Very Healthy</span>
+                  <div className="flex justify-between">
+                    <span className="font-medium">0-39:</span>
+                    <span>Significant issues requiring immediate attention</span>
                   </div>
                 </div>
               </div>
