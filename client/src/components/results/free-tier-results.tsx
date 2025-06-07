@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Lock, Star, ArrowRight, CheckCircle } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface FreeTierResultsProps {
   result: any;
@@ -13,6 +14,7 @@ interface FreeTierResultsProps {
 export default function FreeTierResults({ result, me, them }: FreeTierResultsProps) {
   const redFlagCount = result.redFlagCount || 0;
   const redFlagsDetected = result.redFlagsDetected || false;
+  const [, setLocation] = useLocation();
   
   return (
     <div className="space-y-6">
@@ -94,7 +96,11 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                   Register today and we'll upgrade you to Beta tier for free. No card required. 
                   Beta Tier access is temporary and will revert back to Free Tier when the promotional period ends.
                 </p>
-                <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-100">
+                <Button 
+                  variant="outline" 
+                  className="border-purple-300 text-purple-700 hover:bg-purple-100"
+                  onClick={() => setLocation('/register')}
+                >
                   Register for Free Beta Access
                 </Button>
               </div>
@@ -133,7 +139,11 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                 <li>• Communication Style Analysis</li>
                 <li>• Support recommendations</li>
               </ul>
-              <Button size="sm" className="bg-pink-500 hover:bg-pink-600 text-xs">
+              <Button 
+                size="sm" 
+                className="bg-pink-500 hover:bg-pink-600 text-xs"
+                onClick={() => setLocation('/subscribe/personal')}
+              >
                 Upgrade
               </Button>
             </div>
@@ -149,7 +159,11 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                 <li>• Communication Pattern Comparison</li>
                 <li>• Support recommendations</li>
               </ul>
-              <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-xs">
+              <Button 
+                size="sm" 
+                className="bg-purple-500 hover:bg-purple-600 text-xs"
+                onClick={() => setLocation('/subscribe/pro')}
+              >
                 Upgrade
               </Button>
             </div>
@@ -166,7 +180,11 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                 <li>• Communication Style Analysis</li>
                 <li>• Support recommendations</li>
               </ul>
-              <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-xs">
+              <Button 
+                size="sm" 
+                className="bg-orange-500 hover:bg-orange-600 text-xs"
+                onClick={() => setLocation('/checkout/one-time')}
+              >
                 Upgrade
               </Button>
             </div>
@@ -197,7 +215,10 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
               </ul>
             </div>
             
-            <Button className="bg-purple-500 hover:bg-purple-600">
+            <Button 
+              className="bg-purple-500 hover:bg-purple-600"
+              onClick={() => setLocation('/register')}
+            >
               Register for Free Beta Access
             </Button>
           </div>
