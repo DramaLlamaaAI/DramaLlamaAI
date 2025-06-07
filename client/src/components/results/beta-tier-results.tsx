@@ -55,6 +55,33 @@ export default function BetaTierResults({ result, me, them }: BetaTierResultsPro
               <p className="text-sm text-muted-foreground">
                 {result.healthScore.description}
               </p>
+              
+              {/* Score Range Guide */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
+                <h5 className="text-xs font-medium text-gray-700 mb-2">Health Score Ranges:</h5>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded"></div>
+                    <span className="text-gray-600">0-20: Conflict</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-400 rounded"></div>
+                    <span className="text-gray-600">21-40: Troubled</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-orange-400 rounded"></div>
+                    <span className="text-gray-600">41-60: Mixed</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-400 rounded"></div>
+                    <span className="text-gray-600">61-80: Good</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <span className="text-gray-600">81-100: Very Healthy</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
