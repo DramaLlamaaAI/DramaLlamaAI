@@ -858,6 +858,22 @@ app.use(session({
   // Payment routes
   app.post('/api/create-subscription', isAuthenticated, paymentController.createSubscription);
   app.post('/api/create-payment-intent', paymentController.createPaymentIntent);
+  
+  // Deep Dive credit management
+  app.get('/api/user/deep-dive-credits', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+      }
+      
+      const credits = await storage.getUserDeepDiveCredits(userId);
+      res.json({ credits });
+    } catch (error) {
+      console.error('Error fetching Deep Dive credits:', error);
+      res.status(500).json({ error: 'Failed to fetch credits' });
+    }
+  });
   // Stripe webhook endpoint with specialized body parsing for signature verification
   const stripeWebhookMiddleware = (req: Request, res: Response, next: NextFunction) => {
     if (req.headers['content-type'] === 'application/json') {

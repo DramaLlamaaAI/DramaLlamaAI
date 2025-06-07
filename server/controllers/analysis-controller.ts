@@ -809,12 +809,41 @@ export const analysisController = {
         console.log(`BETA TIER CHECK: originalTier = ${originalTier}, converted tier = ${tier}`);
         console.log(`BETA TIER CHECK: originalTier === 'beta'? ${originalTier === 'beta'}`);
         
-        // Special handling for Beta tier - use dedicated service
+        // Special handling for Beta tier - use dedicated service with Deep Dive credit consumption
         if (originalTier === 'beta') {
+          console.log('BETA TIER: Checking Deep Dive credits for enhanced analysis');
+          
+          // Check if user has Deep Dive credits
+          const userId = req.session?.userId;
+          if (userId) {
+            const creditResult = await storage.consumeDeepDiveCredit(userId);
+            
+            if (!creditResult.success) {
+              console.log('BETA TIER: No Deep Dive credits available, returning standard analysis');
+              // Return standard tier analysis without beta enhancements
+              filteredResults = filterChatAnalysisByTier(analysis, 'personal');
+              res.json({
+                ...filteredResults,
+                deepDiveCreditsRequired: true,
+                deepDiveCreditsRemaining: creditResult.remainingCredits,
+                message: 'Deep Dive credits required for enhanced beta analysis. Purchase credits to unlock detailed insights.'
+              });
+              return;
+            }
+            
+            console.log(`BETA TIER: Consumed 1 Deep Dive credit, ${creditResult.remainingCredits} remaining`);
+          }
+          
           console.log('BETA TIER: Using dedicated Beta tier service');
           const { createBetaTierAnalysis } = await import('../services/beta-tier-service');
           filteredResults = createBetaTierAnalysis(analysis, me, them);
           console.log('BETA TIER: Dedicated analysis complete');
+          
+          // Add credit info to response
+          if (userId) {
+            const remainingCredits = await storage.getUserDeepDiveCredits(userId);
+            filteredResults.deepDiveCreditsRemaining = remainingCredits;
+          }
           
           // Return immediately to skip all other processing
           res.json(filteredResults);

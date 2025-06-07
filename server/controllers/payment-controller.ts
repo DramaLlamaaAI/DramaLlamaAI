@@ -300,17 +300,24 @@ export const paymentController = {
           const paymentIntent = event.data.object;
           console.log(`PaymentIntent ${paymentIntent.id} succeeded (unverified)`);
           
-          // Update user's tier based on the payment metadata
+          // Update user's tier or award credits based on the payment metadata
           if (paymentIntent.metadata && paymentIntent.metadata.userId && paymentIntent.metadata.plan) {
             const userId = parseInt(paymentIntent.metadata.userId);
             const plan = paymentIntent.metadata.plan;
             
             try {
-              const tier = plan === 'personal' ? 'personal' : 'pro';
-              await storage.updateUserTier(userId, tier);
-              console.log(`Updated user ${userId} to tier ${tier} (unverified webhook)`);
+              if (plan === 'deepdive') {
+                // Award 1 Deep Dive credit for Deep Dive purchases
+                await storage.addDeepDiveCredits(userId, 1);
+                console.log(`Awarded 1 Deep Dive credit to user ${userId} (unverified webhook)`);
+              } else {
+                // Update tier for subscription plans
+                const tier = plan === 'personal' ? 'personal' : 'pro';
+                await storage.updateUserTier(userId, tier);
+                console.log(`Updated user ${userId} to tier ${tier} (unverified webhook)`);
+              }
             } catch (err) {
-              console.error(`Failed to update user tier: ${err}`);
+              console.error(`Failed to update user tier or credits: ${err}`);
             }
           }
         }
@@ -358,17 +365,24 @@ export const paymentController = {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object;
         console.log(`PaymentIntent ${paymentIntent.id} succeeded`);
-        // Update user's tier based on the payment metadata
+        // Update user's tier or award credits based on the payment metadata
         if (paymentIntent.metadata.userId && paymentIntent.metadata.plan) {
           const userId = parseInt(paymentIntent.metadata.userId);
           const plan = paymentIntent.metadata.plan;
           
           try {
-            const tier = plan === 'personal' ? 'personal' : 'pro';
-            await storage.updateUserTier(userId, tier);
-            console.log(`Updated user ${userId} to tier ${tier}`);
+            if (plan === 'deepdive') {
+              // Award 1 Deep Dive credit for Deep Dive purchases
+              await storage.addDeepDiveCredits(userId, 1);
+              console.log(`Awarded 1 Deep Dive credit to user ${userId}`);
+            } else {
+              // Update tier for subscription plans
+              const tier = plan === 'personal' ? 'personal' : 'pro';
+              await storage.updateUserTier(userId, tier);
+              console.log(`Updated user ${userId} to tier ${tier}`);
+            }
           } catch (err) {
-            console.error(`Failed to update user tier: ${err}`);
+            console.error(`Failed to update user tier or credits: ${err}`);
           }
         }
         break;
