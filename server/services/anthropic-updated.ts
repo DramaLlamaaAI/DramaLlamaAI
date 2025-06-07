@@ -15,6 +15,28 @@ CRITICAL ACCURACY REQUIREMENT: You must ONLY reference text that exists verbatim
 - If you cannot find exact quotes for red flags or examples, omit the quote fields entirely
 - All quotes must be exact word-for-word matches from the conversation
 
+ENHANCED EMOTIONAL TONE ANALYSIS REQUIREMENTS:
+For toneAnalysis.participantTones, provide detailed analysis including:
+- Emotional state and underlying feelings
+- Communication ability score (1-5 scale)
+- Specific behavioral insights
+- Key strengths and growth areas
+
+COMMUNICATION ABILITY SCORING (1-5 scale):
+5 = Excellent: Uses empathetic language, actively listens, collaborates on solutions, takes responsibility
+4 = Good: Generally constructive, shows some empathy, willing to engage positively
+3 = Average: Mixed communication, some positive and negative patterns
+2 = Poor: Often defensive, dismissive, or accusatory with limited empathy
+1 = Very Poor: Highly problematic communication, manipulative, or destructive patterns
+
+Consider these factors for scoring:
+- Use of empathetic language ("I understand", "I hear you")
+- Willingness to collaborate or find solutions
+- Directness vs. evasiveness
+- Use of accusatory or defensive statements
+- Active listening phrases and validation
+- Taking responsibility vs. blame-shifting
+
 SEVERITY SCORING GUIDELINES (1-10 scale):
 CRITICAL (9-10): Self-harm threats, suicide threats, physical violence threats, child endangerment, stalking behavior
 HIGH RISK (7-8): Emotional manipulation with threats, gaslighting, financial abuse, isolation tactics, threatening escalation
@@ -46,9 +68,10 @@ All JSON values MUST be in "double quotes" without special characters. Do NOT us
 Your analysis MUST be concise - no field should exceed 25 words.
 
 The JSON structure should include only the required fields for ${tier.toUpperCase()} tier:
-- toneAnalysis (overallTone, emotionalState, participantTones)
+- toneAnalysis (overallTone, emotionalState, participantTones with enhanced details)
 - communication (patterns, dynamics, suggestions) 
 - healthScore (score from 0-100, label, color)
+${tier === 'personal' || tier === 'pro' || tier === 'beta' ? '- participantAnalysis (for each participant: emotionalTone, communicationScore, insights, recommendations)' : ''}
 ${tier === 'personal' || tier === 'pro' ? '- redFlags (if applicable - NO QUOTES unless exact matches found)' : ''}
 ${tier === 'personal' || tier === 'pro' || tier === 'beta' ? '- empatheticSummary (for each participant: summary, insights, growthAreas, strengths)' : ''}
 ${tier === 'pro' ? '- keyQuotes (ONLY if exact quotes can be verified), dramaScore, and other advanced analysis components' : ''}`;
@@ -159,6 +182,14 @@ interface ChatAnalysisResponse {
     }>;
     participantTones?: {
       [key: string]: string;
+    };
+  };
+  participantAnalysis?: {
+    [participant: string]: {
+      emotionalTone: string;
+      communicationScore: number;
+      insights: string;
+      recommendations: string;
     };
   };
   redFlags?: Array<{
