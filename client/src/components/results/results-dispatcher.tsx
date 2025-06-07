@@ -102,8 +102,10 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
                   <div className="mb-3">
                     <h5 className="text-xs font-medium text-amber-700 mb-1">Examples from conversation:</h5>
                     <ul className="text-xs text-amber-700 space-y-1">
-                      {flag.examples.slice(0, 3).map((example: string, i: number) => (
-                        <li key={i} className="pl-2 border-l-2 border-amber-300">"{example}"</li>
+                      {flag.examples.slice(0, 3).map((example: any, i: number) => (
+                        <li key={i} className="pl-2 border-l-2 border-amber-300">
+                          {typeof example === 'string' ? `"${example}"` : `"${example.text}" - ${example.from}`}
+                        </li>
                       ))}
                     </ul>
                   </div>
