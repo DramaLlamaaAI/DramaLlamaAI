@@ -183,7 +183,8 @@ export default function BetaTierResults({ result, me, them }: BetaTierResultsPro
         <AlertDescription className="text-purple-800">
           <strong>Beta Tier Benefits:</strong> You're receiving enhanced analysis with detailed participant attribution, 
           impact assessments, progression warnings, and personalized recommendations. 
-          Upgrade to Pro for even more comprehensive insights including conflict resolution strategies.
+          <br /><br />
+          <strong>Important:</strong> Beta tier is active for a limited time only. Once the promotion ends, your account will be downgraded to free tier. Check out our subscription plans and one-time insight options for continued access to enhanced features.
         </AlertDescription>
       </Alert>
     </div>
