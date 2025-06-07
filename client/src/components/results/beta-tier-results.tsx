@@ -91,8 +91,11 @@ export default function BetaTierResults({ result, me, them }: BetaTierResultsPro
                   <div className="mb-3">
                     <h5 className="text-xs font-medium text-amber-700 mb-1">Examples:</h5>
                     <ul className="text-xs text-amber-700 space-y-1">
-                      {flag.examples.map((example: string, i: number) => (
-                        <li key={i} className="pl-2 border-l-2 border-amber-300">"{example}"</li>
+                      {flag.examples.map((example: any, i: number) => (
+                        <li key={i} className="pl-2 border-l-2 border-amber-300">
+                          "{typeof example === 'string' ? example : example.text}" 
+                          {example.from && <span className="text-amber-600 ml-2">- {example.from}</span>}
+                        </li>
                       ))}
                     </ul>
                   </div>
