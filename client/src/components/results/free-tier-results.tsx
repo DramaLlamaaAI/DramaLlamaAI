@@ -55,16 +55,16 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
               </p>
               
               {/* Locked Details */}
-              <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 mb-4">
-                <Lock className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                <h4 className="font-semibold text-gray-600 mb-2">Detailed Analysis Locked</h4>
-                <p className="text-sm text-gray-500 mb-4">
-                  Upgrade to see specific red flag types, participant attribution, examples, 
-                  and personalized recommendations.
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-dashed border-purple-300 rounded-lg p-6 mb-4">
+                <Lock className="h-8 w-8 text-purple-500 mx-auto mb-3" />
+                <h4 className="font-semibold text-purple-800 mb-2">Detailed Analysis Locked</h4>
+                <p className="text-sm text-purple-700 mb-4">
+                  Register today and get upgraded to our Beta tier for free. No card details required. 
+                  Beta Tier access is temporary and will revert to Free Tier when the promotional period ends.
                 </p>
-                <Button className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600">
+                <Button className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600">
                   <Star className="h-4 w-4 mr-2" />
-                  Upgrade to Personal Plan
+                  Register for Free Beta Access
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
@@ -109,28 +109,65 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
           <CardTitle>Unlock More Insights</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Free Tier */}
+            <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
               <h4 className="font-semibold text-gray-600 mb-2">Free Tier</h4>
-              <p className="text-sm text-gray-500 mb-3">Basic red flag count</p>
-              <Badge variant="outline">Current Plan</Badge>
+              <ul className="text-xs text-gray-500 mb-3 space-y-1 text-left">
+                <li>• Overall Emotional Tone</li>
+                <li>• Conversation Health Score (visual meter)</li>
+                <li>• Basic Red Flag count only</li>
+              </ul>
+              <Badge variant="outline" className="text-xs">Current Plan</Badge>
             </div>
+            
+            {/* Personal Tier */}
             <div className="text-center p-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-lg border border-pink-200">
               <h4 className="font-semibold text-pink-800 mb-2">Personal Tier</h4>
-              <p className="text-sm text-pink-700 mb-3">
-                Detailed red flags, participant analysis, examples
-              </p>
-              <Button size="sm" className="bg-pink-500 hover:bg-pink-600">
+              <p className="text-xs text-pink-600 mb-2">5 analyses per month</p>
+              <ul className="text-xs text-pink-700 mb-3 space-y-1 text-left">
+                <li>• Overall Emotional Tone</li>
+                <li>• Conversation Health Score (visual meter)</li>
+                <li>• Detailed Red Flag Analysis - including quotes and named participants</li>
+                <li>• Manipulation Score Detection - Including quotes and named participants</li>
+                <li>• Communication Style Analysis</li>
+                <li>• Support recommendations</li>
+              </ul>
+              <Button size="sm" className="bg-pink-500 hover:bg-pink-600 text-xs">
                 Upgrade
               </Button>
             </div>
+            
+            {/* Pro Tier */}
             <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
               <h4 className="font-semibold text-purple-800 mb-2">Pro Tier</h4>
-              <p className="text-sm text-purple-700 mb-3">
-                Everything + conflict resolution, health scoring
-              </p>
-              <Button size="sm" variant="outline" className="border-purple-300 text-purple-700">
+              <p className="text-xs text-purple-600 mb-2">10 analyses per month</p>
+              <ul className="text-xs text-purple-700 mb-3 space-y-1 text-left">
+                <li>• Everything in Personal Tier, plus:</li>
+                <li>• Power Dynamics Analysis</li>
+                <li>• Participant Conflict Scores</li>
+                <li>• Communication Pattern Comparison</li>
+                <li>• Support recommendations</li>
+              </ul>
+              <Button size="sm" variant="outline" className="border-purple-300 text-purple-700 text-xs">
                 Learn More
+              </Button>
+            </div>
+            
+            {/* One Time Insight */}
+            <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg border border-orange-200">
+              <h4 className="font-semibold text-orange-800 mb-2">One Time Insight</h4>
+              <p className="text-xs text-orange-600 mb-2">£1.99 - No subscription necessary</p>
+              <ul className="text-xs text-orange-700 mb-3 space-y-1 text-left">
+                <li>• Overall Emotional Tone</li>
+                <li>• Conversation Health Score (visual meter)</li>
+                <li>• Detailed Red Flag Analysis - including quotes and named participants</li>
+                <li>• Manipulation Score Detection - Including quotes and named participants</li>
+                <li>• Communication Style Analysis</li>
+                <li>• Support recommendations</li>
+              </ul>
+              <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-xs">
+                Get Insight
               </Button>
             </div>
           </div>
