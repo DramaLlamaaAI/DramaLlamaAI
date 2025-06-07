@@ -10,7 +10,10 @@ export function BetaPromoBanner() {
   useEffect(() => {
     // Don't show if user clicked sign up/sign in button in this session
     const hasClicked = sessionStorage.getItem('betaPromoClicked');
-    if (!hasClicked) {
+    // Don't show if coming from guide button
+    const fromGuide = new URLSearchParams(window.location.search).get('from') === 'guide';
+    
+    if (!hasClicked && !fromGuide) {
       // Show banner after 1 second
       const timer = setTimeout(() => {
         setIsVisible(true);

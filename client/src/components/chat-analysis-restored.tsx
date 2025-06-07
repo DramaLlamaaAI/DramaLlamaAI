@@ -196,7 +196,7 @@ export default function ChatAnalysis() {
                             
                             <div className="mt-3 flex gap-4">
                               <button 
-                                onClick={() => window.open('/whatsapp-guide', '_blank')}
+                                onClick={() => window.open('/whatsapp-guide?from=guide', '_blank')}
                                 className="inline-flex items-center px-3 py-2 bg-white border border-green-300 rounded-md text-green-700 hover:bg-green-50 transition-colors"
                               >
                                 📄 Text Guide
