@@ -409,7 +409,13 @@ export default function Checkout() {
               </Elements>
             )}
           </CardContent>
-          <CardFooter className="flex justify-center border-t pt-6">
+          <CardFooter className="flex flex-col items-center border-t pt-6 space-y-3">
+            <p className="text-sm text-center text-foreground">
+              You are about to authorize Drama Llama AI to charge your card {formatPrice(discountInfo?.finalAmount || planInfo.price)} {planInfo.billing === 'monthly' ? 'each month' : 'as a one-time payment'}.
+            </p>
+            <p className="text-xs text-center text-muted-foreground">
+              If you have any questions or concerns, please contact us at Support@DramaLlama.ai
+            </p>
             <p className="text-xs text-center text-muted-foreground">
               Secured by Stripe. Your payment information is encrypted and secure.
             </p>
