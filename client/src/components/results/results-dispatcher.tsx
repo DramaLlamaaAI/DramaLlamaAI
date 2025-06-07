@@ -77,7 +77,7 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Heart className="h-5 w-5 text-red-500" />
-              Relationship Health Score
+              Conversation Health Score (Visual Meter with Factors)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -89,9 +89,50 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
                 </Badge>
               </div>
               <Progress value={healthScore} className="h-3" />
-              <p className="text-sm text-muted-foreground">
-                {result.healthScore.description}
-              </p>
+              
+              {/* Health Score Range Explanation */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-800 mb-2">Health Score Range Explanation</h4>
+                <div className="space-y-2 text-sm text-blue-700">
+                  <div className="flex justify-between">
+                    <span className="font-medium">80-100:</span>
+                    <span>Healthy communication with positive patterns</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">60-79:</span>
+                    <span>Moderate health with some areas for improvement</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">40-59:</span>
+                    <span>Concerning patterns that need attention</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">0-39:</span>
+                    <span>Significant issues requiring immediate attention</span>
+                  </div>
+                </div>
+              </div>
+
+              {result.healthScore.description && (
+                <p className="text-sm text-muted-foreground">
+                  {result.healthScore.description}
+                </p>
+              )}
+
+              {/* Health Factors */}
+              {result.healthScore.factors && result.healthScore.factors.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">Contributing Factors:</h4>
+                  <ul className="space-y-1 text-sm text-gray-600">
+                    {result.healthScore.factors.map((factor: string, index: number) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                        {factor}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -278,7 +319,7 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <HeartHandshake className="h-5 w-5 text-green-500" />
+              <Heart className="h-5 w-5 text-green-500" />
               Professional Support Recommendations
             </CardTitle>
           </CardHeader>
