@@ -4,7 +4,67 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, TrendingUp, Users, Heart, MessageCircle, Flame, Activity, Clock, Target, CheckCircle, Star, Shield, HeartHandshake } from "lucide-react";
+import { AlertTriangle, TrendingUp, Users, Heart, MessageCircle, Flame, Activity, Clock, Target, CheckCircle, Star, Shield, HeartHandshake, Info } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+function SeverityInfoButton() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-5 w-5 p-0 hover:bg-gray-100">
+          <Info className="h-3 w-3 text-gray-500" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Severity Score Guide</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-red-100 text-red-800 border-red-200">9-10</Badge>
+              <span className="font-semibold text-red-800">CRITICAL</span>
+            </div>
+            <p className="text-gray-600 ml-8">Self-harm threats, suicide threats, physical violence threats, child endangerment, stalking behavior</p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-orange-100 text-orange-800 border-orange-200">7-8</Badge>
+              <span className="font-semibold text-orange-800">HIGH RISK</span>
+            </div>
+            <p className="text-gray-600 ml-8">Emotional manipulation with threats, gaslighting, financial abuse, isolation tactics, threatening escalation</p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">5-6</Badge>
+              <span className="font-semibold text-yellow-800">SERIOUS</span>
+            </div>
+            <p className="text-gray-600 ml-8">Guilt-tripping, emotional blackmail, blame-shifting, controlling behavior, intimidation without direct threats</p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-blue-100 text-blue-800 border-blue-200">3-4</Badge>
+              <span className="font-semibold text-blue-800">MODERATE</span>
+            </div>
+            <p className="text-gray-600 ml-8">Passive aggression, dismissive language, minor manipulation, moving goalposts, victim mentality</p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-green-100 text-green-800 border-green-200">1-2</Badge>
+              <span className="font-semibold text-green-800">LOW</span>
+            </div>
+            <p className="text-gray-600 ml-8">Poor communication habits, minor insensitivity, occasional defensive responses</p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 interface ResultsDispatcherProps {
   result: any;
@@ -187,6 +247,7 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
                         `}>
                           {flag.severity}/10
                         </Badge>
+                        <SeverityInfoButton />
                       </div>
                     )}
                   </div>
