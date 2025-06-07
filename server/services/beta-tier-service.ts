@@ -470,8 +470,8 @@ export async function createBetaTierAnalysis(rawAnalysis: any, me: string, them:
       ]
     },
     
-    // Support Help Lines - Context-aware recommendations
-    supportHelpLines: generateSupportRecommendations(rawAnalysis, filteredRedFlags),
+    // Support Recommendations - Context-aware recommendations
+    supportRecommendations: generateSupportRecommendations(rawAnalysis, filteredRedFlags),
     
     // Empathetic Summary for each participant (Beta tier feature)
     empatheticSummary: generatePersonalizedEmpatheticSummary(

@@ -274,6 +274,46 @@ export default function BetaTierResults({ result, me, them }: BetaTierResultsPro
         </Card>
       )}
 
+      {/* Support Recommendations Section */}
+      {result.supportRecommendations && result.supportRecommendations.resources?.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-green-500" />
+              Professional Support Resources
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              {result.supportRecommendations.message}
+            </p>
+            <div className="space-y-3">
+              {result.supportRecommendations.resources.map((resource: any, index: number) => (
+                <div key={index} className="border rounded-lg p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-gray-800">{resource.title}</h4>
+                    <Badge 
+                      variant={resource.badge?.includes('Critical') ? 'destructive' : 
+                              resource.badge?.includes('Recommended') ? 'default' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {resource.badge}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600">{resource.description}</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+                    <span className="font-medium">Contact: {resource.contact}</span>
+                    {resource.website && (
+                      <span className="text-blue-600">Website: {resource.website}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Beta Tier Upgrade Notice */}
       <Alert className="bg-purple-50 border-purple-200">
         <AlertTriangle className="h-4 w-4 text-purple-600" />
