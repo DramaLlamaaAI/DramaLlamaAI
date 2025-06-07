@@ -22,6 +22,62 @@ const PRICE_IDS = {
 };
 
 export const paymentController = {
+  createPaymentIntent: async (req: Request, res: Response) => {
+    try {
+      const { amount = 199, promoCode } = req.body;
+      
+      // Get user ID from session (optional for one-time payments)
+      const userId = (req as any).user?.id;
+      
+      let discountPercentage = 0;
+      
+      // Apply promo code if provided
+      if (promoCode) {
+        try {
+          const promo = await storage.getPromoCode(promoCode);
+          if (promo && promo.isActive) {
+            discountPercentage = promo.discountPercentage;
+          }
+        } catch (error) {
+          console.error('Error validating promo code:', error);
+        }
+      }
+      
+      // Calculate final amount
+      let finalAmount = amount;
+      if (discountPercentage > 0) {
+        finalAmount = Math.round(amount * (1 - discountPercentage / 100));
+      }
+      
+      // Create payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: finalAmount,
+        currency: 'gbp',
+        payment_method_types: ['card'],
+        metadata: {
+          type: 'deep_dive_credit',
+          userId: userId?.toString() || 'guest',
+          originalAmount: amount.toString(),
+          discountPercentage: discountPercentage.toString(),
+        },
+      });
+      
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        originalAmount: amount,
+        finalAmount: finalAmount,
+        discountPercentage: discountPercentage,
+        hasDiscount: discountPercentage > 0,
+      });
+    } catch (error: any) {
+      console.error('Error creating payment intent:', error);
+      res.status(500).json({ 
+        error: 'Failed to create payment intent',
+        message: error.message 
+      });
+    }
+  },
+
   createSubscription: async (req: Request, res: Response) => {
     try {
       // Get plan from request

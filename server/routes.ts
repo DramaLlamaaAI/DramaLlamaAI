@@ -857,6 +857,7 @@ app.use(session({
   
   // Payment routes
   app.post('/api/create-subscription', isAuthenticated, paymentController.createSubscription);
+  app.post('/api/create-payment-intent', paymentController.createPaymentIntent);
   // Stripe webhook endpoint with specialized body parsing for signature verification
   const stripeWebhookMiddleware = (req: Request, res: Response, next: NextFunction) => {
     if (req.headers['content-type'] === 'application/json') {

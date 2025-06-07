@@ -12,6 +12,7 @@ import Home from "./pages/home";
 import NotFound from "@/pages/not-found";
 import SubscriptionPage from "@/pages/subscription";
 import CheckoutPage from "@/pages/checkout";
+import OneTimeCheckoutPage from "@/pages/one-time-checkout";
 import AuthPage from "@/pages/auth-page";
 import VerifyEmailPage from "@/pages/verify-email";
 import VerifyEmailPageOld from "@/pages/verify-email-page";
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/whatsapp-guide" component={WhatsAppGuide} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/checkout" component={CheckoutPage} />
+      <Route path="/checkout/one-time" component={OneTimeCheckoutPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/verify" component={VerifyEmailPage} />
