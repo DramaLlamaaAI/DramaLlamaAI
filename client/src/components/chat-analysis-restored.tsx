@@ -192,30 +192,48 @@ export default function ChatAnalysis() {
                         <div className="flex items-start gap-2">
                           <Info className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                           <div className="text-sm text-green-800">
-                            <strong>Need Help?</strong> Follow our step-by-step{' '}
-                            <a href="/whatsapp-guide" className="underline hover:text-green-900 font-medium">
-                              WhatsApp Export Guide
-                            </a>
-                            {' '}to learn how to export and upload your chat files.<br />
+                            <strong>Need Help?</strong> Access our user guide for step-by-step instructions:<br />
                             
-                            <div className="mt-4 p-4 bg-white rounded-lg border border-green-200">
-                              <h4 className="font-medium text-green-800 mb-2">📹 Video Tutorial</h4>
-                              <video 
-                                controls 
-                                className="w-full max-w-md rounded-lg shadow-sm"
-                                style={{ maxHeight: '250px' }}
+                            <div className="mt-3 flex gap-4">
+                              <button 
+                                onClick={() => window.open('/whatsapp-guide', '_blank')}
+                                className="inline-flex items-center px-3 py-2 bg-white border border-green-300 rounded-md text-green-700 hover:bg-green-50 transition-colors"
                               >
-                                <source src="/attached_assets/Tutorial.mov" type="video/quicktime" />
-                                <source src="/attached_assets/Tutorial.mov" type="video/mp4" />
-                                Your browser does not support the video tag.
-                              </video>
+                                📄 Text Guide
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  const modal = document.createElement('div');
+                                  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                                  modal.innerHTML = `
+                                    <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+                                      <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-lg font-semibold">WhatsApp Export Tutorial</h3>
+                                        <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">✕</button>
+                                      </div>
+                                      <video controls class="w-full rounded-lg">
+                                        <source src="/attached_assets/Timeline 1.mov" type="video/quicktime" />
+                                        <source src="/attached_assets/Timeline 1.mov" type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                      </video>
+                                    </div>
+                                  `;
+                                  document.body.appendChild(modal);
+                                  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+                                }}
+                                className="inline-flex items-center px-3 py-2 bg-white border border-green-300 rounded-md text-green-700 hover:bg-green-50 transition-colors"
+                              >
+                                🎥 Video Tutorial
+                              </button>
                             </div>
                             
-                            If you need additional 1:1 support, please contact us on{' '}
-                            <a href="https://www.facebook.com/DramaLlamaAI" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-900 font-medium">
-                              Facebook.com/DramaLlamaAI
-                            </a>
-                            , and one of our team will assist you personally.
+                            <div className="mt-3 text-xs text-green-700">
+                              If you need additional 1:1 support, please contact us on{' '}
+                              <a href="https://www.facebook.com/DramaLlamaAI" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-900 font-medium">
+                                Facebook.com/DramaLlamaAI
+                              </a>
+                              , and one of our team will assist you personally.
+                            </div>
                           </div>
                         </div>
                       </div>
