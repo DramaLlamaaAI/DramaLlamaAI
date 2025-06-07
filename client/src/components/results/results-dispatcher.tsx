@@ -146,6 +146,23 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
               <AlertTriangle className="h-5 w-5 text-amber-500" />
               Personal Red Flag Analysis ({redFlags.length} detected)
             </CardTitle>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 mt-2">
+              <h5 className="text-sm font-medium text-gray-700 mb-2">Severity Score Guide (1-10 scale):</h5>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-yellow-400 rounded"></div>
+                  <span className="text-gray-600">1-3: Low Risk - Minor concerns</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-orange-400 rounded"></div>
+                  <span className="text-gray-600">4-6: Medium Risk - Needs attention</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-red-500 rounded"></div>
+                  <span className="text-gray-600">7-10: High Risk - Serious concern</span>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {redFlags.map((flag: any, index: number) => (
@@ -164,8 +181,8 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
                       <div className="mt-2 flex items-center gap-2">
                         <span className="text-xs font-medium text-amber-700">Severity Score:</span>
                         <Badge variant="outline" className={`
-                          ${(flag.severity >= 8) ? 'border-red-300 text-red-700 bg-red-50' : 
-                            (flag.severity >= 6) ? 'border-orange-300 text-orange-700 bg-orange-50' : 
+                          ${(flag.severity >= 7) ? 'border-red-300 text-red-700 bg-red-50' : 
+                            (flag.severity >= 4) ? 'border-orange-300 text-orange-700 bg-orange-50' : 
                             'border-yellow-300 text-yellow-700 bg-yellow-50'}
                         `}>
                           {flag.severity}/10
@@ -173,8 +190,12 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
                       </div>
                     )}
                   </div>
-                  <Badge variant="outline" className="border-amber-300 text-amber-700">
-                    {flag.severity >= 8 ? "High" : flag.severity >= 6 ? "Medium" : "Low"} Risk
+                  <Badge variant="outline" className={`
+                    ${flag.severity >= 7 ? 'border-red-300 text-red-700 bg-red-50' : 
+                      flag.severity >= 4 ? 'border-orange-300 text-orange-700 bg-orange-50' : 
+                      'border-yellow-300 text-yellow-700 bg-yellow-50'}
+                  `}>
+                    {flag.severity >= 7 ? "High" : flag.severity >= 4 ? "Medium" : "Low"} Risk
                   </Badge>
                 </div>
                 

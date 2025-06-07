@@ -15,6 +15,13 @@ CRITICAL ACCURACY REQUIREMENT: You must ONLY reference text that exists verbatim
 - If you cannot find exact quotes for red flags or examples, omit the quote fields entirely
 - All quotes must be exact word-for-word matches from the conversation
 
+SEVERITY SCORING GUIDELINES (1-10 scale):
+- Self-harm threats, suicide threats: 9-10 (CRITICAL - immediate danger)
+- Physical violence threats, stalking: 8-9 (HIGH RISK)
+- Emotional manipulation, gaslighting: 6-8 (SERIOUS CONCERN)
+- Guilt-tripping, blame-shifting: 4-6 (MODERATE CONCERN)
+- Minor communication issues: 1-3 (LOW CONCERN)
+
 IMPORTANT: Return ONLY JSON wrapped in code block markers (\`\`\`json). NEVER include ANY explanatory text outside the JSON code block.
 
 All JSON values MUST be in "double quotes" without special characters. Do NOT use single quotes or line breaks within values.

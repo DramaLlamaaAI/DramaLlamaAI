@@ -164,6 +164,27 @@ const redFlagPatterns = [
     type: 'Threatening Escalation',
     description: 'Threatening to make situations worse as intimidation',
     severity: 8
+  },
+  // Self-harm threats (extremely serious)
+  {
+    pattern: /(i['']ll hurt myself|hurt myself if|kill myself if|end it all if|take my own life|do something to myself|harm myself if|won['']t be here if|you['']ll regret it when i['']m gone|find me dead)/i,
+    type: 'Self-harm Threats',
+    description: 'Threatening self-harm to control or manipulate behavior',
+    severity: 10
+  },
+  // Suicide threats or references
+  {
+    pattern: /(commit suicide|kill myself|end my life|take my life|you['']ll be sorry when i['']m dead|won['']t be alive|better off dead|world without me)/i,
+    type: 'Suicide Threats',
+    description: 'Making threats or references to suicide',
+    severity: 10
+  },
+  // Self-harm manipulation
+  {
+    pattern: /(cutting myself|overdose|pills|jump off|crash the car|hurt myself because|self-harm|self harm|cutting because of you)/i,
+    type: 'Self-harm Manipulation',
+    description: 'Using specific self-harm methods to control or manipulate',
+    severity: 10
   }
 ];
 
