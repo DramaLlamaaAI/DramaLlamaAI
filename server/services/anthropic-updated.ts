@@ -322,15 +322,33 @@ Return a JSON object with the following structure:
     Here's the conversation:
     {conversation}`,
 
-    personal: `Analyze this conversation between {me} and {them} with enhanced nuance detection.
+    personal: `Analyze this conversation between {me} and {them} with comprehensive Personal tier analysis.
 
-🔍 RED FLAG DETECTION RULES:
+🔍 PERSONAL TIER RED FLAG DETECTION:
 - Look for manipulation tactics: guilt-tripping, emotional blackmail, threats, blame-shifting
 - Identify gaslighting: denying reality, making someone question their memory/perception
 - Spot controlling behavior: isolation attempts, monitoring, restrictions
 - Detect stonewalling: silent treatment, emotional withdrawal as punishment
 - Flag verbal abuse: name-calling, insults, degrading language
 - Notice power imbalances: intimidation, coercion, financial control
+- Rate severity on scale of 1-10 (not 1-5)
+- Provide EXACT quotes with participant attribution
+- Calculate individual manipulation scores per participant
+
+🎯 INDIVIDUAL MANIPULATION SCORE DETECTION:
+For each participant, calculate manipulation score (0-100) based on:
+- Frequency of manipulative statements
+- Severity of manipulation tactics used
+- Impact on conversation dynamics
+- Include specific quotes as evidence
+
+💬 INDIVIDUAL COMMUNICATION STYLE ANALYSIS:
+For each participant, analyze:
+- Primary communication patterns
+- Emotional regulation style
+- Conflict response mechanisms
+- Relationship dynamics contribution
+- Strengths and areas for improvement
 
 🔒 CONTEXT SENSITIVITY (These alone are NOT red flags):
 - Expressing vulnerability: "I'm feeling overwhelmed"
