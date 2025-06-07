@@ -151,6 +151,18 @@ export default function Checkout() {
       }
       
       const data = await response.json();
+      
+      // Check if user already has an active subscription
+      if (data.isExisting) {
+        // User already has an active subscription, redirect to subscription page with success
+        toast({
+          title: "Active Subscription",
+          description: "You already have an active subscription. Redirecting to your account.",
+        });
+        navigate('/subscription?existing=true');
+        return false;
+      }
+      
       setClientSecret(data.clientSecret);
       
       // Set discount info if available

@@ -23,6 +23,7 @@ export default function SubscriptionPage() {
   const [_, navigate] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   const success = searchParams.get('success');
+  const existing = searchParams.get('existing');
   
   // Fetch authenticated user
   const { data: user, isLoading } = useQuery<User>({
@@ -43,7 +44,19 @@ export default function SubscriptionPage() {
       // Clean up the URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [success, toast]);
+    
+    if (existing === 'true') {
+      toast({
+        title: "Active Subscription Found",
+        description: "You already have an active subscription. Your current plan is shown below.",
+        variant: "default",
+        duration: 5000,
+      });
+      
+      // Clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [success, existing, toast]);
   
   // Show payment confirmation card if redirected from successful payment
   const PaymentSuccessCard = () => {
