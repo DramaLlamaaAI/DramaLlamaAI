@@ -213,7 +213,23 @@ function PersonalProTierResults({ result, me, them, tier }: { result: any; me: s
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {redFlags.map((flag: any, index: number) => {
+            {redFlags
+              .sort((a: any, b: any) => {
+                // Convert severity to numeric values for sorting
+                const getSeverityValue = (severity: string | number) => {
+                  if (typeof severity === 'number') return severity;
+                  const severityMap: { [key: string]: number } = {
+                    'critical': 5,
+                    'high': 4,
+                    'medium': 3,
+                    'low': 2,
+                    'minimal': 1
+                  };
+                  return severityMap[severity?.toLowerCase()] || 3; // Default to medium
+                };
+                return getSeverityValue(b.severity) - getSeverityValue(a.severity);
+              })
+              .map((flag: any, index: number) => {
               const isLowRisk = flag.severity && flag.severity <= 3;
               const bgColor = isLowRisk ? 'bg-blue-50' : 'bg-amber-50';
               const borderColor = isLowRisk ? 'border-blue-200' : 'border-amber-200';

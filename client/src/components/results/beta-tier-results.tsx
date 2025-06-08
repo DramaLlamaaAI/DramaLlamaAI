@@ -167,7 +167,23 @@ export default function BetaTierResults({ result, me, them }: BetaTierResultsPro
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {redFlags.map((flag: any, index: number) => (
+            {redFlags
+              .sort((a: any, b: any) => {
+                // Convert severity to numeric values for sorting
+                const getSeverityValue = (severity: string | number) => {
+                  if (typeof severity === 'number') return severity;
+                  const severityMap: { [key: string]: number } = {
+                    'critical': 5,
+                    'high': 4,
+                    'medium': 3,
+                    'low': 2,
+                    'minimal': 1
+                  };
+                  return severityMap[severity?.toLowerCase()] || 3; // Default to medium
+                };
+                return getSeverityValue(b.severity) - getSeverityValue(a.severity);
+              })
+              .map((flag: any, index: number) => (
               <div key={index} className="border rounded-lg p-4 bg-gradient-to-r from-red-50 to-orange-50 border-red-200">
                 <div className="flex items-start justify-between mb-3">
                   <div>
