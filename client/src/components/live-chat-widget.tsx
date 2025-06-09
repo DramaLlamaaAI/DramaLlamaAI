@@ -178,6 +178,7 @@ export function LiveChatWidget() {
       <div className="fixed bottom-4 left-4 z-[9999]">
         <button
           onClick={openChat}
+          data-chat-button="true"
           className="relative bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-full w-12 h-12 shadow-lg border-0 flex flex-col items-center justify-center transition-all duration-200"
           style={{ 
             background: 'linear-gradient(to right, #ec4899, #f43f5e)',

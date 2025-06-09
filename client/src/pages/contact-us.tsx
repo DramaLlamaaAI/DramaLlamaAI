@@ -14,7 +14,39 @@ export default function ContactUs() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Live Chat Support Card */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="text-center pb-4">
+              <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="h-8 w-8 text-pink-600" />
+              </div>
+              <CardTitle className="text-2xl text-gray-900">Live Chat</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-gray-600">
+                Get instant help through our live chat feature. Available during business hours for immediate assistance.
+              </p>
+              <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+                <p className="text-sm text-gray-600 mb-2">Click the chat button in the bottom left corner or:</p>
+                <p className="text-lg font-semibold text-pink-700">Start Live Chat</p>
+              </div>
+              <Button 
+                className="w-full bg-pink-600 hover:bg-pink-700"
+                onClick={() => {
+                  // Trigger the live chat widget
+                  const chatButton = document.querySelector('[data-chat-button]') as HTMLElement;
+                  if (chatButton) {
+                    chatButton.click();
+                  }
+                }}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Start Chat
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Support Email Card */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader className="text-center pb-4">

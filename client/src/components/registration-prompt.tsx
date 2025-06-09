@@ -86,7 +86,7 @@ export default function RegistrationPrompt({ tier, onClose, showCloseButton = tr
               🕒 Beta Tier access is temporary and will revert to Free Tier when the promotional period ends.
             </p>
             <p className="text-sm text-gray-600 mb-4">
-              Need help? Contact us at support@dramallama.ai
+              Need help? Contact us at support@dramallama.ai or use our live chat for instant support.
             </p>
             
             <div className="flex flex-wrap gap-3">
