@@ -950,7 +950,7 @@ export async function analyzeChatConversation(conversation: string, me: string, 
   // Before making the API call, check if we have a valid API key
   if (!apiKey || apiKey.trim() === '') {
     console.error('Missing OpenAI API key.');
-    throw new Error('API configuration error. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('API configuration error. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   } else {
     try {
       console.log('Making OpenAI API request with gpt-4o model...');
@@ -1008,7 +1008,7 @@ export async function analyzeChatConversation(conversation: string, me: string, 
       }
       
       // Throw error with support information instead of using fallback
-      throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
+      throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
     }
   }
 }
@@ -1552,7 +1552,7 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
       return JSON.parse(content);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', content);
-      throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com');
+      throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
     }
   } catch (error: any) {
     // Log the specific error for debugging with more details for project API keys
@@ -1567,7 +1567,7 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     }
     
     // Throw error with support information instead of using fallback
-    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   }
 }
 
@@ -1601,7 +1601,7 @@ export async function ventMessage(message: string) {
       return JSON.parse(content);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', content);
-      throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com');
+      throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
     }
   } catch (error: any) {
     // Log the specific error for debugging with more details for project API keys
@@ -1616,7 +1616,7 @@ export async function ventMessage(message: string) {
     }
     
     // Throw error with support information instead of using fallback
-    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   }
 }
 
@@ -1650,7 +1650,7 @@ export async function detectParticipants(conversation: string) {
       return JSON.parse(content);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', content);
-      throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com');
+      throw new Error('Invalid response format from OpenAI. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
     }
   } catch (error: any) {
     // Log the specific error for debugging with more details for project API keys
@@ -1665,7 +1665,7 @@ export async function detectParticipants(conversation: string) {
     }
     
     // Throw error with support information instead of using fallback
-    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   }
 }
 

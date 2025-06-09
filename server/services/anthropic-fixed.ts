@@ -254,7 +254,7 @@ function parseAnthropicJson(jsonText: string): any {
     return JSON.parse(jsonText);
   } catch (error) {
     console.error('Failed to parse Anthropic response:', jsonText);
-    throw new Error('Invalid response format from Anthropic API. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('Invalid response format from Anthropic API. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   }
 }
 
@@ -299,7 +299,7 @@ export async function analyzeChatConversation(conversation: string, me: string, 
     }
     
     // Throw error with support information instead of using fallback
-    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   }
 }
 
@@ -343,7 +343,7 @@ export async function analyzeMessage(message: string, author: 'me' | 'them', tie
     }
     
     // Throw error with support information instead of using fallback
-    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   }
 }
 
@@ -380,7 +380,7 @@ export async function ventMessage(message: string) {
     }
     
     // Throw error with support information instead of using fallback
-    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   }
 }
 
@@ -417,7 +417,7 @@ export async function detectParticipants(conversation: string) {
     }
     
     // Throw error with support information instead of using fallback
-    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('We apologize, but we are unable to process your request at this time. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   }
 }
 
@@ -452,7 +452,7 @@ export async function processImageOcr(image: string): Promise<string> {
     return getTextFromContentBlock(response.content);
   } catch (error: any) {
     console.error('OCR Error:', error);
-    throw new Error('We encountered an issue processing your image. Please contact support at DramaLlamaConsultancy@gmail.com');
+    throw new Error('We encountered an issue processing your image. Please contact support at DramaLlamaConsultancy@gmail.com or use our live chat for immediate assistance');
   }
 }
 
