@@ -40,7 +40,7 @@ import { AdvancedDiscountManager } from '@/components/admin/advanced-discount-ma
 import { DevTierTester } from '@/components/developer/dev-tier-tester';
 import { PromoCodeManager } from '@/components/admin/promo-code-manager';
 import { PromoCodeReport } from '@/components/admin/promo-code-report';
-import { AdminChatPanel } from '@/components/admin/admin-chat-panel';
+import { SimpleChatPanel } from '@/components/admin/simple-chat-panel';
 
 // Interface for user data
 interface User {
@@ -621,7 +621,7 @@ export default function AdminDashboardEnhanced() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <AdminChatPanel />
+                    <SimpleChatPanel />
                   </CardContent>
                 </Card>
               </TabsContent>

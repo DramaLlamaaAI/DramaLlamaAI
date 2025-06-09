@@ -234,16 +234,16 @@ export function AdminChatPanel() {
             <MessageCircle className="h-5 w-5" />
             <span className="font-medium">Live Chat Admin Panel</span>
             <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-300' : 'bg-red-300'}`} />
-            {unreadCount > 0 && (
+            {totalUnread > 0 && (
               <Badge className="bg-red-500 text-white">
-                {unreadCount} new
+                {totalUnread} new
               </Badge>
             )}
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 text-green-100">
               <Users className="h-4 w-4" />
-              <span className="text-sm">{connectedUsers} online</span>
+              <span className="text-sm">0 online</span>
             </div>
             <Button
               variant="ghost"
@@ -253,7 +253,7 @@ export function AdminChatPanel() {
             >
               {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
             </Button>
-            {unreadCount > 0 && (
+            {totalUnread > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
