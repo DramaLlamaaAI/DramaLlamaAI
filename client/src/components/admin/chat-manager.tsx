@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Send, Bell, BellOff, Users, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -28,7 +27,7 @@ interface Conversation {
   messages: ChatMessage[];
 }
 
-export function SimpleChatPanel() {
+export function ChatManager() {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -64,7 +63,7 @@ export function SimpleChatPanel() {
         ws.onopen = () => {
           console.log('Admin chat WebSocket connected');
           setIsConnected(true);
-          ws.send(JSON.stringify({ type: 'admin_connected' }));
+          ws.send(JSON.stringify({ type: 'admin_login' }));
         };
 
         ws.onmessage = (event) => {
@@ -88,7 +87,6 @@ export function SimpleChatPanel() {
                 const existingConvIndex = prev.findIndex(c => c.id === conversationId);
                 
                 if (existingConvIndex >= 0) {
-                  // Update existing conversation
                   const updated = [...prev];
                   const conv = { ...updated[existingConvIndex] };
                   conv.messages = [...conv.messages, message];
@@ -102,7 +100,6 @@ export function SimpleChatPanel() {
                   updated[existingConvIndex] = conv;
                   return updated;
                 } else {
-                  // Create new conversation
                   const newConv: Conversation = {
                     id: conversationId,
                     userName: message.userName || 'Anonymous',
@@ -117,7 +114,6 @@ export function SimpleChatPanel() {
                 }
               });
 
-              // Play notification sound for user messages
               if (message.isUser && soundEnabled) {
                 const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
                 const oscillator = audioContext.createOscillator();
@@ -175,7 +171,6 @@ export function SimpleChatPanel() {
       conversationId: selectedConversation.id
     };
 
-    // Send via WebSocket
     wsRef.current.send(JSON.stringify({
       type: 'chat_message',
       id: message.id,
@@ -187,7 +182,6 @@ export function SimpleChatPanel() {
       conversationId: selectedConversation.id
     }));
 
-    // Add to local state
     setConversations(prev => 
       prev.map(conv => 
         conv.id === selectedConversation.id
@@ -208,7 +202,6 @@ export function SimpleChatPanel() {
   const selectConversation = (conversationId: string) => {
     setSelectedConversationId(conversationId);
     
-    // Mark conversation as read
     setConversations(prev =>
       prev.map(conv =>
         conv.id === conversationId
@@ -231,7 +224,6 @@ export function SimpleChatPanel() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* Status Header */}
       <div className="mb-6 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -271,7 +263,6 @@ export function SimpleChatPanel() {
       </div>
 
       <div className="h-[600px] flex border rounded-lg overflow-hidden shadow-lg">
-        {/* Conversations Sidebar */}
         <div className="w-1/3 border-r flex flex-col bg-white">
           <div className="p-4 border-b bg-gray-50">
             <div className="flex items-center justify-between">
@@ -332,7 +323,6 @@ export function SimpleChatPanel() {
           </div>
         </div>
         
-        {/* Chat Area */}
         <div className="w-2/3 flex flex-col bg-white">
           {!selectedConversation ? (
             <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -344,7 +334,6 @@ export function SimpleChatPanel() {
             </div>
           ) : (
             <>
-              {/* Chat Header */}
               <div className="p-4 border-b bg-gray-50">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
@@ -359,7 +348,6 @@ export function SimpleChatPanel() {
                 </div>
               </div>
 
-              {/* Messages Area */}
               <div className="flex-1 overflow-y-auto p-4 bg-white">
                 {selectedConversation.messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
@@ -403,7 +391,6 @@ export function SimpleChatPanel() {
                 )}
               </div>
 
-              {/* Message Input */}
               <div className="p-4 border-t bg-gray-50">
                 <div className="flex gap-3">
                   <Input
