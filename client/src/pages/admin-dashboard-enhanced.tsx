@@ -40,6 +40,7 @@ import { AdvancedDiscountManager } from '@/components/admin/advanced-discount-ma
 import { DevTierTester } from '@/components/developer/dev-tier-tester';
 import { PromoCodeManager } from '@/components/admin/promo-code-manager';
 import { PromoCodeReport } from '@/components/admin/promo-code-report';
+import { AdminChatPanel } from '@/components/admin/admin-chat-panel';
 
 // Interface for user data
 interface User {
@@ -384,6 +385,7 @@ export default function AdminDashboardEnhanced() {
                   <TabsTrigger value="users">User Management</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
                   <TabsTrigger value="user-analytics">User Analytics</TabsTrigger>
+                  <TabsTrigger value="live-chat">Live Chat</TabsTrigger>
                   <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
                   <TabsTrigger value="promo-reports">Promo Reports</TabsTrigger>
                   <TabsTrigger value="devtools">Developer Tools</TabsTrigger>
@@ -606,6 +608,20 @@ export default function AdminDashboardEnhanced() {
                         </>
                       )}
                     </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="live-chat" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>💬 Live Customer Support</CardTitle>
+                    <CardDescription>
+                      Monitor and respond to customer messages in real-time
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AdminChatPanel />
                   </CardContent>
                 </Card>
               </TabsContent>
