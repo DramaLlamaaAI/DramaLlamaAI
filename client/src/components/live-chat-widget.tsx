@@ -178,7 +178,7 @@ export function LiveChatWidget() {
       <div className="fixed bottom-6 left-6 z-50">
         <Button
           onClick={openChat}
-          className="relative bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 shadow-lg"
+          className="relative bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-full w-14 h-14 shadow-lg"
         >
           <MessageCircle className="h-6 w-6" />
           {unreadCount > 0 && (
@@ -194,7 +194,7 @@ export function LiveChatWidget() {
   return (
     <div className="fixed bottom-6 left-6 z-50">
       <Card className={`w-80 shadow-xl transition-all duration-300 ${isMinimized ? 'h-12' : 'h-96'}`}>
-        <CardHeader className="p-3 bg-blue-600 text-white rounded-t-lg">
+        <CardHeader className="p-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-t-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
@@ -206,7 +206,7 @@ export function LiveChatWidget() {
                 variant="ghost"
                 size="sm"
                 onClick={minimizeChat}
-                className="text-white hover:bg-blue-700 p-1 h-6 w-6"
+                className="text-white hover:bg-pink-600 p-1 h-6 w-6"
               >
                 <Minimize2 className="h-3 w-3" />
               </Button>
@@ -214,7 +214,7 @@ export function LiveChatWidget() {
                 variant="ghost"
                 size="sm"
                 onClick={closeChat}
-                className="text-white hover:bg-blue-700 p-1 h-6 w-6"
+                className="text-white hover:bg-pink-600 p-1 h-6 w-6"
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -237,7 +237,7 @@ export function LiveChatWidget() {
                   <div key={msg.id} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
                       msg.isUser 
-                        ? 'bg-blue-600 text-white' 
+                        ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white' 
                         : msg.isAdmin
                         ? 'bg-green-100 text-green-800 border border-green-200'
                         : 'bg-gray-100 text-gray-800'
@@ -247,7 +247,7 @@ export function LiveChatWidget() {
                       )}
                       <div>{msg.message}</div>
                       <div className={`text-xs mt-1 opacity-75 ${
-                        msg.isUser ? 'text-blue-100' : 'text-gray-500'
+                        msg.isUser ? 'text-pink-100' : 'text-gray-500'
                       }`}>
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
@@ -290,7 +290,7 @@ export function LiveChatWidget() {
                   onClick={sendMessage}
                   disabled={!newMessage.trim() || !isConnected}
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
