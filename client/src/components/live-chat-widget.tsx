@@ -178,14 +178,14 @@ export function LiveChatWidget() {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={openChat}
-          className="relative bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-full w-16 h-16 shadow-lg border-0 flex flex-col items-center justify-center transition-all duration-200"
+          className="relative bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-full w-12 h-12 shadow-lg border-0 flex flex-col items-center justify-center transition-all duration-200"
           style={{ 
             background: 'linear-gradient(to right, #ec4899, #f43f5e)',
             boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.25)'
           }}
         >
-          <MessageCircle className="h-5 w-5 mb-0.5" />
-          <span className="text-xs font-medium leading-none">Live Chat</span>
+          <MessageCircle className="h-4 w-4 mb-0.5" />
+          <span className="text-[10px] font-medium leading-none">Chat</span>
             {unreadCount > 0 && (
               <Badge className="absolute -top-2 -right-2 bg-red-500 text-white min-w-[20px] h-5 rounded-full text-xs">
                 {unreadCount > 9 ? '9+' : unreadCount}
