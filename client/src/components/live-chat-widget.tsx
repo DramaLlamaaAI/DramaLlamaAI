@@ -176,9 +176,13 @@ export function LiveChatWidget() {
   if (!isOpen) {
     return (
       <div className="fixed bottom-6 left-6 z-50">
-        <Button
+        <button
           onClick={openChat}
-          className="relative bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-full w-14 h-14 shadow-lg"
+          className="relative bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-full w-14 h-14 shadow-lg border-0 flex items-center justify-center transition-all duration-200"
+          style={{ 
+            background: 'linear-gradient(to right, #ec4899, #f43f5e)',
+            boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.25)'
+          }}
         >
           <MessageCircle className="h-6 w-6" />
           {unreadCount > 0 && (
@@ -186,7 +190,7 @@ export function LiveChatWidget() {
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
           )}
-        </Button>
+        </button>
       </div>
     );
   }
