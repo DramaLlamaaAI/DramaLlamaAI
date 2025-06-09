@@ -147,10 +147,13 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                   Register today and get upgraded to our Beta tier for free. No card details required. 
                   Beta Tier access is temporary and will revert to Free Tier when the promotional period ends.
                 </p>
-                <Button className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600">
-                  <Star className="h-4 w-4 mr-2" />
-                  Register for Free Beta Access
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                <Button 
+                  className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 w-full max-w-xs mx-auto text-sm py-2 px-3"
+                  onClick={() => setLocation('/register')}
+                >
+                  <Star className="h-4 w-4 mr-1 flex-shrink-0" />
+                  <span className="truncate">Register for Free Beta Access</span>
+                  <ArrowRight className="h-4 w-4 ml-1 flex-shrink-0" />
                 </Button>
               </div>
             </div>
@@ -181,10 +184,10 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                 </p>
                 <Button 
                   variant="outline" 
-                  className="border-purple-300 text-purple-700 hover:bg-purple-100"
+                  className="border-purple-300 text-purple-700 hover:bg-purple-100 w-full max-w-xs mx-auto text-sm py-2 px-3"
                   onClick={() => setLocation('/register')}
                 >
-                  Register for Free Beta Access
+                  <span className="truncate">Register for Free Beta Access</span>
                 </Button>
               </div>
             </div>
@@ -299,10 +302,10 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
             </div>
             
             <Button 
-              className="bg-purple-500 hover:bg-purple-600"
+              className="bg-purple-500 hover:bg-purple-600 w-full max-w-xs text-sm py-2 px-3"
               onClick={() => setLocation('/register')}
             >
-              Register for Free Beta Access
+              <span className="truncate">Register for Free Beta Access</span>
             </Button>
           </div>
         </AlertDescription>
