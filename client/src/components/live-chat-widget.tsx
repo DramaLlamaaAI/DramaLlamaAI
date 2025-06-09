@@ -175,7 +175,7 @@ export function LiveChatWidget() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-4 right-4 z-[9999]">
         <button
           onClick={openChat}
           className="relative bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-full w-12 h-12 shadow-lg border-0 flex flex-col items-center justify-center transition-all duration-200"
@@ -197,7 +197,7 @@ export function LiveChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-4 right-4 z-[9999]">
       <Card className={`w-80 shadow-xl transition-all duration-300 ${isMinimized ? 'h-12' : 'h-96'}`}>
         <CardHeader className="p-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-t-lg">
           <div className="flex items-center justify-between">
