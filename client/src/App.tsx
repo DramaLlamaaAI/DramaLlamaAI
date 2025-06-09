@@ -35,6 +35,7 @@ import MessageAnalysis from "./components/message-analysis";
 import VentMode from "./components/de-escalate";
 import LiveTalk from "./components/live-talk";
 import { AdminTierSwitcher } from "./components/admin/admin-tier-switcher";
+import { LiveChatWidget } from "./components/live-chat-widget";
 
 function Router() {
   return (
@@ -107,6 +108,7 @@ function App() {
         </TooltipProvider>
       </AuthProvider>
       <BetaPromoBanner />
+      <LiveChatWidget />
     </QueryClientProvider>
   );
 }

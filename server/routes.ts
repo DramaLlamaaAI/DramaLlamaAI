@@ -1,5 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { analysisController } from "./controllers/analysis-controller";
 import { authController } from "./controllers/auth-controller";
@@ -992,6 +993,101 @@ app.use(session({
   
   // Create HTTP server
   const httpServer = createServer(app);
+
+  // Add WebSocket server for live chat
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store connected clients
+  const connectedClients = new Map<WebSocket, { isAdmin: boolean; userName: string; }>();
+  
+  wss.on('connection', (ws) => {
+    console.log('New WebSocket connection established');
+    
+    // Initialize client data
+    connectedClients.set(ws, { isAdmin: false, userName: 'Anonymous' });
+    
+    ws.on('message', (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        console.log('Received WebSocket message:', message.type);
+        
+        if (message.type === 'user_connected') {
+          // Update user info
+          const clientData = connectedClients.get(ws);
+          if (clientData) {
+            clientData.userName = message.userName || 'Anonymous';
+            connectedClients.set(ws, clientData);
+          }
+          
+          // Notify admin about new user connection
+          const adminMessage = {
+            type: 'chat_message',
+            id: Date.now().toString(),
+            message: `${message.userName || 'Anonymous User'} connected to live chat`,
+            timestamp: new Date().toISOString(),
+            isUser: false,
+            isAdmin: true
+          };
+          
+          // Send notification to admin clients only
+          connectedClients.forEach((clientData, client) => {
+            if (client !== ws && client.readyState === WebSocket.OPEN && clientData.isAdmin) {
+              client.send(JSON.stringify(adminMessage));
+            }
+          });
+          
+        } else if (message.type === 'chat_message') {
+          // Broadcast message to all connected clients
+          const broadcastMessage = {
+            type: 'chat_message',
+            id: message.id,
+            message: message.message,
+            timestamp: message.timestamp,
+            isUser: message.isUser,
+            isAdmin: message.isAdmin || false,
+            userName: message.userName
+          };
+          
+          console.log(`Broadcasting chat message from ${message.userName}: ${message.message}`);
+          
+          // Send to all connected clients except sender
+          connectedClients.forEach((clientData, client) => {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(broadcastMessage));
+            }
+          });
+          
+          // Log message for admin notification purposes
+          console.log(`Live chat message: [${message.userName}] ${message.message}`);
+          
+        } else if (message.type === 'admin_login') {
+          // Mark this connection as admin
+          const clientData = connectedClients.get(ws);
+          if (clientData) {
+            clientData.isAdmin = true;
+            clientData.userName = 'Admin';
+            connectedClients.set(ws, clientData);
+            console.log('Admin connected to live chat');
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      console.log('WebSocket connection closed');
+      connectedClients.delete(ws);
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      connectedClients.delete(ws);
+    });
+  });
+  
+  console.log('WebSocket server initialized on /ws path');
 
   return httpServer;
 }
