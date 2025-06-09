@@ -80,7 +80,7 @@ export function SimpleChatPanel() {
                 isAdmin: data.isAdmin,
                 userName: data.userName || 'Anonymous',
                 userEmail: data.userEmail,
-                conversationId: data.conversationId || data.userEmail || 'anonymous'
+                conversationId: data.userEmail || data.conversationId || `anon_${Date.now()}`
               };
 
               setConversations(prev => {

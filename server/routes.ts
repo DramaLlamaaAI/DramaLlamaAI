@@ -11,6 +11,7 @@ import { adminDiscountController } from "./controllers/admin-discount-controller
 import { adminEmailController } from "./controllers/admin-email-controller";
 import { promoCodeController } from "./controllers/promo-code-controller";
 import { promoCodeReportController } from "./controllers/promo-code-report-controller";
+import { sendChatNotification } from "./services/chat-notification-service";
 import { adminPromoCodeController } from "./controllers/admin-promo-code-controller";
 import { referralCodeController } from "./controllers/referral-code-controller";
 import session from "express-session";
@@ -1056,6 +1057,18 @@ app.use(session({
               client.send(JSON.stringify(broadcastMessage));
             }
           });
+          
+          // Send email notification for user messages (not admin messages)
+          if (message.isUser && !message.isAdmin) {
+            sendChatNotification({
+              userName: message.userName || 'Anonymous User',
+              userEmail: message.userEmail,
+              message: message.message,
+              timestamp: new Date(message.timestamp)
+            }).catch(error => {
+              console.error('Failed to send chat notification email:', error);
+            });
+          }
           
           // Log message for admin notification purposes
           console.log(`Live chat message: [${message.userName}] ${message.message}`);
