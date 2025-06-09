@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, Bell, BellOff, Users, User } from 'lucide-react';
+import { MessageCircle, Send, Bell, BellOff, Users, User, X, Archive, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -70,7 +70,17 @@ export function ChatManager() {
           try {
             const data = JSON.parse(event.data);
             
-            if (data.type === 'chat_message') {
+            if (data.type === 'conversation_ended') {
+              // Handle conversation ending from server
+              const conversationId = data.conversationId;
+              setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+              
+              if (selectedConversationId === conversationId) {
+                setSelectedConversationId(null);
+              }
+              
+              console.log(`Conversation ${conversationId} ended and cleaned up`);
+            } else if (data.type === 'chat_message') {
               const message: ChatMessage = {
                 id: data.id || Date.now().toString(),
                 message: data.message,
@@ -211,6 +221,32 @@ export function ChatManager() {
     );
   };
 
+  const endConversation = (conversationId: string) => {
+    const conversation = conversations.find(c => c.id === conversationId);
+    const confirmMessage = `Are you sure you want to end the chat with ${conversation?.userName || 'this user'}? This will permanently delete all message history and cannot be undone.`;
+    
+    if (window.confirm(confirmMessage)) {
+      // Remove conversation from local state
+      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      
+      // If this was the selected conversation, clear selection
+      if (selectedConversationId === conversationId) {
+        setSelectedConversationId(null);
+      }
+      
+      // Notify server to clean up conversation data
+      if (wsRef.current && isConnected) {
+        wsRef.current.send(JSON.stringify({
+          type: 'end_conversation',
+          conversationId: conversationId,
+          timestamp: new Date().toISOString()
+        }));
+      }
+      
+      console.log(`Conversation with ${conversation?.userName} ended and deleted`);
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -306,11 +342,25 @@ export function ChatManager() {
                       </div>
                     </div>
                     
-                    {conv.unreadCount > 0 && (
-                      <Badge variant="destructive" className="text-xs">
-                        {conv.unreadCount}
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {conv.unreadCount > 0 && (
+                        <Badge variant="destructive" className="text-xs">
+                          {conv.unreadCount}
+                        </Badge>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          endConversation(conv.id);
+                        }}
+                        className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                        title="End conversation and delete records"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="text-sm text-gray-600 truncate mb-1">{conv.lastMessage}</div>
@@ -335,16 +385,28 @@ export function ChatManager() {
           ) : (
             <>
               <div className="p-4 border-b bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                    <User className="h-5 w-5 text-pink-600" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-pink-600" />
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-900">{selectedConversation.userName}</h5>
+                      {selectedConversation.userEmail && (
+                        <p className="text-sm text-gray-600">{selectedConversation.userEmail}</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h5 className="font-semibold text-gray-900">{selectedConversation.userName}</h5>
-                    {selectedConversation.userEmail && (
-                      <p className="text-sm text-gray-600">{selectedConversation.userEmail}</p>
-                    )}
-                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => endConversation(selectedConversation.id)}
+                    className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                  >
+                    <Archive className="h-4 w-4 mr-2" />
+                    End Chat
+                  </Button>
                 </div>
               </div>
 

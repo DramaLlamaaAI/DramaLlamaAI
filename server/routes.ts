@@ -1082,6 +1082,22 @@ app.use(session({
             connectedClients.set(ws, clientData);
             console.log('Admin connected to live chat');
           }
+        } else if (message.type === 'end_conversation') {
+          // Handle conversation ending - clean up server-side data
+          console.log(`Admin ended conversation: ${message.conversationId}`);
+          
+          // Notify all clients that this conversation has ended
+          const endMessage = {
+            type: 'conversation_ended',
+            conversationId: message.conversationId,
+            timestamp: message.timestamp
+          };
+          
+          connectedClients.forEach((clientData, client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(endMessage));
+            }
+          });
         }
         
       } catch (error) {
