@@ -13,15 +13,28 @@ interface ChatMessage {
   isUser: boolean;
   isAdmin?: boolean;
   userName?: string;
+  userEmail?: string;
+  conversationId?: string;
+}
+
+interface ChatConversation {
+  id: string;
+  userName: string;
+  userEmail?: string;
+  lastMessage: string;
+  lastMessageTime: Date;
+  unreadCount: number;
+  status: 'active' | 'closed';
 }
 
 export function AdminChatPanel() {
   const { user } = useAuth();
+  const [conversations, setConversations] = useState<ChatConversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [connectedUsers, setConnectedUsers] = useState(0);
+  const [totalUnread, setTotalUnread] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -121,10 +134,10 @@ export function AdminChatPanel() {
               
               // Update unread count for user messages
               if (data.isUser) {
-                setUnreadCount(prev => prev + 1);
+                setTotalUnread(prev => prev + 1);
               }
             } else if (data.type === 'user_count') {
-              setConnectedUsers(data.count || 0);
+              // Handle user count updates if needed
             }
           } catch (error) {
             console.error('Error parsing WebSocket message:', error);
@@ -190,7 +203,7 @@ export function AdminChatPanel() {
     }));
 
     setNewMessage('');
-    setUnreadCount(0); // Reset unread count when admin sends message
+    setTotalUnread(0); // Reset unread count when admin sends message
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -205,7 +218,7 @@ export function AdminChatPanel() {
   };
 
   const clearUnread = () => {
-    setUnreadCount(0);
+    setTotalUnread(0);
   };
 
   // Don't render if user is not admin
