@@ -7,7 +7,7 @@ Drama Llama AI analyzes your conversations using advanced AI technology to help 
 
 ✅ **Zero Human Access**: No human being ever sees, reads, or has access to your chat content
 ✅ **AI-Only Processing**: Your conversations are analyzed exclusively by secure AI systems
-✅ **No Storage**: Chat content is processed in real-time and not permanently stored
+✅ **No Storage**: Chat content AND analysis results are processed in real-time and never stored
 ✅ **Encrypted Analysis**: All data transmission is encrypted and secure
 ✅ **Anonymous Processing**: Personal identifiers are removed during analysis
 ✅ **Your Control**: You decide what to share and can delete your account anytime
@@ -24,7 +24,7 @@ Our mission is to help improve communication while keeping your private conversa
 When you use Drama Llama AI to analyze your conversations:
 • NO human ever sees your chat content
 • Only secure AI systems process your messages
-• Your data is analyzed anonymously and not stored
+• Your chat content AND analysis results are never stored in our database
 • Everything is encrypted and completely confidential
 
 We help you understand communication patterns while keeping your private conversations 100% private.

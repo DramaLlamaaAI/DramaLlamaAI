@@ -25,12 +25,12 @@ export default function PrivacyPolicy() {
             <ul className="space-y-4">
               <li className="flex">
                 <span className="text-green-500 font-bold mr-2">✅</span>
-                <span>When you use our analysis tools, your conversation content is processed through secure API connections with Anthropic (Claude AI). We store analysis results but not the raw conversations once processing is complete.</span>
+                <span>When you use our analysis tools, your conversation content is processed in real-time through secure API connections with Anthropic (Claude AI). We do NOT store your conversations or analysis results - everything is processed and returned to you immediately without permanent storage.</span>
               </li>
               
               <li className="flex">
                 <span className="text-green-500 font-bold mr-2">✅</span>
-                <span>We retain your analysis results for 90 days to provide you with historical access to your insights.</span>
+                <span>Your chat content and analysis results are never saved to our database. All processing happens in real-time and data is discarded after being sent back to your browser.</span>
               </li>
               
               <li className="flex">
@@ -61,8 +61,17 @@ export default function PrivacyPolicy() {
           <p>We collect and process the following information:</p>
           <ul>
             <li>Account information (email address, hashed password)</li>
-            <li>Usage data (number of analyses performed)</li>
-            <li>Analysis results (insights generated from your uploads)</li>
+            <li>Usage data (number of analyses performed for tier limits)</li>
+            <li>Subscription and payment information (for paid tiers)</li>
+          </ul>
+          
+          <h2 className="text-2xl font-bold mt-8 mb-4">Information We Do NOT Collect or Store</h2>
+          <p>We explicitly do NOT collect, store, or retain:</p>
+          <ul>
+            <li>Your chat conversations or message content</li>
+            <li>Analysis results or AI-generated insights</li>
+            <li>Screenshots or images you upload for text extraction</li>
+            <li>Any user-submitted content beyond basic account information</li>
           </ul>
           
           <h2 className="text-2xl font-bold mt-8 mb-4">How We Use Your Information</h2>
@@ -70,16 +79,18 @@ export default function PrivacyPolicy() {
           <ul>
             <li>Providing you with access to our analysis tools</li>
             <li>Maintaining your account and subscription</li>
-            <li>Improving our services and features</li>
-            <li>Communicating important updates or changes</li>
+            <li>Tracking usage limits for tier-based access</li>
+            <li>Processing payments and managing subscriptions</li>
+            <li>Communicating important updates or service announcements</li>
           </ul>
           
           <h2 className="text-2xl font-bold mt-8 mb-4">Data Retention</h2>
           <p>We retain your data for the following periods:</p>
           <ul>
             <li>Account information: Until you request deletion</li>
-            <li>Analysis results: 90 days</li>
-            <li>Usage data: Until you request deletion</li>
+            <li>Usage statistics: Until you request deletion</li>
+            <li>Payment records: As required by law for tax and business purposes</li>
+            <li>Chat content and analysis results: NOT STORED - processed in real-time only</li>
           </ul>
           
           <h2 className="text-2xl font-bold mt-8 mb-4">Your Rights</h2>

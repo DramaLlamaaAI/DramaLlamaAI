@@ -11,7 +11,7 @@ import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info, AlertTriangle, Crown, ArrowUp } from "lucide-react";
+import { MessageSquare, MessageCircle, RefreshCcw, Mic, Zap, Info, AlertTriangle, Crown, ArrowUp, Edit3 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 
