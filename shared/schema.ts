@@ -157,6 +157,26 @@ export const systemSettings = pgTable("system_settings", {
   updatedById: integer("updated_by_id")
 });
 
+// Saved scripts for users to store and track their conversation scripts
+export const savedScripts = pgTable("saved_scripts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  situation: text("situation").notNull(),
+  originalMessage: text("original_message").notNull(),
+  firmScript: text("firm_script").notNull(),
+  neutralScript: text("neutral_script").notNull(),
+  empathicScript: text("empathic_script").notNull(),
+  situationAnalysis: text("situation_analysis").notNull(),
+  chosenTone: text("chosen_tone"), // Which tone the user chose to use
+  sentScript: text("sent_script"), // The actual script they sent (might be modified)
+  receivedReply: text("received_reply"), // Reply they received back
+  followUpSuggestions: json("follow_up_suggestions"), // AI suggestions for follow-up
+  status: text("status").notNull().default("saved"), // saved, sent, replied, resolved
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertUserEventSchema = createInsertSchema(userEvents).pick({
   userId: true,
   eventType: true,
@@ -169,6 +189,22 @@ export const insertSystemSettingSchema = createInsertSchema(systemSettings).pick
   settingValue: true,
   description: true,
   updatedById: true
+});
+
+export const insertSavedScriptSchema = createInsertSchema(savedScripts).pick({
+  userId: true,
+  title: true,
+  situation: true,
+  originalMessage: true,
+  firmScript: true,
+  neutralScript: true,
+  empathicScript: true,
+  situationAnalysis: true,
+  chosenTone: true,
+  sentScript: true,
+  receivedReply: true,
+  followUpSuggestions: true,
+  status: true,
 });
 
 // Types
@@ -186,6 +222,9 @@ export type InsertUserEvent = z.infer<typeof insertUserEventSchema>;
 
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
+
+export type SavedScript = typeof savedScripts.$inferSelect;
+export type InsertSavedScript = z.infer<typeof insertSavedScriptSchema>;
 
 // Tier information
 export const TIER_LIMITS = {

@@ -1,5 +1,5 @@
 import { 
-  users, analyses, usageLimits, userEvents, promoCodes, promoUsage, systemSettings, referralCodes,
+  users, analyses, usageLimits, userEvents, promoCodes, promoUsage, systemSettings, referralCodes, savedScripts,
   type User, type InsertUser, 
   type Analysis, type InsertAnalysis, 
   type UsageLimit, type InsertUsageLimit,
@@ -7,7 +7,8 @@ import {
   type PromoCode, type InsertPromoCode,
   type PromoUsage, type InsertPromoUsage,
   type SystemSetting, type InsertSystemSetting,
-  type ReferralCode, type InsertReferralCode
+  type ReferralCode, type InsertReferralCode,
+  type SavedScript, type InsertSavedScript
 } from "@shared/schema";
 
 // Interface for tracking anonymous usage
@@ -115,6 +116,14 @@ export interface IStorage {
   setSystemSetting(key: string, value: string, description?: string, updatedById?: number): Promise<SystemSetting>;
   getAllSystemSettings(): Promise<SystemSetting[]>;
   isBetaModeEnabled(): Promise<boolean>;
+  
+  // Saved Scripts Management
+  saveScript(script: InsertSavedScript): Promise<SavedScript>;
+  getUserScripts(userId: number): Promise<SavedScript[]>;
+  getScript(scriptId: number, userId: number): Promise<SavedScript | undefined>;
+  updateScript(scriptId: number, userId: number, updates: Partial<SavedScript>): Promise<SavedScript>;
+  deleteScript(scriptId: number, userId: number): Promise<boolean>;
+  updateScriptReply(scriptId: number, userId: number, receivedReply: string, followUpSuggestions?: any): Promise<SavedScript>;
 }
 
 export class MemStorage implements IStorage {
@@ -127,6 +136,7 @@ export class MemStorage implements IStorage {
   private promoUsages: Map<number, PromoUsage>;
   private systemSettings: Map<string, SystemSetting>;
   private referralCodes: Map<number, ReferralCode>;
+  private savedScripts: Map<number, SavedScript>;
   private userId: number;
   private analysisId: number;
   private usageLimitId: number;
@@ -134,6 +144,7 @@ export class MemStorage implements IStorage {
   private promoCodeId: number;
   private promoUsageId: number;
   private referralCodeId: number;
+  private savedScriptId: number;
 
   constructor() {
     this.users = new Map();
@@ -145,6 +156,7 @@ export class MemStorage implements IStorage {
     this.promoUsages = new Map();
     this.systemSettings = new Map();
     this.referralCodes = new Map();
+    this.savedScripts = new Map();
     this.userId = 1;
     this.analysisId = 1;
     this.usageLimitId = 1;
