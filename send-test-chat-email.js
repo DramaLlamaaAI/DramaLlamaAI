@@ -2,6 +2,12 @@
  * Send test email for live chat feature announcement
  */
 import { Resend } from 'resend';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Check for Resend API key
 if (!process.env.RESEND_API_KEY) {
@@ -57,7 +63,10 @@ support@dramallama.ai
 </head>
 <body>
     <div class="header">
-        <div class="logo">🦙 Drama Llama</div>
+        <div class="logo">
+            <img src="cid:logo" alt="Drama LLama AI" style="width: 60px; height: 60px; border-radius: 8px; margin-bottom: 10px;" />
+            <br>Drama LLama AI
+        </div>
         <h1 style="margin: 0; font-size: 28px;">Live Chat Support is Here!</h1>
         <p style="margin: 10px 0 0 0; opacity: 0.9;">Get instant help whenever you need it</p>
     </div>
@@ -65,7 +74,7 @@ support@dramallama.ai
     <div class="content">
         <p>Hi there!</p>
         
-        <p>We're excited to announce that <strong>Drama Llama now has live chat support!</strong></p>
+        <p>We're excited to announce that <strong>Drama LLama AI now has live chat support!</strong></p>
         
         <div class="feature-list">
             <h3 style="margin-top: 0; color: #1976d2;">You can now get instant help with:</h3>
@@ -79,20 +88,20 @@ support@dramallama.ai
         
         <div class="cta-section">
             <h3 style="margin-top: 0; color: #1976d2;">How to access live chat:</h3>
-            <p>Look for the <span class="highlight">chat bubble icon</span> in the bottom-right corner of any page on Drama Llama. Click it to start a conversation with our support team.</p>
+            <p>Look for the <span class="highlight">chat bubble icon</span> in the bottom-left corner of any page on Drama LLama AI. Click it to start a conversation with our support team.</p>
         </div>
         
-        <p>We're here to help you get the most out of Drama Llama's conversation analysis features.</p>
+        <p>We're here to help you get the most out of Drama LLama AI's conversation analysis features.</p>
         
         <p>Best regards,<br>
-        <strong>The Drama Llama Team</strong></p>
+        <strong>The Drama LLama AI Team</strong></p>
     </div>
     
     <div class="footer">
-        <p>Drama Llama - AI-Powered Conversation Analysis</p>
+        <p>Drama LLama AI - AI-Powered Conversation Analysis</p>
         <p>Questions? Reply to this email or use our new live chat feature!</p>
         <p style="margin-top: 15px; font-size: 12px; color: #999;">
-            You received this email because you have an account with Drama Llama.<br>
+            You received this email because you have an account with Drama LLama AI.<br>
             If you no longer wish to receive updates, please contact support@dramallama.ai
         </p>
     </div>
