@@ -56,15 +56,21 @@ export function LiveChatEmailNotifications() {
   const sendToAllUsers = async () => {
     setIsLoading(true);
     try {
-      const result = await apiRequest('/api/admin/email/chat-announcement', {
+      const result = await fetch('/api/admin/email/chat-announcement', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
+      
+      if (!result.ok) {
+        throw new Error(`HTTP error! status: ${result.status}`);
+      }
+      
+      const data = await result.json();
 
       toast({
         title: "Emails Sent Successfully",
-        description: result.message || "Live chat announcement sent to all verified users",
+        description: data.message || "Live chat announcement sent to all verified users",
       });
     } catch (error) {
       console.error('Failed to send bulk emails:', error);

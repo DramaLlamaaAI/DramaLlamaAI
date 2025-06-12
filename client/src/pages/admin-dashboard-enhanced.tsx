@@ -387,6 +387,7 @@ export default function AdminDashboardEnhanced() {
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
                   <TabsTrigger value="user-analytics">User Analytics</TabsTrigger>
                   <TabsTrigger value="live-chat">Live Chat</TabsTrigger>
+                  <TabsTrigger value="emails">Email Notifications</TabsTrigger>
                   <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
                   <TabsTrigger value="promo-reports">Promo Reports</TabsTrigger>
                   <TabsTrigger value="devtools">Developer Tools</TabsTrigger>
@@ -834,6 +835,13 @@ export default function AdminDashboardEnhanced() {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="emails" className="mt-6">
+                <div className="space-y-6">
+                  <LiveChatEmailNotifications />
+                  <EmailNotifications />
+                </div>
               </TabsContent>
 
               <TabsContent value="devtools" className="mt-6">

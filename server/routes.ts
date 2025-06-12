@@ -1326,7 +1326,7 @@ support@dramallama.ai
 
       if (testEmail) {
         // Send test email using Resend
-        const { Resend } = require('resend');
+        const { Resend } = await import('resend');
         const resend = new Resend(process.env.RESEND_API_KEY);
         
         const emailData = {
@@ -1356,7 +1356,7 @@ support@dramallama.ai
         }
         
         // Send bulk emails using Resend
-        const { Resend } = require('resend');
+        const { Resend } = await import('resend');
         const resend = new Resend(process.env.RESEND_API_KEY);
         
         const emailPromises = emailAddresses.map(email => {
