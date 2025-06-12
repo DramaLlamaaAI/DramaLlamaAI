@@ -88,7 +88,12 @@ support@dramallama.ai
         
         <div class="cta-section">
             <h3 style="margin-top: 0; color: #1976d2;">How to access live chat:</h3>
-            <p>Look for the <span class="highlight">chat bubble icon</span> in the bottom-left corner of any page on Drama LLama AI. Click it to start a conversation with our support team.</p>
+            <p>Visit <a href="https://www.dramallama.ai" style="color: #1976d2; text-decoration: none; font-weight: bold;">www.DramaLlama.ai</a> and look for the <span class="highlight">chat bubble icon</span> in the bottom-left corner of any page. Click it to start a conversation with our support team.</p>
+        </div>
+        
+        <div style="background: #e8f5e8; border: 2px solid #4caf50; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+            <h4 style="margin-top: 0; color: #2e7d32;">🎉 Special Notice</h4>
+            <p style="margin-bottom: 0; color: #2e7d32;"><strong>Don't forget: Your account has been upgraded to our limited time access 'Beta Tier' for FREE deeper insights!</strong> Take advantage of enhanced analysis features while this special access lasts.</p>
         </div>
         
         <p>We're here to help you get the most out of Drama LLama AI's conversation analysis features.</p>

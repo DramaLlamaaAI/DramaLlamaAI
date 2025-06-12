@@ -1274,10 +1274,15 @@ app.use(session({
             <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 25px 0;">
                 <h4 style="margin-top: 0; color: #0369a1;">📍 How to find live chat:</h4>
                 <ol style="margin: 10px 0; padding-left: 20px;">
-                    <li>Visit <a href="https://dramallama.ai" style="color: #ec4899;">dramallama.ai</a></li>
+                    <li>Visit <a href="https://www.dramallama.ai" style="color: #ec4899; font-weight: bold;">www.DramaLlama.ai</a></li>
                     <li>Look for the chat widget in the bottom-left corner</li>
                     <li>Click to start your conversation with our team</li>
                 </ol>
+            </div>
+            
+            <div style="background: #e8f5e8; border: 2px solid #4caf50; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+                <h4 style="margin-top: 0; color: #2e7d32;">🎉 Special Notice</h4>
+                <p style="margin-bottom: 0; color: #2e7d32;"><strong>Don't forget: Your account has been upgraded to our limited time access 'Beta Tier' for FREE deeper insights!</strong> Take advantage of enhanced analysis features while this special access lasts.</p>
             </div>
             
             <p style="margin-top: 30px;">Our team is available during business hours to help make your Drama Llama experience even better. We're committed to providing you with the support you deserve!</p>
@@ -1314,7 +1319,9 @@ You can now get instant help with:
 • Feature requests and feedback
 
 How to access live chat:
-Look for the chat bubble icon in the bottom-left corner of any page on Drama LLama AI. Click it to start a conversation with our support team.
+Visit www.DramaLlama.ai and look for the chat bubble icon in the bottom-left corner of any page. Click it to start a conversation with our support team.
+
+🎉 SPECIAL NOTICE: Don't forget - your account has been upgraded to our limited time access 'Beta Tier' for FREE deeper insights! Take advantage of enhanced analysis features while this special access lasts.
 
 We're here to help you get the most out of Drama LLama AI's conversation analysis features.
 
