@@ -1349,6 +1349,15 @@ export const analysisController = {
       // Get user tier
       const tier = getUserTier(req);
       
+      // Check tier access - Script Builder is only available for Beta, Personal, and Pro tiers
+      if (tier === 'free') {
+        return res.status(403).json({ 
+          message: 'Script Builder requires Personal tier or higher. Upgrade to access this feature.',
+          upgradeRequired: true,
+          requiredTier: 'personal'
+        });
+      }
+      
       // Track usage
       await trackUsage(req);
 

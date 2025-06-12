@@ -14,6 +14,8 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Helmet } from "react-helmet-async";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/use-auth";
+import { Link } from "wouter";
 
 const scriptBuilderSchema = z.object({
   situation: z.string().min(10, "Please describe the situation in more detail"),
@@ -34,6 +36,7 @@ export default function ScriptBuilder() {
   const [scripts, setScripts] = useState<ScriptResponse | null>(null);
   const [copiedScript, setCopiedScript] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<ScriptBuilderForm>({
     resolver: zodResolver(scriptBuilderSchema),
@@ -50,6 +53,17 @@ export default function ScriptBuilder() {
       
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Handle tier restriction
+        if (errorData.upgradeRequired) {
+          toast({
+            title: "Upgrade Required",
+            description: errorData.message,
+            variant: "destructive",
+          });
+          return;
+        }
+        
         throw new Error(errorData.message || 'Failed to generate scripts');
       }
       
@@ -112,12 +126,33 @@ export default function ScriptBuilder() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Edit3 className="h-8 w-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-gray-900">Script Builder</h1>
+            <Badge variant="secondary" className="ml-2">Personal+</Badge>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Prepare calm, assertive responses for emotionally charged conversations. 
             Get AI-generated scripts in three different tones to help you communicate effectively.
           </p>
         </div>
+
+        {/* Tier Restriction Check */}
+        {user && user.tier === 'free' && (
+          <Card className="mb-8 border-amber-200 bg-amber-50">
+            <CardContent className="flex items-center justify-between p-6">
+              <div className="flex items-center gap-3">
+                <Shield className="h-6 w-6 text-amber-600" />
+                <div>
+                  <h3 className="font-semibold text-amber-900">Personal Tier Required</h3>
+                  <p className="text-amber-700">Script Builder is available for Personal tier and higher subscribers.</p>
+                </div>
+              </div>
+              <Link href="/subscription">
+                <Button className="bg-amber-600 hover:bg-amber-700 text-white">
+                  Upgrade Now
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Input Form */}
