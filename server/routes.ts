@@ -1222,7 +1222,7 @@ app.use(session({
     <div class="container">
         <div class="header">
             <div style="margin-bottom: 15px;">
-                <img src="cid:logo" alt="Drama LLama AI" style="width: 60px; height: 60px; border-radius: 8px; margin-bottom: 10px;" />
+                <img src="data:image/png;base64,LOGO_BASE64_PLACEHOLDER" alt="Drama LLama AI" style="width: 60px; height: 60px; border-radius: 8px; margin-bottom: 10px;" />
                 <br><span style="font-size: 24px; font-weight: bold;">Drama LLama AI</span>
             </div>
             <h1 style="margin: 0; font-size: 28px;">Live Chat Support is Here!</h1>
@@ -1337,23 +1337,19 @@ support@dramallama.ai
         const { join } = await import('path');
         const resend = new Resend(process.env.RESEND_API_KEY);
         
-        // Read the logo file
-        const logoPath = join(process.cwd(), 'attached_assets', 'FB Profile Pic.png');
-        const logoBuffer = readFileSync(logoPath);
+        // Read the base64 encoded logo
+        const logoBase64Path = join(process.cwd(), 'logo-base64-complete.txt');
+        const logoBase64 = readFileSync(logoBase64Path, 'utf8').trim();
+        
+        // Replace placeholder with actual base64 data
+        const finalHtmlContent = htmlContent.replace('LOGO_BASE64_PLACEHOLDER', logoBase64);
         
         const emailData = {
           from: 'support@dramallama.ai',
           to: testEmail,
           subject: subject,
           text: textContent,
-          html: htmlContent,
-          attachments: [
-            {
-              filename: 'drama-llama-logo.png',
-              content: logoBuffer,
-              cid: 'logo'
-            }
-          ]
+          html: finalHtmlContent
         };
         
         const emailResult = await resend.emails.send(emailData);

@@ -2,8 +2,8 @@
  * Send test email for live chat feature announcement with embedded logo
  */
 
-const { Resend } = require('resend');
-const fs = require('fs');
+import { Resend } from 'resend';
+import fs from 'fs';
 
 async function sendTestChatEmail() {
   try {
