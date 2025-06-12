@@ -1,15 +1,15 @@
 /**
  * Send test email for live chat feature announcement
  */
-import sgMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 
-// Check for SendGrid API key
-if (!process.env.SENDGRID_API_KEY) {
-  console.error('SENDGRID_API_KEY environment variable not set');
+// Check for Resend API key
+if (!process.env.RESEND_API_KEY) {
+  console.error('RESEND_API_KEY environment variable not set');
   process.exit(1);
 }
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function sendTestChatEmail() {
   const subject = '🎉 New Feature: Live Chat Support Now Available!';
@@ -100,9 +100,9 @@ support@dramallama.ai
 </html>
 `;
 
-  const msg = {
-    to: 'support@dramallama.ai',
+  const emailData = {
     from: 'support@dramallama.ai',
+    to: 'support@dramallama.ai',
     subject: subject,
     text: textContent,
     html: htmlContent,
@@ -110,18 +110,19 @@ support@dramallama.ai
 
   try {
     console.log('Sending test email to support@dramallama.ai...');
-    await sgMail.send(msg);
+    const result = await resend.emails.send(emailData);
     console.log('✅ Test email sent successfully to support@dramallama.ai');
+    console.log('Email ID:', result.data?.id);
     console.log('Subject:', subject);
     console.log('\nYou can now review the email content and formatting.');
     console.log('If it looks good, you can proceed to send it to all users.');
   } catch (error) {
-    console.error('❌ Failed to send test email:', error.response?.body || error.message);
+    console.error('❌ Failed to send test email:', error.message);
     
-    if (error.code === 401) {
-      console.error('\n🔑 Authentication error: Please check your SENDGRID_API_KEY');
-    } else if (error.code === 403) {
-      console.error('\n🚫 Forbidden: Check your SendGrid account permissions');
+    if (error.message.includes('API key')) {
+      console.error('\n🔑 Authentication error: Please check your RESEND_API_KEY');
+    } else if (error.message.includes('forbidden')) {
+      console.error('\n🚫 Forbidden: Check your Resend account permissions');
     }
   }
 }

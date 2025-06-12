@@ -1325,19 +1325,19 @@ support@dramallama.ai
 `;
 
       if (testEmail) {
-        // Send test email using SendGrid
-        const sgMail = require('@sendgrid/mail');
-        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+        // Send test email using Resend
+        const { Resend } = require('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
         
-        const msg = {
-          to: testEmail,
+        const emailData = {
           from: 'support@dramallama.ai',
+          to: testEmail,
           subject: subject,
           text: textContent,
           html: htmlContent,
         };
         
-        const emailResult = await sgMail.send(msg);
+        const emailResult = await resend.emails.send(emailData);
         
         return res.json({
           success: true,
@@ -1355,12 +1355,21 @@ support@dramallama.ai
           return res.status(400).json({ error: 'No verified email addresses found' });
         }
         
-        const emailResult = await adminEmailController.sendBulkEmail(
-          emailAddresses,
-          subject,
-          textContent,
-          htmlContent
-        );
+        // Send bulk emails using Resend
+        const { Resend } = require('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        
+        const emailPromises = emailAddresses.map(email => {
+          return resend.emails.send({
+            from: 'support@dramallama.ai',
+            to: email,
+            subject: subject,
+            text: textContent,
+            html: htmlContent,
+          });
+        });
+        
+        const emailResult = await Promise.allSettled(emailPromises);
         
         return res.json({
           success: true,

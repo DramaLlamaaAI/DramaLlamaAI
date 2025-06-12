@@ -25,11 +25,17 @@ export function LiveChatEmailNotifications() {
 
     setIsLoading(true);
     try {
-      const result = await apiRequest('/api/admin/email/chat-announcement', {
+      const result = await fetch('/api/admin/email/chat-announcement', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ testEmail: testEmail.trim() }),
       });
+      
+      if (!result.ok) {
+        throw new Error(`HTTP error! status: ${result.status}`);
+      }
+      
+      const data = await result.json();
 
       toast({
         title: "Test Email Sent",
