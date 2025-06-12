@@ -113,6 +113,30 @@ export default function Home() {
               </div>
               
               <div className="flex items-center gap-3">
+                <Link href="/script-builder" className="flex-1">
+                  <Button 
+                    size="lg" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white w-full justify-start"
+                  >
+                    <Edit3 className="h-5 w-5 mr-2" /> Script Builder
+                  </Button>
+                </Link>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-10 w-10 p-0 border-gray-300 flex-shrink-0">
+                      <Info className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
+                    <DialogHeader>
+                      <DialogTitle className="text-blue-700 text-xl font-bold">Script Builder</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-gray-700 leading-relaxed">Get tone-adjusted scripts for difficult conversations. AI provides firm, neutral, and empathic response options.</p>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <div className="flex items-center gap-3">
                 <Link href="/vent-mode" className="flex-1">
                   <Button 
                     size="lg" 

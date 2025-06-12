@@ -1329,6 +1329,38 @@ export const analysisController = {
       console.error('Chat import error:', error);
       res.status(500).json({ error: error.message || 'Internal server error' });
     }
+  },
+
+  // Generate conversation scripts
+  generateScript: async (req: Request, res: Response) => {
+    try {
+      const { situation, message } = req.body;
+      
+      if (!situation || !message) {
+        return res.status(400).json({ message: 'Missing required parameters: situation and message' });
+      }
+
+      // Check if user has reached usage limit
+      const canUseFeature = await checkUsageLimit(req);
+      if (!canUseFeature) {
+        return res.status(403).json({ message: 'Usage limit reached' });
+      }
+
+      // Get user tier
+      const tier = getUserTier(req);
+      
+      // Track usage
+      await trackUsage(req);
+
+      // Generate scripts using AI
+      const { generateConversationScripts } = await import('../services/script-builder-service');
+      const scripts = await generateConversationScripts(situation, message, tier);
+      
+      res.json(scripts);
+    } catch (error: any) {
+      console.error('Script generation error:', error);
+      res.status(500).json({ message: error.message || 'Internal server error' });
+    }
   }
 };
 

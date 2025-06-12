@@ -34,6 +34,7 @@ import GroupChatAnalysisPage from "./pages/group-chat-analysis";
 import MessageAnalysis from "./components/message-analysis";
 import VentMode from "./components/de-escalate";
 import LiveTalk from "./components/live-talk";
+import ScriptBuilder from "./pages/script-builder";
 import { AdminTierSwitcher } from "./components/admin/admin-tier-switcher";
 import { LiveChatWidget } from "./components/live-chat-widget";
 
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/message-analysis" component={MessageAnalysis} />
       <Route path="/de-escalate" component={VentMode} />
       <Route path="/vent-mode" component={VentMode} />
+      <Route path="/script-builder" component={ScriptBuilder} />
       <Route path="/live-talk" component={LiveTalk} />
       <Route path="/whatsapp-guide" component={WhatsAppGuide} />
       <Route path="/subscription" component={SubscriptionPage} />
