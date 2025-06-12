@@ -1325,13 +1325,19 @@ support@dramallama.ai
 `;
 
       if (testEmail) {
-        // Send test email to the specified address
-        const emailResult = await adminEmailController.sendSingleEmail(
-          testEmail,
-          subject,
-          textContent,
-          htmlContent
-        );
+        // Send test email using SendGrid
+        const sgMail = require('@sendgrid/mail');
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+        
+        const msg = {
+          to: testEmail,
+          from: 'support@dramallama.ai',
+          subject: subject,
+          text: textContent,
+          html: htmlContent,
+        };
+        
+        const emailResult = await sgMail.send(msg);
         
         return res.json({
           success: true,
