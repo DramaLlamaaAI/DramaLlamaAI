@@ -1,3 +1,4 @@
+import { eq, sql, count, isNull, isNotNull, and, desc } from "drizzle-orm";
 import { 
   users, analyses, usageLimits, userEvents, promoCodes, promoUsage, systemSettings, referralCodes, savedScripts,
   type User, type InsertUser, 
