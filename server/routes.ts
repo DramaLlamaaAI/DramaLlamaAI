@@ -14,6 +14,7 @@ import { promoCodeReportController } from "./controllers/promo-code-report-contr
 import { sendChatNotification } from "./services/chat-notification-service";
 import { adminPromoCodeController } from "./controllers/admin-promo-code-controller";
 import { referralCodeController } from "./controllers/referral-code-controller";
+import { analyzeChatConversation } from "./services/anthropic-updated";
 import session from "express-session";
 import memoryStore from "memorystore";
 import multer from "multer";
@@ -821,38 +822,15 @@ app.use(session({
           });
         }
 
-        // Get user's tier for analysis
-        const userId = req.session?.userId;
-        let userTier = 'free';
-        
-        if (userId) {
-          try {
-            const user = await storage.getUserById(userId);
-            userTier = user?.tier || 'free';
-          } catch (error) {
-            console.log('Could not get user tier, using free tier');
-          }
-        }
-
-        console.log(`Analyzing ZIP extracted chat with ${userTier} tier for participants: ${me} and ${them}`);
-
-        // Perform analysis
-        const analysisResult = await analyzeChatConversation(extractedChat, me, them, userTier);
-
-        // Track usage if user is authenticated
-        if (userId) {
-          try {
-            await storage.trackUserUsage(userId, 'chat_analysis');
-          } catch (error) {
-            console.error('Error tracking usage:', error);
-          }
-        }
+        // Return extracted content for frontend analysis
+        console.log(`ZIP extraction successful: ${extractedFileName} (${extractedChat.length} characters)`);
+        console.log(`Participants detected: ${me}, ${them}`);
 
         res.json({
           success: true,
           extractedFrom: extractedFileName,
+          text: extractedChat,
           participants: { me, them },
-          analysis: analysisResult,
           chatLength: extractedChat.length,
           messageCount: extractedChat.split('\n').filter(line => 
             line.trim() && (line.includes(' - ') || line.includes(': '))
@@ -1128,6 +1106,271 @@ app.use(session({
   
   // Email notifications
   app.post('/api/admin/email/send', isAuthenticated, isAdmin, adminEmailController.sendBulkEmails);
+  
+  // Live chat feature announcement email
+  app.post('/api/admin/email/chat-announcement', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      const { testEmail } = req.body;
+      
+      // Email content for the live chat feature announcement
+      const subject = "🎉 New Feature: Live Chat Support Now Available!";
+      const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Live Chat Feature</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #ec4899, #f472b6);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .feature-highlight {
+            background-color: #fef7ff;
+            border-left: 4px solid #ec4899;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .feature-highlight h3 {
+            margin-top: 0;
+            color: #ec4899;
+            font-size: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #ec4899, #f472b6);
+            color: white;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .benefits {
+            display: grid;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .benefit {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .benefit-icon {
+            background-color: #ec4899;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-links a {
+            color: #ec4899;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Live Chat Support is Here!</h1>
+            <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">Get instant help from our team</p>
+        </div>
+        
+        <div class="content">
+            <div class="feature-highlight">
+                <h3>💬 Introducing Live Chat Support</h3>
+                <p>We're excited to announce that you can now chat directly with our support team! No more waiting for email responses - get instant help when you need it most.</p>
+            </div>
+            
+            <h3>✨ What you can use live chat for:</h3>
+            <div class="benefits">
+                <div class="benefit">
+                    <div class="benefit-icon">?</div>
+                    <div>
+                        <strong>Technical Support</strong><br>
+                        Having trouble with chat analysis or features? We're here to help!
+                    </div>
+                </div>
+                <div class="benefit">
+                    <div class="benefit-icon">💡</div>
+                    <div>
+                        <strong>How-to Questions</strong><br>
+                        Need guidance on uploading files or understanding your results?
+                    </div>
+                </div>
+                <div class="benefit">
+                    <div class="benefit-icon">⚡</div>
+                    <div>
+                        <strong>Quick Answers</strong><br>
+                        Get instant responses about subscriptions, features, and account issues
+                    </div>
+                </div>
+                <div class="benefit">
+                    <div class="benefit-icon">🎯</div>
+                    <div>
+                        <strong>Feature Requests</strong><br>
+                        Share your ideas and feedback directly with our team
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://dramallama.ai" class="cta-button" style="color: white;">Start Chatting Now →</a>
+            </div>
+            
+            <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 25px 0;">
+                <h4 style="margin-top: 0; color: #0369a1;">📍 How to find live chat:</h4>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li>Visit <a href="https://dramallama.ai" style="color: #ec4899;">dramallama.ai</a></li>
+                    <li>Look for the chat widget in the bottom-right corner</li>
+                    <li>Click to start your conversation with our team</li>
+                </ol>
+            </div>
+            
+            <p style="margin-top: 30px;">Our team is available during business hours to help make your Drama Llama experience even better. We're committed to providing you with the support you deserve!</p>
+            
+            <p><strong>Thank you for being part of the Drama Llama community! 🦙💖</strong></p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Drama Llama AI</strong><br>
+            Your AI-powered conversation analysis platform</p>
+            
+            <div class="social-links">
+                <a href="mailto:support@dramallama.ai">support@dramallama.ai</a>
+            </div>
+            
+            <p style="font-size: 12px; margin-top: 15px;">
+                This email was sent to inform you about our new live chat feature. 
+                If you have any questions, feel free to use our new live chat support!
+            </p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+      const textContent = `
+🎉 Live Chat Support is Now Available!
+
+We're excited to announce that you can now chat directly with our support team at Drama Llama AI!
+
+✨ What you can use live chat for:
+• Technical Support - Having trouble with chat analysis or features? We're here to help!
+• How-to Questions - Need guidance on uploading files or understanding your results?
+• Quick Answers - Get instant responses about subscriptions, features, and account issues
+• Feature Requests - Share your ideas and feedback directly with our team
+
+📍 How to find live chat:
+1. Visit dramallama.ai
+2. Look for the chat widget in the bottom-right corner
+3. Click to start your conversation with our team
+
+Our team is available during business hours to help make your Drama Llama experience even better. We're committed to providing you with the support you deserve!
+
+Thank you for being part of the Drama Llama community! 🦙💖
+
+---
+Drama Llama AI
+Your AI-powered conversation analysis platform
+support@dramallama.ai
+`;
+
+      if (testEmail) {
+        // Send test email to the specified address
+        const emailResult = await adminEmailController.sendSingleEmail(
+          testEmail,
+          subject,
+          textContent,
+          htmlContent
+        );
+        
+        return res.json({
+          success: true,
+          message: `Test email sent successfully to ${testEmail}`,
+          emailResult
+        });
+      } else {
+        // Send to all users
+        const users = await storage.getAllUsers();
+        const emailAddresses = users
+          .filter((user: any) => user.email && user.emailVerified)
+          .map((user: any) => user.email);
+        
+        if (emailAddresses.length === 0) {
+          return res.status(400).json({ error: 'No verified email addresses found' });
+        }
+        
+        const emailResult = await adminEmailController.sendBulkEmail(
+          emailAddresses,
+          subject,
+          textContent,
+          htmlContent
+        );
+        
+        return res.json({
+          success: true,
+          message: `Live chat announcement sent to ${emailAddresses.length} users`,
+          emailResult
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error sending live chat announcement:', error);
+      res.status(500).json({ 
+        error: 'Failed to send live chat announcement',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
   
   // Promo code management - commented out for now until admin controller is fully implemented
   // Will be implemented in the admin controller
