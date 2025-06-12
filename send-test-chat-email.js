@@ -109,12 +109,23 @@ support@dramallama.ai
 </html>
 `;
 
+  // Read the logo file
+  const logoPath = join(__dirname, 'attached_assets', 'FB Profile Pic.png');
+  const logoBuffer = readFileSync(logoPath);
+
   const emailData = {
     from: 'support@dramallama.ai',
     to: 'support@dramallama.ai',
     subject: subject,
     text: textContent,
     html: htmlContent,
+    attachments: [
+      {
+        filename: 'drama-llama-logo.png',
+        content: logoBuffer,
+        cid: 'logo'
+      }
+    ]
   };
 
   try {

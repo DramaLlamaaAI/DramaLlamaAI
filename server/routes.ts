@@ -1221,8 +1221,12 @@ app.use(session({
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎉 Live Chat Support is Here!</h1>
-            <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">Get instant help from our team</p>
+            <div style="margin-bottom: 15px;">
+                <img src="cid:logo" alt="Drama LLama AI" style="width: 60px; height: 60px; border-radius: 8px; margin-bottom: 10px;" />
+                <br><span style="font-size: 24px; font-weight: bold;">Drama LLama AI</span>
+            </div>
+            <h1 style="margin: 0; font-size: 28px;">Live Chat Support is Here!</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Get instant help whenever you need it</p>
         </div>
         
         <div class="content">
@@ -1271,7 +1275,7 @@ app.use(session({
                 <h4 style="margin-top: 0; color: #0369a1;">📍 How to find live chat:</h4>
                 <ol style="margin: 10px 0; padding-left: 20px;">
                     <li>Visit <a href="https://dramallama.ai" style="color: #ec4899;">dramallama.ai</a></li>
-                    <li>Look for the chat widget in the bottom-right corner</li>
+                    <li>Look for the chat widget in the bottom-left corner</li>
                     <li>Click to start your conversation with our team</li>
                 </ol>
             </div>
@@ -1299,35 +1303,36 @@ app.use(session({
 </html>`;
 
       const textContent = `
-🎉 Live Chat Support is Now Available!
+Hi there!
 
-We're excited to announce that you can now chat directly with our support team at Drama Llama AI!
+We're excited to announce that Drama LLama AI now has live chat support!
 
-✨ What you can use live chat for:
-• Technical Support - Having trouble with chat analysis or features? We're here to help!
-• How-to Questions - Need guidance on uploading files or understanding your results?
-• Quick Answers - Get instant responses about subscriptions, features, and account issues
-• Feature Requests - Share your ideas and feedback directly with our team
+You can now get instant help with:
+• Technical questions about using the app
+• How-to guidance for analyzing your conversations
+• Quick answers to your questions
+• Feature requests and feedback
 
-📍 How to find live chat:
-1. Visit dramallama.ai
-2. Look for the chat widget in the bottom-right corner
-3. Click to start your conversation with our team
+How to access live chat:
+Look for the chat bubble icon in the bottom-left corner of any page on Drama LLama AI. Click it to start a conversation with our support team.
 
-Our team is available during business hours to help make your Drama Llama experience even better. We're committed to providing you with the support you deserve!
+We're here to help you get the most out of Drama LLama AI's conversation analysis features.
 
-Thank you for being part of the Drama Llama community! 🦙💖
-
----
-Drama Llama AI
-Your AI-powered conversation analysis platform
+Best regards,
+The Drama LLama AI Team
 support@dramallama.ai
 `;
 
       if (testEmail) {
         // Send test email using Resend
         const { Resend } = await import('resend');
+        const { readFileSync } = await import('fs');
+        const { join } = await import('path');
         const resend = new Resend(process.env.RESEND_API_KEY);
+        
+        // Read the logo file
+        const logoPath = join(process.cwd(), 'attached_assets', 'FB Profile Pic.png');
+        const logoBuffer = readFileSync(logoPath);
         
         const emailData = {
           from: 'support@dramallama.ai',
@@ -1335,6 +1340,13 @@ support@dramallama.ai
           subject: subject,
           text: textContent,
           html: htmlContent,
+          attachments: [
+            {
+              filename: 'drama-llama-logo.png',
+              content: logoBuffer,
+              cid: 'logo'
+            }
+          ]
         };
         
         const emailResult = await resend.emails.send(emailData);
@@ -1357,7 +1369,13 @@ support@dramallama.ai
         
         // Send bulk emails using Resend
         const { Resend } = await import('resend');
+        const { readFileSync } = await import('fs');
+        const { join } = await import('path');
         const resend = new Resend(process.env.RESEND_API_KEY);
+        
+        // Read the logo file
+        const logoPath = join(process.cwd(), 'attached_assets', 'FB Profile Pic.png');
+        const logoBuffer = readFileSync(logoPath);
         
         const emailPromises = emailAddresses.map(email => {
           return resend.emails.send({
@@ -1366,6 +1384,13 @@ support@dramallama.ai
             subject: subject,
             text: textContent,
             html: htmlContent,
+            attachments: [
+              {
+                filename: 'drama-llama-logo.png',
+                content: logoBuffer,
+                cid: 'logo'
+              }
+            ]
           });
         });
         
