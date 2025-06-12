@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield } from "lucide-react";
+import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield, Save, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/header";
@@ -16,6 +17,7 @@ import { Helmet } from "react-helmet-async";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const scriptBuilderSchema = z.object({
   situation: z.string().min(10, "Please describe the situation in more detail"),
@@ -35,6 +37,9 @@ export default function ScriptBuilder() {
   const [isLoading, setIsLoading] = useState(false);
   const [scripts, setScripts] = useState<ScriptResponse | null>(null);
   const [copiedScript, setCopiedScript] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveTitle, setSaveTitle] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -110,6 +115,41 @@ export default function ScriptBuilder() {
     form.reset();
     setScripts(null);
     setCopiedScript(null);
+  };
+
+  const saveScript = async () => {
+    if (!scripts || !saveTitle.trim()) return;
+
+    setIsSaving(true);
+    try {
+      const formData = form.getValues();
+      await apiRequest("/api/scripts/save", "POST", {
+        title: saveTitle.trim(),
+        situation: formData.situation,
+        originalMessage: formData.message,
+        firmScript: scripts.firm,
+        neutralScript: scripts.neutral,
+        empathicScript: scripts.empathic,
+        situationAnalysis: scripts.situationAnalysis,
+      });
+
+      toast({
+        title: "Script saved",
+        description: "Your script has been saved successfully",
+      });
+
+      setSaveDialogOpen(false);
+      setSaveTitle("");
+    } catch (error) {
+      console.error("Error saving script:", error);
+      toast({
+        title: "Save failed",
+        description: "Failed to save script. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -352,6 +392,77 @@ export default function ScriptBuilder() {
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Save Scripts Section */}
+                <Card className="border-purple-200 bg-purple-50">
+                  <CardContent className="flex items-center justify-between p-6">
+                    <div className="flex items-center gap-3">
+                      <BookOpen className="h-6 w-6 text-purple-600" />
+                      <div>
+                        <h3 className="font-semibold text-purple-900">Save These Scripts</h3>
+                        <p className="text-purple-700 text-sm">Save for later and track responses you receive</p>
+                      </div>
+                    </div>
+                    <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Scripts
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Save Your Scripts</DialogTitle>
+                          <DialogDescription>
+                            Give your scripts a memorable title so you can find them later
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="title">Script Title</Label>
+                            <Input
+                              id="title"
+                              placeholder="e.g., Discussion with roommate about boundaries"
+                              value={saveTitle}
+                              onChange={(e) => setSaveTitle(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && saveTitle.trim()) {
+                                  saveScript();
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <Button 
+                              variant="outline" 
+                              onClick={() => setSaveDialogOpen(false)}
+                              className="flex-1"
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              onClick={saveScript}
+                              disabled={!saveTitle.trim() || isSaving}
+                              className="flex-1"
+                            >
+                              {isSaving ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4 mr-2" />
+                                  Save
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
               </>
             ) : (
               <Card className="border-dashed border-gray-300">

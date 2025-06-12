@@ -164,6 +164,7 @@ export class MemStorage implements IStorage {
     this.promoCodeId = 1;
     this.promoUsageId = 1;
     this.referralCodeId = 1;
+    this.savedScriptId = 1;
     
     // Initialize beta mode as enabled by default
     this.systemSettings.set('beta_mode', {
@@ -1094,6 +1095,78 @@ export class MemStorage implements IStorage {
       success: true, 
       remainingCredits: user.deepDiveCredits || 0 
     };
+  }
+
+  // Saved Scripts Management
+  async saveScript(script: InsertSavedScript): Promise<SavedScript> {
+    const now = new Date();
+    const savedScript: SavedScript = {
+      id: this.savedScriptId++,
+      ...script,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.savedScripts.set(savedScript.id, savedScript);
+    return savedScript;
+  }
+
+  async getUserScripts(userId: number): Promise<SavedScript[]> {
+    return Array.from(this.savedScripts.values())
+      .filter(script => script.userId === userId)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  }
+
+  async getScript(scriptId: number, userId: number): Promise<SavedScript | undefined> {
+    const script = this.savedScripts.get(scriptId);
+    if (script && script.userId === userId) {
+      return script;
+    }
+    return undefined;
+  }
+
+  async updateScript(scriptId: number, userId: number, updates: Partial<SavedScript>): Promise<SavedScript> {
+    const script = this.savedScripts.get(scriptId);
+    if (!script || script.userId !== userId) {
+      throw new Error('Script not found');
+    }
+
+    const updatedScript = {
+      ...script,
+      ...updates,
+      id: scriptId,
+      userId,
+      updatedAt: new Date(),
+    };
+
+    this.savedScripts.set(scriptId, updatedScript);
+    return updatedScript;
+  }
+
+  async deleteScript(scriptId: number, userId: number): Promise<boolean> {
+    const script = this.savedScripts.get(scriptId);
+    if (!script || script.userId !== userId) {
+      return false;
+    }
+    
+    return this.savedScripts.delete(scriptId);
+  }
+
+  async updateScriptReply(scriptId: number, userId: number, receivedReply: string, followUpSuggestions?: any): Promise<SavedScript> {
+    const script = this.savedScripts.get(scriptId);
+    if (!script || script.userId !== userId) {
+      throw new Error('Script not found');
+    }
+
+    const updatedScript = {
+      ...script,
+      receivedReply,
+      followUpSuggestions,
+      status: 'replied' as const,
+      updatedAt: new Date(),
+    };
+
+    this.savedScripts.set(scriptId, updatedScript);
+    return updatedScript;
   }
 }
 
