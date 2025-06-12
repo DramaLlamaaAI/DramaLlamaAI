@@ -145,33 +145,13 @@ export const paymentController = {
         await storage.updateStripeCustomerId(userId, customerId);
       }
       
-      // Check for promo code first, then user discount
+      // Check if user has an active discount (from applied promo codes or admin-set discounts)
       let discountPercentage = 0;
-      let promoCodeApplied = false;
-      
-      if (promoCode) {
-        try {
-          const promo = await storage.getPromoCode(promoCode);
-          if (promo && promo.isActive) {
-            discountPercentage = promo.discountPercentage;
-            promoCodeApplied = true;
-            
-            // Apply the promo code to the user's account
-            await storage.applyPromoCodeToUser(userId, promoCode);
-            console.log(`Applied promo code ${promoCode} with ${discountPercentage}% discount to user ${userId}`);
-          } else {
-            console.log(`Invalid or inactive promo code: ${promoCode}`);
-          }
-        } catch (error) {
-          console.error('Error validating promo code:', error);
-        }
-      }
-      
-      // If no promo code was applied, check for existing user discount
-      if (!promoCodeApplied && user.discountPercentage && user.discountPercentage > 0) {
+      if (user.discountPercentage && user.discountPercentage > 0) {
         // Check if the discount is still valid
         if (user.discountExpiryDate && new Date(user.discountExpiryDate) > new Date()) {
           discountPercentage = user.discountPercentage;
+          console.log(`Applied user discount: ${discountPercentage}% for user ${userId}`);
         }
       }
       

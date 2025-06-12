@@ -208,12 +208,20 @@ export default function Checkout() {
   // Handle promo code application
   const handleApplyPromoCode = async (discountPercentage: number) => {
     if (discountPercentage > 0) {
-      // Re-fetch subscription with promo code applied
-      await createOrUpdateSubscription(promoCode);
+      // Wait a moment for the promo code to be applied to user's account via the redeem endpoint
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Re-fetch subscription to pick up the applied discount from user's account
+      await createOrUpdateSubscription();
+      
+      toast({
+        title: "Discount Applied",
+        description: `${discountPercentage}% discount has been applied to your subscription.`,
+      });
     } else {
       // Remove promo code and refresh
       setPromoCode(null);
-      await createOrUpdateSubscription(null);
+      await createOrUpdateSubscription();
     }
   };
 

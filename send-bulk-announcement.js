@@ -4,7 +4,7 @@
 
 import { Resend } from 'resend';
 import fs from 'fs';
-import { createClient } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless';
 
 async function sendBulkAnnouncement() {
   try {
@@ -19,16 +19,14 @@ async function sendBulkAnnouncement() {
     }
 
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const sql = createClient({ connectionString: process.env.DATABASE_URL });
+    const sql = neon(process.env.DATABASE_URL);
 
     // Get all verified users
-    const result = await sql`
+    const users = await sql`
       SELECT email FROM users 
       WHERE email IS NOT NULL 
       AND email_verified = true
     `;
-
-    const users = result.rows;
     
     if (users.length === 0) {
       console.log('No verified users found');
