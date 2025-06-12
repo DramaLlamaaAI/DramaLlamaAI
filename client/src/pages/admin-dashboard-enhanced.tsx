@@ -36,6 +36,7 @@ import { UserManagementFilters } from '@/components/admin/user-management-filter
 import { UserDetailView } from '@/components/admin/user-detail-view';
 import { BulkDiscountActions } from '@/components/admin/bulk-discount-actions';
 import { EmailNotifications } from '@/components/admin/email-notifications';
+import { LiveChatEmailNotifications } from '@/components/admin/live-chat-email-notifications';
 import { AdvancedDiscountManager } from '@/components/admin/advanced-discount-manager';
 import { DevTierTester } from '@/components/developer/dev-tier-tester';
 import { PromoCodeManager } from '@/components/admin/promo-code-manager';
