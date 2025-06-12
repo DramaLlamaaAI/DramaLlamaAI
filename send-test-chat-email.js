@@ -64,7 +64,7 @@ support@dramallama.ai
 <body>
     <div class="header">
         <div class="logo">
-            <img src="cid:logo" alt="Drama LLama AI" style="width: 60px; height: 60px; border-radius: 8px; margin-bottom: 10px;" />
+            <img src="data:image/png;base64,$(cat logo-base64-complete.txt)" alt="Drama LLama AI" style="width: 60px; height: 60px; border-radius: 8px; margin-bottom: 10px;" />
             <br>Drama LLama AI
         </div>
         <h1 style="margin: 0; font-size: 28px;">Live Chat Support is Here!</h1>
