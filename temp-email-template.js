@@ -161,9 +161,9 @@ async function sendTestChatEmail() {
         </div>
         
         <div class="beta-notice">
-            <h3 style="margin-top: 0;">🎉 Beta Tier Users - Enhanced Features Coming!</h3>
+            <h3 style="margin-top: 0;">🎉 Limited Time: Beta Tier Access for ALL Users!</h3>
             <p style="margin-bottom: 0; opacity: 0.9;">
-                As a valued member, you'll soon get access to enhanced features at no extra cost. Stay tuned for updates!
+                All users currently have FREE access to our enhanced Beta Tier features. This is a limited-time offer, so take advantage of the deeper analysis capabilities while they're available!
             </p>
         </div>
         
