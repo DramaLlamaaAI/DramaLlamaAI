@@ -1808,6 +1808,63 @@ export class DatabaseStorage implements IStorage {
       remainingCredits: results[0].deepDiveCredits || 0 
     };
   }
+
+  // Saved Scripts Management
+  async saveScript(script: InsertSavedScript): Promise<SavedScript> {
+    const [savedScript] = await db
+      .insert(savedScripts)
+      .values(script)
+      .returning();
+    return savedScript;
+  }
+
+  async getUserScripts(userId: number): Promise<SavedScript[]> {
+    return await db
+      .select()
+      .from(savedScripts)
+      .where(eq(savedScripts.userId, userId))
+      .orderBy(desc(savedScripts.createdAt));
+  }
+
+  async getScript(scriptId: number, userId: number): Promise<SavedScript | undefined> {
+    const [script] = await db
+      .select()
+      .from(savedScripts)
+      .where(and(eq(savedScripts.id, scriptId), eq(savedScripts.userId, userId)));
+    return script || undefined;
+  }
+
+  async updateScript(scriptId: number, userId: number, updates: Partial<SavedScript>): Promise<SavedScript> {
+    const [script] = await db
+      .update(savedScripts)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(and(eq(savedScripts.id, scriptId), eq(savedScripts.userId, userId)))
+      .returning();
+    return script;
+  }
+
+  async deleteScript(scriptId: number, userId: number): Promise<boolean> {
+    const result = await db
+      .delete(savedScripts)
+      .where(and(eq(savedScripts.id, scriptId), eq(savedScripts.userId, userId)));
+    return result.rowCount > 0;
+  }
+
+  async updateScriptReply(scriptId: number, userId: number, receivedReply: string, followUpSuggestions?: any): Promise<SavedScript> {
+    const [script] = await db
+      .update(savedScripts)
+      .set({
+        receivedReply,
+        followUpSuggestions,
+        updatedAt: new Date()
+      })
+      .where(and(eq(savedScripts.id, scriptId), eq(savedScripts.userId, userId)))
+      .returning();
+    return script;
+  }
 }
 
 export const storage = new DatabaseStorage();

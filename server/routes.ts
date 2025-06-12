@@ -1493,6 +1493,170 @@ support@dramallama.ai
   // Create HTTP server
   const httpServer = createServer(app);
 
+  // Script Builder API routes
+  app.post('/api/scripts/save', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { title, situation, originalMessage, firmScript, neutralScript, empathicScript, situationAnalysis } = req.body;
+
+      if (!title || !situation || !originalMessage || !firmScript || !neutralScript || !empathicScript) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      const script = await storage.saveScript({
+        userId,
+        title: title.trim(),
+        situation,
+        originalMessage,
+        firmScript,
+        neutralScript,
+        empathicScript,
+        situationAnalysis: situationAnalysis || '',
+        status: 'active',
+        receivedReply: null,
+        followUpSuggestions: null
+      });
+
+      res.json(script);
+    } catch (error) {
+      console.error('Error saving script:', error);
+      res.status(500).json({ error: 'Failed to save script' });
+    }
+  });
+
+  app.get('/api/scripts', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const scripts = await storage.getUserScripts(userId);
+      res.json(scripts);
+    } catch (error) {
+      console.error('Error fetching scripts:', error);
+      res.status(500).json({ error: 'Failed to fetch scripts' });
+    }
+  });
+
+  app.get('/api/scripts/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const scriptId = parseInt(req.params.id);
+      if (isNaN(scriptId)) {
+        return res.status(400).json({ error: 'Invalid script ID' });
+      }
+
+      const script = await storage.getScript(scriptId, userId);
+      if (!script) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+
+      res.json(script);
+    } catch (error) {
+      console.error('Error fetching script:', error);
+      res.status(500).json({ error: 'Failed to fetch script' });
+    }
+  });
+
+  app.put('/api/scripts/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const scriptId = parseInt(req.params.id);
+      if (isNaN(scriptId)) {
+        return res.status(400).json({ error: 'Invalid script ID' });
+      }
+
+      const { title, receivedReply, followUpSuggestions } = req.body;
+      const updates: any = {};
+
+      if (title !== undefined) updates.title = title;
+      if (receivedReply !== undefined) updates.receivedReply = receivedReply;
+      if (followUpSuggestions !== undefined) updates.followUpSuggestions = followUpSuggestions;
+
+      const script = await storage.updateScript(scriptId, userId, updates);
+      res.json(script);
+    } catch (error) {
+      console.error('Error updating script:', error);
+      res.status(500).json({ error: 'Failed to update script' });
+    }
+  });
+
+  app.delete('/api/scripts/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const scriptId = parseInt(req.params.id);
+      if (isNaN(scriptId)) {
+        return res.status(400).json({ error: 'Invalid script ID' });
+      }
+
+      const success = await storage.deleteScript(scriptId, userId);
+      if (!success) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting script:', error);
+      res.status(500).json({ error: 'Failed to delete script' });
+    }
+  });
+
+  app.post('/api/scripts/:id/reply', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const scriptId = parseInt(req.params.id);
+      if (isNaN(scriptId)) {
+        return res.status(400).json({ error: 'Invalid script ID' });
+      }
+
+      const { receivedReply } = req.body;
+      if (!receivedReply || typeof receivedReply !== 'string') {
+        return res.status(400).json({ error: 'Received reply is required' });
+      }
+
+      // Generate follow-up suggestions using AI
+      const script = await storage.getScript(scriptId, userId);
+      if (!script) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+
+      // Use Claude AI to generate follow-up suggestions
+      const { generateFollowUpSuggestions } = await import('./services/anthropic-updated');
+      const followUpSuggestions = await generateFollowUpSuggestions(
+        script.situation,
+        script.originalMessage,
+        receivedReply
+      );
+
+      const updatedScript = await storage.updateScriptReply(scriptId, userId, receivedReply, followUpSuggestions);
+      res.json(updatedScript);
+    } catch (error) {
+      console.error('Error updating script reply:', error);
+      res.status(500).json({ error: 'Failed to update script reply' });
+    }
+  });
+
   // Add WebSocket server for live chat
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   

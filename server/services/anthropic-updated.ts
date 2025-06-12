@@ -1408,6 +1408,102 @@ REPEAT: This is not a general conversation. You are generating structured data t
   }
 }
 
+export async function generateFollowUpSuggestions(situation: string, originalMessage: string, receivedReply: string) {
+  try {
+    console.log('Generating follow-up suggestions using Anthropic');
+    
+    const prompt = `You are a communication expert helping someone navigate a conversation. Based on the original situation, their message, and the response they received, provide thoughtful follow-up suggestions.
+
+Context:
+- Original situation: ${situation}
+- Their message: ${originalMessage}
+- Reply they received: ${receivedReply}
+
+Return a JSON object with this structure:
+{
+  "analysis": "Brief analysis of how the reply went and what it reveals",
+  "suggestions": [
+    {
+      "type": "immediate",
+      "title": "Quick Response Option",
+      "message": "A suggested immediate response",
+      "reasoning": "Why this approach works"
+    },
+    {
+      "type": "thoughtful",
+      "title": "Thoughtful Follow-up",
+      "message": "A more considered response option",
+      "reasoning": "When and why to use this approach"
+    },
+    {
+      "type": "strategic",
+      "title": "Long-term Strategy",
+      "message": "A strategic response for bigger picture goals",
+      "reasoning": "How this helps the relationship long-term"
+    }
+  ],
+  "nextSteps": "Practical advice for moving forward"
+}
+
+Make suggestions sound natural and authentic, not scripted.`;
+
+    const response = await anthropic.messages.create({
+      model: "claude-3-7-sonnet-20250219",
+      max_tokens: 1000,
+      temperature: 0.2,
+      system: `You are a wise communication coach helping someone navigate relationship conversations. Provide practical, authentic advice that helps people communicate more effectively while staying true to themselves.
+
+TECHNICAL FORMAT REQUIREMENTS:
+1. Return ONLY clean JSON wrapped in \`\`\`json code blocks
+2. Use double quotes for all strings and property names
+3. No special characters, line breaks in values, or trailing commas
+4. Keep suggestions conversational and authentic
+
+This is a TECHNICAL INTEGRATION - your JSON MUST be machine-parseable.`,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const content = getTextFromContentBlock(response.content);
+    console.log('Successfully received follow-up suggestions from Anthropic');
+
+    try {
+      return parseAnthropicJson(content);
+    } catch (error) {
+      console.error('JSON parsing failed for follow-up suggestions:', error);
+      
+      // Return a basic fallback structure
+      return {
+        analysis: "Unable to analyze the response at this time.",
+        suggestions: [
+          {
+            type: "immediate",
+            title: "Acknowledge the Response",
+            message: "Thank you for sharing that with me.",
+            reasoning: "Shows you heard what they said."
+          }
+        ],
+        nextSteps: "Consider your goals for this conversation and respond when you're ready."
+      };
+    }
+  } catch (error: any) {
+    console.error('Error generating follow-up suggestions:', error);
+    
+    // Return basic structure for error cases
+    return {
+      analysis: "Unable to generate suggestions at this time.",
+      suggestions: [
+        {
+          type: "immediate",
+          title: "Take Time",
+          message: "Let me think about this and get back to you.",
+          reasoning: "Gives you space to consider your response."
+        }
+      ],
+      nextSteps: "Take time to process their response before deciding how to proceed."
+    };
+  }
+}
+
 export async function deEscalateMessage(message: string, tier: string = 'free') {
   try {
     console.log('Attempting to use Anthropic for de-escalate mode analysis');
