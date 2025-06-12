@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield, Save, BookOpen } from "lucide-react";
+import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield, Save, BookOpen, Trash2, Calendar, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/header";
@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const scriptBuilderSchema = z.object({
   situation: z.string().min(10, "Please describe the situation in more detail"),
@@ -33,6 +35,21 @@ interface ScriptResponse {
   situationAnalysis: string;
 }
 
+interface SavedScript {
+  id: number;
+  title: string;
+  situation: string;
+  originalMessage: string;
+  firmScript: string;
+  neutralScript: string;
+  empathicScript: string;
+  situationAnalysis: string;
+  createdAt: string;
+  updatedAt: string;
+  receivedReply: string | null;
+  followUpSuggestions: any;
+}
+
 export default function ScriptBuilder() {
   const [isLoading, setIsLoading] = useState(false);
   const [scripts, setScripts] = useState<ScriptResponse | null>(null);
@@ -42,6 +59,35 @@ export default function ScriptBuilder() {
   const [saveTitle, setSaveTitle] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch saved scripts
+  const { data: savedScripts = [], isLoading: scriptsLoading } = useQuery<SavedScript[]>({
+    queryKey: ['/api/scripts'],
+    enabled: !!user,
+  });
+
+  // Delete script mutation
+  const deleteScriptMutation = useMutation({
+    mutationFn: async (scriptId: number) => {
+      const response = await apiRequest('DELETE', `/api/scripts/${scriptId}`);
+      if (!response.ok) throw new Error('Failed to delete script');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/scripts'] });
+      toast({
+        title: "Script deleted",
+        description: "Script has been successfully deleted",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete script. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const form = useForm<ScriptBuilderForm>({
     resolver: zodResolver(scriptBuilderSchema),
@@ -123,7 +169,7 @@ export default function ScriptBuilder() {
     setIsSaving(true);
     try {
       const formData = form.getValues();
-      await apiRequest("/api/scripts/save", "POST", {
+      await apiRequest("POST", "/api/scripts/save", {
         title: saveTitle.trim(),
         situation: formData.situation,
         originalMessage: formData.message,
@@ -132,6 +178,8 @@ export default function ScriptBuilder() {
         empathicScript: scripts.empathic,
         situationAnalysis: scripts.situationAnalysis,
       });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/scripts'] });
 
       toast({
         title: "Script saved",
@@ -173,6 +221,14 @@ export default function ScriptBuilder() {
             Get AI-generated scripts in three different tones to help you communicate effectively.
           </p>
         </div>
+
+        <Tabs defaultValue="create" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="create">Create Scripts</TabsTrigger>
+            <TabsTrigger value="saved">Saved Scripts ({savedScripts.length})</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="create" className="space-y-6">
 
         {/* Tier Restriction Check */}
         {user && user.tier === 'free' && (
@@ -504,6 +560,135 @@ export default function ScriptBuilder() {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="saved" className="space-y-6">
+            {scriptsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <span className="ml-2 text-gray-600">Loading saved scripts...</span>
+              </div>
+            ) : savedScripts.length === 0 ? (
+              <Card className="border-dashed border-gray-300">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <BookOpen className="h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Saved Scripts</h3>
+                  <p className="text-gray-600 max-w-md">
+                    You haven't saved any scripts yet. Create and save scripts in the "Create Scripts" tab to see them here.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {savedScripts.map((script: SavedScript) => (
+                  <Card key={script.id} className="border-l-4 border-l-blue-500">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg">{script.title}</CardTitle>
+                          <CardDescription className="mt-1">
+                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                {new Date(script.createdAt).toLocaleDateString()}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                {new Date(script.updatedAt).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          </CardDescription>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteScriptMutation.mutate(script.id)}
+                          disabled={deleteScriptMutation.isPending}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Situation</h4>
+                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">{script.situation}</p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Original Message</h4>
+                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">{script.originalMessage}</p>
+                      </div>
+
+                      <div className="grid gap-3">
+                        <div className="border border-red-200 bg-red-50 rounded p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Shield className="h-4 w-4 text-red-600" />
+                            <span className="font-medium text-red-800">Firm & Direct</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(script.firmScript, 'Firm')}
+                              className="ml-auto border-red-300 hover:bg-red-100"
+                            >
+                              {copiedScript === 'Firm' ? (
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                          <p className="text-sm text-red-800 whitespace-pre-wrap">{script.firmScript}</p>
+                        </div>
+
+                        <div className="border border-blue-200 bg-blue-50 rounded p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Edit3 className="h-4 w-4 text-blue-600" />
+                            <span className="font-medium text-blue-800">Neutral & Balanced</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(script.neutralScript, 'Neutral')}
+                              className="ml-auto border-blue-300 hover:bg-blue-100"
+                            >
+                              {copiedScript === 'Neutral' ? (
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                          <p className="text-sm text-blue-800 whitespace-pre-wrap">{script.neutralScript}</p>
+                        </div>
+
+                        <div className="border border-green-200 bg-green-50 rounded p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Heart className="h-4 w-4 text-green-600" />
+                            <span className="font-medium text-green-800">Empathic & Understanding</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(script.empathicScript, 'Empathic')}
+                              className="ml-auto border-green-300 hover:bg-green-100"
+                            >
+                              {copiedScript === 'Empathic' ? (
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                          <p className="text-sm text-green-800 whitespace-pre-wrap">{script.empathicScript}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Footer />
