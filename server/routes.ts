@@ -661,7 +661,222 @@ app.use(session({
     }
   });
   
+  // Helper function to extract participants from WhatsApp chat
+  function extractParticipantsFromWhatsApp(chatText: string): string[] {
+    const participants = new Set<string>();
+    const lines = chatText.split('\n');
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.length < 10) continue;
+      
+      // Match different WhatsApp formats:
+      // Format 1: "12/31/23, 10:30 PM - Name: message"
+      // Format 2: "[12/31/23, 10:30:45 PM] Name: message"
+      // Format 3: "10:30 - Name: message"
+      
+      let nameMatch = null;
+      
+      // Try format 1: timestamp - name: message
+      nameMatch = trimmed.match(/^\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?\s*-\s*([^:]+):/i);
+      
+      if (!nameMatch) {
+        // Try format 2: [timestamp] name: message
+        nameMatch = trimmed.match(/^\[\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?\]\s*([^:]+):/i);
+      }
+      
+      if (!nameMatch) {
+        // Try format 3: time - name: message
+        nameMatch = trimmed.match(/^\d{1,2}:\d{2}\s*-\s*([^:]+):/);
+      }
+      
+      if (!nameMatch) {
+        // Try simple format: name: message (with validation)
+        if (trimmed.includes(':') && !trimmed.startsWith('http') && !trimmed.includes('www.')) {
+          const colonIndex = trimmed.indexOf(':');
+          const potentialName = trimmed.substring(0, colonIndex).trim();
+          
+          // Validate it looks like a name
+          if (potentialName.length > 0 && potentialName.length < 50 && 
+              !potentialName.match(/^\d/) && !potentialName.includes('/')) {
+            nameMatch = [trimmed, potentialName];
+          }
+        }
+      }
+      
+      if (nameMatch && nameMatch[1]) {
+        let name = nameMatch[1].trim();
+        
+        // Clean up the name
+        name = name.replace(/[^\w\s\-_.]/g, '').trim();
+        
+        // Skip if invalid or looks like a timestamp
+        if (name.length > 1 && name.length < 50 && !name.match(/^\d+$/) && name !== 'You') {
+          participants.add(name);
+        }
+      }
+      
+      // Stop once we have enough participants
+      if (participants.size >= 10) break;
+    }
+    
+    return Array.from(participants).slice(0, 10);
+  }
+
   // ZIP file extraction route
+  // Enhanced ZIP file processing for WhatsApp exports with direct analysis
+  app.post('/api/analyze-zip', upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file provided' });
+      }
+
+      const file = req.file;
+      console.log('Processing ZIP file for analysis:', file.originalname, 'Size:', file.size, 'bytes');
+
+      // Validate file is a ZIP archive
+      if (!file.originalname.toLowerCase().endsWith('.zip') && file.mimetype !== 'application/zip') {
+        return res.status(400).json({ 
+          error: 'Please upload a valid ZIP file (.zip extension required)' 
+        });
+      }
+
+      // Extract chat content from ZIP
+      const JSZip = await import('jszip');
+      const zip = new JSZip.default();
+      
+      try {
+        const zipContents = await zip.loadAsync(file.buffer);
+        console.log('ZIP loaded successfully. Files found:', Object.keys(zipContents.files).length);
+
+        // Find WhatsApp chat files (.txt files)
+        const chatFiles = Object.keys(zipContents.files).filter(filename => {
+          const zipFile = zipContents.files[filename];
+          return !zipFile.dir && (
+            filename.toLowerCase().endsWith('.txt') ||
+            filename.toLowerCase().includes('chat') ||
+            filename.toLowerCase().includes('whatsapp')
+          );
+        });
+
+        if (chatFiles.length === 0) {
+          return res.status(400).json({
+            error: 'No chat files found in ZIP archive. Please ensure your WhatsApp export contains text files.'
+          });
+        }
+
+        console.log('Found potential chat files:', chatFiles);
+
+        // Extract and validate chat content
+        let extractedChat = '';
+        let extractedFileName = '';
+        
+        for (const filename of chatFiles) {
+          try {
+            const zipFile = zipContents.files[filename];
+            let content = await zipFile.async('text');
+            
+            // Clean up content
+            content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+            
+            // Remove BOM if present
+            if (content.charCodeAt(0) === 0xFEFF) {
+              content = content.substring(1);
+            }
+
+            // Validate WhatsApp format
+            if (isValidWhatsAppFormat(content) && content.length > 100) {
+              extractedChat = content;
+              extractedFileName = filename;
+              console.log(`Valid WhatsApp chat found: ${filename} (${content.length} characters)`);
+              break;
+            }
+          } catch (fileError) {
+            console.error(`Error extracting file ${filename}:`, fileError);
+            continue;
+          }
+        }
+
+        if (!extractedChat) {
+          return res.status(400).json({
+            error: 'No valid WhatsApp chat content found in the ZIP file. Please check your export format.'
+          });
+        }
+
+        // Parse participant names from chat
+        const participants = extractParticipantsFromWhatsApp(extractedChat);
+        
+        if (participants.length < 2) {
+          return res.status(400).json({
+            error: 'Could not identify at least two participants in the chat. Please ensure the chat contains messages from multiple people.'
+          });
+        }
+        
+        const me = participants[0];
+        const them = participants[1];
+        
+        if (!me || !them) {
+          return res.status(400).json({
+            error: 'Could not identify participants in the chat. Please ensure the chat contains messages from at least two people.'
+          });
+        }
+
+        // Get user's tier for analysis
+        const userId = req.session?.userId;
+        let userTier = 'free';
+        
+        if (userId) {
+          try {
+            const user = await storage.getUserById(userId);
+            userTier = user?.tier || 'free';
+          } catch (error) {
+            console.log('Could not get user tier, using free tier');
+          }
+        }
+
+        console.log(`Analyzing ZIP extracted chat with ${userTier} tier for participants: ${me} and ${them}`);
+
+        // Perform analysis
+        const analysisResult = await analyzeChatConversation(extractedChat, me, them, userTier);
+
+        // Track usage if user is authenticated
+        if (userId) {
+          try {
+            await storage.trackUserUsage(userId, 'chat_analysis');
+          } catch (error) {
+            console.error('Error tracking usage:', error);
+          }
+        }
+
+        res.json({
+          success: true,
+          extractedFrom: extractedFileName,
+          participants: { me, them },
+          analysis: analysisResult,
+          chatLength: extractedChat.length,
+          messageCount: extractedChat.split('\n').filter(line => 
+            line.trim() && (line.includes(' - ') || line.includes(': '))
+          ).length
+        });
+
+      } catch (zipError) {
+        console.error('ZIP processing error:', zipError);
+        return res.status(400).json({
+          error: 'Failed to process ZIP file. Please ensure it\'s a valid WhatsApp export.',
+          details: zipError instanceof Error ? zipError.message : 'Unknown error'
+        });
+      }
+
+    } catch (error) {
+      console.error('ZIP analysis endpoint error:', error);
+      res.status(500).json({ 
+        error: 'Server error processing ZIP file',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Legacy extraction endpoint for compatibility
   app.post('/api/extract-chat', async (req: Request, res: Response) => {
     try {
       const { file } = req.body;
