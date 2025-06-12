@@ -225,7 +225,7 @@ export default function ScriptBuilder() {
         <Tabs defaultValue="create" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="create">Create Scripts</TabsTrigger>
-            <TabsTrigger value="saved">Saved Scripts ({savedScripts.length})</TabsTrigger>
+            <TabsTrigger value="saved">Saved Scripts ({(savedScripts as SavedScript[]).length})</TabsTrigger>
           </TabsList>
           
           <TabsContent value="create" className="space-y-6">
@@ -568,7 +568,7 @@ export default function ScriptBuilder() {
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                 <span className="ml-2 text-gray-600">Loading saved scripts...</span>
               </div>
-            ) : savedScripts.length === 0 ? (
+            ) : (savedScripts as SavedScript[]).length === 0 ? (
               <Card className="border-dashed border-gray-300">
                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                   <BookOpen className="h-12 w-12 text-gray-400 mb-4" />
@@ -580,7 +580,7 @@ export default function ScriptBuilder() {
               </Card>
             ) : (
               <div className="grid gap-4">
-                {savedScripts.map((script: SavedScript) => (
+                {(savedScripts as SavedScript[]).map((script: SavedScript) => (
                   <Card key={script.id} className="border-l-4 border-l-blue-500">
                     <CardHeader>
                       <div className="flex items-start justify-between">
