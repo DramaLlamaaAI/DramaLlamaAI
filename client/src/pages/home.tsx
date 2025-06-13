@@ -114,15 +114,12 @@ export default function Home() {
               
               <div className="flex items-center gap-3">
                 <Link href="/script-builder" className="flex-1">
-                  <div className="relative">
-                    <Button 
-                      size="lg" 
-                      className="bg-blue-600 hover:bg-blue-700 text-white w-full justify-start"
-                    >
-                      <Edit3 className="h-5 w-5 mr-2" /> Script Builder
-                    </Button>
-                    <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PERSONAL+</Badge>
-                  </div>
+                  <Button 
+                    size="lg" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white w-full justify-start"
+                  >
+                    <Edit3 className="h-5 w-5 mr-2" /> Script Builder
+                  </Button>
                 </Link>
                 <Dialog>
                   <DialogTrigger asChild>
