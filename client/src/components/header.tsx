@@ -33,6 +33,7 @@ export default function Header() {
   });
 
   const tier = usage?.tier || 'free';
+  const isAuthenticated = !!usage; // If we have usage data, user is authenticated
   
   // Get basic usage data
   const used = usage?.used || 0;
@@ -104,57 +105,59 @@ export default function Header() {
             </div>
           </nav>
           
-          {/* Usage meter and credits - only visible on desktop */}
-          <div className="hidden md:flex items-center space-x-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="text-sm bg-white/10 px-3 py-1 rounded-full flex items-center">
-                    <span className="text-white/80 mr-1">{getTierDisplayName(tier)}</span>
-                    
-                    {/* Visual progress indicator */}
-                    {!isInfinite && (
-                      <div className="relative w-16 h-4 bg-white/20 rounded-full overflow-hidden mr-2">
-                        <div 
-                          className="absolute left-0 top-0 h-full bg-white/60 rounded-full" 
-                          style={{width: `${Math.min(100, (displayUsed / limit) * 100)}%`}}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
-                          {remaining} left
-                        </div>
-                      </div>
-                    )}
-                    
-                    <span className="text-white font-semibold">
-                      {displayUsed}/{isInfinite ? '∞' : limit}
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>You have {remaining} analysis{remaining !== 1 ? 'es' : ''} remaining this month</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* Deep Dive Credits Badge */}
-            {credits && (
+          {/* Usage meter and credits - only visible on desktop and for authenticated users */}
+          {isAuthenticated && (
+            <div className="hidden md:flex items-center space-x-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Link href="/checkout/one-time">
-                      <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 cursor-pointer">
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        {credits.credits} Deep Dive
-                      </Badge>
-                    </Link>
+                    <div className="text-sm bg-white/10 px-3 py-1 rounded-full flex items-center">
+                      <span className="text-white/80 mr-1">{getTierDisplayName(tier)}</span>
+                      
+                      {/* Visual progress indicator */}
+                      {!isInfinite && (
+                        <div className="relative w-16 h-4 bg-white/20 rounded-full overflow-hidden mr-2">
+                          <div 
+                            className="absolute left-0 top-0 h-full bg-white/60 rounded-full" 
+                            style={{width: `${Math.min(100, (displayUsed / limit) * 100)}%`}}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
+                            {remaining} left
+                          </div>
+                        </div>
+                      )}
+                      
+                      <span className="text-white font-semibold">
+                        {displayUsed}/{isInfinite ? '∞' : limit}
+                      </span>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Deep Dive credits for enhanced analysis. Click to purchase more.</p>
+                    <p>You have {remaining} analysis{remaining !== 1 ? 'es' : ''} remaining this month</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            )}
-          </div>
+
+              {/* Deep Dive Credits Badge */}
+              {credits && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="/checkout/one-time">
+                        <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 cursor-pointer">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          {credits.credits} Deep Dive
+                        </Badge>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Deep Dive credits for enhanced analysis. Click to purchase more.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+          )}
           
           <div className="flex items-center space-x-1 sm:space-x-2">
             {/* Admin navigation option - only visible to admin users */}
