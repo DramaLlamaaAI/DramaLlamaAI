@@ -118,7 +118,7 @@ export default function Home() {
                     size="lg" 
                     className="bg-blue-600 hover:bg-blue-700 text-white w-full justify-start"
                   >
-                    <Edit3 className="h-5 w-5 mr-2" /> Script Builder
+                    <Edit3 className="h-5 w-5 mr-2" /> Boundary Builder
                   </Button>
                 </Link>
                 <Dialog>
@@ -129,7 +129,7 @@ export default function Home() {
                   </DialogTrigger>
                   <DialogContent className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
                     <DialogHeader>
-                      <DialogTitle className="text-blue-700 text-xl font-bold">Script Builder</DialogTitle>
+                      <DialogTitle className="text-blue-700 text-xl font-bold">Boundary Builder</DialogTitle>
                     </DialogHeader>
                     <p className="text-gray-700 leading-relaxed">Get tone-adjusted scripts for difficult conversations. AI provides firm, neutral, and empathic response options.</p>
                   </DialogContent>
@@ -166,7 +166,7 @@ export default function Home() {
                     <Button size="lg" className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white w-full justify-start">
                       <MessageCircle className="h-5 w-5 mr-2" /> WhatsApp Groups
                     </Button>
-                    <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
+                    <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px]">COMING SOON</Badge>
                   </div>
                 </Link>
                 <Dialog>
@@ -193,7 +193,7 @@ export default function Home() {
                     >
                       <Mic className="h-5 w-5 mr-2" /> Live Talk
                     </Button>
-                    <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-secondary text-white text-[10px]">PRO</Badge>
+                    <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px]">COMING SOON</Badge>
                   </div>
                 </Link>
                 <Dialog>
