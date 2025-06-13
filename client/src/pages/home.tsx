@@ -116,7 +116,7 @@ export default function Home() {
                 <Link href="/script-builder" className="flex-1">
                   <Button 
                     size="lg" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-full justify-start"
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white w-full justify-start shadow-lg"
                   >
                     <Edit3 className="h-5 w-5 mr-2" /> Boundary Builder
                   </Button>

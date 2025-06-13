@@ -343,40 +343,14 @@ export const authController = {
       const { deviceId } = trackAnonymousSchema.parse(req.body);
       
       // Check current usage
-      const usage = await storage.getAnonymousUsage(deviceId);
+      // Anonymous users have unlimited usage with limited results
+      const updatedUsage = await storage.incrementAnonymousUsage(deviceId);
       
-      // Anonymous users can use up to 2 basic analyses
-      const anonymousLimit = 2;
-      
-      // If no usage recorded yet, or count is less than limit, allow usage
-      if (!usage || usage.count < anonymousLimit) {
-        // Increment and return
-        const updatedUsage = await storage.incrementAnonymousUsage(deviceId);
-        const remaining = Math.max(0, anonymousLimit - updatedUsage.count);
-        
-        let message = "";
-        if (updatedUsage.count === 1) {
-          message = `This is your first free analysis. You have ${remaining} remaining.`;
-        } else if (updatedUsage.count === anonymousLimit) {
-          message = "This is your last free analysis. Sign up to continue using Drama Llama.";
-        } else {
-          message = `You have ${remaining} free analyses remaining.`;
-        }
-        
-        return res.status(200).json({ 
-          canUse: true, 
-          usageCount: updatedUsage.count,
-          remaining: remaining,
-          message: message
-        });
-      }
-      
-      // User has used their free analyses
       return res.status(200).json({ 
-        canUse: false, 
-        usageCount: usage.count,
-        remaining: 0,
-        message: "You've used your free analyses. Please sign up or log in to continue."
+        canUse: true, 
+        usageCount: updatedUsage.count,
+        remaining: null, // unlimited
+        message: "Free analysis - sign up for deeper insights and advanced features."
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
