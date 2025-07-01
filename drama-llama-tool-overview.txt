@@ -1,0 +1,34 @@
+Drama Llama AI - Tool Overview
+
+Core Tools:
+
+1. Chat Analysis Tool
+Analyzes conversation screenshots or text to detect communication patterns, red flags, and relationship health scores. Includes personalized helpline recommendations based on results.
+
+2. Boundary Builder (Script Generator)
+Generates AI-powered conversation scripts with three tonal approaches (Firm, Neutral, Empathetic) for difficult conversations. Includes conversation tracking and follow-up suggestions.
+
+3. Screenshot Processing
+Extracts text from conversation screenshots using OCR technology. Supports multiple formats and batch processing.
+
+4. Deep Dive Analysis
+Enhanced analysis with detailed psychological insights, behavior patterns, and specific improvement recommendations for premium users.
+
+5. Support Resource System
+Automatically suggests relevant helplines and crisis resources based on analysis results - from relationship counseling to emergency hotlines.
+
+6. Live Chat Support
+Real-time WebSocket-powered support chat for user assistance.
+
+Subscription Tiers:
+- Free: 2 analyses/month, basic insights
+- Personal ($9.99/month): 25 analyses/month, full features, deep dive credits
+- Beta (Limited Time): Unlimited access, early features
+
+Privacy & Security:
+- No permanent conversation storage
+- Encrypted processing
+- GDPR compliant
+- User data control
+
+The platform focuses on improving communication while prioritizing user safety through integrated support recommendations.
