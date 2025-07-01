@@ -1684,7 +1684,7 @@ support@dramallama.ai
       }
 
       // Generate follow-up suggestions using Claude
-      const prompt = `You are a communication expert helping someone navigate a difficult conversation. Based on the conversation context, provide three follow-up response options.
+      const prompt = `You are a communication expert helping someone navigate a difficult conversation. Based on the conversation context, analyze their reply and provide three appropriate follow-up response options.
 
 ORIGINAL SITUATION: ${originalSituation}
 
@@ -1692,10 +1692,27 @@ YOUR PREVIOUS MESSAGE (${previousTone} tone): ${yourMessage}
 
 THEIR REPLY: ${partnerReply}
 
-Please generate three different follow-up responses:
-1. FIRM: Direct, assertive, maintains boundaries
-2. NEUTRAL: Balanced, factual, non-confrontational  
-3. EMPATHIC: Understanding, validating, relationship-focused
+First, assess their reply:
+- Is it defensive/dismissive OR constructive/acknowledging?
+- Are they showing understanding or resistance?
+- Do they seem open to change or pushing back?
+
+Based on their response tone, provide three follow-up options:
+
+If their reply is CONSTRUCTIVE/ACKNOWLEDGING (shows understanding, takes responsibility, agrees to change):
+1. FIRM: Appreciative but clear about maintaining the boundary going forward
+2. NEUTRAL: Acknowledges their response positively and suggests concrete next steps
+3. EMPATHIC: Validates their understanding and reinforces the positive direction
+
+If their reply is DEFENSIVE/DISMISSIVE (makes excuses, deflects, shows resistance):
+1. FIRM: Direct, assertive, maintains boundaries despite pushback
+2. NEUTRAL: Balanced, factual, non-confrontational redirection
+3. EMPATHIC: Understanding their defensiveness while staying focused on the issue
+
+If their reply is MIXED (partially understanding but also defensive):
+1. FIRM: Acknowledges the positive aspects but addresses the resistance
+2. NEUTRAL: Focuses on areas of agreement while clarifying remaining concerns
+3. EMPATHIC: Validates their efforts while gently addressing defensive points
 
 Return ONLY a JSON object with this structure:
 {
