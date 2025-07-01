@@ -1501,13 +1501,16 @@ support@dramallama.ai
         return res.status(401).json({ error: 'Authentication required' });
       }
 
+      console.log('Script save request body:', req.body);
+
       const { title, situation, originalMessage, firmScript, neutralScript, empathicScript, situationAnalysis } = req.body;
 
       if (!title || !situation || !originalMessage || !firmScript || !neutralScript || !empathicScript) {
+        console.log('Missing required fields:', { title: !!title, situation: !!situation, originalMessage: !!originalMessage, firmScript: !!firmScript, neutralScript: !!neutralScript, empathicScript: !!empathicScript });
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      const script = await storage.saveScript({
+      const scriptData = {
         userId,
         title: title.trim(),
         situation,
@@ -1516,15 +1519,21 @@ support@dramallama.ai
         neutralScript,
         empathicScript,
         situationAnalysis: situationAnalysis || '',
-        status: 'active',
+        status: 'saved',
         receivedReply: null,
         followUpSuggestions: null
-      });
+      };
 
+      console.log('Attempting to save script with data:', scriptData);
+
+      const script = await storage.saveScript(scriptData);
+
+      console.log('Script saved successfully:', script);
       res.json(script);
     } catch (error) {
-      console.error('Error saving script:', error);
-      res.status(500).json({ error: 'Failed to save script' });
+      console.error('Error saving script - full error:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ error: 'Failed to save script', details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
