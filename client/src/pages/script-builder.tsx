@@ -935,6 +935,85 @@ export default function ScriptBuilder() {
                                 </div>
                               )}
 
+                              {/* Show follow-up suggestions if available */}
+                              {script.receivedReply && script.followUpSuggestions && (
+                                <div className="space-y-3">
+                                  <h6 className="font-medium text-purple-700">Recommended Follow-up Responses:</h6>
+                                  
+                                  {script.followUpSuggestions.firm && (
+                                    <div className="border border-red-200 bg-red-50 rounded-lg p-3">
+                                      <span className="text-xs font-medium text-red-800 mb-1 block">Firm Response:</span>
+                                      <p className="text-sm text-red-800 mb-2">{script.followUpSuggestions.firm}</p>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => copyToClipboard(script.followUpSuggestions?.firm || '', 'Follow-up Firm')}
+                                          className="text-xs"
+                                        >
+                                          <Copy className="h-3 w-3 mr-1" /> Copy
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => saveFollowUpResponse(script, 'firm', script.followUpSuggestions?.firm || '')}
+                                          className="text-xs bg-red-600 hover:bg-red-700 text-white"
+                                        >
+                                          <Check className="h-3 w-3 mr-1" /> Mark as Used
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {script.followUpSuggestions.neutral && (
+                                    <div className="border border-blue-200 bg-blue-50 rounded-lg p-3">
+                                      <span className="text-xs font-medium text-blue-800 mb-1 block">Neutral Response:</span>
+                                      <p className="text-sm text-blue-800 mb-2">{script.followUpSuggestions.neutral}</p>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => copyToClipboard(script.followUpSuggestions?.neutral || '', 'Follow-up Neutral')}
+                                          className="text-xs"
+                                        >
+                                          <Copy className="h-3 w-3 mr-1" /> Copy
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => saveFollowUpResponse(script, 'neutral', script.followUpSuggestions?.neutral || '')}
+                                          className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                                        >
+                                          <Check className="h-3 w-3 mr-1" /> Mark as Used
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {script.followUpSuggestions.empathic && (
+                                    <div className="border border-green-200 bg-green-50 rounded-lg p-3">
+                                      <span className="text-xs font-medium text-green-800 mb-1 block">Empathic Response:</span>
+                                      <p className="text-sm text-green-800 mb-2">{script.followUpSuggestions.empathic}</p>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => copyToClipboard(script.followUpSuggestions?.empathic || '', 'Follow-up Empathic')}
+                                          className="text-xs"
+                                        >
+                                          <Copy className="h-3 w-3 mr-1" /> Copy
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => saveFollowUpResponse(script, 'empathic', script.followUpSuggestions?.empathic || '')}
+                                          className="text-xs bg-green-600 hover:bg-green-700 text-white"
+                                        >
+                                          <Check className="h-3 w-3 mr-1" /> Mark as Used
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
                               {/* Add their reply section */}
                               {!script.receivedReply && (
                                 <div className="border border-gray-200 rounded-lg p-4">
