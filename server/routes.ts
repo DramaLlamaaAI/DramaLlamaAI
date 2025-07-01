@@ -1675,6 +1675,115 @@ Return ONLY a JSON object with this structure:
     }
   });
 
+  // Save a follow-up conversation message
+  app.post('/api/scripts/:id/conversation', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const scriptId = parseInt(req.params.id);
+      if (isNaN(scriptId)) {
+        return res.status(400).json({ error: 'Invalid script ID' });
+      }
+
+      const { yourMessage, chosenTone, partnerReply, followUpSuggestions, messageIndex } = req.body;
+
+      if (!yourMessage || !chosenTone || messageIndex === undefined) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      // Verify script ownership
+      const script = await storage.getScript(scriptId, userId);
+      if (!script) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+
+      // Save the conversation message
+      const conversationMessage = await storage.saveConversationMessage({
+        scriptId,
+        messageIndex,
+        yourMessage,
+        chosenTone,
+        partnerReply,
+        followUpSuggestions,
+        isActive: true
+      });
+
+      // Set this as the active message (and deactivate others)
+      await storage.setActiveConversationMessage(scriptId, conversationMessage.id);
+
+      res.json(conversationMessage);
+    } catch (error) {
+      console.error('Error saving conversation message:', error);
+      res.status(500).json({ error: 'Failed to save conversation message' });
+    }
+  });
+
+  // Get conversation messages for a script
+  app.get('/api/scripts/:id/conversation', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const scriptId = parseInt(req.params.id);
+      if (isNaN(scriptId)) {
+        return res.status(400).json({ error: 'Invalid script ID' });
+      }
+
+      // Verify script ownership
+      const script = await storage.getScript(scriptId, userId);
+      if (!script) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+
+      const conversationMessages = await storage.getConversationMessages(scriptId);
+      res.json(conversationMessages);
+    } catch (error) {
+      console.error('Error fetching conversation messages:', error);
+      res.status(500).json({ error: 'Failed to fetch conversation messages' });
+    }
+  });
+
+  // Update a conversation message (for tracking chosen follow-up tone, etc.)
+  app.put('/api/scripts/:scriptId/conversation/:messageId', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const scriptId = parseInt(req.params.scriptId);
+      const messageId = parseInt(req.params.messageId);
+      
+      if (isNaN(scriptId) || isNaN(messageId)) {
+        return res.status(400).json({ error: 'Invalid script or message ID' });
+      }
+
+      // Verify script ownership
+      const script = await storage.getScript(scriptId, userId);
+      if (!script) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+
+      const { partnerReply, followUpChosenTone, followUpSuggestions } = req.body;
+      const updates: any = {};
+
+      if (partnerReply !== undefined) updates.partnerReply = partnerReply;
+      if (followUpChosenTone !== undefined) updates.followUpChosenTone = followUpChosenTone;
+      if (followUpSuggestions !== undefined) updates.followUpSuggestions = followUpSuggestions;
+
+      const updatedMessage = await storage.updateConversationMessage(messageId, updates);
+      res.json(updatedMessage);
+    } catch (error) {
+      console.error('Error updating conversation message:', error);
+      res.status(500).json({ error: 'Failed to update conversation message' });
+    }
+  });
+
   app.delete('/api/scripts/:id', isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = req.session?.userId;

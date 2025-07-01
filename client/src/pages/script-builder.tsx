@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield, Save, BookOpen, Trash2, Calendar, Clock, MessageCircle, Plus, Sparkles } from "lucide-react";
+import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield, Save, BookOpen, Trash2, Calendar, Clock, MessageCircle, Plus, Sparkles, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/header";
@@ -27,6 +27,19 @@ const scriptBuilderSchema = z.object({
 });
 
 type ScriptBuilderForm = z.infer<typeof scriptBuilderSchema>;
+
+interface ConversationMessage {
+  id: number;
+  scriptId: number;
+  messageIndex: number;
+  yourMessage: string;
+  chosenTone: 'firm' | 'neutral' | 'empathic';
+  partnerReply?: string | null;
+  followUpSuggestions?: any | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface ScriptResponse {
   firm: string;
@@ -111,36 +124,26 @@ export default function ScriptBuilder() {
   const onSubmit = async (data: ScriptBuilderForm) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest('POST', '/api/script-builder', data);
-      
+      const response = await apiRequest("POST", "/api/scripts/generate", {
+        situation: data.situation,
+        message: data.message,
+      });
+
       if (!response.ok) {
-        const errorData = await response.json();
-        
-        // Handle tier restriction
-        if (errorData.upgradeRequired) {
-          toast({
-            title: "Upgrade Required",
-            description: errorData.message,
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        throw new Error(errorData.message || 'Failed to generate scripts');
+        throw new Error("Failed to generate scripts");
       }
-      
+
       const result = await response.json();
       setScripts(result);
-      
+
       toast({
-        title: "Scripts Generated",
-        description: "Your conversation scripts are ready! Choose the tone that fits best.",
+        title: "Scripts generated successfully!",
+        description: "Review the three different approaches and choose what works best.",
       });
-    } catch (error: any) {
-      console.error('Script generation error:', error);
+    } catch (error) {
       toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate scripts. Please try again.",
+        title: "Generation failed",
+        description: "Failed to generate scripts. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -152,26 +155,19 @@ export default function ScriptBuilder() {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedScript(scriptType);
-      toast({
-        title: "Copied to Clipboard",
-        description: `${scriptType} script copied successfully!`,
-      });
-      
-      // Reset copied state after 2 seconds
       setTimeout(() => setCopiedScript(null), 2000);
+      
+      toast({
+        title: "Copied to clipboard",
+        description: `${scriptType} script copied successfully`,
+      });
     } catch (error) {
       toast({
-        title: "Copy Failed",
-        description: "Could not copy to clipboard. Please select and copy manually.",
+        title: "Copy failed",
+        description: "Failed to copy to clipboard",
         variant: "destructive",
       });
     }
-  };
-
-  const resetForm = () => {
-    form.reset();
-    setScripts(null);
-    setCopiedScript(null);
   };
 
   const saveScript = async () => {
@@ -179,11 +175,10 @@ export default function ScriptBuilder() {
 
     setIsSaving(true);
     try {
-      const formData = form.getValues();
       await apiRequest("POST", "/api/scripts/save", {
         title: saveTitle.trim(),
-        situation: formData.situation,
-        originalMessage: formData.message,
+        situation: form.getValues('situation'),
+        originalMessage: form.getValues('message'),
         firmScript: scripts.firm,
         neutralScript: scripts.neutral,
         empathicScript: scripts.empathic,
@@ -193,8 +188,8 @@ export default function ScriptBuilder() {
       queryClient.invalidateQueries({ queryKey: ['/api/scripts'] });
 
       toast({
-        title: "Script saved",
-        description: "Your script has been saved successfully",
+        title: "Script saved successfully!",
+        description: "You can find it in your saved scripts tab",
       });
 
       setSaveDialogOpen(false);
@@ -305,6 +300,48 @@ export default function ScriptBuilder() {
     }
   };
 
+  const saveFollowUpResponse = async (script: SavedScript, tone: 'firm' | 'neutral' | 'empathic', message: string) => {
+    if (!script.followUpSuggestions) return;
+
+    setIsUpdatingScript(true);
+    try {
+      const conversationResponse = await apiRequest("GET", `/api/scripts/${script.id}/conversation`);
+      const existingMessages = await conversationResponse.json();
+      const messageIndex = existingMessages.length + 1;
+
+      await apiRequest("POST", `/api/scripts/${script.id}/conversation`, {
+        yourMessage: message,
+        chosenTone: tone,
+        messageIndex,
+        followUpSuggestions: null,
+        isActive: true
+      });
+
+      await apiRequest("PUT", `/api/scripts/${script.id}`, {
+        status: 'sent'
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/scripts'] });
+
+      toast({
+        title: "Response saved",
+        description: `Your ${tone} response has been saved and tracked`,
+      });
+
+      setSelectedScript(script);
+      setReplyDialogOpen(true);
+      
+    } catch (error) {
+      toast({
+        title: "Save failed",
+        description: "Failed to save follow-up response",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingScript(false);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -330,610 +367,563 @@ export default function ScriptBuilder() {
         <Tabs defaultValue="create" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="create">Create Scripts</TabsTrigger>
-            <TabsTrigger value="saved">Saved Scripts ({(savedScripts as SavedScript[]).length})</TabsTrigger>
+            <TabsTrigger value="saved">Saved Scripts ({savedScripts.length})</TabsTrigger>
           </TabsList>
           
           <TabsContent value="create" className="space-y-6">
-
-        {/* Tier Restriction Check */}
-        {user && user.tier === 'free' && (
-          <Card className="mb-8 border-amber-200 bg-amber-50">
-            <CardContent className="flex items-center justify-between p-6">
-              <div className="flex items-center gap-3">
-                <Shield className="h-6 w-6 text-amber-600" />
-                <div>
-                  <h3 className="font-semibold text-amber-900">Personal Tier Required</h3>
-                  <p className="text-amber-700">Script Builder is available for Personal tier and higher subscribers.</p>
-                </div>
-              </div>
-              <Link href="/subscription">
-                <Button className="bg-amber-600 hover:bg-amber-700 text-white">
-                  Upgrade Now
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* Input Form */}
-          <Card className="h-fit">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Edit3 className="h-5 w-5 text-blue-600" />
-                Describe Your Situation
-              </CardTitle>
-              <CardDescription>
-                Tell us about the conversation you need help with and what you want to communicate.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="situation"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Situation Context</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe the situation... e.g., 'I need to address my partner about their constant lateness' or 'I want to set boundaries with a demanding colleague'"
-                            className="min-h-[100px] resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="message"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>What You Want to Say</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="What's your main message... e.g., 'I feel disrespected when you're always late' or 'I need you to respect my work hours'"
-                            className="min-h-[100px] resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex gap-3">
-                    <Button 
-                      type="submit" 
-                      disabled={isLoading}
-                      className="flex-1"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Generating Scripts...
-                        </>
-                      ) : (
-                        <>
-                          <Edit3 className="mr-2 h-4 w-4" />
-                          Generate Scripts
-                        </>
-                      )}
-                    </Button>
-                    
-                    {scripts && (
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={resetForm}
-                      >
-                        Start Over
-                      </Button>
-                    )}
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-
-          {/* Results */}
-          <div className="space-y-6">
-            {scripts ? (
-              <>
-                {/* Situation Analysis */}
-                {scripts.situationAnalysis && (
-                  <Card className="border-amber-200 bg-amber-50">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-amber-800">
-                        <AlertCircle className="h-5 w-5" />
-                        Situation Insights
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-amber-700 leading-relaxed">{scripts.situationAnalysis}</p>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Script Options */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-gray-900">Choose Your Tone</h3>
-                  
-                  {/* Firm Script */}
-                  <Card className="border-red-200 bg-red-50">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Shield className="h-5 w-5 text-red-600" />
-                          <CardTitle className="text-red-800">Firm & Direct</CardTitle>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(scripts.firm, 'Firm')}
-                          className="border-red-300 hover:bg-red-100"
-                        >
-                          {copiedScript === 'Firm' ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
+            {user?.tier === 'free' && (
+              <Card className="border-amber-200 bg-amber-50">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-600 mt-1" />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-amber-900 mb-1">Free Tier Limitation</h4>
+                      <p className="text-sm text-amber-800 mb-3">
+                        You have access to basic script generation. Upgrade to Personal+ for unlimited scripts, 
+                        conversation tracking, and advanced features.
+                      </p>
+                      <Link href="/pricing">
+                        <Button className="bg-amber-600 hover:bg-amber-700 text-white">
+                          Upgrade Now
                         </Button>
-                      </div>
-                      <CardDescription className="text-red-700">
-                        Clear boundaries with assertive language
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-red-800 leading-relaxed whitespace-pre-wrap">{scripts.firm}</p>
-                    </CardContent>
-                  </Card>
-
-                  {/* Neutral Script */}
-                  <Card className="border-blue-200 bg-blue-50">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Edit3 className="h-5 w-5 text-blue-600" />
-                          <CardTitle className="text-blue-800">Neutral & Balanced</CardTitle>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(scripts.neutral, 'Neutral')}
-                          className="border-blue-300 hover:bg-blue-100"
-                        >
-                          {copiedScript === 'Neutral' ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                      <CardDescription className="text-blue-700">
-                        Professional and objective approach
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-blue-800 leading-relaxed whitespace-pre-wrap">{scripts.neutral}</p>
-                    </CardContent>
-                  </Card>
-
-                  {/* Empathic Script */}
-                  <Card className="border-green-200 bg-green-50">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Heart className="h-5 w-5 text-green-600" />
-                          <CardTitle className="text-green-800">Empathic & Understanding</CardTitle>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(scripts.empathic, 'Empathic')}
-                          className="border-green-300 hover:bg-green-100"
-                        >
-                          {copiedScript === 'Empathic' ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                      <CardDescription className="text-green-700">
-                        Compassionate while maintaining your position
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-green-800 leading-relaxed whitespace-pre-wrap">{scripts.empathic}</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Save Scripts Section */}
-                <Card className="border-purple-200 bg-purple-50">
-                  <CardContent className="flex items-center justify-between p-6">
-                    <div className="flex items-center gap-3">
-                      <BookOpen className="h-6 w-6 text-purple-600" />
-                      <div>
-                        <h3 className="font-semibold text-purple-900">Save These Scripts</h3>
-                        <p className="text-purple-700 text-sm">Save for later and track responses you receive</p>
-                      </div>
+                      </Link>
                     </div>
-                    <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Scripts
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Save Your Scripts</DialogTitle>
-                          <DialogDescription>
-                            Give your scripts a memorable title so you can find them later
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="title">Script Title</Label>
-                            <Input
-                              id="title"
-                              placeholder="e.g., Discussion with roommate about boundaries"
-                              value={saveTitle}
-                              onChange={(e) => setSaveTitle(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && saveTitle.trim()) {
-                                  saveScript();
-                                }
-                              }}
-                            />
-                          </div>
-                          <div className="flex gap-3">
-                            <Button 
-                              variant="outline" 
-                              onClick={() => setSaveDialogOpen(false)}
-                              className="flex-1"
-                            >
-                              Cancel
-                            </Button>
-                            <Button 
-                              onClick={saveScript}
-                              disabled={!saveTitle.trim() || isSaving}
-                              className="flex-1"
-                            >
-                              {isSaving ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Saving...
-                                </>
-                              ) : (
-                                <>
-                                  <Save className="h-4 w-4 mr-2" />
-                                  Save
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </CardContent>
-                </Card>
-              </>
-            ) : (
-              <Card className="border-dashed border-gray-300">
-                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <Edit3 className="h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to Build Your Script</h3>
-                  <p className="text-gray-600 max-w-md">
-                    Fill out the form to get personalized conversation scripts in three different tones.
-                  </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
-          </div>
-        </div>
 
-        {/* Tips Section */}
-        <Card className="mt-12 border-purple-200 bg-purple-50">
-          <CardHeader>
-            <CardTitle className="text-purple-800">Tips for Effective Communication</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-purple-700">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-semibold mb-2">Before the Conversation:</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>• Choose a calm moment to talk</li>
-                  <li>• Practice your chosen script</li>
-                  <li>• Set clear intentions</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">During the Conversation:</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>• Stay calm and focused</li>
-                  <li>• Listen actively to responses</li>
-                  <li>• Be prepared to adapt</li>
-                </ul>
+            <div className="grid gap-8 lg:grid-cols-2">
+              {/* Input Form */}
+              <Card className="h-fit">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Edit3 className="h-5 w-5 text-blue-600" />
+                    Describe Your Situation
+                  </CardTitle>
+                  <CardDescription>
+                    Tell us about the conversation you need help with and what you want to communicate.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="situation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Situation Context</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe the situation... e.g., 'I need to address my partner about their constant lateness' or 'I want to set boundaries with a demanding colleague'"
+                                className="min-h-[100px] resize-none"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="message"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>What You Want to Say</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="What's your main message... e.g., 'I feel disrespected when you're always late' or 'I need you to respect my work hours'"
+                                className="min-h-[100px] resize-none"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Generating Scripts...
+                          </>
+                        ) : (
+                          <>
+                            <Edit3 className="h-4 w-4 mr-2" />
+                            Generate Scripts
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+
+              {/* Generated Scripts */}
+              <div className="space-y-6">
+                {scripts && (
+                  <>
+                    {/* Analysis Card */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-purple-700">
+                          <BookOpen className="h-5 w-5" />
+                          Situation Analysis
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-gray-700 leading-relaxed">{scripts.situationAnalysis}</p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Scripts Cards */}
+                    <div className="space-y-4">
+                      {/* Firm Response */}
+                      <Card className="border-red-200 bg-red-50">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="flex items-center gap-2 text-red-800">
+                            <Shield className="h-5 w-5" />
+                            Firm Response
+                            <Badge variant="secondary" className="bg-red-100 text-red-800">Direct</Badge>
+                          </CardTitle>
+                          <CardDescription className="text-red-700">
+                            Assertive and clear boundaries
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <p className="text-red-800 leading-relaxed">{scripts.firm}</p>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => copyToClipboard(scripts.firm, 'Firm')}
+                              className="border-red-300 text-red-700 hover:bg-red-100"
+                            >
+                              {copiedScript === 'Firm' ? (
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                              ) : (
+                                <Copy className="h-4 w-4 mr-1" />
+                              )}
+                              {copiedScript === 'Firm' ? 'Copied!' : 'Copy'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Neutral Response */}
+                      <Card className="border-blue-200 bg-blue-50">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="flex items-center gap-2 text-blue-800">
+                            <Edit3 className="h-5 w-5" />
+                            Neutral Response
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">Balanced</Badge>
+                          </CardTitle>
+                          <CardDescription className="text-blue-700">
+                            Professional and diplomatic
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <p className="text-blue-800 leading-relaxed">{scripts.neutral}</p>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => copyToClipboard(scripts.neutral, 'Neutral')}
+                              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                            >
+                              {copiedScript === 'Neutral' ? (
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                              ) : (
+                                <Copy className="h-4 w-4 mr-1" />
+                              )}
+                              {copiedScript === 'Neutral' ? 'Copied!' : 'Copy'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Empathic Response */}
+                      <Card className="border-green-200 bg-green-50">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="flex items-center gap-2 text-green-800">
+                            <Heart className="h-5 w-5" />
+                            Empathic Response
+                            <Badge variant="secondary" className="bg-green-100 text-green-800">Caring</Badge>
+                          </CardTitle>
+                          <CardDescription className="text-green-700">
+                            Understanding and gentle
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <p className="text-green-800 leading-relaxed">{scripts.empathic}</p>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => copyToClipboard(scripts.empathic, 'Empathic')}
+                              className="border-green-300 text-green-700 hover:bg-green-100"
+                            >
+                              {copiedScript === 'Empathic' ? (
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                              ) : (
+                                <Copy className="h-4 w-4 mr-1" />
+                              )}
+                              {copiedScript === 'Empathic' ? 'Copied!' : 'Copy'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Save Button */}
+                    <Card className="border-purple-200 bg-purple-50">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center gap-3">
+                          <Save className="h-5 w-5 text-purple-600" />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-purple-900">Save for Later</h4>
+                            <p className="text-sm text-purple-700">
+                              Save these scripts to track your conversation progress
+                            </p>
+                          </div>
+                          <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                                <Save className="h-4 w-4 mr-2" />
+                                Save Scripts
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Save Script</DialogTitle>
+                                <DialogDescription>
+                                  Give your script collection a memorable name
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <Label htmlFor="title">Script Title</Label>
+                                  <Input
+                                    id="title"
+                                    placeholder="e.g., 'Partner Lateness Discussion'"
+                                    value={saveTitle}
+                                    onChange={(e) => setSaveTitle(e.target.value)}
+                                  />
+                                </div>
+                                <div className="flex gap-3">
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => setSaveDialogOpen(false)}
+                                    className="flex-1"
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button 
+                                    onClick={saveScript}
+                                    disabled={!saveTitle.trim() || isSaving}
+                                    className="flex-1"
+                                  >
+                                    {isSaving ? (
+                                      <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Saving...
+                                      </>
+                                    ) : (
+                                      "Save Script"
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
           </TabsContent>
 
           <TabsContent value="saved" className="space-y-6">
             {scriptsLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">Loading saved scripts...</span>
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <span className="ml-2 text-gray-500">Loading saved scripts...</span>
               </div>
-            ) : (savedScripts as SavedScript[]).length === 0 ? (
-              <Card className="border-dashed border-gray-300">
-                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <BookOpen className="h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Saved Scripts</h3>
-                  <p className="text-gray-600 max-w-md">
-                    You haven't saved any scripts yet. Create and save scripts in the "Create Scripts" tab to see them here.
-                  </p>
+            ) : savedScripts.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="font-medium text-gray-700 mb-2">No saved scripts yet</h3>
+                    <p className="text-gray-500 mb-4">
+                      Create and save your first script to track conversation progress
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
-                {(savedScripts as SavedScript[]).map((script: SavedScript) => (
-                  <Card key={script.id} className="border-l-4 border-l-blue-500">
+              <div className="space-y-6">
+                {savedScripts.map((script) => (
+                  <Card key={script.id} className="relative">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <CardTitle className="text-lg">{script.title}</CardTitle>
-                          <CardDescription className="mt-1">
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <CardTitle className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            {script.title}
+                            <Badge 
+                              variant={script.status === 'resolved' ? 'default' : 'secondary'}
+                              className={
+                                script.status === 'saved' ? 'bg-gray-100 text-gray-800' :
+                                script.status === 'sent' ? 'bg-blue-100 text-blue-800' :
+                                script.status === 'replied' ? 'bg-purple-100 text-purple-800' :
+                                'bg-green-100 text-green-800'
+                              }
+                            >
+                              {script.status}
+                            </Badge>
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-4 mt-1">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {new Date(script.createdAt).toLocaleDateString()}
+                            </span>
+                            {script.chosenTone && (
                               <span className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                {new Date(script.createdAt).toLocaleDateString()}
+                                <MessageCircle className="h-3 w-3" />
+                                Used: {script.chosenTone}
                               </span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                {new Date(script.updatedAt).toLocaleTimeString()}
-                              </span>
-                            </div>
+                            )}
                           </CardDescription>
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteScriptMutation.mutate(script.id)}
-                          disabled={deleteScriptMutation.isPending}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Situation</h4>
-                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">{script.situation}</p>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Original Message</h4>
-                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">{script.originalMessage}</p>
-                      </div>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h5 className="font-medium text-gray-800 mb-2">Situation:</h5>
+                          <p className="text-sm text-gray-700">{script.situation}</p>
+                        </div>
 
-                      <div className="grid gap-3">
-                        <div className={`border rounded p-3 ${script.chosenTone === 'firm' ? 'border-red-400 bg-red-100' : 'border-red-200 bg-red-50'}`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Shield className="h-4 w-4 text-red-600" />
-                            <span className="font-medium text-red-800">Firm & Direct</span>
-                            {script.chosenTone === 'firm' && (
-                              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">Used</Badge>
-                            )}
-                            <div className="ml-auto flex gap-1">
-                              {script.status === 'saved' && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => markScriptAsUsed(script.id, 'firm')}
-                                  disabled={isUpdatingScript}
-                                  className="text-xs px-2 py-1 h-auto bg-red-200 hover:bg-red-300 text-red-800"
-                                >
-                                  Mark as Used
-                                </Button>
-                              )}
+                        <div>
+                          <h5 className="font-medium text-gray-800 mb-2">Your Message:</h5>
+                          <p className="text-sm text-gray-700">{script.originalMessage}</p>
+                        </div>
+
+                        <div className="grid gap-3 md:grid-cols-3">
+                          <div className="border border-red-200 bg-red-50 rounded p-3">
+                            <span className="text-xs font-medium text-red-800 mb-1 block">Firm:</span>
+                            <p className="text-sm text-red-800 mb-2">{script.firmScript}</p>
+                            <div className="flex gap-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => copyToClipboard(script.firmScript, 'Firm')}
-                                className="border-red-300 hover:bg-red-100"
+                                className="text-xs h-7"
                               >
-                                {copiedScript === 'Firm' ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                ) : (
-                                  <Copy className="h-4 w-4" />
-                                )}
+                                <Copy className="h-3 w-3 mr-1" /> Copy
                               </Button>
-                            </div>
-                          </div>
-                          <p className="text-sm text-red-800 whitespace-pre-wrap">{script.firmScript}</p>
-                        </div>
-
-                        <div className={`border rounded p-3 ${script.chosenTone === 'neutral' ? 'border-blue-400 bg-blue-100' : 'border-blue-200 bg-blue-50'}`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Edit3 className="h-4 w-4 text-blue-600" />
-                            <span className="font-medium text-blue-800">Neutral & Balanced</span>
-                            {script.chosenTone === 'neutral' && (
-                              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">Used</Badge>
-                            )}
-                            <div className="ml-auto flex gap-1">
                               {script.status === 'saved' && (
                                 <Button
-                                  variant="ghost"
                                   size="sm"
-                                  onClick={() => markScriptAsUsed(script.id, 'neutral')}
+                                  onClick={() => markScriptAsUsed(script.id, 'firm')}
                                   disabled={isUpdatingScript}
-                                  className="text-xs px-2 py-1 h-auto bg-blue-200 hover:bg-blue-300 text-blue-800"
+                                  className="text-xs h-7 bg-red-600 hover:bg-red-700 text-white"
                                 >
-                                  Mark as Used
+                                  <Check className="h-3 w-3 mr-1" /> Use This
                                 </Button>
                               )}
+                            </div>
+                          </div>
+
+                          <div className="border border-blue-200 bg-blue-50 rounded p-3">
+                            <span className="text-xs font-medium text-blue-800 mb-1 block">Neutral:</span>
+                            <p className="text-sm text-blue-800 mb-2">{script.neutralScript}</p>
+                            <div className="flex gap-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => copyToClipboard(script.neutralScript, 'Neutral')}
-                                className="border-blue-300 hover:bg-blue-100"
+                                className="text-xs h-7"
                               >
-                                {copiedScript === 'Neutral' ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                ) : (
-                                  <Copy className="h-4 w-4" />
-                                )}
+                                <Copy className="h-3 w-3 mr-1" /> Copy
                               </Button>
-                            </div>
-                          </div>
-                          <p className="text-sm text-blue-800 whitespace-pre-wrap">{script.neutralScript}</p>
-                        </div>
-
-                        <div className={`border rounded p-3 ${script.chosenTone === 'empathic' ? 'border-green-400 bg-green-100' : 'border-green-200 bg-green-50'}`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Heart className="h-4 w-4 text-green-600" />
-                            <span className="font-medium text-green-800">Empathic & Understanding</span>
-                            {script.chosenTone === 'empathic' && (
-                              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">Used</Badge>
-                            )}
-                            <div className="ml-auto flex gap-1">
                               {script.status === 'saved' && (
                                 <Button
-                                  variant="ghost"
                                   size="sm"
-                                  onClick={() => markScriptAsUsed(script.id, 'empathic')}
+                                  onClick={() => markScriptAsUsed(script.id, 'neutral')}
                                   disabled={isUpdatingScript}
-                                  className="text-xs px-2 py-1 h-auto bg-green-200 hover:bg-green-300 text-green-800"
+                                  className="text-xs h-7 bg-blue-600 hover:bg-blue-700 text-white"
                                 >
-                                  Mark as Used
+                                  <Check className="h-3 w-3 mr-1" /> Use This
                                 </Button>
                               )}
+                            </div>
+                          </div>
+
+                          <div className="border border-green-200 bg-green-50 rounded p-3">
+                            <span className="text-xs font-medium text-green-800 mb-1 block">Empathic:</span>
+                            <p className="text-sm text-green-800 mb-2">{script.empathicScript}</p>
+                            <div className="flex gap-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => copyToClipboard(script.empathicScript, 'Empathic')}
-                                className="border-green-300 hover:bg-green-100"
+                                className="text-xs h-7"
                               >
-                                {copiedScript === 'Empathic' ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                ) : (
-                                  <Copy className="h-4 w-4" />
-                                )}
+                                <Copy className="h-3 w-3 mr-1" /> Copy
                               </Button>
+                              {script.status === 'saved' && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => markScriptAsUsed(script.id, 'empathic')}
+                                  disabled={isUpdatingScript}
+                                  className="text-xs h-7 bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                  <Check className="h-3 w-3 mr-1" /> Use This
+                                </Button>
+                              )}
                             </div>
                           </div>
-                          <p className="text-sm text-green-800 whitespace-pre-wrap">{script.empathicScript}</p>
                         </div>
-                      </div>
 
-                      {/* Conversation Tracking Section */}
-                      {script.chosenTone && (
-                        <div className="mt-6 border-t pt-4">
-                          <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                            <MessageCircle className="h-4 w-4" />
-                            Conversation Progress
-                          </h4>
-                          
-                          {script.receivedReply ? (
-                            <div className="space-y-4">
-                              <div className="bg-gray-50 p-3 rounded">
-                                <h5 className="font-medium text-gray-800 mb-2">Their Reply:</h5>
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{script.receivedReply}</p>
-                              </div>
-                              
-                              {script.followUpSuggestions ? (
-                                <div className="space-y-3">
-                                  <h5 className="font-medium text-gray-800">Follow-up Options:</h5>
-                                  <div className="grid gap-2">
-                                    {script.followUpSuggestions?.firm && (
-                                      <div className="border border-red-200 bg-red-50 rounded p-2">
-                                        <span className="text-xs font-medium text-red-800 mb-1 block">Firm Response:</span>
-                                        <p className="text-sm text-red-800">{script.followUpSuggestions.firm}</p>
+                        {/* Show reply section if script has been sent and has a reply */}
+                        {script.status === 'sent' && script.receivedReply && (
+                          <div className="border-t pt-4">
+                            <div className="mb-4">
+                              <h5 className="font-medium text-gray-800 mb-2">Their Reply:</h5>
+                              <p className="text-sm text-gray-700 whitespace-pre-wrap">{script.receivedReply}</p>
+                            </div>
+                            
+                            {script.followUpSuggestions ? (
+                              <div className="space-y-3">
+                                <h5 className="font-medium text-gray-800">Follow-up Options:</h5>
+                                <div className="grid gap-2">
+                                  {script.followUpSuggestions?.firm && (
+                                    <div className="border border-red-200 bg-red-50 rounded p-2">
+                                      <span className="text-xs font-medium text-red-800 mb-1 block">Firm Response:</span>
+                                      <p className="text-sm text-red-800">{script.followUpSuggestions.firm}</p>
+                                      <div className="flex gap-2 mt-2">
                                         <Button
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => copyToClipboard(script.followUpSuggestions?.firm || '', 'Follow-up Firm')}
-                                          className="mt-2 text-xs"
+                                          className="text-xs"
                                         >
                                           <Copy className="h-3 w-3 mr-1" /> Copy
                                         </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => saveFollowUpResponse(script, 'firm', script.followUpSuggestions?.firm || '')}
+                                          className="text-xs bg-red-600 hover:bg-red-700 text-white"
+                                        >
+                                          <Check className="h-3 w-3 mr-1" /> Mark as Used
+                                        </Button>
                                       </div>
-                                    )}
-                                    {script.followUpSuggestions?.neutral && (
-                                      <div className="border border-blue-200 bg-blue-50 rounded p-2">
-                                        <span className="text-xs font-medium text-blue-800 mb-1 block">Neutral Response:</span>
-                                        <p className="text-sm text-blue-800">{script.followUpSuggestions.neutral}</p>
+                                    </div>
+                                  )}
+                                  {script.followUpSuggestions?.neutral && (
+                                    <div className="border border-blue-200 bg-blue-50 rounded p-2">
+                                      <span className="text-xs font-medium text-blue-800 mb-1 block">Neutral Response:</span>
+                                      <p className="text-sm text-blue-800">{script.followUpSuggestions.neutral}</p>
+                                      <div className="flex gap-2 mt-2">
                                         <Button
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => copyToClipboard(script.followUpSuggestions?.neutral || '', 'Follow-up Neutral')}
-                                          className="mt-2 text-xs"
+                                          className="text-xs"
                                         >
                                           <Copy className="h-3 w-3 mr-1" /> Copy
                                         </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => saveFollowUpResponse(script, 'neutral', script.followUpSuggestions?.neutral || '')}
+                                          className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                                        >
+                                          <Check className="h-3 w-3 mr-1" /> Mark as Used
+                                        </Button>
                                       </div>
-                                    )}
-                                    {script.followUpSuggestions?.empathic && (
-                                      <div className="border border-green-200 bg-green-50 rounded p-2">
-                                        <span className="text-xs font-medium text-green-800 mb-1 block">Empathic Response:</span>
-                                        <p className="text-sm text-green-800">{script.followUpSuggestions.empathic}</p>
+                                    </div>
+                                  )}
+                                  {script.followUpSuggestions?.empathic && (
+                                    <div className="border border-green-200 bg-green-50 rounded p-2">
+                                      <span className="text-xs font-medium text-green-800 mb-1 block">Empathic Response:</span>
+                                      <p className="text-sm text-green-800">{script.followUpSuggestions.empathic}</p>
+                                      <div className="flex gap-2 mt-2">
                                         <Button
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => copyToClipboard(script.followUpSuggestions?.empathic || '', 'Follow-up Empathic')}
-                                          className="mt-2 text-xs"
+                                          className="text-xs"
                                         >
                                           <Copy className="h-3 w-3 mr-1" /> Copy
                                         </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => saveFollowUpResponse(script, 'empathic', script.followUpSuggestions?.empathic || '')}
+                                          className="text-xs bg-green-600 hover:bg-green-700 text-white"
+                                        >
+                                          <Check className="h-3 w-3 mr-1" /> Mark as Used
+                                        </Button>
                                       </div>
-                                    )}
-                                  </div>
-                                </div>
-                              ) : (
-                                <Button
-                                  onClick={() => generateFollowUpSuggestions(script)}
-                                  disabled={generatingFollowUp}
-                                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                                >
-                                  {generatingFollowUp ? (
-                                    <>
-                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                      Generating Follow-ups...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Sparkles className="h-4 w-4 mr-2" />
-                                      Get Follow-up Suggestions
-                                    </>
+                                    </div>
                                   )}
-                                </Button>
-                              )}
-                            </div>
-                          ) : (
-                            <Button
-                              onClick={() => {
-                                setSelectedScript(script);
-                                setReplyDialogOpen(true);
-                              }}
-                              variant="outline"
-                              className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                            >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Their Reply
-                            </Button>
-                          )}
-                        </div>
-                      )}
+                                </div>
+                              </div>
+                            ) : (
+                              <Button
+                                onClick={() => generateFollowUpSuggestions(script)}
+                                disabled={generatingFollowUp}
+                                className="bg-purple-600 hover:bg-purple-700 text-white"
+                              >
+                                {generatingFollowUp ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Generating Follow-ups...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="h-4 w-4 mr-2" />
+                                    Get Follow-up Suggestions
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Show "Add Their Reply" button for sent scripts without a reply */}
+                        {script.status === 'sent' && !script.receivedReply && (
+                          <Button
+                            onClick={() => {
+                              setSelectedScript(script);
+                              setReplyDialogOpen(true);
+                            }}
+                            variant="outline"
+                            className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Their Reply
+                          </Button>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

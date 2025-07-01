@@ -177,6 +177,20 @@ export const savedScripts = pgTable("saved_scripts", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Conversation messages for tracking ongoing conversation flow
+export const conversationMessages = pgTable("conversation_messages", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => savedScripts.id, { onDelete: 'cascade' }),
+  messageIndex: integer("message_index").notNull(), // Order in conversation (0 = original, 1 = first follow-up, etc.)
+  yourMessage: text("your_message").notNull(), // The message you sent
+  chosenTone: text("chosen_tone", { enum: ['firm', 'neutral', 'empathic'] }).notNull(), // Which tone was used
+  partnerReply: text("partner_reply"), // Their response (if received)
+  followUpSuggestions: json("follow_up_suggestions"), // AI suggestions for next response
+  followUpChosenTone: text("follow_up_chosen_tone", { enum: ['firm', 'neutral', 'empathic'] }), // Which follow-up tone was chosen
+  isActive: boolean("is_active").notNull().default(true), // Whether this is the current active message in conversation
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const insertUserEventSchema = createInsertSchema(userEvents).pick({
   userId: true,
   eventType: true,
@@ -207,6 +221,17 @@ export const insertSavedScriptSchema = createInsertSchema(savedScripts).pick({
   status: true,
 });
 
+export const insertConversationMessageSchema = createInsertSchema(conversationMessages).pick({
+  scriptId: true,
+  messageIndex: true,
+  yourMessage: true,
+  chosenTone: true,
+  partnerReply: true,
+  followUpSuggestions: true,
+  followUpChosenTone: true,
+  isActive: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -225,6 +250,9 @@ export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
 
 export type SavedScript = typeof savedScripts.$inferSelect;
 export type InsertSavedScript = z.infer<typeof insertSavedScriptSchema>;
+
+export type ConversationMessage = typeof conversationMessages.$inferSelect;
+export type InsertConversationMessage = z.infer<typeof insertConversationMessageSchema>;
 
 // Tier information
 export const TIER_LIMITS = {

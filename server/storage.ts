@@ -1,6 +1,6 @@
 import { eq, sql, count, isNull, isNotNull, and, desc } from "drizzle-orm";
 import { 
-  users, analyses, usageLimits, userEvents, promoCodes, promoUsage, systemSettings, referralCodes, savedScripts,
+  users, analyses, usageLimits, userEvents, promoCodes, promoUsage, systemSettings, referralCodes, savedScripts, conversationMessages,
   type User, type InsertUser, 
   type Analysis, type InsertAnalysis, 
   type UsageLimit, type InsertUsageLimit,
@@ -9,7 +9,8 @@ import {
   type PromoUsage, type InsertPromoUsage,
   type SystemSetting, type InsertSystemSetting,
   type ReferralCode, type InsertReferralCode,
-  type SavedScript, type InsertSavedScript
+  type SavedScript, type InsertSavedScript,
+  type ConversationMessage, type InsertConversationMessage
 } from "@shared/schema";
 
 // Interface for tracking anonymous usage
@@ -125,6 +126,12 @@ export interface IStorage {
   updateScript(scriptId: number, userId: number, updates: Partial<SavedScript>): Promise<SavedScript>;
   deleteScript(scriptId: number, userId: number): Promise<boolean>;
   updateScriptReply(scriptId: number, userId: number, receivedReply: string, followUpSuggestions?: any): Promise<SavedScript>;
+  
+  // Conversation Messages Management
+  saveConversationMessage(message: InsertConversationMessage): Promise<ConversationMessage>;
+  getConversationMessages(scriptId: number): Promise<ConversationMessage[]>;
+  updateConversationMessage(messageId: number, updates: Partial<ConversationMessage>): Promise<ConversationMessage>;
+  setActiveConversationMessage(scriptId: number, messageId: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -1169,6 +1176,23 @@ export class MemStorage implements IStorage {
     this.savedScripts.set(scriptId, updatedScript);
     return updatedScript;
   }
+
+  // Conversation Messages Management (Memory storage not implemented, throws error)
+  async saveConversationMessage(message: InsertConversationMessage): Promise<ConversationMessage> {
+    throw new Error('MemStorage conversation messages not implemented - use DatabaseStorage');
+  }
+
+  async getConversationMessages(scriptId: number): Promise<ConversationMessage[]> {
+    throw new Error('MemStorage conversation messages not implemented - use DatabaseStorage');
+  }
+
+  async updateConversationMessage(messageId: number, updates: Partial<ConversationMessage>): Promise<ConversationMessage> {
+    throw new Error('MemStorage conversation messages not implemented - use DatabaseStorage');
+  }
+
+  async setActiveConversationMessage(scriptId: number, messageId: number): Promise<void> {
+    throw new Error('MemStorage conversation messages not implemented - use DatabaseStorage');
+  }
 }
 
 // Implementation of IStorage using PostgreSQL database
@@ -1865,6 +1889,46 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(savedScripts.id, scriptId), eq(savedScripts.userId, userId)))
       .returning();
     return script;
+  }
+
+  // Conversation Messages Management
+  async saveConversationMessage(message: InsertConversationMessage): Promise<ConversationMessage> {
+    const [savedMessage] = await db
+      .insert(conversationMessages)
+      .values(message)
+      .returning();
+    return savedMessage;
+  }
+
+  async getConversationMessages(scriptId: number): Promise<ConversationMessage[]> {
+    return await db
+      .select()
+      .from(conversationMessages)
+      .where(eq(conversationMessages.scriptId, scriptId))
+      .orderBy(conversationMessages.messageIndex);
+  }
+
+  async updateConversationMessage(messageId: number, updates: Partial<ConversationMessage>): Promise<ConversationMessage> {
+    const [message] = await db
+      .update(conversationMessages)
+      .set(updates)
+      .where(eq(conversationMessages.id, messageId))
+      .returning();
+    return message;
+  }
+
+  async setActiveConversationMessage(scriptId: number, messageId: number): Promise<void> {
+    // Set all messages for this script to inactive
+    await db
+      .update(conversationMessages)
+      .set({ isActive: false })
+      .where(eq(conversationMessages.scriptId, scriptId));
+    
+    // Set the specified message to active
+    await db
+      .update(conversationMessages)
+      .set({ isActive: true })
+      .where(eq(conversationMessages.id, messageId));
   }
 }
 
