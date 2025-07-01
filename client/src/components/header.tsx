@@ -8,7 +8,7 @@ import { Link } from "wouter";
 import llamaImage from "@assets/FB Profile Pic.png";
 import AdminNavItem from "./admin-nav-item";
 import { apiRequest } from "@/lib/queryClient";
-import { Home, MessageSquare, Zap, Mic, Users, Mail, Sparkles } from "lucide-react";
+import { Home, MessageSquare, Zap, Mic, Users, Mail, Sparkles, Edit3 } from "lucide-react";
 
 
 export default function Header() {
@@ -73,6 +73,11 @@ export default function Header() {
               <Link href="/chat-analysis">
                 <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
                   <MessageSquare className="w-4 h-4 mr-2" /> Chat Analysis
+                </Button>
+              </Link>
+              <Link href="/script-builder">
+                <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
+                  <Edit3 className="w-4 h-4 mr-2" /> Boundary Builder
                 </Button>
               </Link>
               <Link href="/de-escalate">
