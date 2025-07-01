@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+# Main sitemap
+Sitemap: https://dramallama.ai/sitemap.xml
+
+# Allow crawling of key pages
+Allow: /chat-analysis
+Allow: /script-builder
+Allow: /de-escalate
+Allow: /vent-mode
+Allow: /group-chat-analysis
+Allow: /live-talk
+Allow: /subscription
+Allow: /pricing
+Allow: /contact-us
+Allow: /privacy-policy
+Allow: /whatsapp-guide
+
+# Disallow private/admin areas
+Disallow: /api/
+Disallow: /admin/
+Disallow: /verify-email
+Disallow: /forgot-password
+Disallow: /checkout/
+Disallow: /auth

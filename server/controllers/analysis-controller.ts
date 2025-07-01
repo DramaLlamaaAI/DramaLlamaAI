@@ -1178,9 +1178,9 @@ export const analysisController = {
             chatText = file.buffer.toString('utf-8');
           } else if (file.originalname.toLowerCase().endsWith('.zip')) {
             // Handle ZIP files using JSZip
-            const JSZip = require('jszip');
+            const JSZip = await import('jszip');
             
-            const zip = new JSZip();
+            const zip = new JSZip.default();
             const zipContents = await zip.loadAsync(file.buffer);
             
             // Look for .txt files in the ZIP

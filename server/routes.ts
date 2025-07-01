@@ -1,6 +1,8 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import fs from "fs";
+import path from "path";
 import { storage } from "./storage";
 import { analysisController } from "./controllers/analysis-controller";
 import { authController } from "./controllers/auth-controller";
@@ -179,6 +181,7 @@ app.use(session({
       checkPeriod: 86400000 // Prune expired entries every 24h
     })
   }));
+  
   
   // Authentication routes
   app.post('/api/auth/register', authController.register);
@@ -384,8 +387,8 @@ app.use(session({
         if (file.originalname.toLowerCase().endsWith('.txt')) {
           chatText = file.buffer.toString('utf-8');
         } else if (file.originalname.toLowerCase().endsWith('.zip')) {
-          const JSZip = require('jszip');
-          const zip = new JSZip();
+          const JSZip = await import('jszip');
+          const zip = new JSZip.default();
           const zipContents = await zip.loadAsync(file.buffer);
           
           const txtFiles = Object.keys(zipContents.files).filter(filename => 

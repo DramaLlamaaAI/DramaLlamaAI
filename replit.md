@@ -99,7 +99,11 @@ The application is configured for deployment on Replit with the following setup:
 4. Database schema push via Drizzle migrations
 
 ## Changelog
-- July 1, 2025: Enhanced follow-up response system in Boundary Builder
+- July 1, 2025: Complete SEO setup with sitemap and robots.txt
+  - Generated comprehensive XML sitemap covering all application routes
+  - Created robots.txt for proper search engine guidance
+  - Added Boundary Builder to main navigation menu
+  - Enhanced follow-up response system in Boundary Builder
   - Added intelligent analysis of recipient's reply tone (constructive/defensive/mixed)
   - Implemented acceptance/acknowledgment responses for positive replies
   - Improved nuanced handling to avoid unnecessary conflict escalation
