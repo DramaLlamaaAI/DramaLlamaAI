@@ -503,6 +503,44 @@ export default function ScriptBuilder() {
                                 {...field}
                               />
                             </FormControl>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => form.setValue('situation', 'My partner has been staying out late and sleeping all day, which is affecting our family responsibilities and leaving me to handle everything alone.')}
+                                className="text-xs"
+                              >
+                                Late nights & family duties
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => form.setValue('situation', 'My colleague constantly interrupts me in meetings and dismisses my ideas, making me feel unheard and undermining my confidence at work.')}
+                                className="text-xs"
+                              >
+                                Workplace interruptions
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => form.setValue('situation', 'My friend always cancels plans last minute or shows up very late, and I feel like my time is not being respected.')}
+                                className="text-xs"
+                              >
+                                Friend reliability issues
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => form.setValue('situation', 'My roommate leaves messes in common areas and never cleans up after themselves, creating tension in our living situation.')}
+                                className="text-xs"
+                              >
+                                Roommate cleanliness
+                              </Button>
+                            </div>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -521,6 +559,44 @@ export default function ScriptBuilder() {
                                 {...field}
                               />
                             </FormControl>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => form.setValue('message', 'I need us to work together as a team when it comes to our family responsibilities. When you\'re sleeping all day, it leaves me handling everything alone and that\'s not sustainable.')}
+                                className="text-xs"
+                              >
+                                Family teamwork needed
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => form.setValue('message', 'I would appreciate if you could let me finish my thoughts in meetings before jumping in. I have valuable contributions to make and would like the space to share them.')}
+                                className="text-xs"
+                              >
+                                Request meeting respect
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => form.setValue('message', 'I value our friendship, but I need you to respect my time by sticking to our plans or giving me proper notice if something changes. It affects my whole day when plans fall through last minute.')}
+                                className="text-xs"
+                              >
+                                Time respect needed
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => form.setValue('message', 'I need us to agree on keeping common areas clean. When dishes and messes pile up, it affects both of us and creates unnecessary stress in our living space.')}
+                                className="text-xs"
+                              >
+                                Shared space standards
+                              </Button>
+                            </div>
                             <FormMessage />
                           </FormItem>
                         )}
