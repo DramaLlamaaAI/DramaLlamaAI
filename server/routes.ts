@@ -182,6 +182,41 @@ app.use(session({
     })
   }));
   
+  // SEO routes with explicit headers for search engines
+  app.get('/sitemap.xml', (req: Request, res: Response) => {
+    try {
+      const sitemapPath = path.join(process.cwd(), 'client', 'public', 'sitemap.xml');
+      const sitemap = fs.readFileSync(sitemapPath, 'utf8');
+      
+      res.set({
+        'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.send(sitemap);
+    } catch (error) {
+      console.error('Error serving sitemap:', error);
+      res.status(404).send('Sitemap not found');
+    }
+  });
+
+  app.get('/robots.txt', (req: Request, res: Response) => {
+    try {
+      const robotsPath = path.join(process.cwd(), 'client', 'public', 'robots.txt');
+      const robots = fs.readFileSync(robotsPath, 'utf8');
+      
+      res.set({
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.send(robots);
+    } catch (error) {
+      console.error('Error serving robots.txt:', error);
+      res.status(404).send('Robots.txt not found');
+    }
+  });
+  
   
   // Authentication routes
   app.post('/api/auth/register', authController.register);
