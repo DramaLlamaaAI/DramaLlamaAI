@@ -1588,18 +1588,90 @@ support@dramallama.ai
         return res.status(400).json({ error: 'Invalid script ID' });
       }
 
-      const { title, receivedReply, followUpSuggestions } = req.body;
+      const { title, receivedReply, followUpSuggestions, chosenTone, status } = req.body;
       const updates: any = {};
 
       if (title !== undefined) updates.title = title;
       if (receivedReply !== undefined) updates.receivedReply = receivedReply;
       if (followUpSuggestions !== undefined) updates.followUpSuggestions = followUpSuggestions;
+      if (chosenTone !== undefined) updates.chosenTone = chosenTone;
+      if (status !== undefined) updates.status = status;
 
       const script = await storage.updateScript(scriptId, userId, updates);
       res.json(script);
     } catch (error) {
       console.error('Error updating script:', error);
       res.status(500).json({ error: 'Failed to update script' });
+    }
+  });
+
+  app.post('/api/scripts/follow-up', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { scriptId, originalSituation, yourMessage, partnerReply, previousTone } = req.body;
+
+      if (!originalSituation || !yourMessage || !partnerReply || !previousTone) {
+        return res.status(400).json({ error: 'Missing required fields for follow-up generation' });
+      }
+
+      // Generate follow-up suggestions using Claude
+      const prompt = `You are a communication expert helping someone navigate a difficult conversation. Based on the conversation context, provide three follow-up response options.
+
+ORIGINAL SITUATION: ${originalSituation}
+
+YOUR PREVIOUS MESSAGE (${previousTone} tone): ${yourMessage}
+
+THEIR REPLY: ${partnerReply}
+
+Please generate three different follow-up responses:
+1. FIRM: Direct, assertive, maintains boundaries
+2. NEUTRAL: Balanced, factual, non-confrontational  
+3. EMPATHIC: Understanding, validating, relationship-focused
+
+Return ONLY a JSON object with this structure:
+{
+  "firm": "Your firm response here",
+  "neutral": "Your neutral response here", 
+  "empathic": "Your empathic response here"
+}`;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: "claude-3-haiku-20240307",
+          max_tokens: 1000,
+          messages: [
+            {
+              role: "user",
+              content: prompt
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Anthropic API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data.content[0].text;
+      
+      // Parse the JSON response
+      const followUpSuggestions = JSON.parse(content);
+
+      res.json(followUpSuggestions);
+    } catch (error) {
+      console.error('Error generating follow-up suggestions:', error);
+      res.status(500).json({ error: 'Failed to generate follow-up suggestions' });
     }
   });
 

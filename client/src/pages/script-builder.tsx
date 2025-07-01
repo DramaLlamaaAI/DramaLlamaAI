@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield, Save, BookOpen, Trash2, Calendar, Clock } from "lucide-react";
+import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield, Save, BookOpen, Trash2, Calendar, Clock, MessageCircle, Plus, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/header";
@@ -44,10 +44,16 @@ interface SavedScript {
   neutralScript: string;
   empathicScript: string;
   situationAnalysis: string;
+  chosenTone: 'firm' | 'neutral' | 'empathic' | null;
+  status: 'saved' | 'sent' | 'replied' | 'resolved';
   createdAt: string;
   updatedAt: string;
   receivedReply: string | null;
-  followUpSuggestions: any;
+  followUpSuggestions: {
+    firm?: string;
+    neutral?: string;
+    empathic?: string;
+  } | null;
 }
 
 export default function ScriptBuilder() {
@@ -57,6 +63,11 @@ export default function ScriptBuilder() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
+  const [selectedScript, setSelectedScript] = useState<SavedScript | null>(null);
+  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
+  const [partnerReply, setPartnerReply] = useState("");
+  const [isUpdatingScript, setIsUpdatingScript] = useState(false);
+  const [generatingFollowUp, setGeneratingFollowUp] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -197,6 +208,100 @@ export default function ScriptBuilder() {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const markScriptAsUsed = async (scriptId: number, chosenTone: 'firm' | 'neutral' | 'empathic') => {
+    try {
+      setIsUpdatingScript(true);
+      await apiRequest("PUT", `/api/scripts/${scriptId}`, {
+        chosenTone,
+        status: 'sent'
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/scripts'] });
+
+      toast({
+        title: "Script marked as sent",
+        description: `Marked ${chosenTone} response as the one you used`,
+      });
+    } catch (error) {
+      toast({
+        title: "Update failed",
+        description: "Failed to update script status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingScript(false);
+    }
+  };
+
+  const addPartnerReply = async () => {
+    if (!selectedScript || !partnerReply.trim()) return;
+
+    setIsUpdatingScript(true);
+    try {
+      await apiRequest("PUT", `/api/scripts/${selectedScript.id}`, {
+        receivedReply: partnerReply.trim(),
+        status: 'replied'
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/scripts'] });
+
+      toast({
+        title: "Reply added",
+        description: "Partner's reply has been recorded",
+      });
+
+      setReplyDialogOpen(false);
+      setPartnerReply("");
+      setSelectedScript(null);
+    } catch (error) {
+      toast({
+        title: "Update failed",
+        description: "Failed to add partner's reply",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingScript(false);
+    }
+  };
+
+  const generateFollowUpSuggestions = async (script: SavedScript) => {
+    if (!script.receivedReply || !script.chosenTone) return;
+
+    setGeneratingFollowUp(true);
+    try {
+      const response = await apiRequest("POST", "/api/scripts/follow-up", {
+        scriptId: script.id,
+        originalSituation: script.situation,
+        yourMessage: script.chosenTone === 'firm' ? script.firmScript : 
+                     script.chosenTone === 'neutral' ? script.neutralScript : 
+                     script.empathicScript,
+        partnerReply: script.receivedReply,
+        previousTone: script.chosenTone
+      });
+
+      const result = await response.json();
+
+      await apiRequest("PUT", `/api/scripts/${script.id}`, {
+        followUpSuggestions: result
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/scripts'] });
+
+      toast({
+        title: "Follow-up suggestions generated",
+        description: "New response options have been created based on their reply",
+      });
+    } catch (error) {
+      toast({
+        title: "Generation failed",
+        description: "Failed to generate follow-up suggestions",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingFollowUp(false);
     }
   };
 
@@ -622,66 +727,213 @@ export default function ScriptBuilder() {
                       </div>
 
                       <div className="grid gap-3">
-                        <div className="border border-red-200 bg-red-50 rounded p-3">
+                        <div className={`border rounded p-3 ${script.chosenTone === 'firm' ? 'border-red-400 bg-red-100' : 'border-red-200 bg-red-50'}`}>
                           <div className="flex items-center gap-2 mb-2">
                             <Shield className="h-4 w-4 text-red-600" />
                             <span className="font-medium text-red-800">Firm & Direct</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => copyToClipboard(script.firmScript, 'Firm')}
-                              className="ml-auto border-red-300 hover:bg-red-100"
-                            >
-                              {copiedScript === 'Firm' ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <Copy className="h-4 w-4" />
+                            {script.chosenTone === 'firm' && (
+                              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">Used</Badge>
+                            )}
+                            <div className="ml-auto flex gap-1">
+                              {script.status === 'saved' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => markScriptAsUsed(script.id, 'firm')}
+                                  disabled={isUpdatingScript}
+                                  className="text-xs px-2 py-1 h-auto bg-red-200 hover:bg-red-300 text-red-800"
+                                >
+                                  Mark as Used
+                                </Button>
                               )}
-                            </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(script.firmScript, 'Firm')}
+                                className="border-red-300 hover:bg-red-100"
+                              >
+                                {copiedScript === 'Firm' ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
                           </div>
                           <p className="text-sm text-red-800 whitespace-pre-wrap">{script.firmScript}</p>
                         </div>
 
-                        <div className="border border-blue-200 bg-blue-50 rounded p-3">
+                        <div className={`border rounded p-3 ${script.chosenTone === 'neutral' ? 'border-blue-400 bg-blue-100' : 'border-blue-200 bg-blue-50'}`}>
                           <div className="flex items-center gap-2 mb-2">
                             <Edit3 className="h-4 w-4 text-blue-600" />
                             <span className="font-medium text-blue-800">Neutral & Balanced</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => copyToClipboard(script.neutralScript, 'Neutral')}
-                              className="ml-auto border-blue-300 hover:bg-blue-100"
-                            >
-                              {copiedScript === 'Neutral' ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <Copy className="h-4 w-4" />
+                            {script.chosenTone === 'neutral' && (
+                              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">Used</Badge>
+                            )}
+                            <div className="ml-auto flex gap-1">
+                              {script.status === 'saved' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => markScriptAsUsed(script.id, 'neutral')}
+                                  disabled={isUpdatingScript}
+                                  className="text-xs px-2 py-1 h-auto bg-blue-200 hover:bg-blue-300 text-blue-800"
+                                >
+                                  Mark as Used
+                                </Button>
                               )}
-                            </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(script.neutralScript, 'Neutral')}
+                                className="border-blue-300 hover:bg-blue-100"
+                              >
+                                {copiedScript === 'Neutral' ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
                           </div>
                           <p className="text-sm text-blue-800 whitespace-pre-wrap">{script.neutralScript}</p>
                         </div>
 
-                        <div className="border border-green-200 bg-green-50 rounded p-3">
+                        <div className={`border rounded p-3 ${script.chosenTone === 'empathic' ? 'border-green-400 bg-green-100' : 'border-green-200 bg-green-50'}`}>
                           <div className="flex items-center gap-2 mb-2">
                             <Heart className="h-4 w-4 text-green-600" />
                             <span className="font-medium text-green-800">Empathic & Understanding</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => copyToClipboard(script.empathicScript, 'Empathic')}
-                              className="ml-auto border-green-300 hover:bg-green-100"
-                            >
-                              {copiedScript === 'Empathic' ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <Copy className="h-4 w-4" />
+                            {script.chosenTone === 'empathic' && (
+                              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">Used</Badge>
+                            )}
+                            <div className="ml-auto flex gap-1">
+                              {script.status === 'saved' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => markScriptAsUsed(script.id, 'empathic')}
+                                  disabled={isUpdatingScript}
+                                  className="text-xs px-2 py-1 h-auto bg-green-200 hover:bg-green-300 text-green-800"
+                                >
+                                  Mark as Used
+                                </Button>
                               )}
-                            </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(script.empathicScript, 'Empathic')}
+                                className="border-green-300 hover:bg-green-100"
+                              >
+                                {copiedScript === 'Empathic' ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
                           </div>
                           <p className="text-sm text-green-800 whitespace-pre-wrap">{script.empathicScript}</p>
                         </div>
                       </div>
+
+                      {/* Conversation Tracking Section */}
+                      {script.chosenTone && (
+                        <div className="mt-6 border-t pt-4">
+                          <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                            <MessageCircle className="h-4 w-4" />
+                            Conversation Progress
+                          </h4>
+                          
+                          {script.receivedReply ? (
+                            <div className="space-y-4">
+                              <div className="bg-gray-50 p-3 rounded">
+                                <h5 className="font-medium text-gray-800 mb-2">Their Reply:</h5>
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{script.receivedReply}</p>
+                              </div>
+                              
+                              {script.followUpSuggestions ? (
+                                <div className="space-y-3">
+                                  <h5 className="font-medium text-gray-800">Follow-up Options:</h5>
+                                  <div className="grid gap-2">
+                                    {script.followUpSuggestions?.firm && (
+                                      <div className="border border-red-200 bg-red-50 rounded p-2">
+                                        <span className="text-xs font-medium text-red-800 mb-1 block">Firm Response:</span>
+                                        <p className="text-sm text-red-800">{script.followUpSuggestions.firm}</p>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => copyToClipboard(script.followUpSuggestions?.firm || '', 'Follow-up Firm')}
+                                          className="mt-2 text-xs"
+                                        >
+                                          <Copy className="h-3 w-3 mr-1" /> Copy
+                                        </Button>
+                                      </div>
+                                    )}
+                                    {script.followUpSuggestions?.neutral && (
+                                      <div className="border border-blue-200 bg-blue-50 rounded p-2">
+                                        <span className="text-xs font-medium text-blue-800 mb-1 block">Neutral Response:</span>
+                                        <p className="text-sm text-blue-800">{script.followUpSuggestions.neutral}</p>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => copyToClipboard(script.followUpSuggestions?.neutral || '', 'Follow-up Neutral')}
+                                          className="mt-2 text-xs"
+                                        >
+                                          <Copy className="h-3 w-3 mr-1" /> Copy
+                                        </Button>
+                                      </div>
+                                    )}
+                                    {script.followUpSuggestions?.empathic && (
+                                      <div className="border border-green-200 bg-green-50 rounded p-2">
+                                        <span className="text-xs font-medium text-green-800 mb-1 block">Empathic Response:</span>
+                                        <p className="text-sm text-green-800">{script.followUpSuggestions.empathic}</p>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => copyToClipboard(script.followUpSuggestions?.empathic || '', 'Follow-up Empathic')}
+                                          className="mt-2 text-xs"
+                                        >
+                                          <Copy className="h-3 w-3 mr-1" /> Copy
+                                        </Button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <Button
+                                  onClick={() => generateFollowUpSuggestions(script)}
+                                  disabled={generatingFollowUp}
+                                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                                >
+                                  {generatingFollowUp ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      Generating Follow-ups...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-4 w-4 mr-2" />
+                                      Get Follow-up Suggestions
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <Button
+                              onClick={() => {
+                                setSelectedScript(script);
+                                setReplyDialogOpen(true);
+                              }}
+                              variant="outline"
+                              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Their Reply
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -690,6 +942,57 @@ export default function ScriptBuilder() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Partner Reply Dialog */}
+      <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Partner's Reply</DialogTitle>
+            <DialogDescription>
+              Record what they said in response to help generate follow-up suggestions
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reply">Their Response</Label>
+              <Textarea
+                id="reply"
+                placeholder="What did they say back to you?"
+                value={partnerReply}
+                onChange={(e) => setPartnerReply(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setReplyDialogOpen(false);
+                  setPartnerReply("");
+                  setSelectedScript(null);
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={addPartnerReply}
+                disabled={!partnerReply.trim() || isUpdatingScript}
+                className="flex-1"
+              >
+                {isUpdatingScript ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  "Add Reply"
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </>
