@@ -124,7 +124,7 @@ export default function ScriptBuilder() {
   const onSubmit = async (data: ScriptBuilderForm) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/scripts/generate", {
+      const response = await apiRequest("POST", "/api/script-builder", {
         situation: data.situation,
         message: data.message,
       });
