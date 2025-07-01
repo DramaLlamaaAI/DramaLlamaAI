@@ -125,6 +125,24 @@ export default function ScriptBuilder() {
   });
 
   const onSubmit = async (data: ScriptBuilderForm) => {
+    // Check if user is authenticated
+    if (!user) {
+      toast({
+        title: "Registration Required",
+        description: (
+          <div className="space-y-2">
+            <p>The Boundary Builder is for registered users only.</p>
+            <p className="text-sm font-medium">🎉 FREE for registered users for a limited time!</p>
+            <Link href="/register" className="text-blue-600 hover:text-blue-800 underline font-medium">
+              Click here to register →
+            </Link>
+          </div>
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await apiRequest("POST", "/api/script-builder", {
@@ -435,6 +453,25 @@ export default function ScriptBuilder() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {/* Registration Notice for Anonymous Users */}
+                  {!user && (
+                    <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-start space-x-3">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-amber-800">Registration Required</h4>
+                          <p className="text-sm text-amber-700 mt-1">
+                            The Boundary Builder is for registered users only. 
+                            <span className="font-medium"> Free for registered users for a limited time!</span>
+                          </p>
+                          <Link href="/register" className="inline-flex items-center mt-2 text-sm font-medium text-amber-800 hover:text-amber-900">
+                            Register now to start building better conversations →
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                       <FormField

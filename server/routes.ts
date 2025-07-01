@@ -197,7 +197,7 @@ app.use(session({
   app.post('/api/analyze/chat', checkTrialEligibility, analysisController.analyzeChat);
   app.post('/api/analyze/message', checkTrialEligibility, analysisController.analyzeMessage);
   app.post('/api/analyze/de-escalate', checkTrialEligibility, analysisController.deEscalateMessage);
-  app.post('/api/script-builder', checkTrialEligibility, analysisController.generateScript);
+  app.post('/api/script-builder', isAuthenticated, analysisController.generateScript);
   
   // These routes don't count against usage limits
   app.post('/api/analyze/detect-names', analysisController.detectNames);
