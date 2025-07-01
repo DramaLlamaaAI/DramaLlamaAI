@@ -82,6 +82,8 @@ export default function ScriptBuilder() {
   const [replyText, setReplyText] = useState("");
   const [isUpdatingScript, setIsUpdatingScript] = useState(false);
   const [generatingFollowUp, setGeneratingFollowUp] = useState(false);
+  const [expandedScript, setExpandedScript] = useState<number | null>(null);
+  const [myNewMessage, setMyNewMessage] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -698,14 +700,21 @@ export default function ScriptBuilder() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {savedScripts.map((script) => (
                   <Card key={script.id} className="relative">
-                    <CardHeader>
+                    <CardHeader 
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => setExpandedScript(expandedScript === script.id ? null : script.id)}
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <CardTitle className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-gray-500" />
+                            {expandedScript === script.id ? (
+                              <MessageSquare className="h-4 w-4 text-blue-600" />
+                            ) : (
+                              <Calendar className="h-4 w-4 text-gray-500" />
+                            )}
                             {script.title}
                             <Badge 
                               variant={script.status === 'resolved' ? 'default' : 'secondary'}
@@ -730,18 +739,26 @@ export default function ScriptBuilder() {
                                 Used: {script.chosenTone}
                               </span>
                             )}
+                            <span className="text-xs text-gray-500">
+                              {expandedScript === script.id ? 'Click to collapse' : 'Click to expand'}
+                            </span>
                           </CardDescription>
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => deleteScriptMutation.mutate(script.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteScriptMutation.mutate(script.id);
+                          }}
                           className="text-red-500 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardHeader>
+                    
+                    {expandedScript === script.id && (
                     <CardContent>
                       <div className="space-y-4">
                         <div>
@@ -754,20 +771,21 @@ export default function ScriptBuilder() {
                           <p className="text-sm text-gray-700">{script.originalMessage}</p>
                         </div>
 
-                        <div className="grid gap-3 md:grid-cols-3">
-                          <div className="border border-red-200 bg-red-50 rounded p-3">
-                            <span className="text-xs font-medium text-red-800 mb-1 block">Firm:</span>
-                            <p className="text-sm text-red-800 mb-2">{script.firmScript}</p>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => copyToClipboard(script.firmScript, 'Firm')}
-                                className="text-xs h-7"
-                              >
-                                <Copy className="h-3 w-3 mr-1" /> Copy
-                              </Button>
-                              {script.status === 'saved' && (
+                        {/* Show all three options only if none has been chosen yet */}
+                        {!script.chosenTone ? (
+                          <div className="grid gap-3 md:grid-cols-3">
+                            <div className="border border-red-200 bg-red-50 rounded p-3">
+                              <span className="text-xs font-medium text-red-800 mb-1 block">Firm:</span>
+                              <p className="text-sm text-red-800 mb-2">{script.firmScript}</p>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(script.firmScript, 'Firm')}
+                                  className="text-xs h-7"
+                                >
+                                  <Copy className="h-3 w-3 mr-1" /> Copy
+                                </Button>
                                 <Button
                                   size="sm"
                                   onClick={() => markScriptAsUsed(script.id, 'firm')}
@@ -776,23 +794,21 @@ export default function ScriptBuilder() {
                                 >
                                   <Check className="h-3 w-3 mr-1" /> Use This
                                 </Button>
-                              )}
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="border border-blue-200 bg-blue-50 rounded p-3">
-                            <span className="text-xs font-medium text-blue-800 mb-1 block">Neutral:</span>
-                            <p className="text-sm text-blue-800 mb-2">{script.neutralScript}</p>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => copyToClipboard(script.neutralScript, 'Neutral')}
-                                className="text-xs h-7"
-                              >
-                                <Copy className="h-3 w-3 mr-1" /> Copy
-                              </Button>
-                              {script.status === 'saved' && (
+                            <div className="border border-blue-200 bg-blue-50 rounded p-3">
+                              <span className="text-xs font-medium text-blue-800 mb-1 block">Neutral:</span>
+                              <p className="text-sm text-blue-800 mb-2">{script.neutralScript}</p>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(script.neutralScript, 'Neutral')}
+                                  className="text-xs h-7"
+                                >
+                                  <Copy className="h-3 w-3 mr-1" /> Copy
+                                </Button>
                                 <Button
                                   size="sm"
                                   onClick={() => markScriptAsUsed(script.id, 'neutral')}
@@ -801,23 +817,21 @@ export default function ScriptBuilder() {
                                 >
                                   <Check className="h-3 w-3 mr-1" /> Use This
                                 </Button>
-                              )}
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="border border-green-200 bg-green-50 rounded p-3">
-                            <span className="text-xs font-medium text-green-800 mb-1 block">Empathic:</span>
-                            <p className="text-sm text-green-800 mb-2">{script.empathicScript}</p>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => copyToClipboard(script.empathicScript, 'Empathic')}
-                                className="text-xs h-7"
-                              >
-                                <Copy className="h-3 w-3 mr-1" /> Copy
-                              </Button>
-                              {script.status === 'saved' && (
+                            <div className="border border-green-200 bg-green-50 rounded p-3">
+                              <span className="text-xs font-medium text-green-800 mb-1 block">Empathic:</span>
+                              <p className="text-sm text-green-800 mb-2">{script.empathicScript}</p>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(script.empathicScript, 'Empathic')}
+                                  className="text-xs h-7"
+                                >
+                                  <Copy className="h-3 w-3 mr-1" /> Copy
+                                </Button>
                                 <Button
                                   size="sm"
                                   onClick={() => markScriptAsUsed(script.id, 'empathic')}
@@ -826,164 +840,114 @@ export default function ScriptBuilder() {
                                 >
                                   <Check className="h-3 w-3 mr-1" /> Use This
                                 </Button>
-                              )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-
-                        {/* Show reply section if script has been used/sent */}
-                        {(script.status === 'sent' || script.chosenTone) && (
-                          <div className="border-t pt-4">
-                            {script.receivedReply ? (
-                              <div className="mb-4">
-                                <h5 className="font-medium text-gray-800 mb-2">Their Reply:</h5>
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded border">{script.receivedReply}</p>
+                        ) : (
+                          /* Show conversation flow for used scripts */
+                          <div className="space-y-4">
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <h5 className="font-medium text-blue-800">You sent ({script.chosenTone}):</h5>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(
+                                    script.chosenTone === 'firm' ? script.firmScript :
+                                    script.chosenTone === 'neutral' ? script.neutralScript : 
+                                    script.empathicScript, 
+                                    'Used Script'
+                                  )}
+                                  className="text-xs"
+                                >
+                                  <Copy className="h-3 w-3 mr-1" /> Copy
+                                </Button>
                               </div>
-                            ) : (
-                              <div className="mb-4">
-                                <h5 className="font-medium text-gray-800 mb-2">Add Their Reply:</h5>
+                              <p className="text-sm text-blue-700">
+                                {script.chosenTone === 'firm' ? script.firmScript :
+                                 script.chosenTone === 'neutral' ? script.neutralScript : 
+                                 script.empathicScript}
+                              </p>
+                            </div>
+
+                            {/* Conversation continuation interface */}
+                            <div className="space-y-3">
+                              <h5 className="font-medium text-gray-800">Continue Conversation:</h5>
+                              
+                              {/* Show their reply if exists */}
+                              {script.receivedReply && (
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                  <h6 className="font-medium text-gray-700 mb-2">They replied:</h6>
+                                  <p className="text-sm text-gray-600">{script.receivedReply}</p>
+                                </div>
+                              )}
+
+                              {/* Add their reply section */}
+                              {!script.receivedReply && (
+                                <div className="border border-gray-200 rounded-lg p-4">
+                                  <h6 className="font-medium text-gray-700 mb-2">Add their response:</h6>
+                                  <div className="space-y-2">
+                                    <Textarea
+                                      placeholder="What did they say back? This will help generate follow-up responses..."
+                                      value={replyText}
+                                      onChange={(e) => setReplyText(e.target.value)}
+                                      className="min-h-[60px] resize-none text-sm"
+                                    />
+                                    <Button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        addPartnerReply(script.id);
+                                      }}
+                                      disabled={!replyText.trim() || isUpdatingScript}
+                                      size="sm"
+                                      className="bg-gray-600 hover:bg-gray-700 text-white"
+                                    >
+                                      {isUpdatingScript ? (
+                                        <>
+                                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                          Adding...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Plus className="h-3 w-3 mr-1" />
+                                          Add Response & Generate Follow-ups
+                                        </>
+                                      )}
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Add your new message section */}
+                              <div className="border border-blue-200 rounded-lg p-4">
+                                <h6 className="font-medium text-blue-700 mb-2">Add your follow-up message:</h6>
                                 <div className="space-y-2">
                                   <Textarea
-                                    placeholder="What did they say back? Paste their response here to get follow-up suggestions..."
-                                    value={replyText}
-                                    onChange={(e) => setReplyText(e.target.value)}
-                                    className="min-h-[80px] resize-none"
+                                    placeholder="Want to say something else? Add your message here..."
+                                    value={myNewMessage}
+                                    onChange={(e) => setMyNewMessage(e.target.value)}
+                                    className="min-h-[60px] resize-none text-sm"
                                   />
                                   <Button
-                                    onClick={() => addPartnerReply(script.id)}
-                                    disabled={!replyText.trim() || isUpdatingScript}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Handle adding user's new message
+                                    }}
+                                    disabled={!myNewMessage.trim()}
                                     size="sm"
-                                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
                                   >
-                                    {isUpdatingScript ? (
-                                      <>
-                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                        Adding Reply...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <MessageSquare className="h-3 w-3 mr-1" />
-                                        Add Reply & Generate Follow-ups
-                                      </>
-                                    )}
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Add My Message
                                   </Button>
                                 </div>
                               </div>
-                            )}
-                            
-                            {script.followUpSuggestions ? (
-                              <div className="space-y-3">
-                                <h5 className="font-medium text-gray-800">Follow-up Options:</h5>
-                                <div className="grid gap-2">
-                                  {script.followUpSuggestions?.firm && (
-                                    <div className="border border-red-200 bg-red-50 rounded p-2">
-                                      <span className="text-xs font-medium text-red-800 mb-1 block">Firm Response:</span>
-                                      <p className="text-sm text-red-800">{script.followUpSuggestions.firm}</p>
-                                      <div className="flex gap-2 mt-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => copyToClipboard(script.followUpSuggestions?.firm || '', 'Follow-up Firm')}
-                                          className="text-xs"
-                                        >
-                                          <Copy className="h-3 w-3 mr-1" /> Copy
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          onClick={() => saveFollowUpResponse(script, 'firm', script.followUpSuggestions?.firm || '')}
-                                          className="text-xs bg-red-600 hover:bg-red-700 text-white"
-                                        >
-                                          <Check className="h-3 w-3 mr-1" /> Mark as Used
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {script.followUpSuggestions?.neutral && (
-                                    <div className="border border-blue-200 bg-blue-50 rounded p-2">
-                                      <span className="text-xs font-medium text-blue-800 mb-1 block">Neutral Response:</span>
-                                      <p className="text-sm text-blue-800">{script.followUpSuggestions.neutral}</p>
-                                      <div className="flex gap-2 mt-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => copyToClipboard(script.followUpSuggestions?.neutral || '', 'Follow-up Neutral')}
-                                          className="text-xs"
-                                        >
-                                          <Copy className="h-3 w-3 mr-1" /> Copy
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          onClick={() => saveFollowUpResponse(script, 'neutral', script.followUpSuggestions?.neutral || '')}
-                                          className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                                        >
-                                          <Check className="h-3 w-3 mr-1" /> Mark as Used
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {script.followUpSuggestions?.empathic && (
-                                    <div className="border border-green-200 bg-green-50 rounded p-2">
-                                      <span className="text-xs font-medium text-green-800 mb-1 block">Empathic Response:</span>
-                                      <p className="text-sm text-green-800">{script.followUpSuggestions.empathic}</p>
-                                      <div className="flex gap-2 mt-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => copyToClipboard(script.followUpSuggestions?.empathic || '', 'Follow-up Empathic')}
-                                          className="text-xs"
-                                        >
-                                          <Copy className="h-3 w-3 mr-1" /> Copy
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          onClick={() => saveFollowUpResponse(script, 'empathic', script.followUpSuggestions?.empathic || '')}
-                                          className="text-xs bg-green-600 hover:bg-green-700 text-white"
-                                        >
-                                          <Check className="h-3 w-3 mr-1" /> Mark as Used
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ) : (
-                              <Button
-                                onClick={() => generateFollowUpSuggestions(script)}
-                                disabled={generatingFollowUp}
-                                className="bg-purple-600 hover:bg-purple-700 text-white"
-                              >
-                                {generatingFollowUp ? (
-                                  <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Generating Follow-ups...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Sparkles className="h-4 w-4 mr-2" />
-                                    Get Follow-up Suggestions
-                                  </>
-                                )}
-                              </Button>
-                            )}
+                            </div>
                           </div>
-                        )}
-
-                        {/* Show "Add Their Reply" button for sent scripts without a reply */}
-                        {script.status === 'sent' && !script.receivedReply && (
-                          <Button
-                            onClick={() => {
-                              setSelectedScript(script);
-                              setReplyDialogOpen(true);
-                            }}
-                            variant="outline"
-                            className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Their Reply
-                          </Button>
                         )}
                       </div>
                     </CardContent>
+                    )}
                   </Card>
                 ))}
               </div>
