@@ -53,6 +53,13 @@ export interface IStorage {
   getUserUsage(userId: number): Promise<{ used: number, limit: number | null, tier: string }>;
   incrementUserUsage(userId: number): Promise<void>;
   
+  // Boundary Builder Analytics
+  getBoundaryBuilderUsage(userId?: number): Promise<{ 
+    totalUsage: number; 
+    usageByUser?: { userId: number; username: string; count: number }[];
+    usageByDate?: { date: string; count: number }[];
+  }>;
+  
   // Anonymous Usage Tracking
   getAnonymousUsage(deviceId: string): Promise<AnonymousUsage | undefined>;
   incrementAnonymousUsage(deviceId: string): Promise<AnonymousUsage>;
@@ -1929,6 +1936,90 @@ export class DatabaseStorage implements IStorage {
       .update(conversationMessages)
       .set({ isActive: true })
       .where(eq(conversationMessages.id, messageId));
+  }
+
+  // Boundary Builder Analytics
+  async getBoundaryBuilderUsage(userId?: number): Promise<{ 
+    totalUsage: number; 
+    usageByUser?: { userId: number; username: string; count: number }[];
+    usageByDate?: { date: string; count: number }[];
+  }> {
+    try {
+      // Get total boundary builder usage
+      const totalResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(analyses)
+        .where(eq(analyses.type, 'boundary-builder'));
+      
+      const totalUsage = totalResult[0]?.count || 0;
+
+      // If requesting specific user, just return total for that user
+      if (userId) {
+        const userResult = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(analyses)
+          .where(and(eq(analyses.type, 'boundary-builder'), eq(analyses.userId, userId)));
+        
+        return {
+          totalUsage: userResult[0]?.count || 0
+        };
+      }
+
+      // Get usage by user (for admin dashboard)
+      const usageByUserResult = await db
+        .select({
+          userId: analyses.userId,
+          username: users.username,
+          count: sql<number>`count(*)`
+        })
+        .from(analyses)
+        .innerJoin(users, eq(analyses.userId, users.id))
+        .where(eq(analyses.type, 'boundary-builder'))
+        .groupBy(analyses.userId, users.username)
+        .orderBy(sql`count(*) DESC`);
+
+      const usageByUser = usageByUserResult.map(row => ({
+        userId: row.userId,
+        username: row.username,
+        count: Number(row.count)
+      }));
+
+      // Get usage by date (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const usageByDateResult = await db
+        .select({
+          date: sql<string>`to_char(${analyses.createdAt}, 'YYYY-MM-DD')`,
+          count: sql<number>`count(*)`
+        })
+        .from(analyses)
+        .where(and(
+          eq(analyses.type, 'boundary-builder'),
+          sql`${analyses.createdAt} >= ${thirtyDaysAgo}`
+        ))
+        .groupBy(sql`to_char(${analyses.createdAt}, 'YYYY-MM-DD')`)
+        .orderBy(sql`to_char(${analyses.createdAt}, 'YYYY-MM-DD')`);
+
+      const usageByDate = usageByDateResult.map(row => ({
+        date: row.date,
+        count: Number(row.count)
+      }));
+
+      return {
+        totalUsage,
+        usageByUser,
+        usageByDate
+      };
+
+    } catch (error) {
+      console.error('Error getting boundary builder usage:', error);
+      return {
+        totalUsage: 0,
+        usageByUser: [],
+        usageByDate: []
+      };
+    }
   }
 }
 

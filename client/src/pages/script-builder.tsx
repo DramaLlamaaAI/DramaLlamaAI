@@ -143,6 +143,22 @@ export default function ScriptBuilder() {
       return;
     }
 
+    // Check if user has access (beta tier or higher)
+    if (user.tier === 'free') {
+      toast({
+        title: "Beta Tier Required",
+        description: (
+          <div className="space-y-2">
+            <p>The Boundary Builder requires Beta Tier access.</p>
+            <p className="text-sm font-medium">🎉 FREE Beta Tier upgrade available for registered users!</p>
+            <p className="text-sm text-gray-600">Contact support for your free Beta Tier upgrade.</p>
+          </div>
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await apiRequest("POST", "/api/script-builder", {
@@ -1026,7 +1042,10 @@ export default function ScriptBuilder() {
                 Cancel
               </Button>
               <Button 
-                onClick={addPartnerReply}
+                onClick={(e) => {
+                  e.preventDefault();
+                  addPartnerReply();
+                }}
                 disabled={!partnerReply.trim() || isUpdatingScript}
                 className="flex-1"
               >

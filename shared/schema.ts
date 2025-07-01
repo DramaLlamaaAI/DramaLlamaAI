@@ -110,7 +110,7 @@ export const insertPromoUsageSchema = createInsertSchema(promoUsage).pick({
 export const analyses = pgTable("analyses", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  type: text("type").notNull(), // chat, message, de-escalate
+  type: text("type").notNull(), // chat, message, de-escalate, boundary-builder
   content: text("content").notNull(),
   result: json("result").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),

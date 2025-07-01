@@ -58,6 +58,7 @@ export function BetaPromoBanner() {
         <div className="text-xs mb-3 text-pink-100 space-y-1">
           <div>✅ Deeper red flag detection</div>
           <div>✅ Emotional tone breakdowns</div>
+          <div>✅ Full Boundary Builder access</div>
           <div>✅ Private & secure chat analysis</div>
         </div>
         

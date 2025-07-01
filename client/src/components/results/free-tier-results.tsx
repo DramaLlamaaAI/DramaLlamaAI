@@ -296,6 +296,7 @@ export default function FreeTierResults({ result, me, them }: FreeTierResultsPro
                 <li>• Overall Emotional Tone</li>
                 <li>• Conversation Health Score (visual meter)</li>
                 <li>• In-depth red flag detection</li>
+                <li>• Full Boundary Builder access</li>
                 <li>• Empathetic summaries with growth areas and strengths</li>
                 <li>• Support recommendations</li>
               </ul>

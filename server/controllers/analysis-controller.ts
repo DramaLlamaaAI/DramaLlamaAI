@@ -1365,6 +1365,17 @@ export const analysisController = {
       const { generateConversationScripts } = await import('../services/script-builder-service');
       const scripts = await generateConversationScripts(situation, message, tier);
       
+      // Track boundary builder usage in analytics
+      const userId = req.session?.userId;
+      if (userId) {
+        await storage.saveAnalysis({
+          userId,
+          type: 'boundary-builder',
+          content: JSON.stringify({ situation, message }),
+          result: scripts
+        });
+      }
+      
       res.json(scripts);
     } catch (error: any) {
       console.error('Script generation error:', error);

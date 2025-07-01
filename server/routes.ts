@@ -91,6 +91,35 @@ const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+// Middleware to check if user has beta tier or higher access
+const requiresBetaTier = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    // Allow beta tier and above (beta, pro, premium)
+    if (user.tier === 'free') {
+      return res.status(403).json({ 
+        error: "Beta Tier Required",
+        message: "The Boundary Builder requires Beta Tier access. Contact support for your free upgrade!",
+        upgradeRequired: true
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Error checking user tier:', error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 // Middleware to check free trial eligibility for anonymous users
 const checkTrialEligibility = async (req: Request, res: Response, next: NextFunction) => {
   // If user is authenticated, allow the request
@@ -197,7 +226,8 @@ app.use(session({
   app.post('/api/analyze/chat', checkTrialEligibility, analysisController.analyzeChat);
   app.post('/api/analyze/message', checkTrialEligibility, analysisController.analyzeMessage);
   app.post('/api/analyze/de-escalate', checkTrialEligibility, analysisController.deEscalateMessage);
-  app.post('/api/script-builder', isAuthenticated, analysisController.generateScript);
+  // Boundary Builder - requires beta tier or higher
+  app.post('/api/script-builder', isAuthenticated, requiresBetaTier, analysisController.generateScript);
   
   // These routes don't count against usage limits
   app.post('/api/analyze/detect-names', analysisController.detectNames);
@@ -1434,6 +1464,41 @@ support@dramallama.ai
       res.status(200).json(analyticsData);
     } catch (error: any) {
       res.status(500).json({ error: error.message || 'Failed to retrieve analytics data' });
+    }
+  });
+
+  // Boundary Builder Analytics
+  app.get('/api/admin/boundary-builder-analytics', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+    try {
+      const analytics = await storage.getBoundaryBuilderUsage();
+      res.json(analytics);
+    } catch (error: any) {
+      console.error('Boundary Builder analytics error:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch boundary builder analytics' });
+    }
+  });
+
+  // User-specific usage analytics (including boundary builder)
+  app.get('/api/user/usage-analytics', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Get user's chat analysis usage
+      const chatAnalyses = await storage.getUserAnalyses(userId);
+
+      // Get user's boundary builder usage
+      const boundaryBuilderUsage = await storage.getBoundaryBuilderUsage(userId);
+
+      res.json({
+        chatAnalysisCount: chatAnalyses.length,
+        boundaryBuilderCount: boundaryBuilderUsage.totalUsage
+      });
+    } catch (error: any) {
+      console.error('User usage analytics error:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch user usage analytics' });
     }
   });
   

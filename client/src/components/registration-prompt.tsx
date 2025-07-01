@@ -75,6 +75,10 @@ export default function RegistrationPrompt({ tier, onClose, showCloseButton = tr
               </div>
               <div className="flex items-center">
                 <span className="mr-2">✅</span>
+                <span>Full Boundary Builder access</span>
+              </div>
+              <div className="flex items-center">
+                <span className="mr-2">✅</span>
                 <span>Private & secure chat analysis</span>
               </div>
             </div>
