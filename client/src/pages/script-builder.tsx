@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield, Save, BookOpen, Trash2, Calendar, Clock, MessageCircle, Plus, Sparkles, Check } from "lucide-react";
+import { Loader2, Edit3, Copy, CheckCircle, AlertCircle, Heart, Shield, Save, BookOpen, Trash2, Calendar, Clock, MessageCircle, MessageSquare, Plus, Sparkles, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/header";
@@ -79,6 +79,7 @@ export default function ScriptBuilder() {
   const [selectedScript, setSelectedScript] = useState<SavedScript | null>(null);
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [partnerReply, setPartnerReply] = useState("");
+  const [replyText, setReplyText] = useState("");
   const [isUpdatingScript, setIsUpdatingScript] = useState(false);
   const [generatingFollowUp, setGeneratingFollowUp] = useState(false);
   const { toast } = useToast();
@@ -231,26 +232,52 @@ export default function ScriptBuilder() {
     }
   };
 
-  const addPartnerReply = async () => {
-    if (!selectedScript || !partnerReply.trim()) return;
+  const addPartnerReply = async (scriptId?: number) => {
+    // If called with scriptId, use inline reply; otherwise use dialog
+    const targetScript = scriptId ? savedScripts.find(s => s.id === scriptId) : selectedScript;
+    const replyMessage = scriptId ? replyText : partnerReply;
+    
+    if (!targetScript || !replyMessage.trim()) return;
 
     setIsUpdatingScript(true);
     try {
-      await apiRequest("PUT", `/api/scripts/${selectedScript.id}`, {
-        receivedReply: partnerReply.trim(),
+      await apiRequest("PUT", `/api/scripts/${targetScript.id}`, {
+        receivedReply: replyMessage.trim(),
         status: 'replied'
       });
+
+      // Generate follow-up suggestions automatically
+      const response = await apiRequest("POST", "/api/scripts/follow-up", {
+        scriptId: targetScript.id,
+        originalSituation: targetScript.situation,
+        yourMessage: targetScript.chosenTone === 'firm' ? targetScript.firmScript : 
+                     targetScript.chosenTone === 'neutral' ? targetScript.neutralScript : 
+                     targetScript.empathicScript,
+        partnerReply: replyMessage.trim(),
+        previousTone: targetScript.chosenTone
+      });
+
+      if (response.ok) {
+        const followUpData = await response.json();
+        await apiRequest("PUT", `/api/scripts/${targetScript.id}`, {
+          followUpSuggestions: followUpData
+        });
+      }
 
       queryClient.invalidateQueries({ queryKey: ['/api/scripts'] });
 
       toast({
-        title: "Reply added",
-        description: "Partner's reply has been recorded",
+        title: "Reply added & follow-ups generated",
+        description: "Partner's reply recorded and follow-up suggestions are ready",
       });
 
-      setReplyDialogOpen(false);
-      setPartnerReply("");
-      setSelectedScript(null);
+      if (scriptId) {
+        setReplyText("");
+      } else {
+        setReplyDialogOpen(false);
+        setPartnerReply("");
+        setSelectedScript(null);
+      }
     } catch (error) {
       toast({
         title: "Update failed",
@@ -804,13 +831,45 @@ export default function ScriptBuilder() {
                           </div>
                         </div>
 
-                        {/* Show reply section if script has been sent and has a reply */}
-                        {script.status === 'sent' && script.receivedReply && (
+                        {/* Show reply section if script has been used/sent */}
+                        {(script.status === 'sent' || script.chosenTone) && (
                           <div className="border-t pt-4">
-                            <div className="mb-4">
-                              <h5 className="font-medium text-gray-800 mb-2">Their Reply:</h5>
-                              <p className="text-sm text-gray-700 whitespace-pre-wrap">{script.receivedReply}</p>
-                            </div>
+                            {script.receivedReply ? (
+                              <div className="mb-4">
+                                <h5 className="font-medium text-gray-800 mb-2">Their Reply:</h5>
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded border">{script.receivedReply}</p>
+                              </div>
+                            ) : (
+                              <div className="mb-4">
+                                <h5 className="font-medium text-gray-800 mb-2">Add Their Reply:</h5>
+                                <div className="space-y-2">
+                                  <Textarea
+                                    placeholder="What did they say back? Paste their response here to get follow-up suggestions..."
+                                    value={replyText}
+                                    onChange={(e) => setReplyText(e.target.value)}
+                                    className="min-h-[80px] resize-none"
+                                  />
+                                  <Button
+                                    onClick={() => addPartnerReply(script.id)}
+                                    disabled={!replyText.trim() || isUpdatingScript}
+                                    size="sm"
+                                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                                  >
+                                    {isUpdatingScript ? (
+                                      <>
+                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                        Adding Reply...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <MessageSquare className="h-3 w-3 mr-1" />
+                                        Add Reply & Generate Follow-ups
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                             
                             {script.followUpSuggestions ? (
                               <div className="space-y-3">
