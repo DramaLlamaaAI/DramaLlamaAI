@@ -99,7 +99,11 @@ The application is configured for deployment on Replit with the following setup:
 4. Database schema push via Drizzle migrations
 
 ## Changelog
-- June 13, 2025. Initial setup
+- July 1, 2025: Enhanced follow-up response system in Boundary Builder
+  - Added intelligent analysis of recipient's reply tone (constructive/defensive/mixed)
+  - Implemented acceptance/acknowledgment responses for positive replies
+  - Improved nuanced handling to avoid unnecessary conflict escalation
+- June 13, 2025: Initial setup
 
 ## User Preferences
 
