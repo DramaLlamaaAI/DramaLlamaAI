@@ -25,6 +25,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   
   next();
 });
+// ✅ Root health check endpoint
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).send('Drama Llama API is working!');
+});
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
