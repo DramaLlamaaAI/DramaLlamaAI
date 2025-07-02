@@ -11,7 +11,7 @@ The application follows a full-stack architecture with clear separation between 
 - **Frontend**: React-based SPA with TypeScript, using Vite for bundling
 - **Backend**: Express.js Node.js server with TypeScript
 - **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
-- **AI Integration**: Primary integration with Anthropic Claude API for conversation analysis
+- **AI Integration**: Exclusive integration with Anthropic Claude API for conversation analysis
 - **Email Services**: Resend for transactional emails
 - **Payment Processing**: Stripe integration for subscription management
 - **Image Processing**: Azure Vision API for OCR capabilities
@@ -63,7 +63,7 @@ The application follows a full-stack architecture with clear separation between 
 ## External Dependencies
 
 ### AI Services
-- **Anthropic Claude**: Primary AI analysis engine for conversation insights
+- **Anthropic Claude**: Exclusive AI analysis engine for conversation insights and all text processing
 - **Azure Computer Vision**: OCR processing for image-based conversations
 - **Google Cloud Vision**: Backup OCR service
 
@@ -99,6 +99,12 @@ The application is configured for deployment on Replit with the following setup:
 4. Database schema push via Drizzle migrations
 
 ## Changelog
+- July 2, 2025: Removed all OpenAI dependencies and fallback logic
+  - Uninstalled OpenAI package completely from dependencies
+  - Removed all OpenAI fallback functions from Anthropic service
+  - Simplified error handling to rely exclusively on Anthropic Claude
+  - Updated architecture documentation to reflect single AI provider
+  - Improved system reliability by removing secondary API dependencies
 - July 1, 2025: Complete SEO setup with sitemap and robots.txt
   - Generated comprehensive XML sitemap covering all application routes
   - Created robots.txt for proper search engine guidance

@@ -1,18 +1,10 @@
 import { Request, Response } from "express";
-import OpenAI from "openai";
 import multer from "multer";
 import * as fs from 'fs';
 import * as path from 'path';
 import Anthropic from '@anthropic-ai/sdk';
 
-// Create OpenAI instance
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  organization: process.env.OPENAI_ORG_ID, // Support for organization ID if provided
-  // Project API keys use the standard OpenAI API URL
-});
-
-// Create Anthropic instance for fallback
+// Create Anthropic instance
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });

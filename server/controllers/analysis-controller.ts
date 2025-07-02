@@ -243,50 +243,13 @@ Important instructions for group chat analysis:
       if (anthropicError.message && anthropicError.message.includes('API key')) {
         throw new Error('Anthropic API key issue: ' + anthropicError.message);
       }
-      // Otherwise continue to OpenAI fallback
       throw anthropicError;
     }
   } catch (error) {
-    console.log('Attempting fallback to OpenAI for group chat analysis');
+    console.error('Anthropic API failed for group chat analysis:', error);
     
-    // Check if OpenAI key is valid before attempting
-    if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_API_KEY.startsWith('sk-')) {
-      console.error('OpenAI API key missing or invalid format');
-      // Use mock analysis when both APIs fail due to key issues
-      return createMockGroupAnalysis(conversation, participants, tier);
-    }
-    
-    // Fall back to OpenAI for backup analysis if Anthropic fails
-    try {
-      const { analyzeChatWithOpenAI } = await import('../services/openai-service');
-      
-      // Use the same format for OpenAI service
-      const me = participants[0] || 'Participant1';
-      const them = participants.slice(1).join(', ') || 'OtherParticipants';
-      
-      const openAIAnalysis = await analyzeChatWithOpenAI(conversation, me, them, tier, `GROUP CHAT with ${participants.length} participants`);
-      
-      // Add group chat metadata
-      openAIAnalysis.isGroupChat = true;
-      openAIAnalysis.groupParticipants = participants;
-      
-      // For message dominance and power dynamics in Pro tier with OpenAI fallback
-      if ((tier === 'pro' || tier === 'instant') && !openAIAnalysis.messageDominance) {
-        openAIAnalysis.messageDominance = generateMessageDominanceAnalysis(conversation, participants);
-      }
-      
-      if ((tier === 'pro' || tier === 'instant') && !openAIAnalysis.powerDynamics) {
-        openAIAnalysis.powerDynamics = generatePowerDynamicsAnalysis(conversation, participants);
-      }
-      
-      return openAIAnalysis;
-    } catch (fallbackError) {
-      console.error('Both Anthropic and OpenAI fallback failed for group chat analysis:', fallbackError);
-      
-      // If we get here, both APIs have failed
-      // Return a mock analysis with basic structure
-      return createMockGroupAnalysis(conversation, participants, tier);
-    }
+    // Return a mock analysis when Anthropic fails
+    return createMockGroupAnalysis(conversation, participants, tier);
   }
 };
 
