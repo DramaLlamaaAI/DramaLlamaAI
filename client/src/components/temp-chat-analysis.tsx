@@ -615,7 +615,7 @@ export default function ChatAnalysis() {
                         </h5>
                         <ul className="space-y-2">
                           {me.toLowerCase().includes('alex') || them.toLowerCase().includes('alex') ? (
-                            <>
+                            <div>
                               <li className="flex items-start">
                                 <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
                                 <span>Accusatory language with emotional charging</span>
@@ -632,9 +632,9 @@ export default function ChatAnalysis() {
                                 <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
                                 <span>{them.toLowerCase().includes('jamie') ? them : me} attempts de-escalation but is invalidated</span>
                               </li>
-                            </>
+                            </div>
                           ) : (
-                            <>
+                            <div>
                               <li className="flex items-start">
                                 <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
                                 <span>Clear power struggle and emotional misalignment</span>
@@ -651,7 +651,7 @@ export default function ChatAnalysis() {
                                 <div className="mr-2 mt-1.5 bg-red-400 rounded-full h-1.5 w-1.5"></div>
                                 <span>De-escalation attempts are invalidated repeatedly</span>
                               </li>
-                            </>
+                            </div>
                           )}
                         </ul>
                       </div>
@@ -873,8 +873,8 @@ export default function ChatAnalysis() {
               )}
               
               {result && (
-                <>
-                <div className="bg-muted p-4 rounded-lg mb-4">
+                <div>
+                  <div className="bg-muted p-4 rounded-lg mb-4">
                 <h4 className="font-medium mb-2">Communication Insights</h4>
                 {(result.communication && result.communication.patterns && result.communication.patterns.length > 0) ? (
                   <div className="mb-4">
@@ -906,12 +906,12 @@ export default function ChatAnalysis() {
                             <p>
                               <span className="text-gray-700">{beforeQuote}</span>
                               {hasQuote && (
-                                <>
+                                <div>
                                   <span className={`italic px-2 py-1 rounded my-1 inline-block ${meColor || themColor || "bg-blue-50 text-blue-600"}`}>
                                     "{quote}"
                                   </span>
                                   <span className="text-gray-700">{afterQuote}</span>
-                                </>
+                                </div>
                               )}
                               {!hasQuote && (
                                 <span className="text-gray-700">{pattern}</span>
@@ -1039,9 +1039,9 @@ export default function ChatAnalysis() {
                   Export Results
                 </Button>
               </div>
-              </>
-            </div>
-          )}
+              </div>
+                </div>
+              )}
           
         </CardContent>
       </Card>
