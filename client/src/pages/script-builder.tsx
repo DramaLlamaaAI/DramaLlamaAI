@@ -133,7 +133,7 @@ export default function ScriptBuilder() {
           <div className="space-y-2">
             <p>The Boundary Builder is for registered users only.</p>
             <p className="text-sm font-medium">🎉 FREE for registered users for a limited time!</p>
-            <Link href="/register" className="text-blue-600 hover:text-blue-800 underline font-medium">
+            <Link href="/auth" className="text-blue-600 hover:text-blue-800 underline font-medium">
               Click here to register →
             </Link>
           </div>
@@ -480,7 +480,7 @@ export default function ScriptBuilder() {
                             The Boundary Builder is for registered users only. 
                             <span className="font-medium"> Free for registered users for a limited time!</span>
                           </p>
-                          <Link href="/register" className="inline-flex items-center mt-2 text-sm font-medium text-amber-800 hover:text-amber-900">
+                          <Link href="/auth" className="inline-flex items-center mt-2 text-sm font-medium text-amber-800 hover:text-amber-900">
                             Register now to start building better conversations →
                           </Link>
                         </div>
