@@ -27,21 +27,10 @@
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
     "baseUrl": ".",
-<<<<<<< HEAD
-    "types": ["node"],
-=======
-    "types": [
-      "node",
-      "vite/client"
-    ],
->>>>>>> 65766e2723deb16562e3a358512f20abd2aa855d
+ "types": ["node"],
     "paths": {
-      "@/*": [
-        "./client/src/*"
-      ],
-      "@shared/*": [
-        "./shared/*"
-      ]
+      "@/*": ["./client/src/*"],
+      "@shared/*": ["./shared/*"]
     }
   },
   "extends": "expo/tsconfig.base"
