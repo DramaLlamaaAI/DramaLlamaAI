@@ -33,5 +33,4 @@
       "@shared/*": ["./shared/*"]
     }
   },
-  "extends": "expo/tsconfig.base"
-}
+ }
